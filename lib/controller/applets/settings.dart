@@ -9,6 +9,7 @@ import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:get/get.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 import 'package:logging/logging.dart';
 
 final log = Logger('Console:Settings:Controller');
@@ -18,15 +19,6 @@ class SettingsController extends MyController {
   bool polled = false;
   String pinCache = '';
 
-  // for forms
-  MyFormValidator validators = MyFormValidator();
-
-  @override
-  void onInit() {
-    super.onInit();
-    validators.addField('pin', required: true, controller: TextEditingController());
-  }
-
   @override
   void dispose() {
     super.dispose();
@@ -34,15 +26,6 @@ class SettingsController extends MyController {
       ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
       // ignore: empty_catches
     } catch (e) {}
-  }
-
-  void inputPin() async {
-    if (!validators.validateForm(clear: true)) {
-      return;
-    }
-    await refreshData(pinCache = validators.getData()['pin']);
-    validators.resetForm();
-    Navigator.pop(Get.context!);
   }
 
   Future<void> refreshData(String pin) async {
@@ -170,6 +153,25 @@ class SettingsController extends MyController {
       Apdu.assertOK(await FlutterNfcKit.transceive(_resetAppletAPDUs[applet]));
       Prompts.showSnackbar(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
       refreshData(pinCache);
+    });
+  }
+
+  void resetCanokey() {
+    Apdu.process(() async {
+      Apdu.assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
+      Get.context!.loaderOverlay.show();
+      String resp = await FlutterNfcKit.transceive('00500000055245534554');
+      Get.context!.loaderOverlay.hide();
+      if (resp == '9000') {
+        Navigator.pop(Get.context!);
+        Prompts.showSnackbar(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
+      } else if (resp == '6985') {
+        Prompts.showSnackbar(S.of(Get.context!).settingsResetConditionNotSatisfying, ContentThemeColor.danger);
+      } else if (resp == '6982') {
+        Prompts.showSnackbar(S.of(Get.context!).settingsResetPresenceTestFailed, ContentThemeColor.danger);
+      } else {
+        Prompts.showSnackbar('Unknown error', ContentThemeColor.danger);
+      }
     });
   }
 

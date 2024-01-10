@@ -9,7 +9,9 @@ import 'package:canokey_console/helper/theme/theme_customizer.dart';
 import 'package:canokey_console/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:url_strategy/url_strategy.dart';
@@ -40,26 +42,37 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AppNotifier>(
       builder: (_, notifier, ___) {
-        return GetMaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: ThemeCustomizer.instance.theme,
-          navigatorKey: NavigationService.navigatorKey,
-          initialRoute: "/start",
-          locale: ThemeCustomizer.instance.currentLanguage.locale,
-          getPages: getPageRoute(),
-          builder: (_, child) {
-            NavigationService.registerContext(_);
-            return child!;
+        return GlobalLoaderOverlay(
+          useDefaultLoading: false,
+          overlayWidgetBuilder: (_) { //ignored progress for the moment
+            return Center(
+              child: SpinKitRotatingPlain(
+                color: Colors.red,
+                size: 50.0,
+              ),
+            );
           },
-          localizationsDelegates: const [
-            S.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: S.delegate.supportedLocales,
+          child: GetMaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: ThemeCustomizer.instance.theme,
+            navigatorKey: NavigationService.navigatorKey,
+            initialRoute: "/start",
+            locale: ThemeCustomizer.instance.currentLanguage.locale,
+            getPages: getPageRoute(),
+            builder: (_, child) {
+              NavigationService.registerContext(_);
+              return child!;
+            },
+            localizationsDelegates: const [
+              S.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: S.delegate.supportedLocales,
+          ),
         );
       },
     );

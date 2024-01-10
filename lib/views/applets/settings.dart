@@ -122,7 +122,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                       ],
                       // Reset all
                       MyButton(
-                        onPressed: () {},
+                        onPressed: _showResetDialog,
                         elevation: 0,
                         padding: MySpacing.xy(20, 16),
                         backgroundColor: contentTheme.danger,
@@ -375,7 +375,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
 
   MyButton buildResetButton(Applet applet, String resetText) {
     return MyButton(
-      onPressed: () => _showResetAppletDialog(applet),
+      onPressed: () => _showResetDialog(applet: applet),
       elevation: 0,
       padding: MySpacing.xy(20, 16),
       backgroundColor: contentTheme.danger,
@@ -443,7 +443,10 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
     ));
   }
 
-  void _showResetAppletDialog(Applet applet) {
+  void _showResetDialog({Applet? applet}) {
+    String title = applet == null ? S.of(context).settingsResetAll : S.of(context).reset;
+    String prompt = applet == null ? S.of(context).settingsResetAllPrompt : S.of(context).settingsResetApplet(applet.name);
+
     Get.dialog(Dialog(
       child: SizedBox(
         width: 400,
@@ -453,12 +456,12 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
           children: [
             Padding(
               padding: MySpacing.all(16),
-              child: MyText.labelLarge(S.of(context).reset),
+              child: MyText.labelLarge(title),
             ),
             Divider(height: 0, thickness: 1),
             Padding(
               padding: MySpacing.all(16),
-              child: MyText.labelLarge(S.of(context).settingsResetApplet(applet.name)),
+              child: MyText.labelLarge(prompt),
             ),
             Divider(height: 0, thickness: 1),
             Padding(
@@ -475,7 +478,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                   ),
                   MySpacing.width(16),
                   MyButton.rounded(
-                    onPressed: () => controller.resetApplet(applet),
+                    onPressed: () => applet == null ? controller.resetCanokey() : controller.resetApplet(applet),
                     elevation: 0,
                     padding: MySpacing.xy(20, 16),
                     backgroundColor: contentTheme.danger,
