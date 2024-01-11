@@ -51,7 +51,11 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
           if (controller.polled) {
             controller.refreshData(controller.pinCache);
           } else {
-            Prompts.showInputPinDialog(S.of(context).settingsInputPin, "PIN", S.of(context).settingsInputPinPrompt).then((value) {
+            Prompts.showInputPinDialog(
+              title: S.of(context).settingsInputPin,
+              label: "PIN",
+              prompt: S.of(context).settingsInputPinPrompt,
+            ).then((value) {
               controller.refreshData(value);
             }).onError((error, stackTrace) => null); // User canceled
           }
@@ -231,91 +235,93 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
 
   Widget _buildActionCard(BuildContext context) {
     return MyCard(
-          clipBehavior: Clip.antiAliasWithSaveLayer,
-          shadow: MyShadow(elevation: 0.5, position: MyShadowPosition.bottom),
-          paddingAll: 0,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                color: contentTheme.primary.withOpacity(0.08),
-                padding: MySpacing.xy(16, 12),
-                child: Row(
-                  children: [
-                    Icon(LucideIcons.arrowRightCircle, color: contentTheme.primary, size: 16),
-                    MySpacing.width(12),
-                    MyText.titleMedium(S.of(context).actions, fontWeight: 600, color: contentTheme.primary)
-                  ],
-                ),
-              ),
-              Padding(
-                padding: MySpacing.only(top: 12, left: 16, bottom: 12),
-                child: Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    if (controller.polled) ...[
-                      // Change PIN
-                      MyButton(
-                        onPressed: () {
-                          Prompts.showInputPinDialog(S.of(context).changePin, 'PIN', S.of(context).changePinPrompt(6, 64),
-                                  validators: [MyLengthValidator(min: 6, max: 64)])
-                              .then((value) => controller.changePin(value))
-                              .onError((error, stackTrace) => null); // Canceled
-                        },
-                        elevation: 0,
-                        padding: MySpacing.xy(20, 16),
-                        backgroundColor: contentTheme.primary,
-                        borderRadiusAll: AppStyle.buttonRadius.medium,
-                        child: MyText.bodySmall(S.of(context).changePin, color: contentTheme.onPrimary),
-                      ),
-                      // Change SM2 settings for WebAuthn
-                      if (controller.key.webAuthnSm2Config != null) ...{
-                        MyButton(
-                          onPressed: _showWebAuthnSm2ConfigDialog,
-                          elevation: 0,
-                          padding: MySpacing.xy(20, 16),
-                          backgroundColor: contentTheme.primary,
-                          borderRadiusAll: AppStyle.buttonRadius.medium,
-                          child: MyText.bodySmall(S.of(context).settingsWebAuthnSm2Support, color: contentTheme.onPrimary),
-                        ),
-                      },
-                      // Reset applets
-                      _buildResetButton(Applet.OATH, S.of(context).settingsResetOATH),
-                      _buildResetButton(Applet.PIV, S.of(context).settingsResetPIV),
-                      _buildResetButton(Applet.OpenPGP, S.of(context).settingsResetOpenPGP),
-                      _buildResetButton(Applet.NDEF, S.of(context).settingsResetNDEF),
-                      if (controller.key.functionSet().contains(Func.resetWebAuthn)) ...{
-                        _buildResetButton(Applet.WebAuthn, S.of(context).settingsResetWebAuthn),
-                      },
-                      if (controller.key.functionSet().contains(Func.resetPass)) ...{
-                        _buildResetButton(Applet.PASS, S.of(context).settingsResetPass),
-                      },
-                      if (controller.key.model == CanoKey.pigeon)
-                        MyButton(
-                          onPressed: controller.fixNfc,
-                          elevation: 0,
-                          padding: MySpacing.xy(20, 16),
-                          backgroundColor: contentTheme.danger,
-                          borderRadiusAll: AppStyle.buttonRadius.medium,
-                          child: MyText.bodySmall(S.of(context).settingsFixNFC, color: contentTheme.onDanger),
-                        ),
-                    ],
-                    // Reset all
+      clipBehavior: Clip.antiAliasWithSaveLayer,
+      shadow: MyShadow(elevation: 0.5, position: MyShadowPosition.bottom),
+      paddingAll: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            color: contentTheme.primary.withOpacity(0.08),
+            padding: MySpacing.xy(16, 12),
+            child: Row(
+              children: [
+                Icon(LucideIcons.arrowRightCircle, color: contentTheme.primary, size: 16),
+                MySpacing.width(12),
+                MyText.titleMedium(S.of(context).actions, fontWeight: 600, color: contentTheme.primary)
+              ],
+            ),
+          ),
+          Padding(
+            padding: MySpacing.only(top: 12, left: 16, bottom: 12),
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                if (controller.polled) ...[
+                  // Change PIN
+                  MyButton(
+                    onPressed: () {
+                      Prompts.showInputPinDialog(
+                        title: S.of(context).changePin,
+                        label: 'PIN',
+                        prompt: S.of(context).changePinPrompt(6, 64),
+                        validators: [MyLengthValidator(min: 6, max: 64)],
+                      ).then((value) => controller.changePin(value)).onError((error, stackTrace) => null); // Canceled
+                    },
+                    elevation: 0,
+                    padding: MySpacing.xy(20, 16),
+                    backgroundColor: contentTheme.primary,
+                    borderRadiusAll: AppStyle.buttonRadius.medium,
+                    child: MyText.bodySmall(S.of(context).changePin, color: contentTheme.onPrimary),
+                  ),
+                  // Change SM2 settings for WebAuthn
+                  if (controller.key.webAuthnSm2Config != null) ...{
                     MyButton(
-                      onPressed: _showResetDialog,
+                      onPressed: _showWebAuthnSm2ConfigDialog,
+                      elevation: 0,
+                      padding: MySpacing.xy(20, 16),
+                      backgroundColor: contentTheme.primary,
+                      borderRadiusAll: AppStyle.buttonRadius.medium,
+                      child: MyText.bodySmall(S.of(context).settingsWebAuthnSm2Support, color: contentTheme.onPrimary),
+                    ),
+                  },
+                  // Reset applets
+                  _buildResetButton(Applet.OATH, S.of(context).settingsResetOATH),
+                  _buildResetButton(Applet.PIV, S.of(context).settingsResetPIV),
+                  _buildResetButton(Applet.OpenPGP, S.of(context).settingsResetOpenPGP),
+                  _buildResetButton(Applet.NDEF, S.of(context).settingsResetNDEF),
+                  if (controller.key.functionSet().contains(Func.resetWebAuthn)) ...{
+                    _buildResetButton(Applet.WebAuthn, S.of(context).settingsResetWebAuthn),
+                  },
+                  if (controller.key.functionSet().contains(Func.resetPass)) ...{
+                    _buildResetButton(Applet.PASS, S.of(context).settingsResetPass),
+                  },
+                  if (controller.key.model == CanoKey.pigeon)
+                    MyButton(
+                      onPressed: controller.fixNfc,
                       elevation: 0,
                       padding: MySpacing.xy(20, 16),
                       backgroundColor: contentTheme.danger,
                       borderRadiusAll: AppStyle.buttonRadius.medium,
-                      child: MyText.bodySmall(S.of(context).settingsResetAll, color: contentTheme.onDanger),
+                      child: MyText.bodySmall(S.of(context).settingsFixNFC, color: contentTheme.onDanger),
                     ),
-                  ],
+                ],
+                // Reset all
+                MyButton(
+                  onPressed: _showResetDialog,
+                  elevation: 0,
+                  padding: MySpacing.xy(20, 16),
+                  backgroundColor: contentTheme.danger,
+                  borderRadiusAll: AppStyle.buttonRadius.medium,
+                  child: MyText.bodySmall(S.of(context).settingsResetAll, color: contentTheme.onDanger),
                 ),
-              )
-            ],
-          ),
-        );
+              ],
+            ),
+          )
+        ],
+      ),
+    );
   }
 
   Widget _buildOtherSettingsCard(BuildContext context) {
@@ -342,15 +348,15 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfo(LucideIcons.languages, S.of(context).settingsLanguage, ThemeCustomizer.instance.currentLanguage.languageName,
-                        () => _showLanguageDialog()),
+                _buildInfo(
+                    LucideIcons.languages, S.of(context).settingsLanguage, ThemeCustomizer.instance.currentLanguage.languageName, () => _showLanguageDialog()),
                 _buildInfo(
                     LucideIcons.languages,
                     S.of(context).settingsLanguage,
                     'Dark',
-                        () => ThemeCustomizer.setTheme(
-                      ThemeCustomizer.instance.theme == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
-                    )),
+                    () => ThemeCustomizer.setTheme(
+                          ThemeCustomizer.instance.theme == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
+                        )),
               ],
             ),
           ),

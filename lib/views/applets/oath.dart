@@ -1,8 +1,8 @@
 import 'package:canokey_console/controller/applets/oath.dart';
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/my_shadow.dart';
+import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/my_button.dart';
 import 'package:canokey_console/helper/widgets/my_card.dart';
@@ -36,7 +36,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
   @override
   void initState() {
     super.initState();
-    controller = Get.put(OathController(_showInputCodeDialog));
+    controller = Get.put(OathController());
   }
 
   @override
@@ -59,7 +59,14 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                 ),
                 MySpacing.width(12),
                 InkWell(
-                  onTap: _showSetCodeDialog,
+                  onTap: () {
+                    Prompts.showInputPinDialog(
+                      title: S.of(context).oathSetCode,
+                      label: S.of(context).oathCode,
+                      prompt: S.of(context).oathNewCodePrompt,
+                      required: false,
+                    ).then((value) => controller.setCode(value)).onError((error, stackTrace) => null); // Canceled
+                  },
                   child: Icon(LucideIcons.lock, size: 18, color: topBarTheme.onBackground),
                 ),
                 MySpacing.width(12),
@@ -77,7 +84,8 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 MySpacing.height(MediaQuery.of(context).size.height / 2 - 120),
-                Center(child: Padding(
+                Center(
+                    child: Padding(
                   padding: MySpacing.horizontal(36),
                   child: MyText.bodyMedium(S.of(context).pollCanoKey, fontSize: 24),
                 )),
@@ -420,150 +428,6 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                     padding: MySpacing.xy(20, 16),
                     backgroundColor: contentTheme.primary,
                     child: MyText.labelMedium(S.of(context).save, color: contentTheme.onPrimary),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    ));
-  }
-
-  void _showInputCodeDialog() {
-    Get.dialog(Dialog(
-      child: SizedBox(
-        width: 400,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: MySpacing.all(16),
-              child: MyText.labelLarge(S.of(context).oathInputCode),
-            ),
-            Divider(height: 0, thickness: 1),
-            Padding(
-                padding: MySpacing.all(16),
-                child: Form(
-                    key: controller.validators.formKey,
-                    child: Column(
-                      children: [
-                        MyText.bodyMedium(S.of(context).oathInputCodePrompt),
-                        MySpacing.height(16),
-                        TextFormField(
-                          autofocus: true,
-                          onFieldSubmitted: (value) {
-                            controller.inputCode();
-                          },
-                          obscureText: true,
-                          controller: controller.validators.getController('code'),
-                          validator: controller.validators.getValidator('code'),
-                          decoration: InputDecoration(
-                            labelText: S.of(context).oathCode,
-                            border: outlineInputBorder,
-                            floatingLabelBehavior: FloatingLabelBehavior.auto,
-                          ),
-                        ),
-                      ],
-                    ))),
-            Divider(height: 0, thickness: 1),
-            Padding(
-              padding: MySpacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  MyButton.rounded(
-                    onPressed: () {
-                      controller.resetForms();
-                      Navigator.pop(context);
-                    },
-                    elevation: 0,
-                    padding: MySpacing.xy(20, 16),
-                    backgroundColor: contentTheme.secondary,
-                    child: MyText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
-                  ),
-                  MySpacing.width(16),
-                  MyButton.rounded(
-                    onPressed: controller.inputCode,
-                    elevation: 0,
-                    padding: MySpacing.xy(20, 16),
-                    backgroundColor: contentTheme.primary,
-                    child: MyText.labelMedium(S.of(context).confirm, color: contentTheme.onPrimary),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    ));
-  }
-
-  void _showSetCodeDialog() {
-    RxBool showPassword = false.obs;
-    Get.dialog(Dialog(
-      child: SizedBox(
-        width: 400,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: MySpacing.all(16),
-              child: MyText.labelLarge(S.of(context).oathSetCode),
-            ),
-            Divider(height: 0, thickness: 1),
-            Padding(
-                padding: MySpacing.all(16),
-                child: Form(
-                    key: controller.validators.formKey,
-                    child: Column(
-                      children: [
-                        MyText.bodyMedium(S.of(context).oathNewCodePrompt),
-                        MySpacing.height(16),
-                        Obx(() => TextFormField(
-                              autofocus: true,
-                              obscureText: !showPassword.value,
-                              controller: controller.validators.getController('code'),
-                              validator: controller.validators.getValidator('code'),
-                              decoration: InputDecoration(
-                                labelText: S.of(context).oathCode,
-                                border: outlineInputBorder,
-                                floatingLabelBehavior: FloatingLabelBehavior.auto,
-                                suffixIcon: IconButton(
-                                  onPressed: () {
-                                    showPassword.value = !showPassword.value;
-                                  },
-                                  icon: Icon(showPassword.value ? Icons.visibility_off_outlined : Icons.visibility_outlined),
-                                ),
-                              ),
-                            )),
-                      ],
-                    ))),
-            Divider(height: 0, thickness: 1),
-            Padding(
-              padding: MySpacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  MyButton.rounded(
-                    onPressed: () {
-                      controller.resetForms();
-                      Navigator.pop(context);
-                    },
-                    elevation: 0,
-                    padding: MySpacing.xy(20, 16),
-                    backgroundColor: contentTheme.secondary,
-                    child: MyText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
-                  ),
-                  MySpacing.width(16),
-                  MyButton.rounded(
-                    onPressed: controller.setCode,
-                    elevation: 0,
-                    padding: MySpacing.xy(20, 16),
-                    backgroundColor: contentTheme.primary,
-                    child: MyText.labelMedium(S.of(context).confirm, color: contentTheme.onPrimary),
                   ),
                 ],
               ),

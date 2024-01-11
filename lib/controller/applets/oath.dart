@@ -4,10 +4,10 @@ import 'dart:io';
 import 'package:base32/base32.dart';
 import 'package:canokey_console/controller/my_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/helper/utils/apdu.dart';
+import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/widgets/my_form_validator.dart';
 import 'package:canokey_console/helper/widgets/my_validators.dart';
 import 'package:canokey_console/models/oath.dart';
@@ -23,9 +23,6 @@ import 'package:timer_controller/timer_controller.dart';
 final log = Logger('Console:OATH:Controller');
 
 class OathController extends MyController {
-  OathController(this.showInputCodeDialog);
-
-  Function showInputCodeDialog;
   List<OathItem> oathItems = [];
   OathVersion version = OathVersion.v1;
   bool polled = false;
@@ -97,7 +94,14 @@ class OathController extends MyController {
           if (info.containsKey(0x74)) {
             if (codeCache.isEmpty) {
               // without a pin
-              showInputCodeDialog();
+              Prompts.showInputPinDialog(
+                title: S.of(Get.context!).oathInputCode,
+                label: S.of(Get.context!).oathCode,
+                prompt: S.of(Get.context!).oathInputCodePrompt,
+              ).then((value) {
+                codeCache = value;
+                refreshData();
+              }).onError((error, stackTrace) => null); // Canceled
               return;
             } else {
               final hmacSha1 = Hmac(Sha1());
@@ -190,19 +194,7 @@ class OathController extends MyController {
     });
   }
 
-  void inputCode() {
-    if (!validators.validateForm(clear: true)) {
-      return;
-    }
-    codeCache = validators.getData()['code'];
-    resetForms();
-    Navigator.pop(Get.context!);
-    refreshData();
-  }
-
-  void setCode() {
-    String code = validators.getData()['code'];
-
+  void setCode(String newCode) {
     Apdu.process(() async {
       String resp = await _transceive('00A4040007A0000005272101');
       Apdu.assertOK(resp);
@@ -211,21 +203,20 @@ class OathController extends MyController {
       } else {
         Map info = TLV.parse(hex.decode(Apdu.dropSW(resp)));
         if (hex.encode(info[0x79]) == '050505') {
-          if (code.isEmpty) {
+          if (newCode.isEmpty) {
             // clear code
             resp = await _transceive('00030000027300');
           } else {
             final hmacSha1 = Hmac(Sha1());
             final pbkdf2 = Pbkdf2(macAlgorithm: hmacSha1, iterations: 1000, bits: 128);
-            final key = await pbkdf2.deriveKey(secretKey: SecretKey(utf8.encode(code)), nonce: info[0x71]);
+            final key = await pbkdf2.deriveKey(secretKey: SecretKey(utf8.encode(newCode)), nonce: info[0x71]);
             final keyString = hex.encode(await key.extractBytes());
             final mac = await hmacSha1.calculateMac(List.of([0, 0, 0, 0]), secretKey: key);
             resp = await _transceive('000300002F731101${keyString}7404000000007514${hex.encode(mac.bytes)}');
           }
           Apdu.assertOK(resp);
-          codeCache = code;
+          codeCache = newCode;
           Prompts.showSnackbar(S.of(Get.context!).oathCodeChanged, ContentThemeColor.success);
-          Navigator.pop(Get.context!);
         }
       }
     });

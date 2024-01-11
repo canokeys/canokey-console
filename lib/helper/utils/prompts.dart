@@ -44,11 +44,17 @@ class Prompts {
     ScaffoldMessenger.of(Get.context!).showSnackBar(snackBar);
   }
 
-  static Future<String> showInputPinDialog(String title, String label, String prompt, {List<MyFieldValidatorRule> validators = const []}) {
+  static Future<String> showInputPinDialog({
+    required String title,
+    required String label,
+    required String prompt,
+    bool required = true,
+    List<MyFieldValidatorRule> validators = const [],
+  }) {
     RxBool showPassword = false.obs;
     Completer<String> c = new Completer<String>();
     MyFormValidator validator = MyFormValidator();
-    validator.addField('pin', required: true, controller: TextEditingController(), validators: validators);
+    validator.addField('pin', required: required, controller: TextEditingController(), validators: validators);
 
     onSubmit() {
       if (validator.validateForm()) {
