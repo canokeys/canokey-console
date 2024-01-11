@@ -2,15 +2,45 @@ import 'package:logging/logging.dart';
 
 final log = Logger('Console:CanoKey:Model');
 
-enum Applet { OpenPGP, PIV, WebAuthn, OATH, NDEF, PASS }
+enum Applet {
+  OpenPGP,
+  PIV,
+  WebAuthn,
+  OATH,
+  NDEF,
+  PASS,
+}
 
-enum Func { led, hotp, ndefEnabled, ndefReadonly, webusbLandingPage, keyboardWithReturn, sigTouch, decTouch, autTouch, touchCacheTime, nfcSwitch, resetWebAuthn, resetPass }
+enum Func {
+  led,
+  hotp,
+  ndefEnabled,
+  ndefReadonly,
+  webusbLandingPage,
+  keyboardWithReturn,
+  sigTouch,
+  decTouch,
+  autTouch,
+  touchCacheTime,
+  nfcSwitch,
+  resetWebAuthn,
+  resetPass,
+  webAuthnSm2Support,
+}
 
 enum FunctionSetVersion {
   v1, // led, hotp, ndef readonly, sig/dec/aut touch, touch cache time
   v2, // led, hotp, ndef enabled/readonly, webusb landing page
   v3, // led, hotp, ndef enabled/readonly, webusb landing page, hotp return switch
   v4, // led, ndef enabled/readonly, webusb landing page, nfc switch
+}
+
+class WebAuthnSm2Config {
+  final bool enabled; // encoding as a byte, 0x01: enabled, 0x00: disabled
+  final int curveId; // encoding as four bytes as big endian signed int
+  final int algoId; // encoding as four bytes as big endian signed int
+
+  WebAuthnSm2Config({required this.enabled, required this.curveId, required this.algoId});
 }
 
 class CanoKey {
@@ -30,6 +60,7 @@ class CanoKey {
   final bool autTouch;
   final int touchCacheTime;
   final bool nfcEnabled;
+  WebAuthnSm2Config? webAuthnSm2Config;
 
   CanoKey(
       {required this.model,
@@ -47,7 +78,8 @@ class CanoKey {
       required this.decTouch,
       required this.autTouch,
       required this.touchCacheTime,
-      required this.nfcEnabled});
+      required this.nfcEnabled,
+      this.webAuthnSm2Config});
 
   Set<Func> functionSet() {
     switch (functionSetVersion) {
@@ -58,7 +90,16 @@ class CanoKey {
       case FunctionSetVersion.v3:
         return {Func.led, Func.hotp, Func.webusbLandingPage, Func.ndefEnabled, Func.ndefReadonly, Func.keyboardWithReturn};
       case FunctionSetVersion.v4:
-        return {Func.led, Func.webusbLandingPage, Func.ndefEnabled, Func.ndefReadonly, Func.nfcSwitch, Func.resetWebAuthn, Func.resetPass};
+        return {
+          Func.led,
+          Func.webusbLandingPage,
+          Func.ndefEnabled,
+          Func.ndefReadonly,
+          Func.nfcSwitch,
+          Func.resetWebAuthn,
+          Func.resetPass,
+          Func.webAuthnSm2Support
+        };
     }
   }
 

@@ -420,6 +420,16 @@ class S {
     );
   }
 
+  /// `Enabled`
+  String get enabled {
+    return Intl.message(
+      'Enabled',
+      name: 'enabled',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Card Info`
   String get openpgpCardInfo {
     return Intl.message(
@@ -915,6 +925,16 @@ class S {
     return Intl.message(
       'The output of OTP value comes with enter',
       name: 'settingsKeyboardWithReturn',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `WebAuthn SM2`
+  String get settingsWebAuthnSm2Support {
+    return Intl.message(
+      'WebAuthn SM2',
+      name: 'settingsWebAuthnSm2Support',
       desc: '',
       args: [],
     );

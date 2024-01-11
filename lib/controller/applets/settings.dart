@@ -1,11 +1,11 @@
 import 'package:canokey_console/controller/my_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/apdu.dart';
-import 'package:canokey_console/helper/widgets/my_form_validator.dart';
+import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:convert/convert.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:get/get.dart';
@@ -118,6 +118,17 @@ class SettingsController extends MyController {
           autTouch: autTouch,
           touchCacheTime: cacheTime,
           nfcEnabled: nfcEnabled);
+
+      if (key.functionSet().contains(Func.webAuthnSm2Support)) {
+        resp = await FlutterNfcKit.transceive('0011000000');
+        Apdu.assertOK(resp);
+        key.webAuthnSm2Config = WebAuthnSm2Config(
+          enabled: resp.substring(0, 2) == '01',
+          curveId: Int32.parseHex(resp.substring(2, 10)).toInt(),
+          algoId: Int32.parseHex(resp.substring(10, 18)).toInt(),
+        );
+      }
+
       polled = true;
 
       update();
@@ -136,7 +147,7 @@ class SettingsController extends MyController {
   }
 
   void changePin(String newPin) {
-    Apdu.process( () async {
+    Apdu.process(() async {
       Apdu.assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
       if (!await _verifyPin(pinCache)) return;
       Apdu.assertOK(await FlutterNfcKit.transceive('00210000' + newPin.length.toRadixString(16).padLeft(2, '0') + hex.encode(newPin.codeUnits)));
@@ -162,8 +173,8 @@ class SettingsController extends MyController {
       Get.context!.loaderOverlay.show();
       String resp = await FlutterNfcKit.transceive('00500000055245534554');
       Get.context!.loaderOverlay.hide();
+      Navigator.pop(Get.context!);
       if (resp == '9000') {
-        Navigator.pop(Get.context!);
         Prompts.showSnackbar(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
       } else if (resp == '6985') {
         Prompts.showSnackbar(S.of(Get.context!).settingsResetConditionNotSatisfying, ContentThemeColor.danger);
@@ -175,8 +186,30 @@ class SettingsController extends MyController {
     });
   }
 
+  void fixNfc() {
+    Apdu.process(() async {
+      Apdu.assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
+      if (!await _verifyPin(pinCache)) return;
+      Apdu.assertOK(await FlutterNfcKit.transceive('00FF01000603A044000420'));
+      Apdu.assertOK(await FlutterNfcKit.transceive('00FF01000903B005720300B39900'));
+      Prompts.showSnackbar(S.of(Get.context!).settingsFixNFCSuccess, ContentThemeColor.success);
+    });
+  }
+
+  void changeWebAuthnSm2Config(bool enabled, int curveId, int algoId) {
+    String cmdData = (enabled ? '01' : '00') + hex.encode(Int32(curveId).toBytes().reversed.toList()) + hex.encode(Int32(algoId).toBytes().reversed.toList());
+    Apdu.process(() async {
+      Apdu.assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
+      if (!await _verifyPin(pinCache)) return;
+      Navigator.pop(Get.context!);
+      Apdu.assertOK(await FlutterNfcKit.transceive('0012000009$cmdData'));
+      Prompts.showSnackbar(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
+      refreshData(pinCache);
+    });
+  }
+
   Future<bool> _verifyPin(String pin) async {
-    String resp = await FlutterNfcKit.transceive('00200000' + pin.length.toRadixString(16).padLeft(2, '0') + hex.encode(pin.codeUnits));
+    String resp = await FlutterNfcKit.transceive('00200000${pin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(pin.codeUnits)}');
     if (Apdu.isOK(resp)) return true;
     Prompts.promptPinFailureResult(resp);
     return false;

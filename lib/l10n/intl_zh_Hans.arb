@@ -37,6 +37,7 @@
   "reset": "重置",
   "connectFirst": "请先连接 CanoKey",
   "copied": "已复制",
+  "enabled": "启用",
 
   "openpgpCardInfo": "卡片信息",
   "openpgpVersion": "版本",
@@ -89,6 +90,7 @@
   "settingsFixNFC": "修复 NFC",
   "settingsFixNFCSuccess": "修复 NFC 成功",
   "settingsKeyboardWithReturn": "OTP 输出后附加回车",
+  "settingsWebAuthnSm2Support": "WebAuthn SM2",
 
   "oathDelete": "您正在删除{name}，删除该项目后无法恢复！请确认相关服务的二步验证已经关闭。",
   "oathCopy": "复制",

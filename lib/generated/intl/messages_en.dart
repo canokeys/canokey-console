@@ -51,6 +51,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Please connect your CanoKey first."),
         "copied": MessageLookupByLibrary.simpleMessage("Copied"),
         "delete": MessageLookupByLibrary.simpleMessage("Delete"),
+        "enabled": MessageLookupByLibrary.simpleMessage("Enabled"),
         "home": MessageLookupByLibrary.simpleMessage("Home"),
         "homePress": MessageLookupByLibrary.simpleMessage("Press"),
         "homeScreenTitle":
@@ -194,6 +195,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsResetWebAuthn":
             MessageLookupByLibrary.simpleMessage("Reset WebAuthn"),
         "settingsSN": MessageLookupByLibrary.simpleMessage("Serial Number"),
+        "settingsWebAuthnSm2Support":
+            MessageLookupByLibrary.simpleMessage("WebAuthn SM2"),
         "settingsWebUSB":
             MessageLookupByLibrary.simpleMessage("WebUSB prompt when plug-in"),
         "successfullyChanged":

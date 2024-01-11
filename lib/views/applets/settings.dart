@@ -11,6 +11,7 @@ import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/my_button.dart';
 import 'package:canokey_console/helper/widgets/my_card.dart';
 import 'package:canokey_console/helper/widgets/my_container.dart';
+import 'package:canokey_console/helper/widgets/my_form_validator.dart';
 import 'package:canokey_console/helper/widgets/my_spacing.dart';
 import 'package:canokey_console/helper/widgets/my_text.dart';
 import 'package:canokey_console/helper/widgets/my_validators.dart';
@@ -95,10 +96,21 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                           },
                           elevation: 0,
                           padding: MySpacing.xy(20, 16),
-                          backgroundColor: contentTheme.secondary,
+                          backgroundColor: contentTheme.primary,
                           borderRadiusAll: AppStyle.buttonRadius.medium,
-                          child: MyText.bodySmall(S.of(context).changePin, color: contentTheme.onSecondary),
+                          child: MyText.bodySmall(S.of(context).changePin, color: contentTheme.onPrimary),
                         ),
+                        // Change SM2 settings for WebAuthn
+                        if (controller.key.webAuthnSm2Config != null) ...{
+                          MyButton(
+                            onPressed: _showWebAuthnSm2ConfigDialog,
+                            elevation: 0,
+                            padding: MySpacing.xy(20, 16),
+                            backgroundColor: contentTheme.primary,
+                            borderRadiusAll: AppStyle.buttonRadius.medium,
+                            child: MyText.bodySmall(S.of(context).settingsWebAuthnSm2Support, color: contentTheme.onPrimary),
+                          ),
+                        },
                         // Reset applets
                         buildResetButton(Applet.OATH, S.of(context).settingsResetOATH),
                         buildResetButton(Applet.PIV, S.of(context).settingsResetPIV),
@@ -112,7 +124,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                         },
                         if (controller.key.model == CanoKey.pigeon)
                           MyButton(
-                            onPressed: () {},
+                            onPressed: controller.fixNfc,
                             elevation: 0,
                             padding: MySpacing.xy(20, 16),
                             backgroundColor: contentTheme.danger,
@@ -321,6 +333,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                                       () => _showChangeSwitchDialog('NFC', Func.nfcSwitch, controller.key.nfcEnabled)),
                                   MySpacing.height(16),
                                 },
+                                // TODO: openpgp related items
                               ],
                             ),
                           ),
@@ -538,9 +551,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   MyButton.rounded(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                     elevation: 0,
                     padding: MySpacing.xy(20, 16),
                     backgroundColor: contentTheme.secondary,
@@ -561,6 +572,104 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                     padding: MySpacing.xy(20, 16),
                     backgroundColor: contentTheme.primary,
                     child: MyText.labelMedium(S.of(context).confirm, color: contentTheme.onPrimary),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
+  }
+
+  void _showWebAuthnSm2ConfigDialog() {
+    RxBool enabled = controller.key.webAuthnSm2Config!.enabled.obs;
+
+    MyFormValidator validator = MyFormValidator();
+    validator.addField('curveId', controller: TextEditingController(), validators: [MyIntValidator(min: -65536, max: 65535)]);
+    validator.addField('algoId', controller: TextEditingController(), validators: [MyIntValidator(min: -65536, max: 65535)]);
+    validator.getController('curveId')!.text = controller.key.webAuthnSm2Config!.curveId.toString();
+    validator.getController('algoId')!.text = controller.key.webAuthnSm2Config!.algoId.toString();
+
+    Get.dialog(Dialog(
+      child: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: MySpacing.all(16),
+              child: MyText.labelLarge(S.of(context).settingsWebAuthnSm2Support),
+            ),
+            Divider(height: 0, thickness: 1),
+            Padding(
+                padding: MySpacing.all(16),
+                child: Form(
+                    key: validator.formKey,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Obx(() => Checkbox(
+                                  onChanged: (value) => enabled.value = value!,
+                                  value: enabled.value,
+                                  activeColor: contentTheme.primary,
+                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: getCompactDensity,
+                                )),
+                            MySpacing.width(16),
+                            MyText.bodyMedium(S.of(context).enabled),
+                          ],
+                        ),
+                        MySpacing.height(16),
+                        TextFormField(
+                          autofocus: true,
+                          controller: validator.getController('curveId'),
+                          validator: validator.getValidator('curveId'),
+                          decoration: InputDecoration(
+                            labelText: 'Curve ID',
+                            border: outlineInputBorder,
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          ),
+                        ),
+                        MySpacing.height(16),
+                        TextFormField(
+                          controller: validator.getController('algoId'),
+                          validator: validator.getValidator('algoId'),
+                          decoration: InputDecoration(
+                            labelText: 'Algorithm ID',
+                            border: outlineInputBorder,
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          ),
+                        ),
+                      ],
+                    ))),
+            Divider(height: 0, thickness: 1),
+            Padding(
+              padding: MySpacing.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  MyButton.rounded(
+                    onPressed: () => Navigator.pop(context),
+                    elevation: 0,
+                    padding: MySpacing.xy(20, 16),
+                    backgroundColor: contentTheme.secondary,
+                    child: MyText.labelMedium(S.of(context).close, color: contentTheme.onSecondary),
+                  ),
+                  MySpacing.width(16),
+                  MyButton.rounded(
+                    onPressed: () {
+                      if (validator.formKey.currentState!.validate()) {
+                        controller.changeWebAuthnSm2Config(
+                            enabled.value, int.parse(validator.getController('curveId')!.text), int.parse(validator.getController('algoId')!.text));
+                      }
+                    },
+                    elevation: 0,
+                    padding: MySpacing.xy(20, 16),
+                    backgroundColor: contentTheme.primary,
+                    child: MyText.labelMedium(S.of(context).save, color: contentTheme.onPrimary),
                   ),
                 ],
               ),

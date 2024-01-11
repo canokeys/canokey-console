@@ -46,6 +46,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "connectFirst": MessageLookupByLibrary.simpleMessage("请先连接 CanoKey"),
         "copied": MessageLookupByLibrary.simpleMessage("已复制"),
         "delete": MessageLookupByLibrary.simpleMessage("删除"),
+        "enabled": MessageLookupByLibrary.simpleMessage("启用"),
         "home": MessageLookupByLibrary.simpleMessage("首页"),
         "homePress": MessageLookupByLibrary.simpleMessage("点击"),
         "homeScreenTitle":
@@ -164,6 +165,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsResetWebAuthn":
             MessageLookupByLibrary.simpleMessage("重置 WebAuthn"),
         "settingsSN": MessageLookupByLibrary.simpleMessage("序号"),
+        "settingsWebAuthnSm2Support":
+            MessageLookupByLibrary.simpleMessage("WebAuthn SM2"),
         "settingsWebUSB": MessageLookupByLibrary.simpleMessage("插入时 WebUSB 提示"),
         "successfullyChanged": MessageLookupByLibrary.simpleMessage("修改成功"),
         "warning": MessageLookupByLibrary.simpleMessage("警告")
