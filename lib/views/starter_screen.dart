@@ -31,7 +31,7 @@ class _StarterScreenState extends State<StarterScreen> with SingleTickerProvider
         title: S.of(context).homeScreenTitle,
         child: GetBuilder<StarterController>(
             init: controller,
-            builder: (controller) {
+            builder: (_) {
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,

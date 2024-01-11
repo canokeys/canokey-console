@@ -3,7 +3,6 @@
   "settings": "Settings",
   "other": "Other",
   "about": "About",
-
   "homeScreenTitle": "CanoKey Console",
   "homePress": "Press",
   "homeSelect": "to select an applet",
@@ -38,7 +37,6 @@
   "connectFirst": "Please connect your CanoKey first.",
   "copied": "Copied",
   "enabled": "Enabled",
-
   "openpgpCardInfo": "Card Info",
   "openpgpVersion": "Version",
   "openpgpManufacturer": "Manufacturer",
@@ -60,7 +58,6 @@
   "openpgpUifCacheTimeChanged": "Touch cache time has been successfully changed.",
   "openpgpChangeInteraction": "Change {keyType} Key's Touch Policy",
   "openpgpKeyNone": "[none]",
-
   "settingsInfo": "CanoKey Info",
   "settingsOtherSettings": "Other Settings",
   "settingsLanguage": "Language",
@@ -91,7 +88,6 @@
   "settingsFixNFCSuccess": "NFC is successfully fixed",
   "settingsKeyboardWithReturn": "The output of OTP value comes with enter",
   "settingsWebAuthnSm2Support": "WebAuthn SM2",
-
   "oathDelete": "This action will delete the account {name} from your CanoKey. Make sure 2FA has been disabled on the web service.",
   "oathCopy": "Copy to Clipboard",
   "oathSetDefault": "Set as Default",
@@ -119,6 +115,15 @@
   "oathCodeChanged": "Passphrase Changed",
   "oathNewCodePrompt": "Enter a new passphrase. Leave it empty to disable current passphrase.",
   "oathNoCredential": "No credential",
-
+  "passInputPinPrompt": "Please input your Setting PIN. The default value is 123456.",
+  "passSlotConfigTitle": "Slot Configuration",
+  "passSlotConfigPrompt": "Please select a slot type to configure. If you want to use HOTP, set it in the HOTP applet.",
+  "passSlotShort": "Slot Short",
+  "passSlotLong": "Slot Long",
+  "passStatus": "Status",
+  "passSlotOff": "Off",
+  "passSlotHotp": "HOTP",
+  "passSlotStatic": "Static Password",
+  "passSlotWithEnter": "The output comes with Enter",
   "pivChangePUK": "Change PUK"
 }

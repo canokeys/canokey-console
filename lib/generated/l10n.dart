@@ -1210,6 +1210,106 @@ class S {
     );
   }
 
+  /// `Please input your Setting PIN. The default value is 123456.`
+  String get passInputPinPrompt {
+    return Intl.message(
+      'Please input your Setting PIN. The default value is 123456.',
+      name: 'passInputPinPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Slot Configuration`
+  String get passSlotConfigTitle {
+    return Intl.message(
+      'Slot Configuration',
+      name: 'passSlotConfigTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please select a slot type to configure. If you want to use HOTP, set it in the HOTP applet.`
+  String get passSlotConfigPrompt {
+    return Intl.message(
+      'Please select a slot type to configure. If you want to use HOTP, set it in the HOTP applet.',
+      name: 'passSlotConfigPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Slot Short`
+  String get passSlotShort {
+    return Intl.message(
+      'Slot Short',
+      name: 'passSlotShort',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Slot Long`
+  String get passSlotLong {
+    return Intl.message(
+      'Slot Long',
+      name: 'passSlotLong',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Status`
+  String get passStatus {
+    return Intl.message(
+      'Status',
+      name: 'passStatus',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Off`
+  String get passSlotOff {
+    return Intl.message(
+      'Off',
+      name: 'passSlotOff',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `HOTP`
+  String get passSlotHotp {
+    return Intl.message(
+      'HOTP',
+      name: 'passSlotHotp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Static Password`
+  String get passSlotStatic {
+    return Intl.message(
+      'Static Password',
+      name: 'passSlotStatic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The output comes with Enter`
+  String get passSlotWithEnter {
+    return Intl.message(
+      'The output comes with Enter',
+      name: 'passSlotWithEnter',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Change PUK`
   String get pivChangePUK {
     return Intl.message(

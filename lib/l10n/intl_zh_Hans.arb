@@ -3,7 +3,6 @@
   "settings": "设置",
   "other": "其他",
   "about": "关于",
-
   "homeScreenTitle": "CanoKey Console",
   "homePress": "点击",
   "homeSelect": "选择应用",
@@ -38,7 +37,6 @@
   "connectFirst": "请先连接 CanoKey",
   "copied": "已复制",
   "enabled": "启用",
-
   "openpgpCardInfo": "卡片信息",
   "openpgpVersion": "版本",
   "openpgpManufacturer": "制造商",
@@ -60,7 +58,6 @@
   "openpgpUifCacheTimeChanged": "触摸缓存时间修改成功",
   "openpgpChangeInteraction": "修改{keyType}密钥的触摸设置",
   "openpgpKeyNone": "[未导入]",
-
   "settingsInfo": "CanoKey 信息",
   "settingsOtherSettings": "其他设置",
   "settingsLanguage": "语言",
@@ -91,7 +88,6 @@
   "settingsFixNFCSuccess": "修复 NFC 成功",
   "settingsKeyboardWithReturn": "OTP 输出后附加回车",
   "settingsWebAuthnSm2Support": "WebAuthn SM2",
-
   "oathDelete": "您正在删除{name}，删除该项目后无法恢复！请确认相关服务的二步验证已经关闭。",
   "oathCopy": "复制",
   "oathSetDefault": "设为默认",
@@ -119,6 +115,15 @@
   "oathCodeChanged": "口令已修改",
   "oathNewCodePrompt": "请输入新口令，如需删除，请留空。",
   "oathNoCredential": "没有找到凭据",
-
+  "passInputPinPrompt": "请输入您的管理员（设置应用） PIN（默认值为 123456）。",
+  "passSlotConfigTitle": "配置",
+  "passSlotConfigPrompt": "请配置该密码槽。如需配置HOTP，请前往HOTP应用配置。",
+  "passSlotShort": "短按",
+  "passSlotLong": "长按",
+  "passStatus": "状态",
+  "passSlotOff": "关闭",
+  "passSlotHotp": "HOTP",
+  "passSlotStatic": "静态口令",
+  "passSlotWithEnter": "附加回车",
   "pivChangePUK": "修改 PUK"
 }

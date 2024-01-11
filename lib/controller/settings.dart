@@ -43,11 +43,7 @@ class SettingsController extends MyController {
       resp = await FlutterNfcKit.transceive('0032010000');
       Apdu.assertOK(resp);
       String chipId = Apdu.dropSW(resp).toUpperCase();
-      resp = await FlutterNfcKit.transceive('00200000' + pin.length.toRadixString(16).padLeft(2, '0') + hex.encode(pin.codeUnits));
-      if (!Apdu.isOK(resp)) {
-        Prompts.promptPinFailureResult(resp);
-        return;
-      }
+      if (!await _verifyPin(pin)) return;
       pinCache = pin;
 
       // read configurations
@@ -119,7 +115,7 @@ class SettingsController extends MyController {
           touchCacheTime: cacheTime,
           nfcEnabled: nfcEnabled);
 
-      if (key.functionSet().contains(Func.webAuthnSm2Support)) {
+      if (key.getFunctionSet().contains(Func.webAuthnSm2Support)) {
         resp = await FlutterNfcKit.transceive('0011000000');
         Apdu.assertOK(resp);
         key.webAuthnSm2Config = WebAuthnSm2Config(

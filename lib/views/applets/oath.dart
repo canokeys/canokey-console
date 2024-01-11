@@ -42,9 +42,10 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return Layout(
+      title: "TOTP / HOTP",
       topActions: GetBuilder(
           init: controller,
-          builder: (controller) {
+          builder: (_) {
             List<Widget> widgets = [
               InkWell(
                 onTap: controller.refreshData,
@@ -74,10 +75,9 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
             }
             return Row(children: widgets);
           }),
-      title: "TOTP / HOTP",
       child: GetBuilder(
         init: controller,
-        builder: (controller) {
+        builder: (_) {
           if (!controller.polled) {
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,

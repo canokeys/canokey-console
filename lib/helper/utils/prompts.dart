@@ -97,9 +97,7 @@ class Prompts {
                                 ),
                                 floatingLabelBehavior: FloatingLabelBehavior.auto,
                                 suffixIcon: IconButton(
-                                  onPressed: () {
-                                    showPassword.value = !showPassword.value;
-                                  },
+                                  onPressed: () => showPassword.value = !showPassword.value,
                                   icon: Icon(showPassword.value ? Icons.visibility_off_outlined : Icons.visibility_outlined),
                                 ),
                               ),

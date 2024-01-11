@@ -26,7 +26,7 @@ class Layout extends StatelessWidget {
     return MyResponsive(builder: (BuildContext context, _, screenMT) {
       return GetBuilder(
           init: controller,
-          builder: (controller) {
+          builder: (_) {
             return screenMT.isMobile ? mobileScreen() : largeScreen();
           });
     });

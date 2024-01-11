@@ -1,4 +1,4 @@
-import 'package:canokey_console/controller/applets/settings.dart';
+import 'package:canokey_console/controller/settings.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/localization/language.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
@@ -161,19 +161,19 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 // LED
-                                if (controller.key.functionSet().contains(Func.led)) ...{
+                                if (controller.key.getFunctionSet().contains(Func.led)) ...{
                                   _buildInfo(LucideIcons.lightbulb, 'LED', controller.key.ledOn ? S.of(context).on : S.of(context).off,
                                       () => _showChangeSwitchDialog('LED', Func.led, controller.key.ledOn)),
                                   MySpacing.height(16),
                                 },
                                 // hotp
-                                if (controller.key.functionSet().contains(Func.hotp)) ...{
+                                if (controller.key.getFunctionSet().contains(Func.hotp)) ...{
                                   _buildInfo(LucideIcons.keyboard, S.of(context).settingsHotp, controller.key.hotpOn ? S.of(context).on : S.of(context).off,
                                       () => _showChangeSwitchDialog(S.of(context).settingsHotp, Func.hotp, controller.key.hotpOn)),
                                   MySpacing.height(16),
                                 },
                                 // keyboard with return
-                                if (controller.key.functionSet().contains(Func.keyboardWithReturn)) ...{
+                                if (controller.key.getFunctionSet().contains(Func.keyboardWithReturn)) ...{
                                   _buildInfo(
                                       LucideIcons.cornerDownLeft,
                                       S.of(context).settingsKeyboardWithReturn,
@@ -183,7 +183,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                                   MySpacing.height(16),
                                 },
                                 // webusb landing page
-                                if (controller.key.functionSet().contains(Func.webusbLandingPage)) ...{
+                                if (controller.key.getFunctionSet().contains(Func.webusbLandingPage)) ...{
                                   _buildInfo(
                                       LucideIcons.globe,
                                       S.of(context).settingsWebUSB,
@@ -192,13 +192,13 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                                   MySpacing.height(16),
                                 },
                                 // ndef enabled
-                                if (controller.key.functionSet().contains(Func.ndefEnabled)) ...{
+                                if (controller.key.getFunctionSet().contains(Func.ndefEnabled)) ...{
                                   _buildInfo(LucideIcons.tag, S.of(context).settingsNDEF, controller.key.ndefEnabled ? S.of(context).on : S.of(context).off,
                                       () => _showChangeSwitchDialog(S.of(context).settingsNDEF, Func.ndefEnabled, controller.key.ndefEnabled)),
                                   MySpacing.height(16),
                                 },
                                 // ndef readonly
-                                if (controller.key.functionSet().contains(Func.ndefReadonly)) ...{
+                                if (controller.key.getFunctionSet().contains(Func.ndefReadonly)) ...{
                                   _buildInfo(
                                       LucideIcons.shieldAlert,
                                       S.of(context).settingsNDEFReadonly,
@@ -207,7 +207,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                                   MySpacing.height(16),
                                 },
                                 // nfc
-                                if (controller.key.functionSet().contains(Func.nfcSwitch)) ...{
+                                if (controller.key.getFunctionSet().contains(Func.nfcSwitch)) ...{
                                   _buildInfo(LucideIcons.nfc, 'NFC', controller.key.nfcEnabled ? S.of(context).on : S.of(context).off,
                                       () => _showChangeSwitchDialog('NFC', Func.nfcSwitch, controller.key.nfcEnabled)),
                                   MySpacing.height(16),
@@ -291,10 +291,10 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                   _buildResetButton(Applet.PIV, S.of(context).settingsResetPIV),
                   _buildResetButton(Applet.OpenPGP, S.of(context).settingsResetOpenPGP),
                   _buildResetButton(Applet.NDEF, S.of(context).settingsResetNDEF),
-                  if (controller.key.functionSet().contains(Func.resetWebAuthn)) ...{
+                  if (controller.key.getFunctionSet().contains(Func.resetWebAuthn)) ...{
                     _buildResetButton(Applet.WebAuthn, S.of(context).settingsResetWebAuthn),
                   },
-                  if (controller.key.functionSet().contains(Func.resetPass)) ...{
+                  if (controller.key.getFunctionSet().contains(Func.resetPass)) ...{
                     _buildResetButton(Applet.PASS, S.of(context).settingsResetPass),
                   },
                   if (controller.key.model == CanoKey.pigeon)

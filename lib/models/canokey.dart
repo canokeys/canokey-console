@@ -26,6 +26,7 @@ enum Func {
   resetWebAuthn,
   resetPass,
   webAuthnSm2Support,
+  pass,
 }
 
 enum FunctionSetVersion {
@@ -81,7 +82,11 @@ class CanoKey {
       required this.nfcEnabled,
       this.webAuthnSm2Config});
 
-  Set<Func> functionSet() {
+  Set<Func> getFunctionSet() {
+    return functionSet(functionSetVersion);
+  }
+
+  static Set<Func> functionSet(FunctionSetVersion functionSetVersion) {
     switch (functionSetVersion) {
       case FunctionSetVersion.v1:
         return {Func.led, Func.hotp, Func.ndefReadonly, Func.sigTouch, Func.decTouch, Func.autTouch, Func.touchCacheTime};
@@ -98,7 +103,8 @@ class CanoKey {
           Func.nfcSwitch,
           Func.resetWebAuthn,
           Func.resetPass,
-          Func.webAuthnSm2Support
+          Func.webAuthnSm2Support,
+          Func.pass,
         };
     }
   }
@@ -120,5 +126,5 @@ class CanoKey {
 
   static get pigeon => "CanoKey Pigeon";
 
-  static get penguin => "CanoKey Penguin";
+  static get canary => "CanoKey Canary";
 }

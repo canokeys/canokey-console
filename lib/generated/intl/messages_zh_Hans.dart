@@ -114,6 +114,18 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("永久启用（无法再关闭）"),
         "openpgpVersion": MessageLookupByLibrary.simpleMessage("版本"),
         "other": MessageLookupByLibrary.simpleMessage("其他"),
+        "passInputPinPrompt": MessageLookupByLibrary.simpleMessage(
+            "请输入您的管理员（设置应用） PIN（默认值为 123456）。"),
+        "passSlotConfigPrompt": MessageLookupByLibrary.simpleMessage(
+            "请配置该密码槽。如需配置HOTP，请前往HOTP应用配置。"),
+        "passSlotConfigTitle": MessageLookupByLibrary.simpleMessage("配置"),
+        "passSlotHotp": MessageLookupByLibrary.simpleMessage("HOTP"),
+        "passSlotLong": MessageLookupByLibrary.simpleMessage("长按"),
+        "passSlotOff": MessageLookupByLibrary.simpleMessage("关闭"),
+        "passSlotShort": MessageLookupByLibrary.simpleMessage("短按"),
+        "passSlotStatic": MessageLookupByLibrary.simpleMessage("静态口令"),
+        "passSlotWithEnter": MessageLookupByLibrary.simpleMessage("附加回车"),
+        "passStatus": MessageLookupByLibrary.simpleMessage("状态"),
         "pinChanged": MessageLookupByLibrary.simpleMessage("PIN 修改成功"),
         "pinIncorrect": MessageLookupByLibrary.simpleMessage("PIN 输入错误"),
         "pinInvalidLength": MessageLookupByLibrary.simpleMessage("长度错误"),

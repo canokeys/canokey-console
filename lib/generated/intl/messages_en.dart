@@ -132,6 +132,21 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Permanent (Cannot turn off)"),
         "openpgpVersion": MessageLookupByLibrary.simpleMessage("Version"),
         "other": MessageLookupByLibrary.simpleMessage("Other"),
+        "passInputPinPrompt": MessageLookupByLibrary.simpleMessage(
+            "Please input your Setting PIN. The default value is 123456."),
+        "passSlotConfigPrompt": MessageLookupByLibrary.simpleMessage(
+            "Please select a slot type to configure. If you want to use HOTP, set it in the HOTP applet."),
+        "passSlotConfigTitle":
+            MessageLookupByLibrary.simpleMessage("Slot Configuration"),
+        "passSlotHotp": MessageLookupByLibrary.simpleMessage("HOTP"),
+        "passSlotLong": MessageLookupByLibrary.simpleMessage("Slot Long"),
+        "passSlotOff": MessageLookupByLibrary.simpleMessage("Off"),
+        "passSlotShort": MessageLookupByLibrary.simpleMessage("Slot Short"),
+        "passSlotStatic":
+            MessageLookupByLibrary.simpleMessage("Static Password"),
+        "passSlotWithEnter":
+            MessageLookupByLibrary.simpleMessage("The output comes with Enter"),
+        "passStatus": MessageLookupByLibrary.simpleMessage("Status"),
         "pinChanged": MessageLookupByLibrary.simpleMessage(
             "PIN has been successfully changed."),
         "pinIncorrect": MessageLookupByLibrary.simpleMessage("Incorrect PIN."),
