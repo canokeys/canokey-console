@@ -45,6 +45,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Layout(
+      title: S.of(context).settings,
       topActions: InkWell(
         onTap: () {
           if (controller.polled) {
@@ -57,136 +58,10 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
         },
         child: Icon(LucideIcons.refreshCw, size: 18, color: topBarTheme.onBackground),
       ),
-      title: S.of(context).settings,
       child: GetBuilder(
         init: controller,
-        builder: (controller) {
-          MyCard actionsCard = MyCard(
-            clipBehavior: Clip.antiAliasWithSaveLayer,
-            shadow: MyShadow(elevation: 0.5, position: MyShadowPosition.bottom),
-            paddingAll: 0,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  color: contentTheme.primary.withOpacity(0.08),
-                  padding: MySpacing.xy(16, 12),
-                  child: Row(
-                    children: [
-                      Icon(LucideIcons.arrowRightCircle, color: contentTheme.primary, size: 16),
-                      MySpacing.width(12),
-                      MyText.titleMedium(S.of(context).actions, fontWeight: 600, color: contentTheme.primary)
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: MySpacing.only(top: 12, left: 16, bottom: 12),
-                  child: Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      if (controller.polled) ...[
-                        // Change PIN
-                        MyButton(
-                          onPressed: () {
-                            Prompts.showInputPinDialog(S.of(context).changePin, 'PIN', S.of(context).changePinPrompt(6, 64),
-                                    validators: [MyLengthValidator(min: 6, max: 64)])
-                                .then((value) => controller.changePin(value))
-                                .onError((error, stackTrace) => null); // Canceled
-                          },
-                          elevation: 0,
-                          padding: MySpacing.xy(20, 16),
-                          backgroundColor: contentTheme.primary,
-                          borderRadiusAll: AppStyle.buttonRadius.medium,
-                          child: MyText.bodySmall(S.of(context).changePin, color: contentTheme.onPrimary),
-                        ),
-                        // Change SM2 settings for WebAuthn
-                        if (controller.key.webAuthnSm2Config != null) ...{
-                          MyButton(
-                            onPressed: _showWebAuthnSm2ConfigDialog,
-                            elevation: 0,
-                            padding: MySpacing.xy(20, 16),
-                            backgroundColor: contentTheme.primary,
-                            borderRadiusAll: AppStyle.buttonRadius.medium,
-                            child: MyText.bodySmall(S.of(context).settingsWebAuthnSm2Support, color: contentTheme.onPrimary),
-                          ),
-                        },
-                        // Reset applets
-                        buildResetButton(Applet.OATH, S.of(context).settingsResetOATH),
-                        buildResetButton(Applet.PIV, S.of(context).settingsResetPIV),
-                        buildResetButton(Applet.OpenPGP, S.of(context).settingsResetOpenPGP),
-                        buildResetButton(Applet.NDEF, S.of(context).settingsResetNDEF),
-                        if (controller.key.functionSet().contains(Func.resetWebAuthn)) ...{
-                          buildResetButton(Applet.WebAuthn, S.of(context).settingsResetWebAuthn),
-                        },
-                        if (controller.key.functionSet().contains(Func.resetPass)) ...{
-                          buildResetButton(Applet.PASS, S.of(context).settingsResetPass),
-                        },
-                        if (controller.key.model == CanoKey.pigeon)
-                          MyButton(
-                            onPressed: controller.fixNfc,
-                            elevation: 0,
-                            padding: MySpacing.xy(20, 16),
-                            backgroundColor: contentTheme.danger,
-                            borderRadiusAll: AppStyle.buttonRadius.medium,
-                            child: MyText.bodySmall(S.of(context).settingsFixNFC, color: contentTheme.onDanger),
-                          ),
-                      ],
-                      // Reset all
-                      MyButton(
-                        onPressed: _showResetDialog,
-                        elevation: 0,
-                        padding: MySpacing.xy(20, 16),
-                        backgroundColor: contentTheme.danger,
-                        borderRadiusAll: AppStyle.buttonRadius.medium,
-                        child: MyText.bodySmall(S.of(context).settingsResetAll, color: contentTheme.onDanger),
-                      ),
-                    ],
-                  ),
-                )
-              ],
-            ),
-          );
-
-          MyCard otherSettingsCard = MyCard(
-            clipBehavior: Clip.antiAliasWithSaveLayer,
-            shadow: MyShadow(elevation: 0.5, position: MyShadowPosition.bottom),
-            paddingAll: 0,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  color: contentTheme.primary.withOpacity(0.08),
-                  padding: MySpacing.xy(16, 12),
-                  child: Row(
-                    children: [
-                      Icon(LucideIcons.settings2, color: contentTheme.primary, size: 16),
-                      MySpacing.width(12),
-                      MyText.titleMedium(S.of(context).settingsOtherSettings, fontWeight: 600, color: contentTheme.primary)
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: MySpacing.xy(flexSpacing, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      buildInfo(LucideIcons.languages, S.of(context).settingsLanguage, ThemeCustomizer.instance.currentLanguage.languageName,
-                          () => _showLanguageDialog()),
-                      buildInfo(
-                          LucideIcons.languages,
-                          S.of(context).settingsLanguage,
-                          'Dark',
-                          () => ThemeCustomizer.setTheme(
-                                ThemeCustomizer.instance.theme == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
-                              )),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-
+        builder: (_) {
+          // not polled
           if (!controller.polled) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,9 +77,9 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                         child: MyText.bodyMedium(S.of(context).pollCanoKey, fontSize: 14),
                       )),
                       MySpacing.height(20),
-                      actionsCard,
+                      _buildActionCard(context),
                       MySpacing.height(20),
-                      otherSettingsCard,
+                      _buildOtherSettingsCard(context),
                     ],
                   ),
                 ),
@@ -244,13 +119,13 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                buildInfo(LucideIcons.shieldCheck, S.of(context).settingsModel, controller.key.model),
+                                _buildInfo(LucideIcons.shieldCheck, S.of(context).settingsModel, controller.key.model),
                                 MySpacing.height(16),
-                                buildInfo(LucideIcons.info, S.of(context).settingsFirmwareVersion, controller.key.firmwareVersion),
+                                _buildInfo(LucideIcons.info, S.of(context).settingsFirmwareVersion, controller.key.firmwareVersion),
                                 MySpacing.height(16),
-                                buildInfo(LucideIcons.hash, S.of(context).settingsSN, controller.key.sn),
+                                _buildInfo(LucideIcons.hash, S.of(context).settingsSN, controller.key.sn),
                                 MySpacing.height(16),
-                                buildInfo(LucideIcons.cpu, S.of(context).settingsChipId, controller.key.chipId),
+                                _buildInfo(LucideIcons.cpu, S.of(context).settingsChipId, controller.key.chipId),
                               ],
                             ),
                           ),
@@ -283,19 +158,19 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                               children: [
                                 // LED
                                 if (controller.key.functionSet().contains(Func.led)) ...{
-                                  buildInfo(LucideIcons.lightbulb, 'LED', controller.key.ledOn ? S.of(context).on : S.of(context).off,
+                                  _buildInfo(LucideIcons.lightbulb, 'LED', controller.key.ledOn ? S.of(context).on : S.of(context).off,
                                       () => _showChangeSwitchDialog('LED', Func.led, controller.key.ledOn)),
                                   MySpacing.height(16),
                                 },
                                 // hotp
                                 if (controller.key.functionSet().contains(Func.hotp)) ...{
-                                  buildInfo(LucideIcons.keyboard, S.of(context).settingsHotp, controller.key.hotpOn ? S.of(context).on : S.of(context).off,
+                                  _buildInfo(LucideIcons.keyboard, S.of(context).settingsHotp, controller.key.hotpOn ? S.of(context).on : S.of(context).off,
                                       () => _showChangeSwitchDialog(S.of(context).settingsHotp, Func.hotp, controller.key.hotpOn)),
                                   MySpacing.height(16),
                                 },
                                 // keyboard with return
                                 if (controller.key.functionSet().contains(Func.keyboardWithReturn)) ...{
-                                  buildInfo(
+                                  _buildInfo(
                                       LucideIcons.cornerDownLeft,
                                       S.of(context).settingsKeyboardWithReturn,
                                       controller.key.keyboardWithReturn ? S.of(context).on : S.of(context).off,
@@ -305,7 +180,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                                 },
                                 // webusb landing page
                                 if (controller.key.functionSet().contains(Func.webusbLandingPage)) ...{
-                                  buildInfo(
+                                  _buildInfo(
                                       LucideIcons.globe,
                                       S.of(context).settingsWebUSB,
                                       controller.key.webusbLandingEnabled ? S.of(context).on : S.of(context).off,
@@ -314,13 +189,13 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                                 },
                                 // ndef enabled
                                 if (controller.key.functionSet().contains(Func.ndefEnabled)) ...{
-                                  buildInfo(LucideIcons.tag, S.of(context).settingsNDEF, controller.key.ndefEnabled ? S.of(context).on : S.of(context).off,
+                                  _buildInfo(LucideIcons.tag, S.of(context).settingsNDEF, controller.key.ndefEnabled ? S.of(context).on : S.of(context).off,
                                       () => _showChangeSwitchDialog(S.of(context).settingsNDEF, Func.ndefEnabled, controller.key.ndefEnabled)),
                                   MySpacing.height(16),
                                 },
                                 // ndef readonly
                                 if (controller.key.functionSet().contains(Func.ndefReadonly)) ...{
-                                  buildInfo(
+                                  _buildInfo(
                                       LucideIcons.shieldAlert,
                                       S.of(context).settingsNDEFReadonly,
                                       controller.key.ndefReadonly ? S.of(context).on : S.of(context).off,
@@ -329,7 +204,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                                 },
                                 // nfc
                                 if (controller.key.functionSet().contains(Func.nfcSwitch)) ...{
-                                  buildInfo(LucideIcons.nfc, 'NFC', controller.key.nfcEnabled ? S.of(context).on : S.of(context).off,
+                                  _buildInfo(LucideIcons.nfc, 'NFC', controller.key.nfcEnabled ? S.of(context).on : S.of(context).off,
                                       () => _showChangeSwitchDialog('NFC', Func.nfcSwitch, controller.key.nfcEnabled)),
                                   MySpacing.height(16),
                                 },
@@ -341,9 +216,9 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                       ),
                     ),
                     MySpacing.height(20),
-                    actionsCard,
+                    _buildActionCard(context),
                     MySpacing.height(20),
-                    otherSettingsCard,
+                    _buildOtherSettingsCard(context),
                   ],
                 ),
               ),
@@ -354,7 +229,137 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
     );
   }
 
-  Widget buildInfo(IconData iconData, String title, String value, [GestureTapCallback? handler]) {
+  Widget _buildActionCard(BuildContext context) {
+    return MyCard(
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          shadow: MyShadow(elevation: 0.5, position: MyShadowPosition.bottom),
+          paddingAll: 0,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                color: contentTheme.primary.withOpacity(0.08),
+                padding: MySpacing.xy(16, 12),
+                child: Row(
+                  children: [
+                    Icon(LucideIcons.arrowRightCircle, color: contentTheme.primary, size: 16),
+                    MySpacing.width(12),
+                    MyText.titleMedium(S.of(context).actions, fontWeight: 600, color: contentTheme.primary)
+                  ],
+                ),
+              ),
+              Padding(
+                padding: MySpacing.only(top: 12, left: 16, bottom: 12),
+                child: Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    if (controller.polled) ...[
+                      // Change PIN
+                      MyButton(
+                        onPressed: () {
+                          Prompts.showInputPinDialog(S.of(context).changePin, 'PIN', S.of(context).changePinPrompt(6, 64),
+                                  validators: [MyLengthValidator(min: 6, max: 64)])
+                              .then((value) => controller.changePin(value))
+                              .onError((error, stackTrace) => null); // Canceled
+                        },
+                        elevation: 0,
+                        padding: MySpacing.xy(20, 16),
+                        backgroundColor: contentTheme.primary,
+                        borderRadiusAll: AppStyle.buttonRadius.medium,
+                        child: MyText.bodySmall(S.of(context).changePin, color: contentTheme.onPrimary),
+                      ),
+                      // Change SM2 settings for WebAuthn
+                      if (controller.key.webAuthnSm2Config != null) ...{
+                        MyButton(
+                          onPressed: _showWebAuthnSm2ConfigDialog,
+                          elevation: 0,
+                          padding: MySpacing.xy(20, 16),
+                          backgroundColor: contentTheme.primary,
+                          borderRadiusAll: AppStyle.buttonRadius.medium,
+                          child: MyText.bodySmall(S.of(context).settingsWebAuthnSm2Support, color: contentTheme.onPrimary),
+                        ),
+                      },
+                      // Reset applets
+                      _buildResetButton(Applet.OATH, S.of(context).settingsResetOATH),
+                      _buildResetButton(Applet.PIV, S.of(context).settingsResetPIV),
+                      _buildResetButton(Applet.OpenPGP, S.of(context).settingsResetOpenPGP),
+                      _buildResetButton(Applet.NDEF, S.of(context).settingsResetNDEF),
+                      if (controller.key.functionSet().contains(Func.resetWebAuthn)) ...{
+                        _buildResetButton(Applet.WebAuthn, S.of(context).settingsResetWebAuthn),
+                      },
+                      if (controller.key.functionSet().contains(Func.resetPass)) ...{
+                        _buildResetButton(Applet.PASS, S.of(context).settingsResetPass),
+                      },
+                      if (controller.key.model == CanoKey.pigeon)
+                        MyButton(
+                          onPressed: controller.fixNfc,
+                          elevation: 0,
+                          padding: MySpacing.xy(20, 16),
+                          backgroundColor: contentTheme.danger,
+                          borderRadiusAll: AppStyle.buttonRadius.medium,
+                          child: MyText.bodySmall(S.of(context).settingsFixNFC, color: contentTheme.onDanger),
+                        ),
+                    ],
+                    // Reset all
+                    MyButton(
+                      onPressed: _showResetDialog,
+                      elevation: 0,
+                      padding: MySpacing.xy(20, 16),
+                      backgroundColor: contentTheme.danger,
+                      borderRadiusAll: AppStyle.buttonRadius.medium,
+                      child: MyText.bodySmall(S.of(context).settingsResetAll, color: contentTheme.onDanger),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
+        );
+  }
+
+  Widget _buildOtherSettingsCard(BuildContext context) {
+    return MyCard(
+      clipBehavior: Clip.antiAliasWithSaveLayer,
+      shadow: MyShadow(elevation: 0.5, position: MyShadowPosition.bottom),
+      paddingAll: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            color: contentTheme.primary.withOpacity(0.08),
+            padding: MySpacing.xy(16, 12),
+            child: Row(
+              children: [
+                Icon(LucideIcons.settings2, color: contentTheme.primary, size: 16),
+                MySpacing.width(12),
+                MyText.titleMedium(S.of(context).settingsOtherSettings, fontWeight: 600, color: contentTheme.primary)
+              ],
+            ),
+          ),
+          Padding(
+            padding: MySpacing.xy(flexSpacing, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfo(LucideIcons.languages, S.of(context).settingsLanguage, ThemeCustomizer.instance.currentLanguage.languageName,
+                        () => _showLanguageDialog()),
+                _buildInfo(
+                    LucideIcons.languages,
+                    S.of(context).settingsLanguage,
+                    'Dark',
+                        () => ThemeCustomizer.setTheme(
+                      ThemeCustomizer.instance.theme == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
+                    )),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfo(IconData iconData, String title, String value, [GestureTapCallback? handler]) {
     return InkWell(
       onTap: handler,
       child: Row(
@@ -386,7 +391,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
     );
   }
 
-  MyButton buildResetButton(Applet applet, String resetText) {
+  Widget _buildResetButton(Applet applet, String resetText) {
     return MyButton(
       onPressed: () => _showResetDialog(applet: applet),
       elevation: 0,
