@@ -75,8 +75,7 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  InkWell(
-                      child: Image.asset('assets/images/logo/logo_icon_dark.png', height: widget.isCondensed ? 24 : 32)),
+                  InkWell(child: Image.asset('assets/images/logo/logo_icon_dark.png', height: widget.isCondensed ? 24 : 32)),
                   if (!widget.isCondensed)
                     Flexible(
                       fit: FlexFit.loose,
@@ -87,12 +86,7 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
                       fit: FlexFit.loose,
                       child: MyText.labelLarge(
                         "CanoKey",
-                        style: GoogleFonts.raleway(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: contentTheme.primary,
-                          letterSpacing: 1
-                        ),
+                        style: GoogleFonts.raleway(fontSize: 24, fontWeight: FontWeight.w800, color: contentTheme.primary, letterSpacing: 1),
                         maxLines: 1,
                       ),
                     )
@@ -106,12 +100,12 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   labelWidget(S.of(context).applets),
-                  NavigationItem(
-                    iconData: LucideIcons.key,
-                    title: "WebAuthn",
-                    isCondensed: isCondensed,
-                    route: '/applets/webauthn',
-                  ),
+                  // NavigationItem(
+                  //   iconData: LucideIcons.key,
+                  //   title: "WebAuthn",
+                  //   isCondensed: isCondensed,
+                  //   route: '/applets/webauthn',
+                  // ),
                   NavigationItem(
                     iconData: LucideIcons.timer,
                     title: "TOTP / HOTP",
@@ -124,18 +118,18 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
                     isCondensed: isCondensed,
                     route: '/applets/pass',
                   ),
-                  NavigationItem(
-                    iconData: LucideIcons.creditCard,
-                    title: "PIV",
-                    isCondensed: isCondensed,
-                    route: '/applets/piv',
-                  ),
-                  NavigationItem(
-                    iconData: LucideIcons.lock,
-                    title: "OpenPGP",
-                    isCondensed: isCondensed,
-                    route: '/applets/openpgp',
-                  ),
+                  // NavigationItem(
+                  //   iconData: LucideIcons.creditCard,
+                  //   title: "PIV",
+                  //   isCondensed: isCondensed,
+                  //   route: '/applets/piv',
+                  // ),
+                  // NavigationItem(
+                  //   iconData: LucideIcons.lock,
+                  //   title: "OpenPGP",
+                  //   isCondensed: isCondensed,
+                  //   route: '/applets/openpgp',
+                  // ),
                   labelWidget(S.of(context).other),
                   NavigationItem(
                     iconData: LucideIcons.settings,
@@ -202,14 +196,10 @@ class _NavigationItemState extends State<NavigationItem> with UIMixin {
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         onHover: (event) {
-          setState(() {
-            isHover = true;
-          });
+          setState(() => isHover = true);
         },
         onExit: (event) {
-          setState(() {
-            isHover = false;
-          });
+          setState(() => isHover = false);
         },
         child: MyContainer.transparent(
           margin: MySpacing.fromLTRB(16, 0, 16, 8),
@@ -220,26 +210,14 @@ class _NavigationItemState extends State<NavigationItem> with UIMixin {
             children: [
               if (widget.iconData != null)
                 Center(
-                  child: Icon(
-                    widget.iconData,
-                    color: (isHover || isActive) ? leftBarTheme.activeItemColor : leftBarTheme.onBackground,
-                    size: 20,
-                  ),
+                  child: Icon(widget.iconData, color: (isHover || isActive) ? leftBarTheme.activeItemColor : leftBarTheme.onBackground, size: 20),
                 ),
-              if (!widget.isCondensed)
-                Flexible(
-                  fit: FlexFit.loose,
-                  child: MySpacing.width(16),
-                ),
+              if (!widget.isCondensed) Flexible(fit: FlexFit.loose, child: MySpacing.width(16)),
               if (!widget.isCondensed)
                 Expanded(
                   flex: 3,
-                  child: MyText.labelLarge(
-                    widget.title,
-                    overflow: TextOverflow.clip,
-                    maxLines: 1,
-                    color: isActive || isHover ? leftBarTheme.activeItemColor : leftBarTheme.onBackground,
-                  ),
+                  child: MyText.labelLarge(widget.title,
+                      overflow: TextOverflow.clip, maxLines: 1, color: isActive || isHover ? leftBarTheme.activeItemColor : leftBarTheme.onBackground),
                 )
             ],
           ),

@@ -6,7 +6,6 @@ import 'package:canokey_console/helper/theme/app_notifier.dart';
 import 'package:canokey_console/helper/theme/app_style.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
-import 'package:canokey_console/helper/widgets/my_spacing.dart';
 import 'package:canokey_console/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -45,14 +44,12 @@ class MyApp extends StatelessWidget {
       builder: (_, notifier, ___) {
         return GlobalLoaderOverlay(
           useDefaultLoading: false,
-          overlayWidgetBuilder: (_) { //ignored progress for the moment
+          overlayWidgetBuilder: (_) {
+            //ignored progress for the moment
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
-                SpinKitRotatingPlain(
-                  color: Colors.red,
-                  size: 25.0
-                ),
+                SpinKitRotatingPlain(color: Colors.red, size: 25.0),
               ],
             );
           },
@@ -62,7 +59,7 @@ class MyApp extends StatelessWidget {
             darkTheme: AppTheme.darkTheme,
             themeMode: ThemeCustomizer.instance.theme,
             navigatorKey: NavigationService.navigatorKey,
-            initialRoute: "/start",
+            initialRoute: LocalStorage.getStartPage() ?? '/',
             locale: ThemeCustomizer.instance.currentLanguage.locale,
             getPages: getPageRoute(),
             builder: (_, child) {

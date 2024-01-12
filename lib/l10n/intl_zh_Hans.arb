@@ -88,6 +88,7 @@
   "settingsFixNFCSuccess": "修复 NFC 成功",
   "settingsKeyboardWithReturn": "OTP 输出后附加回车",
   "settingsWebAuthnSm2Support": "WebAuthn SM2",
+  "settingsStartPage": "起始页",
   "oathDelete": "您正在删除{name}，删除该项目后无法恢复！请确认相关服务的二步验证已经关闭。",
   "oathCopy": "复制",
   "oathSetDefault": "设为默认",

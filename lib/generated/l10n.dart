@@ -940,6 +940,16 @@ class S {
     );
   }
 
+  /// `Start Page`
+  String get settingsStartPage {
+    return Intl.message(
+      'Start Page',
+      name: 'settingsStartPage',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `This action will delete the account {name} from your CanoKey. Make sure 2FA has been disabled on the web service.`
   String oathDelete(Object name) {
     return Intl.message(

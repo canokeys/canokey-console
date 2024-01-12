@@ -177,6 +177,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsResetWebAuthn":
             MessageLookupByLibrary.simpleMessage("重置 WebAuthn"),
         "settingsSN": MessageLookupByLibrary.simpleMessage("序号"),
+        "settingsStartPage": MessageLookupByLibrary.simpleMessage("起始页"),
         "settingsWebAuthnSm2Support":
             MessageLookupByLibrary.simpleMessage("WebAuthn SM2"),
         "settingsWebUSB": MessageLookupByLibrary.simpleMessage("插入时 WebUSB 提示"),

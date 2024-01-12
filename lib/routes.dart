@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 
 getPageRoute() {
   var routes = [
-    GetPage(name: '/start', page: () => const StarterScreen()),
+    GetPage(name: '/', page: () => const StarterScreen()),
 
     // ----------------Applets----------------------------------
     GetPage(name: '/applets/oath', page: () => const OathPage()),

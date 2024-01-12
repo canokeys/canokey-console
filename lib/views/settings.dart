@@ -348,15 +348,17 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfo(
-                    LucideIcons.languages, S.of(context).settingsLanguage, ThemeCustomizer.instance.currentLanguage.languageName, () => _showLanguageDialog()),
-                _buildInfo(
-                    LucideIcons.languages,
-                    S.of(context).settingsLanguage,
-                    'Dark',
-                    () => ThemeCustomizer.setTheme(
-                          ThemeCustomizer.instance.theme == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
-                        )),
+                _buildInfo(LucideIcons.languages, S.of(context).settingsLanguage, ThemeCustomizer.instance.currentLanguage.languageName, _showLanguageDialog),
+                MySpacing.height(16),
+                _buildInfo(LucideIcons.home, S.of(context).settingsStartPage, _getPageName(LocalStorage.getStartPage() ?? '/'), _showStartUpDialog),
+                // MySpacing.height(16),
+                // _buildInfo(
+                //     LucideIcons.languages,
+                //     S.of(context).settingsLanguage,
+                //     'Dark',
+                //     () => ThemeCustomizer.setTheme(
+                //           ThemeCustomizer.instance.theme == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
+                //         )),
               ],
             ),
           ),
@@ -593,6 +595,80 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
     ));
   }
 
+  void _showStartUpDialog() {
+    RxString startPage = (LocalStorage.getStartPage() ?? '/').obs;
+
+    Get.dialog(Dialog(
+      child: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: MySpacing.all(16),
+              child: MyText.labelLarge(S.of(context).settingsChangeLanguage),
+            ),
+            Divider(height: 0, thickness: 1),
+            Padding(
+                padding: MySpacing.all(16),
+                child: Obx(
+                  () => Column(
+                    children: [
+                      _buildStartPageItem(startPage, '/'),
+                      _buildStartPageItem(startPage, '/applets/oath'),
+                      _buildStartPageItem(startPage, '/applets/pass'),
+                    ],
+                  ),
+                )),
+            Divider(height: 0, thickness: 1),
+            Padding(
+              padding: MySpacing.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  MyButton.rounded(
+                    onPressed: () => Navigator.pop(context),
+                    elevation: 0,
+                    padding: MySpacing.xy(20, 16),
+                    backgroundColor: contentTheme.secondary,
+                    child: MyText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
+                  ),
+                  MySpacing.width(16),
+                  MyButton.rounded(
+                    onPressed: () {
+                      LocalStorage.setStartPage(startPage.value);
+                      Navigator.pop(context);
+                    },
+                    elevation: 0,
+                    padding: MySpacing.xy(20, 16),
+                    backgroundColor: contentTheme.primary,
+                    child: MyText.labelMedium(S.of(context).confirm, color: contentTheme.onPrimary),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
+  }
+
+  Widget _buildStartPageItem(RxString startPage, String path) {
+    return MyButton.text(
+        padding: MySpacing.xy(8, 4),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        splashColor: contentTheme.onBackground.withAlpha(20),
+        onPressed: () => startPage.value = path,
+        child: Row(
+          children: [
+            if (startPage.value == path) Icon(Icons.check, color: contentTheme.primary, size: 16) else MySpacing.width(16),
+            MySpacing.width(20),
+            Text(_getPageName(path)),
+          ],
+        ));
+  }
+
   void _showWebAuthnSm2ConfigDialog() {
     RxBool enabled = controller.key.webAuthnSm2Config!.enabled.obs;
 
@@ -689,5 +765,26 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
         ),
       ),
     ));
+  }
+
+  String _getPageName(String path) {
+    switch (path) {
+      case '/':
+        return S.of(context).home;
+      case '/applets/oath':
+        return 'HOTP/TOTP';
+      case '/applets/piv':
+        return 'PIV';
+      case '/applets/openpgp':
+        return 'OpenPGP';
+      case '/applets/ndef':
+        return 'NDEF';
+      case '/applets/webauthn':
+        return 'WebAuthn';
+      case '/applets/pass':
+        return 'Pass';
+      default:
+        return 'Unknown';
+    }
   }
 }

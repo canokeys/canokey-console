@@ -88,6 +88,7 @@
   "settingsFixNFCSuccess": "NFC is successfully fixed",
   "settingsKeyboardWithReturn": "The output of OTP value comes with enter",
   "settingsWebAuthnSm2Support": "WebAuthn SM2",
+  "settingsStartPage": "Start Page",
   "oathDelete": "This action will delete the account {name} from your CanoKey. Make sure 2FA has been disabled on the web service.",
   "oathCopy": "Copy to Clipboard",
   "oathSetDefault": "Set as Default",

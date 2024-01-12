@@ -210,6 +210,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsResetWebAuthn":
             MessageLookupByLibrary.simpleMessage("Reset WebAuthn"),
         "settingsSN": MessageLookupByLibrary.simpleMessage("Serial Number"),
+        "settingsStartPage": MessageLookupByLibrary.simpleMessage("Start Page"),
         "settingsWebAuthnSm2Support":
             MessageLookupByLibrary.simpleMessage("WebAuthn SM2"),
         "settingsWebUSB":
