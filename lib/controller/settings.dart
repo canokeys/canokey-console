@@ -20,8 +20,7 @@ class SettingsController extends MyController {
   String pinCache = '';
 
   @override
-  void dispose() {
-    super.dispose();
+  void onClose() {
     try {
       ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
       // ignore: empty_catches

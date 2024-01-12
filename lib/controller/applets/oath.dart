@@ -46,9 +46,8 @@ class OathController extends MyController {
   }
 
   @override
-  void dispose() {
-    timerController.dispose();
-    super.dispose();
+  void onClose() {
+    timerController.reset();
     try {
       ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
       // ignore: empty_catches

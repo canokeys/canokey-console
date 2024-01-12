@@ -190,7 +190,7 @@ class _NavigationItemState extends State<NavigationItem> with UIMixin {
     return GestureDetector(
       onTap: () {
         if (widget.route != null) {
-          Get.toNamed(widget.route!);
+          Get.offNamed(widget.route!);
         }
       },
       child: MouseRegion(
