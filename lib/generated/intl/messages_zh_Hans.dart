@@ -24,11 +24,13 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m1(name) => "您正在删除${name}，删除该项目后无法恢复！请确认相关服务的二步验证已经关闭。";
 
-  static String m2(keyType) => "修改${keyType}密钥的触摸设置";
+  static String m2(name) => "您要将${name}设为触摸时的输出吗？小心，该操作将会覆盖原有的触摸输出。";
 
-  static String m3(retries) => "PIN 输入错误，剩余重试次数：${retries}";
+  static String m3(keyType) => "修改${keyType}密钥的触摸设置";
 
-  static String m4(applet) => "该操作将抹除 ${applet} 的全部数据！";
+  static String m4(retries) => "PIN 输入错误，剩余重试次数：${retries}";
+
+  static String m5(applet) => "该操作将抹除 ${applet} 的全部数据！";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -85,6 +87,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathSecret": MessageLookupByLibrary.simpleMessage("密钥"),
         "oathSetCode": MessageLookupByLibrary.simpleMessage("设置口令"),
         "oathSetDefault": MessageLookupByLibrary.simpleMessage("设为触摸输出"),
+        "oathSetDefaultPrompt": m2,
+        "oathSlot": MessageLookupByLibrary.simpleMessage("口令槽"),
         "oathTooLong": MessageLookupByLibrary.simpleMessage("长度超限"),
         "oathType": MessageLookupByLibrary.simpleMessage("类型"),
         "off": MessageLookupByLibrary.simpleMessage("关"),
@@ -95,7 +99,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "openpgpCardInfo": MessageLookupByLibrary.simpleMessage("卡片信息"),
         "openpgpChangeAdminPin":
             MessageLookupByLibrary.simpleMessage("修改 Admin PIN"),
-        "openpgpChangeInteraction": m2,
+        "openpgpChangeInteraction": m3,
         "openpgpChangeTouchCacheTime":
             MessageLookupByLibrary.simpleMessage("修改触摸缓存时间"),
         "openpgpEncryption": MessageLookupByLibrary.simpleMessage("加密"),
@@ -132,7 +136,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "pinIncorrect": MessageLookupByLibrary.simpleMessage("PIN 输入错误"),
         "pinInvalidLength": MessageLookupByLibrary.simpleMessage("长度错误"),
         "pinLength": MessageLookupByLibrary.simpleMessage("输入的 PIN 长度错误"),
-        "pinRetries": m3,
+        "pinRetries": m4,
         "pivChangePUK": MessageLookupByLibrary.simpleMessage("修改 PUK"),
         "pollCanceled": MessageLookupByLibrary.simpleMessage("您没有选择任何 CanoKey"),
         "pollCanoKey":
@@ -163,7 +167,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsResetAll": MessageLookupByLibrary.simpleMessage("重置 CanoKey"),
         "settingsResetAllPrompt": MessageLookupByLibrary.simpleMessage(
             "即将抹除全部数据。当您确认后，CanoKey 将会反复闪烁，请在闪烁时触摸，直到提示成功。"),
-        "settingsResetApplet": m4,
+        "settingsResetApplet": m5,
         "settingsResetConditionNotSatisfying":
             MessageLookupByLibrary.simpleMessage("PIN 尚未锁定"),
         "settingsResetNDEF": MessageLookupByLibrary.simpleMessage("重置 NDEF"),

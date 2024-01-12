@@ -108,7 +108,7 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildInfo(LucideIcons.shieldCheck, S.of(context).passStatus, _slotStatus(controller.slotShort.type),
+                                _buildInfo(LucideIcons.shieldCheck, S.of(context).passStatus, _slotStatus(controller.slotShort),
                                     () => _showSlotConfigDialog(PassController.short, controller.slotShort)),
                               ],
                             ),
@@ -140,7 +140,7 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildInfo(LucideIcons.shieldCheck, S.of(context).passStatus, _slotStatus(controller.slotLong.type),
+                                _buildInfo(LucideIcons.shieldCheck, S.of(context).passStatus, _slotStatus(controller.slotLong),
                                     () => _showSlotConfigDialog(PassController.short, controller.slotShort)),
                               ],
                             ),
@@ -215,89 +215,89 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
                 child: Form(
                     key: validator.formKey,
                     child: Obx(
-                  () => Column(
-                    children: [
-                      MyText.labelLarge(S.of(context).passSlotConfigPrompt),
-                      MySpacing.height(16),
-                      Row(
+                      () => Column(
                         children: [
-                          SizedBox(width: 90, child: MyText.labelLarge(S.of(context).oathType)),
-                          Expanded(
-                            child: Wrap(spacing: 16, children: [
-                              InkWell(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Radio<PassSlotType>(
-                                      value: PassSlotType.none,
-                                      activeColor: contentTheme.primary,
-                                      groupValue: slotType.value,
-                                      onChanged: (type) => slotType.value = type!,
-                                      visualDensity: getCompactDensity,
-                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          MyText.labelLarge(S.of(context).passSlotConfigPrompt),
+                          MySpacing.height(16),
+                          Row(
+                            children: [
+                              SizedBox(width: 90, child: MyText.labelLarge(S.of(context).oathType)),
+                              Expanded(
+                                child: Wrap(spacing: 16, children: [
+                                  InkWell(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Radio<PassSlotType>(
+                                          value: PassSlotType.none,
+                                          activeColor: contentTheme.primary,
+                                          groupValue: slotType.value,
+                                          onChanged: (type) => slotType.value = type!,
+                                          visualDensity: getCompactDensity,
+                                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        ),
+                                        MySpacing.width(8),
+                                        MyText.labelMedium(_slotTypeName(PassSlotType.none))
+                                      ],
                                     ),
-                                    MySpacing.width(8),
-                                    MyText.labelMedium(_slotStatus(PassSlotType.none))
-                                  ],
+                                  ),
+                                  InkWell(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Radio<PassSlotType>(
+                                          value: PassSlotType.static,
+                                          activeColor: contentTheme.primary,
+                                          groupValue: slotType.value,
+                                          onChanged: (type) => slotType.value = type!,
+                                          visualDensity: getCompactDensity,
+                                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        ),
+                                        MySpacing.width(8),
+                                        MyText.labelMedium(_slotTypeName(PassSlotType.static))
+                                      ],
+                                    ),
+                                  ),
+                                ]),
+                              )
+                            ],
+                          ),
+                          if (slotType.value == PassSlotType.static) ...{
+                            MySpacing.height(16),
+                            TextFormField(
+                              obscureText: !showPassword.value,
+                              controller: validator.getController('password'),
+                              validator: validator.getValidator('password'),
+                              decoration: InputDecoration(
+                                labelText: S.of(context).passSlotStatic,
+                                border: outlineInputBorder,
+                                floatingLabelBehavior: FloatingLabelBehavior.auto,
+                                suffixIcon: IconButton(
+                                  onPressed: () => showPassword.value = !showPassword.value,
+                                  icon: Icon(showPassword.value ? Icons.visibility_off_outlined : Icons.visibility_outlined),
                                 ),
                               ),
-                              InkWell(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Radio<PassSlotType>(
-                                      value: PassSlotType.static,
+                            ),
+                          },
+                          if (slotType.value != PassSlotType.none) ...{
+                            MySpacing.height(16),
+                            Row(
+                              children: [
+                                Obx(() => Checkbox(
+                                      onChanged: (value) => withEnter.value = value!,
+                                      value: withEnter.value,
                                       activeColor: contentTheme.primary,
-                                      groupValue: slotType.value,
-                                      onChanged: (type) => slotType.value = type!,
-                                      visualDensity: getCompactDensity,
                                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    MySpacing.width(8),
-                                    MyText.labelMedium(_slotStatus(PassSlotType.static))
-                                  ],
-                                ),
-                              ),
-                            ]),
-                          )
+                                      visualDensity: getCompactDensity,
+                                    )),
+                                MySpacing.width(16),
+                                MyText.bodyMedium(S.of(context).passSlotWithEnter),
+                              ],
+                            ),
+                          }
                         ],
                       ),
-                      if (slotType.value == PassSlotType.static) ...{
-                        MySpacing.height(16),
-                        TextFormField(
-                          obscureText: !showPassword.value,
-                          controller: validator.getController('password'),
-                          validator: validator.getValidator('password'),
-                          decoration: InputDecoration(
-                            labelText: S.of(context).passSlotStatic,
-                            border: outlineInputBorder,
-                            floatingLabelBehavior: FloatingLabelBehavior.auto,
-                            suffixIcon: IconButton(
-                              onPressed: () => showPassword.value = !showPassword.value,
-                              icon: Icon(showPassword.value ? Icons.visibility_off_outlined : Icons.visibility_outlined),
-                            ),
-                          ),
-                        ),
-                      },
-                      if (slotType.value != PassSlotType.none) ...{
-                        MySpacing.height(16),
-                        Row(
-                          children: [
-                            Obx(() => Checkbox(
-                              onChanged: (value) => withEnter.value = value!,
-                              value: withEnter.value,
-                              activeColor: contentTheme.primary,
-                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              visualDensity: getCompactDensity,
-                            )),
-                            MySpacing.width(16),
-                            MyText.bodyMedium(S.of(context).passSlotWithEnter),
-                          ],
-                        ),
-                      }
-                    ],
-                  ),
-                ))),
+                    ))),
             Divider(height: 0, thickness: 1),
             Padding(
               padding: MySpacing.all(16),
@@ -333,7 +333,18 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
     ));
   }
 
-  String _slotStatus(PassSlotType type) {
+  String _slotStatus(PassSlot slot) {
+    switch (slot.type) {
+      case PassSlotType.none:
+        return S.of(context).passSlotOff;
+      case PassSlotType.oath:
+        return '${S.of(context).passSlotHotp} (${slot.name})';
+      case PassSlotType.static:
+        return S.of(context).passSlotStatic;
+    }
+  }
+
+  String _slotTypeName(PassSlotType type) {
     switch (type) {
       case PassSlotType.none:
         return S.of(context).passSlotOff;

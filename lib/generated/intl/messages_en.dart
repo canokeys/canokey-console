@@ -26,11 +26,14 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m1(name) =>
       "This action will delete the account ${name} from your CanoKey. Make sure 2FA has been disabled on the web service.";
 
-  static String m2(keyType) => "Change ${keyType} Key\'s Touch Policy";
+  static String m2(name) =>
+      "Do you want to set the account ${name} as the default output when touching? Be careful, the original configuration will be overwritten.";
 
-  static String m3(retries) => "Incorrect PIN. ${retries} retries left.";
+  static String m3(keyType) => "Change ${keyType} Key\'s Touch Policy";
 
-  static String m4(applet) =>
+  static String m4(retries) => "Incorrect PIN. ${retries} retries left.";
+
+  static String m5(applet) =>
       "This operation will RESET all data of ${applet}!";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -97,6 +100,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathSetCode": MessageLookupByLibrary.simpleMessage("Set Passphrase"),
         "oathSetDefault":
             MessageLookupByLibrary.simpleMessage("Set as Touch Output"),
+        "oathSetDefaultPrompt": m2,
+        "oathSlot": MessageLookupByLibrary.simpleMessage("Slot"),
         "oathTooLong": MessageLookupByLibrary.simpleMessage("Too long"),
         "oathType": MessageLookupByLibrary.simpleMessage("Type"),
         "off": MessageLookupByLibrary.simpleMessage("Off"),
@@ -109,7 +114,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "openpgpCardInfo": MessageLookupByLibrary.simpleMessage("Card Info"),
         "openpgpChangeAdminPin":
             MessageLookupByLibrary.simpleMessage("Change Admin PIN"),
-        "openpgpChangeInteraction": m2,
+        "openpgpChangeInteraction": m3,
         "openpgpChangeTouchCacheTime":
             MessageLookupByLibrary.simpleMessage("Change Touch Cache Time"),
         "openpgpEncryption": MessageLookupByLibrary.simpleMessage("Encryption"),
@@ -156,7 +161,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Invalid length"),
         "pinLength": MessageLookupByLibrary.simpleMessage(
             "The provided PIN is too short or too long."),
-        "pinRetries": m3,
+        "pinRetries": m4,
         "pivChangePUK": MessageLookupByLibrary.simpleMessage("Change PUK"),
         "pollCanceled":
             MessageLookupByLibrary.simpleMessage("No CanoKey is selected."),
@@ -195,7 +200,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Reset CanoKey"),
         "settingsResetAllPrompt": MessageLookupByLibrary.simpleMessage(
             "All data is about to be erased. When you confirm, the CanoKey will blink repeatedly. Touch while it is blinking until success."),
-        "settingsResetApplet": m4,
+        "settingsResetApplet": m5,
         "settingsResetConditionNotSatisfying":
             MessageLookupByLibrary.simpleMessage("PIN has not been locked yet"),
         "settingsResetNDEF": MessageLookupByLibrary.simpleMessage("Reset NDEF"),

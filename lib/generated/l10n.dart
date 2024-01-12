@@ -960,6 +960,16 @@ class S {
     );
   }
 
+  /// `Do you want to set the account {name} as the default output when touching? Be careful, the original configuration will be overwritten.`
+  String oathSetDefaultPrompt(Object name) {
+    return Intl.message(
+      'Do you want to set the account $name as the default output when touching? Be careful, the original configuration will be overwritten.',
+      name: 'oathSetDefaultPrompt',
+      desc: '',
+      args: [name],
+    );
+  }
+
   /// `Copy to Clipboard`
   String get oathCopy {
     return Intl.message(
@@ -1225,6 +1235,16 @@ class S {
     return Intl.message(
       'Advanced Settings. Think well before changing them. You could lock yourself out!',
       name: 'oathAdvancedSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Slot`
+  String get oathSlot {
+    return Intl.message(
+      'Slot',
+      name: 'oathSlot',
       desc: '',
       args: [],
     );

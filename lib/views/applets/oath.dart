@@ -156,9 +156,15 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                       padding: MySpacing.xy(16, 8),
                       height: 10,
                       child: MyText.bodySmall(S.of(context).delete),
-                      onTap: () => _showDeleteDialog(item.issuer, item.account, item.name),
+                      onTap: () => _showDeleteDialog(item.name),
                     ),
-                    PopupMenuItem(padding: MySpacing.xy(16, 8), height: 10, child: MyText.bodySmall(S.of(context).oathSetDefault)),
+                    if (item.type == OathType.hotp)
+                      PopupMenuItem(
+                        padding: MySpacing.xy(16, 8),
+                        height: 10,
+                        child: MyText.bodySmall(S.of(context).oathSetDefault),
+                        onTap: () => _showSetDefaultDialog(item.name),
+                      ),
                   ],
                   child: const Icon(LucideIcons.moreHorizontal, size: 18),
                 ),
@@ -480,7 +486,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
         barrierDismissible: false);
   }
 
-  void _showDeleteDialog(String issuer, String account, String name) {
+  void _showDeleteDialog(String name) {
     Get.dialog(Dialog(
       child: SizedBox(
         width: 400,
@@ -495,7 +501,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
             Divider(height: 0, thickness: 1),
             Padding(
               padding: MySpacing.all(16),
-              child: MyText.labelLarge(S.of(context).oathDelete('$issuer $account'.trim())),
+              child: MyText.labelLarge(S.of(context).oathDelete(name)),
             ),
             Divider(height: 0, thickness: 1),
             Padding(
@@ -517,6 +523,112 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                     padding: MySpacing.xy(20, 16),
                     backgroundColor: contentTheme.danger,
                     child: MyText.labelMedium(S.of(context).delete, color: contentTheme.onDanger),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
+  }
+
+  void _showSetDefaultDialog(String name) {
+    RxInt slot = 1.obs;
+    RxBool withEnter = false.obs;
+
+    Get.dialog(Dialog(
+      child: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: MySpacing.all(16),
+              child: MyText.labelLarge(S.of(context).oathSetDefault),
+            ),
+            Divider(height: 0, thickness: 1),
+            Padding(
+              padding: MySpacing.all(16),
+              child: Obx(
+                () => Column(
+                  children: [
+                    MyText.labelLarge(S.of(context).oathSetDefaultPrompt(name)),
+                    MySpacing.height(16),
+                    Row(
+                      children: [
+                        SizedBox(width: 80, child: MyText.labelLarge(S.of(context).oathSlot)),
+                        PopupMenuButton(
+                            itemBuilder: (BuildContext context) => [
+                                  PopupMenuItem(
+                                    padding: MySpacing.xy(16, 8),
+                                    height: 10,
+                                    child: MyText.bodySmall(S.of(context).passSlotShort),
+                                    onTap: () => slot.value = 1,
+                                  ),
+                                  PopupMenuItem(
+                                    padding: MySpacing.xy(16, 8),
+                                    height: 10,
+                                    child: MyText.bodySmall(S.of(context).passSlotLong),
+                                    onTap: () => slot.value = 2,
+                                  ),
+                                ],
+                            child: MyContainer.bordered(
+                              padding: MySpacing.xy(12, 8),
+                              child: Row(
+                                children: <Widget>[
+                                  MyText.labelMedium(
+                                    slot.value == 1 ? S.of(context).passSlotShort : S.of(context).passSlotLong,
+                                    color: contentTheme.onBackground,
+                                  ),
+                                  Container(
+                                    margin: EdgeInsets.only(left: 4),
+                                    child: Icon(Icons.expand_more_outlined, size: 22, color: contentTheme.onBackground),
+                                  )
+                                ],
+                              ),
+                            )),
+                      ],
+                    ),
+                    MySpacing.height(16),
+                    Row(
+                      children: [
+                        Checkbox(
+                          onChanged: (value) => withEnter.value = value!,
+                          value: withEnter.value,
+                          activeColor: contentTheme.primary,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: getCompactDensity,
+                        ),
+                        MySpacing.width(16),
+                        MyText.bodyMedium(S.of(context).passSlotWithEnter),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Divider(height: 0, thickness: 1),
+            Padding(
+              padding: MySpacing.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  MyButton.rounded(
+                    onPressed: () => Navigator.pop(context),
+                    elevation: 0,
+                    padding: MySpacing.xy(20, 16),
+                    backgroundColor: contentTheme.secondary,
+                    child: MyText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
+                  ),
+                  MySpacing.width(16),
+                  MyButton.rounded(
+                    onPressed: () => controller.setDefault(name, slot.value, withEnter.value),
+                    elevation: 0,
+                    padding: MySpacing.xy(20, 16),
+                    backgroundColor: contentTheme.success,
+                    child: MyText.labelMedium(S.of(context).confirm, color: contentTheme.onSuccess),
                   ),
                 ],
               ),

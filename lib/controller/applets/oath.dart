@@ -235,9 +235,25 @@ class OathController extends MyController {
     Apdu.process(() async {
       String resp = await _transceive('00A4040007A0000005272101');
       Apdu.assertOK(resp);
+      // TODO: verify code
       List<int> nameBytes = utf8.encode(name);
       String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
       Apdu.assertOK(await _transceive('00020000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
+
+      Navigator.pop(Get.context!);
+      Prompts.showSnackbar(S.of(Get.context!).oathDeleted, ContentThemeColor.success);
+      refreshData();
+    });
+  }
+
+  void setDefault(String name, int slot, bool withEnter) {
+    Apdu.process(() async {
+      String resp = await _transceive('00A4040007A0000005272101');
+      Apdu.assertOK(resp);
+      // TODO: verify code
+      List<int> nameBytes = utf8.encode(name);
+      String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
+      Apdu.assertOK(await _transceive('00550$slot${withEnter ? '01' : '00'}${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
 
       Navigator.pop(Get.context!);
       Prompts.showSnackbar(S.of(Get.context!).oathDeleted, ContentThemeColor.success);
