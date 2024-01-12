@@ -64,6 +64,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathAccount": MessageLookupByLibrary.simpleMessage("Account name"),
         "oathAddAccount": MessageLookupByLibrary.simpleMessage("Add Account"),
         "oathAdded": MessageLookupByLibrary.simpleMessage("Successfully added"),
+        "oathAdvancedSettings": MessageLookupByLibrary.simpleMessage(
+            "Advanced Settings. Think well before changing them. You could lock yourself out!"),
         "oathAlgorithm": MessageLookupByLibrary.simpleMessage("Algorithm"),
         "oathCode": MessageLookupByLibrary.simpleMessage("Passphrase"),
         "oathCodeChanged":
@@ -94,7 +96,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathSecret": MessageLookupByLibrary.simpleMessage("Secret key"),
         "oathSetCode": MessageLookupByLibrary.simpleMessage("Set Passphrase"),
         "oathSetDefault":
-            MessageLookupByLibrary.simpleMessage("Set as Default"),
+            MessageLookupByLibrary.simpleMessage("Set as Touch Output"),
         "oathTooLong": MessageLookupByLibrary.simpleMessage("Too long"),
         "oathType": MessageLookupByLibrary.simpleMessage("Type"),
         "off": MessageLookupByLibrary.simpleMessage("Off"),

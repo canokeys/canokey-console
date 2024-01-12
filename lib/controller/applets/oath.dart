@@ -1,15 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:base32/base32.dart';
 import 'package:canokey_console/controller/my_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/helper/utils/apdu.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
-import 'package:canokey_console/helper/widgets/my_form_validator.dart';
-import 'package:canokey_console/helper/widgets/my_validators.dart';
 import 'package:canokey_console/models/oath.dart';
 import 'package:convert/convert.dart';
 import 'package:cryptography/cryptography.dart';
@@ -23,35 +20,21 @@ import 'package:timer_controller/timer_controller.dart';
 final log = Logger('Console:OATH:Controller');
 
 class OathController extends MyController {
-  List<OathItem> oathItems = [];
+  Map<String, OathItem> oathMap = {};
   OathVersion version = OathVersion.v1;
   bool polled = false;
   TimerController timerController = TimerController.seconds(30);
   String codeCache = '';
 
-  // for forms
-  MyFormValidator validators = MyFormValidator();
-  RxBool requireTouch = false.obs;
-  Rx<OathType> type = OathType.totp.obs;
-  Rx<OathAlgorithm> algo = OathAlgorithm.sha1.obs;
-  RxInt digits = 6.obs;
-
   @override
   void onInit() {
     super.onInit();
-    validators.addField('code', required: true, controller: TextEditingController());
-    validators.addField('issuer', required: true, controller: TextEditingController());
-    validators.addField('account', required: true, controller: TextEditingController());
-    validators.addField('secret', required: true, controller: TextEditingController(), validators: [MyLengthValidator(min: 8, max: 52)]);
-    TextEditingController counterController = TextEditingController();
-    counterController.text = '0';
-    validators.addField('counter', required: true, controller: counterController, validators: [MyIntValidator(min: 0, max: 4294967295)]);
     timerController.addListener(() {
       if (timerController.value.remaining == 0) {
         // set codes to empty for TOTP with touch required
-        for (var element in oathItems) {
-          if (element.requireTouch) {
-            element.code = '';
+        for (var name in oathMap.keys) {
+          if (oathMap[name]!.requireTouch) {
+            oathMap[name]!.code = '';
           }
         }
         update();
@@ -72,64 +55,81 @@ class OathController extends MyController {
     } catch (e) {}
   }
 
-  void resetForms() {
-    requireTouch.value = false;
-    type.value = OathType.totp;
-    algo.value = OathAlgorithm.sha1;
-    digits.value = 6;
-    validators.getController('counter')!.text = '0';
-    validators.resetForm();
-  }
-
   void refreshData() {
     Apdu.process(() async {
       String resp = await _transceive('00A4040007A0000005272101');
       Apdu.assertOK(resp);
       if (resp == '9000') {
-        version = OathVersion.legacy;
+        version = OathVersion.legacy; // not code support
       } else {
         Map info = TLV.parse(hex.decode(Apdu.dropSW(resp)));
         if (hex.encode(info[0x79]) == '050505') {
           version = OathVersion.v1;
-          if (info.containsKey(0x74)) {
-            if (codeCache.isEmpty) {
-              // without a pin
-              Prompts.showInputPinDialog(
-                title: S.of(Get.context!).oathInputCode,
-                label: S.of(Get.context!).oathCode,
-                prompt: S.of(Get.context!).oathInputCodePrompt,
-              ).then((value) {
-                codeCache = value;
-                refreshData();
-              }).onError((error, stackTrace) => null); // Canceled
+        } else if (hex.encode(info[0x79]) == '060000') {
+          version = OathVersion.v2;
+        }
+        if (info.containsKey(0x74)) {
+          if (codeCache.isEmpty) {
+            // without a pin
+            Prompts.showInputPinDialog(
+              title: S.of(Get.context!).oathInputCode,
+              label: S.of(Get.context!).oathCode,
+              prompt: S.of(Get.context!).oathInputCodePrompt,
+            ).then((value) {
+              codeCache = value;
+              refreshData();
+            }).onError((error, stackTrace) => null); // Canceled
+            return;
+          } else {
+            final hmacSha1 = Hmac(Sha1());
+            final pbkdf2 = Pbkdf2(macAlgorithm: hmacSha1, iterations: 1000, bits: 128);
+            final key = await pbkdf2.deriveKey(secretKey: SecretKey(utf8.encode(codeCache)), nonce: info[0x71]);
+            final mac = await hmacSha1.calculateMac(info[0x74], secretKey: key);
+            resp = await _transceive('00A300001C7514${hex.encode(mac.bytes)}740400000000');
+            if (resp == '6a80') {
+              Prompts.showSnackbar(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+              codeCache = '';
               return;
-            } else {
-              final hmacSha1 = Hmac(Sha1());
-              final pbkdf2 = Pbkdf2(macAlgorithm: hmacSha1, iterations: 1000, bits: 128);
-              final key = await pbkdf2.deriveKey(secretKey: SecretKey(utf8.encode(codeCache)), nonce: info[0x71]);
-              final mac = await hmacSha1.calculateMac(info[0x74], secretKey: key);
-              resp = await _transceive('00A300001C7514${hex.encode(mac.bytes)}740400000000');
-              if (resp == '6a80') {
-                Prompts.showSnackbar(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
-                codeCache = '';
-                return;
-              }
-              Apdu.assertOK(resp);
             }
+            Apdu.assertOK(resp);
           }
         }
       }
       int challenge = DateTime.now().millisecondsSinceEpoch ~/ 30000;
       String challengeStr = challenge.toRadixString(16).padLeft(16, '0');
-      if (version == OathVersion.v1) {
-        resp = await _transceive('00A400010A7408$challengeStr');
-      } else {
+      if (version == OathVersion.legacy) {
         resp = await _transceive('000500000A7408$challengeStr');
+      } else {
+        resp = await _transceive('00A400010A7408$challengeStr');
       }
       Apdu.assertOK(resp);
       List<int> data = hex.decode(Apdu.dropSW(resp));
       polled = true;
-      oathItems = _parse(data);
+
+      var items = _parse(data);
+      // update oathMap with items
+      for (var item in items) {
+        if (oathMap.containsKey(item.name)) {
+          // only update code
+          if (item.code.isNotEmpty) {
+            oathMap[item.name]!.code = item.code;
+          }
+        } else {
+          oathMap[item.name] = item;
+        }
+      }
+      // find names to remove
+      List<String> toRemove = [];
+      for (var name in oathMap.keys) {
+        if (!items.any((element) => element.name == name)) {
+          toRemove.add(name);
+        }
+      }
+      // remove items by names
+      for (var name in toRemove) {
+        oathMap.remove(name);
+      }
+
       int running = DateTime.now().millisecondsSinceEpoch ~/ 1000 % 30;
       timerController.reset();
       timerController.value = new TimerValue(remaining: 30 - running, unit: TimerUnit.second);
@@ -138,41 +138,21 @@ class OathController extends MyController {
     });
   }
 
-  void addAccount() {
-    if (!validators.validateForm(clear: true)) {
-      return;
-    }
-    String issuer = validators.getData()['issuer'];
-    String account = validators.getData()['account'];
-    String secret = validators.getData()['secret'];
-    String name = '$issuer:$account';
-    if (name.length > 63) {
-      validators.addError('account', S.of(Get.context!).oathTooLong);
-      validators.formKey.currentState!.validate();
-      return;
-    }
-    late String secretHex;
-    try {
-      secretHex = base32.decodeAsHexString(secret.toUpperCase());
-    } catch (e) {
-      validators.addError('secret', S.of(Get.context!).oathInvalidKey);
-      validators.formKey.currentState!.validate();
-      return;
-    }
-    int initValue = int.parse(validators.getData()['counter']);
-
+  void addAccount(String name, String secretHex, OathType type, OathAlgorithm algo, int digits, bool requireTouch, int initValue) {
     Apdu.process(() async {
       String resp = await _transceive('00A4040007A0000005272101');
       Apdu.assertOK(resp);
+
+      // TODO: verify code
 
       List<int> nameBytes = utf8.encode(name);
       String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}'; // name 0x71
       capduData += '73' + // tag
           (secretHex.length ~/ 2 + 2).toRadixString(16).padLeft(2, '0') + // length
-          (type.value.toValue() | algo.value.toValue()).toRadixString(16).padLeft(2, '0') + // type & algo
-          digits.value.toRadixString(16).padLeft(2, '0') + // digits
+          (type.toValue() | algo.toValue()).toRadixString(16).padLeft(2, '0') + // type & algo
+          digits.toRadixString(16).padLeft(2, '0') + // digits
           secretHex;
-      if (requireTouch.value) {
+      if (requireTouch) {
         if (version == OathVersion.legacy) {
           capduData += '780102';
         } else {
@@ -186,10 +166,8 @@ class OathController extends MyController {
       resp = await _transceive('00010000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
       Apdu.assertOK(resp);
 
-      resetForms();
-
-      Prompts.showSnackbar(S.of(Get.context!).oathAdded, ContentThemeColor.success);
       Navigator.pop(Get.context!);
+      Prompts.showSnackbar(S.of(Get.context!).oathAdded, ContentThemeColor.success);
       refreshData();
     });
   }
@@ -227,6 +205,9 @@ class OathController extends MyController {
     await Apdu.process(() async {
       String resp = await _transceive('00A4040007A0000005272101');
       Apdu.assertOK(resp);
+
+      // TODO: verify code
+
       List<int> nameBytes = utf8.encode(name);
       String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
       if (type == OathType.totp) {
@@ -234,18 +215,34 @@ class OathController extends MyController {
         String challengeStr = challenge.toRadixString(16).padLeft(16, '0');
         capduData += '7408$challengeStr';
       }
-      if (version == OathVersion.v1) {
-        resp = await _transceive('00A20001${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
-      } else {
+      if (version == OathVersion.legacy) {
         resp = await _transceive('00040000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
+      } else {
+        resp = await _transceive('00A20001${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
       }
       Apdu.assertOK(resp);
+
       List<int> data = hex.decode(Apdu.dropSW(resp));
       code = _parseResponse(data.sublist(2));
-      oathItems.firstWhere((element) => element.name == name).code = code;
+      oathMap[name]!.code = code;
+
       update();
     });
     return code;
+  }
+
+  void delete(String name) {
+    Apdu.process(() async {
+      String resp = await _transceive('00A4040007A0000005272101');
+      Apdu.assertOK(resp);
+      List<int> nameBytes = utf8.encode(name);
+      String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
+      Apdu.assertOK(await _transceive('00020000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
+
+      Navigator.pop(Get.context!);
+      Prompts.showSnackbar(S.of(Get.context!).oathDeleted, ContentThemeColor.success);
+      refreshData();
+    });
   }
 
   List<OathItem> _parse(List<int> data) {
@@ -314,7 +311,7 @@ class OathController extends MyController {
         if (remain != '') {
           if (version == OathVersion.legacy) {
             capdu = '00060000$remain';
-          } else if (version == OathVersion.v1) {
+          } else {
             capdu = '00A50000$remain';
           }
           rapdu = rapdu.substring(0, rapdu.length - 4);

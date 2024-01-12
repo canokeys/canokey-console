@@ -63,78 +63,80 @@ class Prompts {
       }
     }
 
-    Get.dialog(Dialog(
-      child: SizedBox(
-        width: 400,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: MySpacing.all(16),
-              child: MyText.labelLarge(title),
-            ),
-            Divider(height: 0, thickness: 1),
-            Padding(
-                padding: MySpacing.all(16),
-                child: Form(
-                    key: validator.formKey,
-                    child: Column(
-                      children: [
-                        MyText.bodyMedium(prompt),
-                        MySpacing.height(16),
-                        Obx(() => TextFormField(
-                              autofocus: true,
-                              onFieldSubmitted: (_) => onSubmit(),
-                              obscureText: !showPassword.value,
-                              controller: validator.getController('pin'),
-                              validator: validator.getValidator('pin'),
-                              decoration: InputDecoration(
-                                labelText: label,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(Radius.circular(4)),
-                                  borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onBackground.withAlpha(80)),
-                                ),
-                                floatingLabelBehavior: FloatingLabelBehavior.auto,
-                                suffixIcon: IconButton(
-                                  onPressed: () => showPassword.value = !showPassword.value,
-                                  icon: Icon(showPassword.value ? Icons.visibility_off_outlined : Icons.visibility_outlined),
-                                ),
-                              ),
-                            )),
-                      ],
-                    ))),
-            Divider(height: 0, thickness: 1),
-            Padding(
-              padding: MySpacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  MyButton.rounded(
-                    onPressed: () {
-                      Navigator.pop(Get.context!);
-                      c.completeError(UserCanceledError());
-                    },
-                    elevation: 0,
-                    padding: MySpacing.xy(20, 16),
-                    backgroundColor: ContentThemeColor.secondary.color,
-                    child: MyText.labelMedium(S.of(Get.context!).cancel, color: ContentThemeColor.secondary.onColor),
+    Get.dialog(
+        Dialog(
+          child: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: MySpacing.all(16),
+                  child: MyText.labelLarge(title),
+                ),
+                Divider(height: 0, thickness: 1),
+                Padding(
+                    padding: MySpacing.all(16),
+                    child: Form(
+                        key: validator.formKey,
+                        child: Column(
+                          children: [
+                            MyText.bodyMedium(prompt),
+                            MySpacing.height(16),
+                            Obx(() => TextFormField(
+                                  autofocus: true,
+                                  onFieldSubmitted: (_) => onSubmit(),
+                                  obscureText: !showPassword.value,
+                                  controller: validator.getController('pin'),
+                                  validator: validator.getValidator('pin'),
+                                  decoration: InputDecoration(
+                                    labelText: label,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.all(Radius.circular(4)),
+                                      borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onBackground.withAlpha(80)),
+                                    ),
+                                    floatingLabelBehavior: FloatingLabelBehavior.auto,
+                                    suffixIcon: IconButton(
+                                      onPressed: () => showPassword.value = !showPassword.value,
+                                      icon: Icon(showPassword.value ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                                    ),
+                                  ),
+                                )),
+                          ],
+                        ))),
+                Divider(height: 0, thickness: 1),
+                Padding(
+                  padding: MySpacing.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      MyButton.rounded(
+                        onPressed: () {
+                          Navigator.pop(Get.context!);
+                          c.completeError(UserCanceledError());
+                        },
+                        elevation: 0,
+                        padding: MySpacing.xy(20, 16),
+                        backgroundColor: ContentThemeColor.secondary.color,
+                        child: MyText.labelMedium(S.of(Get.context!).cancel, color: ContentThemeColor.secondary.onColor),
+                      ),
+                      MySpacing.width(16),
+                      MyButton.rounded(
+                        onPressed: onSubmit,
+                        elevation: 0,
+                        padding: MySpacing.xy(20, 16),
+                        backgroundColor: ContentThemeColor.primary.color,
+                        child: MyText.labelMedium(S.of(Get.context!).confirm, color: ContentThemeColor.primary.onColor),
+                      ),
+                    ],
                   ),
-                  MySpacing.width(16),
-                  MyButton.rounded(
-                    onPressed: onSubmit,
-                    elevation: 0,
-                    padding: MySpacing.xy(20, 16),
-                    backgroundColor: ContentThemeColor.primary.color,
-                    child: MyText.labelMedium(S.of(Get.context!).confirm, color: ContentThemeColor.primary.onColor),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-    ));
+        barrierDismissible: false);
 
     return c.future;
   }

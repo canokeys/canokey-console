@@ -970,10 +970,10 @@ class S {
     );
   }
 
-  /// `Set as Default`
+  /// `Set as Touch Output`
   String get oathSetDefault {
     return Intl.message(
-      'Set as Default',
+      'Set as Touch Output',
       name: 'oathSetDefault',
       desc: '',
       args: [],
@@ -1215,6 +1215,16 @@ class S {
     return Intl.message(
       'No credential',
       name: 'oathNoCredential',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Advanced Settings. Think well before changing them. You could lock yourself out!`
+  String get oathAdvancedSettings {
+    return Intl.message(
+      'Advanced Settings. Think well before changing them. You could lock yourself out!',
+      name: 'oathAdvancedSettings',
       desc: '',
       args: [],
     );

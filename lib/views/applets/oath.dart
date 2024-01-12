@@ -1,3 +1,4 @@
+import 'package:base32/base32.dart';
 import 'package:canokey_console/controller/applets/oath.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
@@ -7,8 +8,10 @@ import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/my_button.dart';
 import 'package:canokey_console/helper/widgets/my_card.dart';
 import 'package:canokey_console/helper/widgets/my_container.dart';
+import 'package:canokey_console/helper/widgets/my_form_validator.dart';
 import 'package:canokey_console/helper/widgets/my_spacing.dart';
 import 'package:canokey_console/helper/widgets/my_text.dart';
+import 'package:canokey_console/helper/widgets/my_validators.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/models/oath.dart';
 import 'package:canokey_console/views/layout/layout.dart';
@@ -92,7 +95,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
               ],
             );
           }
-          if (controller.oathItems.isEmpty) {
+          if (controller.oathMap.isEmpty) {
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -114,7 +117,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                     GridView.builder(
                       shrinkWrap: true,
                       scrollDirection: Axis.vertical,
-                      itemCount: controller.oathItems.length,
+                      itemCount: controller.oathMap.length,
                       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                           maxCrossAxisExtent: 500, crossAxisSpacing: 16, mainAxisSpacing: 16, mainAxisExtent: 150),
                       itemBuilder: (context, index) => buildOathItem(controller, index),
@@ -130,7 +133,8 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
   }
 
   MyCard buildOathItem(OathController controller, int index) {
-    OathItem item = controller.oathItems[index];
+    String name = controller.oathMap.keys.toList()[index];
+    OathItem item = controller.oathMap[name]!;
     return MyCard(
       shadow: MyShadow(elevation: 0.5),
       child: Column(
@@ -148,8 +152,13 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                   offset: const Offset(0, 10),
                   position: PopupMenuPosition.under,
                   itemBuilder: (BuildContext context) => [
-                    PopupMenuItem(padding: MySpacing.xy(16, 8), height: 10, child: MyText.bodySmall("Delete")),
-                    PopupMenuItem(padding: MySpacing.xy(16, 8), height: 10, child: MyText.bodySmall("Add Member")),
+                    PopupMenuItem(
+                      padding: MySpacing.xy(16, 8),
+                      height: 10,
+                      child: MyText.bodySmall(S.of(context).delete),
+                      onTap: () => _showDeleteDialog(item.issuer, item.account, item.name),
+                    ),
+                    PopupMenuItem(padding: MySpacing.xy(16, 8), height: 10, child: MyText.bodySmall(S.of(context).oathSetDefault)),
                   ],
                   child: const Icon(LucideIcons.moreHorizontal, size: 18),
                 ),
@@ -231,6 +240,247 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
   }
 
   void _showAddAccountDialog() {
+    MyFormValidator validator = MyFormValidator();
+    RxBool requireTouch = false.obs;
+    Rx<OathType> oathType = OathType.totp.obs;
+    Rx<OathAlgorithm> oathAlgo = OathAlgorithm.sha1.obs;
+    RxInt oathDigits = 6.obs;
+
+    validator.addField('issuer', required: true, controller: TextEditingController());
+    validator.addField('account', required: true, controller: TextEditingController());
+    validator.addField('secret', required: true, controller: TextEditingController(), validators: [MyLengthValidator(min: 8, max: 52)]);
+    TextEditingController counterController = TextEditingController();
+    counterController.text = '0';
+    validator.addField('counter', required: true, controller: counterController, validators: [MyIntValidator(min: 0, max: 4294967295)]);
+
+    Get.dialog(
+        Dialog(
+          child: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: MySpacing.all(16),
+                  child: MyText.labelLarge(S.of(context).oathAddAccount),
+                ),
+                Divider(height: 0, thickness: 1),
+                Padding(
+                    padding: MySpacing.all(16),
+                    child: Form(
+                        key: validator.formKey,
+                        child: Obx(
+                          () => Column(
+                            children: [
+                              TextFormField(
+                                autofocus: true,
+                                controller: validator.getController('issuer'),
+                                validator: validator.getValidator('issuer'),
+                                decoration: InputDecoration(
+                                  labelText: S.of(context).oathIssuer,
+                                  border: outlineInputBorder,
+                                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                                ),
+                              ),
+                              MySpacing.height(16),
+                              TextFormField(
+                                controller: validator.getController('account'),
+                                validator: validator.getValidator('account'),
+                                decoration: InputDecoration(
+                                  labelText: S.of(context).oathAccount,
+                                  border: outlineInputBorder,
+                                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                                ),
+                              ),
+                              MySpacing.height(16),
+                              TextFormField(
+                                controller: validator.getController('secret'),
+                                validator: validator.getValidator('secret'),
+                                decoration: InputDecoration(
+                                  labelText: S.of(context).oathSecret,
+                                  border: outlineInputBorder,
+                                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                                ),
+                              ),
+                              MySpacing.height(16),
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    onChanged: (value) => requireTouch.value = value!,
+                                    value: requireTouch.value,
+                                    activeColor: contentTheme.primary,
+                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    visualDensity: getCompactDensity,
+                                  ),
+                                  MySpacing.width(16),
+                                  MyText.bodyMedium(S.of(context).oathRequireTouch),
+                                ],
+                              ),
+                              MySpacing.height(16),
+                              MyText.bodyMedium(S.of(context).oathAdvancedSettings),
+                              MySpacing.height(12),
+                              Row(
+                                children: [
+                                  SizedBox(width: 90, child: MyText.labelLarge(S.of(context).oathType)),
+                                  Expanded(
+                                      child: Wrap(
+                                          spacing: 16,
+                                          children: OathType.values
+                                              .map(
+                                                (type) => InkWell(
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Radio<OathType>(
+                                                        value: type,
+                                                        activeColor: contentTheme.primary,
+                                                        groupValue: oathType.value,
+                                                        onChanged: (type) => oathType.value = type!,
+                                                        visualDensity: getCompactDensity,
+                                                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                      ),
+                                                      MySpacing.width(8),
+                                                      MyText.labelMedium(type.name.toUpperCase())
+                                                    ],
+                                                  ),
+                                                ),
+                                              )
+                                              .toList()))
+                                ],
+                              ),
+                              MySpacing.height(12),
+                              Row(
+                                children: [
+                                  SizedBox(width: 90, child: MyText.labelLarge(S.of(context).oathAlgorithm)),
+                                  Expanded(
+                                      child: Wrap(
+                                          spacing: 16,
+                                          children: OathAlgorithm.values
+                                              .map(
+                                                (algo) => InkWell(
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Radio<OathAlgorithm>(
+                                                        value: algo,
+                                                        activeColor: contentTheme.primary,
+                                                        groupValue: oathAlgo.value,
+                                                        onChanged: (algo) => oathAlgo.value = algo!,
+                                                        visualDensity: getCompactDensity,
+                                                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                      ),
+                                                      MySpacing.width(8),
+                                                      MyText.labelMedium(algo.name.toUpperCase())
+                                                    ],
+                                                  ),
+                                                ),
+                                              )
+                                              .toList()))
+                                ],
+                              ),
+                              MySpacing.height(12),
+                              Row(
+                                children: [
+                                  SizedBox(width: 90, child: MyText.labelLarge(S.of(context).oathDigits)),
+                                  Expanded(
+                                      child: Wrap(
+                                          spacing: 16,
+                                          children: [6, 7, 8]
+                                              .map(
+                                                (digits) => InkWell(
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Radio<int>(
+                                                        value: digits,
+                                                        activeColor: contentTheme.primary,
+                                                        groupValue: oathDigits.value,
+                                                        onChanged: (digits) => oathDigits.value = digits!,
+                                                        visualDensity: getCompactDensity,
+                                                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                      ),
+                                                      MySpacing.width(8),
+                                                      MyText.labelMedium(digits.toString())
+                                                    ],
+                                                  ),
+                                                ),
+                                              )
+                                              .toList()))
+                                ],
+                              ),
+                              if (oathType.value == OathType.hotp) ...{
+                                Column(children: [
+                                  MySpacing.height(16),
+                                  TextFormField(
+                                    controller: validator.getController('counter'),
+                                    validator: validator.getValidator('counter'),
+                                    decoration: InputDecoration(
+                                      labelText: S.of(context).oathCounter,
+                                      border: outlineInputBorder,
+                                      floatingLabelBehavior: FloatingLabelBehavior.auto,
+                                    ),
+                                  ),
+                                ]),
+                              },
+                            ],
+                          ),
+                        ))),
+                Divider(height: 0, thickness: 1),
+                Padding(
+                  padding: MySpacing.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      MyButton.rounded(
+                        onPressed: () => Navigator.pop(context),
+                        elevation: 0,
+                        padding: MySpacing.xy(20, 16),
+                        backgroundColor: contentTheme.secondary,
+                        child: MyText.labelMedium(S.of(context).close, color: contentTheme.onSecondary),
+                      ),
+                      MySpacing.width(16),
+                      MyButton.rounded(
+                        onPressed: () {
+                          if (!validator.validateForm(clear: true)) {
+                            return;
+                          }
+                          String issuer = validator.getData()['issuer'];
+                          String account = validator.getData()['account'];
+                          String secret = validator.getData()['secret'];
+                          int initValue = int.parse(validator.getData()['counter']);
+                          String name = '$issuer:$account';
+                          if (name.length > 63) {
+                            validator.addError('account', S.of(context).oathTooLong);
+                            validator.formKey.currentState!.validate();
+                            return;
+                          }
+                          late String secretHex;
+                          try {
+                            secretHex = base32.decodeAsHexString(secret.toUpperCase());
+                          } catch (e) {
+                            validator.addError('secret', S.of(Get.context!).oathInvalidKey);
+                            validator.formKey.currentState!.validate();
+                            return;
+                          }
+                          controller.addAccount(name, secretHex, oathType.value, oathAlgo.value, oathDigits.value, requireTouch.value, initValue);
+                        },
+                        elevation: 0,
+                        padding: MySpacing.xy(20, 16),
+                        backgroundColor: contentTheme.primary,
+                        child: MyText.labelMedium(S.of(context).save, color: contentTheme.onPrimary),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        barrierDismissible: false);
+  }
+
+  void _showDeleteDialog(String issuer, String account, String name) {
     Get.dialog(Dialog(
       child: SizedBox(
         width: 400,
@@ -240,171 +490,13 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
           children: [
             Padding(
               padding: MySpacing.all(16),
-              child: MyText.labelLarge(S.of(context).oathAddAccount),
+              child: MyText.labelLarge(S.of(context).delete),
             ),
             Divider(height: 0, thickness: 1),
             Padding(
-                padding: MySpacing.all(16),
-                child: Form(
-                    key: controller.validators.formKey,
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          autofocus: true,
-                          controller: controller.validators.getController('issuer'),
-                          validator: controller.validators.getValidator('issuer'),
-                          decoration: InputDecoration(
-                            labelText: S.of(context).oathIssuer,
-                            border: outlineInputBorder,
-                            floatingLabelBehavior: FloatingLabelBehavior.auto,
-                          ),
-                        ),
-                        MySpacing.height(16),
-                        TextFormField(
-                          controller: controller.validators.getController('account'),
-                          validator: controller.validators.getValidator('account'),
-                          decoration: InputDecoration(
-                            labelText: S.of(context).oathAccount,
-                            border: outlineInputBorder,
-                            floatingLabelBehavior: FloatingLabelBehavior.auto,
-                          ),
-                        ),
-                        MySpacing.height(16),
-                        TextFormField(
-                          controller: controller.validators.getController('secret'),
-                          validator: controller.validators.getValidator('secret'),
-                          decoration: InputDecoration(
-                            labelText: S.of(context).oathSecret,
-                            border: outlineInputBorder,
-                            floatingLabelBehavior: FloatingLabelBehavior.auto,
-                          ),
-                        ),
-                        MySpacing.height(16),
-                        Row(
-                          children: [
-                            Obx(() => Checkbox(
-                                  onChanged: (value) => controller.requireTouch.value = value!,
-                                  value: controller.requireTouch.value,
-                                  activeColor: contentTheme.primary,
-                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  visualDensity: getCompactDensity,
-                                )),
-                            MySpacing.width(16),
-                            MyText.bodyMedium(S.of(context).oathRequireTouch),
-                          ],
-                        ),
-                        MySpacing.height(16),
-                        MyText.bodyMedium("以下为高级设置，请谨慎选择"),
-                        MySpacing.height(12),
-                        Row(
-                          children: [
-                            SizedBox(width: 90, child: MyText.labelLarge(S.of(context).oathType)),
-                            Expanded(
-                                child: Wrap(
-                                    spacing: 16,
-                                    children: OathType.values
-                                        .map(
-                                          (type) => InkWell(
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Obx(() => Radio<OathType>(
-                                                      value: type,
-                                                      activeColor: contentTheme.primary,
-                                                      groupValue: controller.type.value,
-                                                      onChanged: (type) => controller.type.value = type!,
-                                                      visualDensity: getCompactDensity,
-                                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                                    )),
-                                                MySpacing.width(8),
-                                                MyText.labelMedium(type.name.toUpperCase())
-                                              ],
-                                            ),
-                                          ),
-                                        )
-                                        .toList()))
-                          ],
-                        ),
-                        MySpacing.height(12),
-                        Row(
-                          children: [
-                            SizedBox(width: 90, child: MyText.labelLarge(S.of(context).oathAlgorithm)),
-                            Expanded(
-                                child: Wrap(
-                                    spacing: 16,
-                                    children: OathAlgorithm.values
-                                        .map(
-                                          (algo) => InkWell(
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Obx(() => Radio<OathAlgorithm>(
-                                                      value: algo,
-                                                      activeColor: contentTheme.primary,
-                                                      groupValue: controller.algo.value,
-                                                      onChanged: (algo) => controller.algo.value = algo!,
-                                                      visualDensity: getCompactDensity,
-                                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                                    )),
-                                                MySpacing.width(8),
-                                                MyText.labelMedium(algo.name.toUpperCase())
-                                              ],
-                                            ),
-                                          ),
-                                        )
-                                        .toList()))
-                          ],
-                        ),
-                        MySpacing.height(12),
-                        Row(
-                          children: [
-                            SizedBox(width: 90, child: MyText.labelLarge(S.of(context).oathDigits)),
-                            Expanded(
-                                child: Wrap(
-                                    spacing: 16,
-                                    children: [6, 7, 8]
-                                        .map(
-                                          (digits) => InkWell(
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Obx(() => Radio<int>(
-                                                      value: digits,
-                                                      activeColor: contentTheme.primary,
-                                                      groupValue: controller.digits.value,
-                                                      onChanged: (digits) => controller.digits.value = digits!,
-                                                      visualDensity: getCompactDensity,
-                                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                                    )),
-                                                MySpacing.width(8),
-                                                MyText.labelMedium(digits.toString())
-                                              ],
-                                            ),
-                                          ),
-                                        )
-                                        .toList()))
-                          ],
-                        ),
-                        Obx(() {
-                          if (controller.type.value == OathType.hotp) {
-                            return Column(children: [
-                              MySpacing.height(16),
-                              TextFormField(
-                                controller: controller.validators.getController('counter'),
-                                validator: controller.validators.getValidator('counter'),
-                                decoration: InputDecoration(
-                                  labelText: S.of(context).oathCounter,
-                                  border: outlineInputBorder,
-                                  floatingLabelBehavior: FloatingLabelBehavior.auto,
-                                ),
-                              ),
-                            ]);
-                          } else {
-                            return Container();
-                          }
-                        }),
-                      ],
-                    ))),
+              padding: MySpacing.all(16),
+              child: MyText.labelLarge(S.of(context).oathDelete('$issuer $account'.trim())),
+            ),
             Divider(height: 0, thickness: 1),
             Padding(
               padding: MySpacing.all(16),
@@ -412,22 +504,19 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   MyButton.rounded(
-                    onPressed: () {
-                      controller.resetForms();
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                     elevation: 0,
                     padding: MySpacing.xy(20, 16),
                     backgroundColor: contentTheme.secondary,
-                    child: MyText.labelMedium(S.of(context).close, color: contentTheme.onSecondary),
+                    child: MyText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
                   ),
                   MySpacing.width(16),
                   MyButton.rounded(
-                    onPressed: controller.addAccount,
+                    onPressed: () => controller.delete(name),
                     elevation: 0,
                     padding: MySpacing.xy(20, 16),
-                    backgroundColor: contentTheme.primary,
-                    child: MyText.labelMedium(S.of(context).save, color: contentTheme.onPrimary),
+                    backgroundColor: contentTheme.danger,
+                    child: MyText.labelMedium(S.of(context).delete, color: contentTheme.onDanger),
                   ),
                 ],
               ),

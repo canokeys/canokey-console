@@ -58,6 +58,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathAccount": MessageLookupByLibrary.simpleMessage("账户"),
         "oathAddAccount": MessageLookupByLibrary.simpleMessage("增加账户"),
         "oathAdded": MessageLookupByLibrary.simpleMessage("添加成功"),
+        "oathAdvancedSettings": MessageLookupByLibrary.simpleMessage(
+            "高级设置，仅供专业用户使用，不正确的设置可能导致凭据无法使用。"),
         "oathAlgorithm": MessageLookupByLibrary.simpleMessage("算法"),
         "oathCode": MessageLookupByLibrary.simpleMessage("口令"),
         "oathCodeChanged": MessageLookupByLibrary.simpleMessage("口令已修改"),
@@ -82,7 +84,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathRequired": MessageLookupByLibrary.simpleMessage("不得为空"),
         "oathSecret": MessageLookupByLibrary.simpleMessage("密钥"),
         "oathSetCode": MessageLookupByLibrary.simpleMessage("设置口令"),
-        "oathSetDefault": MessageLookupByLibrary.simpleMessage("设为默认"),
+        "oathSetDefault": MessageLookupByLibrary.simpleMessage("设为触摸输出"),
         "oathTooLong": MessageLookupByLibrary.simpleMessage("长度超限"),
         "oathType": MessageLookupByLibrary.simpleMessage("类型"),
         "off": MessageLookupByLibrary.simpleMessage("关"),

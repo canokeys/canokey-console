@@ -1,4 +1,8 @@
-enum OathVersion { legacy, v1 }
+enum OathVersion {
+  legacy, // incompatible with YubiKey, no support code
+  v1, // compatible with YubiKey, support code
+  v2, // support two slots for HOTP
+}
 
 enum OathType { hotp, totp }
 
