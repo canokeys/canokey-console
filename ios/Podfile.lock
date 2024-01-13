@@ -36,8 +36,6 @@ PODS:
   - Flutter (1.0.0)
   - flutter_nfc_kit (2.0.0):
     - Flutter
-  - image_picker_ios (0.0.1):
-    - Flutter
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -55,7 +53,6 @@ DEPENDENCIES:
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
   - flutter_nfc_kit (from `.symlinks/plugins/flutter_nfc_kit/ios`)
-  - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
@@ -74,8 +71,6 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_nfc_kit:
     :path: ".symlinks/plugins/flutter_nfc_kit/ios"
-  image_picker_ios:
-    :path: ".symlinks/plugins/image_picker_ios/ios"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   shared_preferences_foundation:
@@ -89,7 +84,6 @@ SPEC CHECKSUMS:
   file_picker: ce3938a0df3cc1ef404671531facef740d03f920
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   flutter_nfc_kit: 965c98c3fa68f5609f1cc89abb968fe1b8ffdbaa
-  image_picker_ios: 4a8aadfbb6dc30ad5141a2ce3832af9214a705b5
   path_provider_foundation: 29f094ae23ebbca9d3d0cec13889cd9060c0e943
   SDWebImage: a81bbb3ba4ea5f810f4069c68727cb118467a04a
   shared_preferences_foundation: 5b919d13b803cadd15ed2dc053125c68730e5126
