@@ -4,36 +4,23 @@ enum OathVersion {
   v2, // support two slots for HOTP
 }
 
-enum OathType { hotp, totp }
+enum OathType {
+  hotp(0x10),
+  totp(0x20);
 
-extension OathTypeEx on OathType {
-  int toValue() {
-    switch (this) {
-      case OathType.hotp:
-        return 0x10;
-      case OathType.totp:
-        return 0x20;
-      default:
-        return 0;
-    }
-  }
+  const OathType(this.value);
+
+  final int value;
 }
 
-enum OathAlgorithm { sha1, sha256, sha512 }
+enum OathAlgorithm {
+  sha1(0x01),
+  sha256(0x02),
+  sha512(0x03);
 
-extension AlgorithmEx on OathAlgorithm {
-  int toValue() {
-    switch (this) {
-      case OathAlgorithm.sha1:
-        return 0x01;
-      case OathAlgorithm.sha256:
-        return 0x02;
-      case OathAlgorithm.sha512:
-        return 0x03;
-      default:
-        return 0;
-    }
-  }
+  const OathAlgorithm(this.value);
+
+  final int value;
 }
 
 class OathItem {

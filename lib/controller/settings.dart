@@ -156,7 +156,7 @@ class SettingsController extends MyController {
       Apdu.assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
       if (!await _verifyPin(pinCache)) return;
       Navigator.pop(Get.context!);
-      Apdu.assertOK(await FlutterNfcKit.transceive(_resetAppletAPDUs[applet]));
+      Apdu.assertOK(await FlutterNfcKit.transceive(applet.resetApdu));
       Prompts.showSnackbar(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
       refreshData(pinCache);
     });
@@ -221,14 +221,5 @@ class SettingsController extends MyController {
     Func.decTouch: {true: '00090101', false: '00090100'},
     Func.autTouch: {true: '00090201', false: '00090200'},
     Func.nfcSwitch: {true: '00400101', false: '00400100'}, // TODO: update this
-  };
-
-  final Map _resetAppletAPDUs = {
-    Applet.OpenPGP: '00030000',
-    Applet.PIV: '00040000',
-    Applet.OATH: '00050000',
-    Applet.NDEF: '00070000',
-    Applet.WebAuthn: '00090000',
-    Applet.PASS: '00130000',
   };
 }

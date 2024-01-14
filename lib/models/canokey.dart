@@ -3,12 +3,15 @@ import 'package:logging/logging.dart';
 final log = Logger('Console:CanoKey:Model');
 
 enum Applet {
-  OpenPGP,
-  PIV,
-  WebAuthn,
-  OATH,
-  NDEF,
-  PASS,
+  OpenPGP(resetApdu: '00030000'),
+  PIV(resetApdu: '00040000'),
+  WebAuthn(resetApdu: '00090000'),
+  OATH(resetApdu: '00050000'),
+  NDEF(resetApdu: '00070000'),
+  PASS(resetApdu: '00130000');
+
+  const Applet({required this.resetApdu});
+  final String resetApdu;
 }
 
 enum Func {

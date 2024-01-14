@@ -100,12 +100,12 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   labelWidget(S.of(context).applets),
-                  // NavigationItem(
-                  //   iconData: LucideIcons.key,
-                  //   title: "WebAuthn",
-                  //   isCondensed: isCondensed,
-                  //   route: '/applets/webauthn',
-                  // ),
+                  NavigationItem(
+                    iconData: LucideIcons.key,
+                    title: "WebAuthn",
+                    isCondensed: isCondensed,
+                    route: '/applets/webauthn',
+                  ),
                   NavigationItem(
                     iconData: LucideIcons.timer,
                     title: "TOTP / HOTP",

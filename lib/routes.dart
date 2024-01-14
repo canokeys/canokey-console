@@ -1,5 +1,6 @@
 import 'package:canokey_console/views/applets/oath.dart';
 import 'package:canokey_console/views/applets/pass.dart';
+import 'package:canokey_console/views/applets/webauthn.dart';
 import 'package:canokey_console/views/settings.dart';
 import 'package:canokey_console/views/starter_screen.dart';
 import 'package:get/get.dart';
@@ -9,6 +10,7 @@ getPageRoute() {
     GetPage(name: '/', page: () => const StarterScreen()),
 
     // ----------------Applets----------------------------------
+    GetPage(name: '/applets/webauthn', page: () => const WebAuthnPage()),
     GetPage(name: '/applets/oath', page: () => const OathPage()),
     GetPage(name: '/applets/pass', page: () => const PassPage()),
 

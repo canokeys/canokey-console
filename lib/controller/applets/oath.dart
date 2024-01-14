@@ -148,7 +148,7 @@ class OathController extends MyController {
       String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}'; // name 0x71
       capduData += '73' + // tag
           (secretHex.length ~/ 2 + 2).toRadixString(16).padLeft(2, '0') + // length
-          (type.toValue() | algo.toValue()).toRadixString(16).padLeft(2, '0') + // type & algo
+          (type.value | algo.value).toRadixString(16).padLeft(2, '0') + // type & algo
           digits.toRadixString(16).padLeft(2, '0') + // digits
           secretHex;
       if (requireTouch) {
