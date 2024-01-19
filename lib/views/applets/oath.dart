@@ -101,7 +101,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 MySpacing.height(MediaQuery.of(context).size.height / 2 - 100),
-                Center(child: MyText.bodyMedium(S.of(context).oathNoCredential, fontSize: 24)),
+                Center(child: MyText.bodyMedium(S.of(context).noCredential, fontSize: 24)),
               ],
             );
           }

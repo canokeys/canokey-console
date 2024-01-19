@@ -380,6 +380,16 @@ class S {
     );
   }
 
+  /// `Successfully deleted`
+  String get deleted {
+    return Intl.message(
+      'Successfully deleted',
+      name: 'deleted',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Add`
   String get add {
     return Intl.message(
@@ -425,6 +435,16 @@ class S {
     return Intl.message(
       'Enabled',
       name: 'enabled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No credential`
+  String get noCredential {
+    return Intl.message(
+      'No credential',
+      name: 'noCredential',
       desc: '',
       args: [],
     );
@@ -1130,16 +1150,6 @@ class S {
     );
   }
 
-  /// `Successfully deleted`
-  String get oathDeleted {
-    return Intl.message(
-      'Successfully deleted',
-      name: 'oathDeleted',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Successfully added`
   String get oathAdded {
     return Intl.message(
@@ -1215,16 +1225,6 @@ class S {
     return Intl.message(
       'Enter a new passphrase. Leave it empty to disable current passphrase.',
       name: 'oathNewCodePrompt',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `No credential`
-  String get oathNoCredential {
-    return Intl.message(
-      'No credential',
-      name: 'oathNoCredential',
       desc: '',
       args: [],
     );
@@ -1347,6 +1347,66 @@ class S {
       name: 'passSlotWithEnter',
       desc: '',
       args: [],
+    );
+  }
+
+  /// `This key does not support WebAuthn PIN.`
+  String get webauthnClientPinNotSupported {
+    return Intl.message(
+      'This key does not support WebAuthn PIN.',
+      name: 'webauthnClientPinNotSupported',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Set WebAuthn PIN`
+  String get webauthnSetPinTitle {
+    return Intl.message(
+      'Set WebAuthn PIN',
+      name: 'webauthnSetPinTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please set your WebAuthn PIN to enable management of credentials. The length of PIN should be between 4 and 63.`
+  String get webauthnSetPinPrompt {
+    return Intl.message(
+      'Please set your WebAuthn PIN to enable management of credentials. The length of PIN should be between 4 and 63.',
+      name: 'webauthnSetPinPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unlock WebAuthn`
+  String get webauthnInputPinTitle {
+    return Intl.message(
+      'Unlock WebAuthn',
+      name: 'webauthnInputPinTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please input your WebAuthn PIN.`
+  String get webauthnInputPinPrompt {
+    return Intl.message(
+      'Please input your WebAuthn PIN.',
+      name: 'webauthnInputPinPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This action will delete the account {name} from your CanoKey. Make sure you have other ways to log in.`
+  String webauthnDelete(Object name) {
+    return Intl.message(
+      'This action will delete the account $name from your CanoKey. Make sure you have other ways to log in.',
+      name: 'webauthnDelete',
+      desc: '',
+      args: [name],
     );
   }
 

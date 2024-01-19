@@ -1,4 +1,3 @@
-import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
 import 'package:canokey_console/helper/theme/theme_type.dart';

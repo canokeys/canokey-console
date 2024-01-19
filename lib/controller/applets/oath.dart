@@ -240,7 +240,7 @@ class OathController extends MyController {
       Apdu.assertOK(await _transceive('00020000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
 
       Navigator.pop(Get.context!);
-      Prompts.showSnackbar(S.of(Get.context!).oathDeleted, ContentThemeColor.success);
+      Prompts.showSnackbar(S.of(Get.context!).deleted, ContentThemeColor.success);
       refreshData();
     });
   }
@@ -255,7 +255,7 @@ class OathController extends MyController {
       Apdu.assertOK(await _transceive('00550$slot${withEnter ? '01' : '00'}${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
 
       Navigator.pop(Get.context!);
-      Prompts.showSnackbar(S.of(Get.context!).oathDeleted, ContentThemeColor.success);
+      Prompts.showSnackbar(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
       refreshData();
     });
   }

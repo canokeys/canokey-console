@@ -145,7 +145,7 @@ class SettingsController extends MyController {
     Apdu.process(() async {
       Apdu.assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
       if (!await _verifyPin(pinCache)) return;
-      Apdu.assertOK(await FlutterNfcKit.transceive('00210000' + newPin.length.toRadixString(16).padLeft(2, '0') + hex.encode(newPin.codeUnits)));
+      Apdu.assertOK(await FlutterNfcKit.transceive('00210000${newPin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(newPin.codeUnits)}'));
       Prompts.showSnackbar(S.of(Get.context!).pinChanged, ContentThemeColor.success);
       pinCache = newPin;
     });

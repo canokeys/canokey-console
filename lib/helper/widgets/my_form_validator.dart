@@ -2,7 +2,6 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/my_field_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_utils/get_utils.dart';
 
 class MyFormValidator {
   Map<String, dynamic> errors = {};

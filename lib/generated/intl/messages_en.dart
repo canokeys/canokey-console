@@ -36,6 +36,9 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m5(applet) =>
       "This operation will RESET all data of ${applet}!";
 
+  static String m6(name) =>
+      "This action will delete the account ${name} from your CanoKey. Make sure you have other ways to log in.";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "about": MessageLookupByLibrary.simpleMessage("About"),
@@ -54,6 +57,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Please connect your CanoKey first."),
         "copied": MessageLookupByLibrary.simpleMessage("Copied"),
         "delete": MessageLookupByLibrary.simpleMessage("Delete"),
+        "deleted": MessageLookupByLibrary.simpleMessage("Successfully deleted"),
         "enabled": MessageLookupByLibrary.simpleMessage("Enabled"),
         "home": MessageLookupByLibrary.simpleMessage("Home"),
         "homePress": MessageLookupByLibrary.simpleMessage("Press"),
@@ -64,6 +68,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "networkError": MessageLookupByLibrary.simpleMessage(
             "CanoKey is busy. Replug it, wait for a moment, and retry."),
         "newPin": MessageLookupByLibrary.simpleMessage("New PIN"),
+        "noCredential": MessageLookupByLibrary.simpleMessage("No credential"),
         "oathAccount": MessageLookupByLibrary.simpleMessage("Account name"),
         "oathAddAccount": MessageLookupByLibrary.simpleMessage("Add Account"),
         "oathAdded": MessageLookupByLibrary.simpleMessage("Successfully added"),
@@ -78,8 +83,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathCounterMustBeNumber":
             MessageLookupByLibrary.simpleMessage("Not a number"),
         "oathDelete": m1,
-        "oathDeleted":
-            MessageLookupByLibrary.simpleMessage("Successfully deleted"),
         "oathDigits": MessageLookupByLibrary.simpleMessage("Digits"),
         "oathInputCode": MessageLookupByLibrary.simpleMessage("Unlock CanoKey"),
         "oathInputCodePrompt": MessageLookupByLibrary.simpleMessage(
@@ -90,8 +93,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathNewCode": MessageLookupByLibrary.simpleMessage("New Passphrase"),
         "oathNewCodePrompt": MessageLookupByLibrary.simpleMessage(
             "Enter a new passphrase. Leave it empty to disable current passphrase."),
-        "oathNoCredential":
-            MessageLookupByLibrary.simpleMessage("No credential"),
         "oathPeriod": MessageLookupByLibrary.simpleMessage("Period"),
         "oathRequireTouch":
             MessageLookupByLibrary.simpleMessage("Require Touch"),
@@ -224,6 +225,17 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("WebUSB prompt when plug-in"),
         "successfullyChanged":
             MessageLookupByLibrary.simpleMessage("Successfully changed"),
-        "warning": MessageLookupByLibrary.simpleMessage("Warning")
+        "warning": MessageLookupByLibrary.simpleMessage("Warning"),
+        "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
+            "This key does not support WebAuthn PIN."),
+        "webauthnDelete": m6,
+        "webauthnInputPinPrompt": MessageLookupByLibrary.simpleMessage(
+            "Please input your WebAuthn PIN."),
+        "webauthnInputPinTitle":
+            MessageLookupByLibrary.simpleMessage("Unlock WebAuthn"),
+        "webauthnSetPinPrompt": MessageLookupByLibrary.simpleMessage(
+            "Please set your WebAuthn PIN to enable management of credentials. The length of PIN should be between 4 and 63."),
+        "webauthnSetPinTitle":
+            MessageLookupByLibrary.simpleMessage("Set WebAuthn PIN")
       };
 }

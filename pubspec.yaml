@@ -16,10 +16,10 @@ dependencies:
   get: ^4.6.5
   shared_preferences: ^2.2.1
   provider: ^6.0.5
-  google_fonts: ^5.1.0
+  google_fonts: ^6.1.0
   lucide_icons: ^0.257.0
   url_strategy: ^0.2.0
-  url_launcher: ^6.1.14
+  url_launcher: ^6.2.3
   file_picker: ^5.5.0
   font_awesome_flutter: ^10.5.0
   intl: ^0.18.1
@@ -33,7 +33,16 @@ dependencies:
   loader_overlay: ^4.0.0
   flutter_spinkit: ^5.2.0
   fixnum: ^1.1.0
-  fido2: ^0.0.1
+  fido2:
+    git:
+      url: https://github.com/nfcim/fido2.git
+      ref: c75a9dccba59cc6d0bfbb3ac1d3d228270bdff55
+
+dependency_overrides:
+  cbor:
+    git:
+      url: https://github.com/nfcim/cbor.git
+      ref: 2e6f64b5a297033d565d15365052ce701aced6b2
 
 dev_dependencies:
   flutter_test:

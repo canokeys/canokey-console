@@ -53,7 +53,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
           } else {
             Prompts.showInputPinDialog(
               title: S.of(context).settingsInputPin,
-              label: "PIN",
+              label: 'PIN',
               prompt: S.of(context).settingsInputPinPrompt,
             ).then((value) {
               controller.refreshData(value);

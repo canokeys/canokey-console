@@ -32,6 +32,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m5(applet) => "该操作将抹除 ${applet} 的全部数据！";
 
+  static String m6(name) => "您正在删除${name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "about": MessageLookupByLibrary.simpleMessage("关于"),
@@ -48,6 +50,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "connectFirst": MessageLookupByLibrary.simpleMessage("请先连接 CanoKey"),
         "copied": MessageLookupByLibrary.simpleMessage("已复制"),
         "delete": MessageLookupByLibrary.simpleMessage("删除"),
+        "deleted": MessageLookupByLibrary.simpleMessage("删除成功"),
         "enabled": MessageLookupByLibrary.simpleMessage("启用"),
         "home": MessageLookupByLibrary.simpleMessage("首页"),
         "homePress": MessageLookupByLibrary.simpleMessage("点击"),
@@ -57,6 +60,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "networkError":
             MessageLookupByLibrary.simpleMessage("CanoKey 繁忙，请重新插拔并稍后再试"),
         "newPin": MessageLookupByLibrary.simpleMessage("新 PIN"),
+        "noCredential": MessageLookupByLibrary.simpleMessage("没有找到凭据"),
         "oathAccount": MessageLookupByLibrary.simpleMessage("账户"),
         "oathAddAccount": MessageLookupByLibrary.simpleMessage("增加账户"),
         "oathAdded": MessageLookupByLibrary.simpleMessage("添加成功"),
@@ -70,7 +74,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathCounterMustBeNumber":
             MessageLookupByLibrary.simpleMessage("请填写数字"),
         "oathDelete": m1,
-        "oathDeleted": MessageLookupByLibrary.simpleMessage("删除成功"),
         "oathDigits": MessageLookupByLibrary.simpleMessage("位数"),
         "oathInputCode": MessageLookupByLibrary.simpleMessage("解锁 CanoKey"),
         "oathInputCodePrompt":
@@ -80,7 +83,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathNewCode": MessageLookupByLibrary.simpleMessage("新口令"),
         "oathNewCodePrompt":
             MessageLookupByLibrary.simpleMessage("请输入新口令，如需删除，请留空。"),
-        "oathNoCredential": MessageLookupByLibrary.simpleMessage("没有找到凭据"),
         "oathPeriod": MessageLookupByLibrary.simpleMessage("周期"),
         "oathRequireTouch": MessageLookupByLibrary.simpleMessage("需要触摸"),
         "oathRequired": MessageLookupByLibrary.simpleMessage("不得为空"),
@@ -188,6 +190,17 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("WebAuthn SM2"),
         "settingsWebUSB": MessageLookupByLibrary.simpleMessage("插入时 WebUSB 提示"),
         "successfullyChanged": MessageLookupByLibrary.simpleMessage("修改成功"),
-        "warning": MessageLookupByLibrary.simpleMessage("警告")
+        "warning": MessageLookupByLibrary.simpleMessage("警告"),
+        "webauthnClientPinNotSupported":
+            MessageLookupByLibrary.simpleMessage("该密钥不支持 WebAuthn PIN。"),
+        "webauthnDelete": m6,
+        "webauthnInputPinPrompt":
+            MessageLookupByLibrary.simpleMessage("请输入您的 WebAuthn PIN。"),
+        "webauthnInputPinTitle":
+            MessageLookupByLibrary.simpleMessage("解锁 WebAuthn"),
+        "webauthnSetPinPrompt": MessageLookupByLibrary.simpleMessage(
+            "请设置 PIN 以启用凭据管理。PIN 的长度应当为 4 - 63 个字符。"),
+        "webauthnSetPinTitle":
+            MessageLookupByLibrary.simpleMessage("设置 WebAuthn PIN")
       };
 }
