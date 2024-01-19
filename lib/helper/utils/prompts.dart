@@ -10,38 +10,54 @@ import 'package:canokey_console/helper/widgets/my_spacing.dart';
 import 'package:canokey_console/helper/widgets/my_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:platform_detector/platform_detector.dart';
 
 class Prompts {
   static void promptPinFailureResult(String resp) {
     if (resp == '6983') {
-      showSnackbar(S.of(Get.context!).appletLocked, ContentThemeColor.danger);
+      showPrompt(S.of(Get.context!).appletLocked, ContentThemeColor.danger);
     } else if (resp == '6982') {
-      showSnackbar(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+      showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
     } else if (resp.toUpperCase().startsWith('63C')) {
       String retries = resp[resp.length - 1];
-      showSnackbar(S.of(Get.context!).pinRetries(retries), ContentThemeColor.danger);
+      showPrompt(S.of(Get.context!).pinRetries(retries), ContentThemeColor.danger);
     } else if (resp == '6700') {
-      showSnackbar(S.of(Get.context!).pinLength, ContentThemeColor.danger);
+      showPrompt(S.of(Get.context!).pinLength, ContentThemeColor.danger);
     } else {
-      showSnackbar('Unknown response', ContentThemeColor.danger);
+      showPrompt('Unknown response', ContentThemeColor.danger);
     }
   }
 
-  static void showSnackbar(String content, ContentThemeColor selectedColor) {
+  static void showPrompt(String content, ContentThemeColor selectedColor) {
     Color backgroundColor = selectedColor.color;
     Color color = selectedColor.onColor;
 
-    SnackBar snackBar = SnackBar(
-      behavior: SnackBarBehavior.floating,
-      width: 300,
-      duration: Duration(seconds: 3),
-      showCloseIcon: true,
-      closeIconColor: color,
-      content: MyText.labelLarge(content, color: color),
-      backgroundColor: backgroundColor,
-    );
-    ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
-    ScaffoldMessenger.of(Get.context!).showSnackBar(snackBar);
+    if (isIOS()) {
+      MaterialBanner banner = MaterialBanner(
+        content: MyText.labelMedium(content, color: color),
+        padding: MySpacing.x(24),
+        backgroundColor: backgroundColor,
+        overflowAlignment: OverflowBarAlignment.center,
+        actions: [MySpacing.empty()],
+      );
+      ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
+      ScaffoldMessenger.of(Get.context!).showMaterialBanner(banner);
+      Timer(Duration(seconds: 3), () {
+        ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
+      });
+    } else {
+      SnackBar snackBar = SnackBar(
+        behavior: SnackBarBehavior.floating,
+        width: 300,
+        duration: Duration(seconds: 3),
+        showCloseIcon: true,
+        closeIconColor: color,
+        content: MyText.labelLarge(content, color: color),
+        backgroundColor: backgroundColor,
+      );
+      ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
+      ScaffoldMessenger.of(Get.context!).showSnackBar(snackBar);
+    }
   }
 
   static Future<String> showInputPinDialog({

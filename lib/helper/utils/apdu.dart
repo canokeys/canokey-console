@@ -26,11 +26,13 @@ class Apdu {
       await f();
     } on PlatformException catch (e) {
       if (e.message == 'NotFoundError: No device selected.') {
-        Prompts.showSnackbar(S.of(Get.context!).pollCanceled, ContentThemeColor.danger);
+        Prompts.showPrompt(S.of(Get.context!).pollCanceled, ContentThemeColor.danger);
       } else if (e.message == 'NetworkError: A transfer error has occurred.') {
-        Prompts.showSnackbar(S.of(Get.context!).networkError, ContentThemeColor.danger);
+        Prompts.showPrompt(S.of(Get.context!).networkError, ContentThemeColor.danger);
+      } else if (e.message == 'SessionCanceled') {
+        Prompts.showPrompt(S.of(Get.context!).pollCanceled, ContentThemeColor.danger);
       } else {
-        Prompts.showSnackbar(e.message ?? 'Unknown error', ContentThemeColor.danger);
+        Prompts.showPrompt(e.message ?? 'Unknown error', ContentThemeColor.danger);
       }
     } finally {
       FlutterNfcKit.finish(closeWebUSB: false);

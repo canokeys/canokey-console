@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
+import 'package:platform_detector/platform_detector.dart';
 
 final log = Logger('Console:WebAuthn:Controller');
 
@@ -24,6 +25,7 @@ class WebAuthnController extends MyController {
   void onClose() {
     try {
       ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
+      ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
       // ignore: empty_catches
     } catch (e) {}
   }
@@ -34,28 +36,46 @@ class WebAuthnController extends MyController {
       Apdu.assertOK(resp);
 
       ctap = await Ctap2.create(CtapNfc());
+
+      // We do nothing if the device does not support clientPin
       if (ctap.info.options?['clientPin'] == null) {
-        Prompts.showSnackbar(S.of(Get.context!).webauthnClientPinNotSupported, ContentThemeColor.danger);
+        Prompts.showPrompt(S.of(Get.context!).webauthnClientPinNotSupported, ContentThemeColor.danger);
         return;
       }
+
+      // PIN is not set
       if (ctap.info.options?['clientPin'] == false) {
+        // TODO: fix behaviors on mobile platforms
         pinCache = await Prompts.showInputPinDialog(
           title: S.of(Get.context!).webauthnSetPinTitle,
           label: 'PIN',
           prompt: S.of(Get.context!).webauthnSetPinPrompt,
           validators: [MyLengthValidator(min: 4, max: 63)],
         );
-        Prompts.showSnackbar(S.of(Get.context!).pinChanged, ContentThemeColor.success);
+        final cp = ClientPin(ctap);
+        await cp.setPin(pinCache);
+        Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
         return;
       }
+
       assert(ctap.info.options?['clientPin'] == true);
 
       if (pinCache.isEmpty) {
+        // On mobile platforms, we need to finish NFC before showing the dialog
+        if (isMobile()) {
+          FlutterNfcKit.finish(closeWebUSB: false);
+        }
         pinCache = await Prompts.showInputPinDialog(
           title: S.of(Get.context!).webauthnInputPinTitle,
           label: 'PIN',
           prompt: S.of(Get.context!).webauthnInputPinPrompt,
         );
+        // On mobile platforms, we need to poll NFC again after showing the dialog
+        if (isMobile()) {
+          await FlutterNfcKit.poll();
+          String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
+          Apdu.assertOK(resp);
+        }
       }
 
       final cp = ClientPin(ctap);
@@ -90,10 +110,10 @@ class WebAuthnController extends MyController {
 
       final cp = ClientPin(ctap);
       if (!await cp.changePin(pinCache, newPin)) {
-        Prompts.showSnackbar('Unknown error', ContentThemeColor.danger);
+        Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
         return;
       }
-      Prompts.showSnackbar(S.of(Get.context!).pinChanged, ContentThemeColor.success);
+      Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
       pinCache = newPin;
     });
   }
@@ -109,7 +129,7 @@ class WebAuthnController extends MyController {
       await cm.deleteCredential(credentialId);
 
       Navigator.pop(Get.context!);
-      Prompts.showSnackbar(S.of(Get.context!).delete, ContentThemeColor.success);
+      Prompts.showPrompt(S.of(Get.context!).delete, ContentThemeColor.success);
       webAuthnItems.removeWhere((element) => element.credentialId == credentialId);
       update();
     });

@@ -25,6 +25,7 @@ class PassController extends MyController {
   void onClose() {
     try {
       ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
+      ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
       // ignore: empty_catches
     } catch (e) {}
   }
@@ -38,7 +39,7 @@ class PassController extends MyController {
       String firmwareVersion = String.fromCharCodes(hex.decode(Apdu.dropSW(resp)));
       FunctionSetVersion functionSetVersion = CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
       if (!CanoKey.functionSet(functionSetVersion).contains(Func.pass)) {
-        Prompts.showSnackbar('Not supported', ContentThemeColor.danger);
+        Prompts.showPrompt('Not supported', ContentThemeColor.danger);
         return;
       }
       if (!await _verifyPin(pin)) return;
@@ -72,7 +73,7 @@ class PassController extends MyController {
         return;
       }
       await FlutterNfcKit.transceive('0044${index == short ? '01' : '02'}00${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
-      Prompts.showSnackbar(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
+      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
       refreshData(pinCache);
       update();
     });

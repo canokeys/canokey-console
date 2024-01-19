@@ -23,6 +23,7 @@ class SettingsController extends MyController {
   void onClose() {
     try {
       ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
+      ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
       // ignore: empty_catches
     } catch (e) {}
   }
@@ -136,7 +137,7 @@ class SettingsController extends MyController {
       if (!await _verifyPin(pinCache)) return;
       Apdu.assertOK(await FlutterNfcKit.transceive(_changeSwitchAPDUs[func][value]));
       Navigator.pop(Get.context!);
-      Prompts.showSnackbar(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
+      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
       refreshData(pinCache);
     });
   }
@@ -146,7 +147,7 @@ class SettingsController extends MyController {
       Apdu.assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
       if (!await _verifyPin(pinCache)) return;
       Apdu.assertOK(await FlutterNfcKit.transceive('00210000${newPin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(newPin.codeUnits)}'));
-      Prompts.showSnackbar(S.of(Get.context!).pinChanged, ContentThemeColor.success);
+      Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
       pinCache = newPin;
     });
   }
@@ -157,7 +158,7 @@ class SettingsController extends MyController {
       if (!await _verifyPin(pinCache)) return;
       Navigator.pop(Get.context!);
       Apdu.assertOK(await FlutterNfcKit.transceive(applet.resetApdu));
-      Prompts.showSnackbar(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
+      Prompts.showPrompt(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
       refreshData(pinCache);
     });
   }
@@ -170,13 +171,13 @@ class SettingsController extends MyController {
       Get.context!.loaderOverlay.hide();
       Navigator.pop(Get.context!);
       if (resp == '9000') {
-        Prompts.showSnackbar(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
+        Prompts.showPrompt(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
       } else if (resp == '6985') {
-        Prompts.showSnackbar(S.of(Get.context!).settingsResetConditionNotSatisfying, ContentThemeColor.danger);
+        Prompts.showPrompt(S.of(Get.context!).settingsResetConditionNotSatisfying, ContentThemeColor.danger);
       } else if (resp == '6982') {
-        Prompts.showSnackbar(S.of(Get.context!).settingsResetPresenceTestFailed, ContentThemeColor.danger);
+        Prompts.showPrompt(S.of(Get.context!).settingsResetPresenceTestFailed, ContentThemeColor.danger);
       } else {
-        Prompts.showSnackbar('Unknown error', ContentThemeColor.danger);
+        Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
       }
     });
   }
@@ -187,7 +188,7 @@ class SettingsController extends MyController {
       if (!await _verifyPin(pinCache)) return;
       Apdu.assertOK(await FlutterNfcKit.transceive('00FF01000603A044000420'));
       Apdu.assertOK(await FlutterNfcKit.transceive('00FF01000903B005720300B39900'));
-      Prompts.showSnackbar(S.of(Get.context!).settingsFixNFCSuccess, ContentThemeColor.success);
+      Prompts.showPrompt(S.of(Get.context!).settingsFixNFCSuccess, ContentThemeColor.success);
     });
   }
 
@@ -198,7 +199,7 @@ class SettingsController extends MyController {
       if (!await _verifyPin(pinCache)) return;
       Navigator.pop(Get.context!);
       Apdu.assertOK(await FlutterNfcKit.transceive('0012000009$cmdData'));
-      Prompts.showSnackbar(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
+      Prompts.showPrompt(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
       refreshData(pinCache);
     });
   }

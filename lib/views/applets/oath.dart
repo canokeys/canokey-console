@@ -234,7 +234,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                     return;
                   }
                   Clipboard.setData(ClipboardData(text: item.code));
-                  Prompts.showSnackbar('Copied', ContentThemeColor.success);
+                  Prompts.showPrompt('Copied', ContentThemeColor.success);
                 },
                 icon: Icon(LucideIcons.copy, size: 16),
               ),

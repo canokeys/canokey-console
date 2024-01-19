@@ -41,7 +41,7 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return Layout(
-      title: S.of(context).settings,
+      title: 'Pass',
       topActions: InkWell(
         onTap: () {
           if (controller.polled) {
@@ -179,7 +179,7 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
                     child: MyText.bodySmall(value),
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: value));
-                      Prompts.showSnackbar(S.of(context).copied, ContentThemeColor.success);
+                      Prompts.showPrompt(S.of(context).copied, ContentThemeColor.success);
                     }),
               ],
             ),

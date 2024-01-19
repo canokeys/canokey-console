@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
+import 'package:platform_detector/platform_detector.dart';
 import 'package:timer_controller/timer_controller.dart';
 
 final log = Logger('Console:OATH:Controller');
@@ -38,7 +39,7 @@ class OathController extends MyController {
           }
         }
         update();
-        if (kIsWeb || Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+        if (!isMobile()) {
           refreshData();
         }
       }
@@ -50,6 +51,7 @@ class OathController extends MyController {
     timerController.reset();
     try {
       ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
+      ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
       // ignore: empty_catches
     } catch (e) {}
   }
@@ -86,7 +88,7 @@ class OathController extends MyController {
             final mac = await hmacSha1.calculateMac(info[0x74], secretKey: key);
             resp = await _transceive('00A300001C7514${hex.encode(mac.bytes)}740400000000');
             if (resp == '6a80') {
-              Prompts.showSnackbar(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+              Prompts.showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
               codeCache = '';
               return;
             }
@@ -166,7 +168,7 @@ class OathController extends MyController {
       Apdu.assertOK(resp);
 
       Navigator.pop(Get.context!);
-      Prompts.showSnackbar(S.of(Get.context!).oathAdded, ContentThemeColor.success);
+      Prompts.showPrompt(S.of(Get.context!).oathAdded, ContentThemeColor.success);
       refreshData();
     });
   }
@@ -193,7 +195,7 @@ class OathController extends MyController {
           }
           Apdu.assertOK(resp);
           codeCache = newCode;
-          Prompts.showSnackbar(S.of(Get.context!).oathCodeChanged, ContentThemeColor.success);
+          Prompts.showPrompt(S.of(Get.context!).oathCodeChanged, ContentThemeColor.success);
         }
       }
     });
@@ -240,7 +242,7 @@ class OathController extends MyController {
       Apdu.assertOK(await _transceive('00020000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
 
       Navigator.pop(Get.context!);
-      Prompts.showSnackbar(S.of(Get.context!).deleted, ContentThemeColor.success);
+      Prompts.showPrompt(S.of(Get.context!).deleted, ContentThemeColor.success);
       refreshData();
     });
   }
@@ -255,7 +257,7 @@ class OathController extends MyController {
       Apdu.assertOK(await _transceive('00550$slot${withEnter ? '01' : '00'}${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
 
       Navigator.pop(Get.context!);
-      Prompts.showSnackbar(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
+      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
       refreshData();
     });
   }

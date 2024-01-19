@@ -388,7 +388,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                     child: MyText.bodySmall(value),
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: value));
-                      Prompts.showSnackbar(S.of(context).copied, ContentThemeColor.success);
+                      Prompts.showPrompt(S.of(context).copied, ContentThemeColor.success);
                     }),
               ],
             ),
