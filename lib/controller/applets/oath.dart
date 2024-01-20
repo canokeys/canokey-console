@@ -225,6 +225,17 @@ class OathController extends MyController {
     });
   }
 
+  void setDefaultLegacy(String name) {
+    Apdu.process(() async {
+      await _selectAndVerifyCode();
+
+      List<int> nameBytes = utf8.encode(name);
+      String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
+      Apdu.assertOK(await _transceive('00550000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
+      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
+    });
+  }
+
   void addUri(String keyUri) {
     final uri = Uri.parse(keyUri);
     if (uri.scheme != 'otpauth') {

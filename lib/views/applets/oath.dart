@@ -276,7 +276,13 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                         padding: MySpacing.xy(16, 8),
                         height: 10,
                         child: MyText.bodySmall(S.of(context).oathSetDefault),
-                        onTap: () => _showSetDefaultDialog(item.name),
+                        onTap: () {
+                          if (controller.version == OathVersion.v2) {
+                            _showSetDefaultDialog(item.name);
+                          } else {
+                            controller.setDefaultLegacy(item.name);
+                          }
+                        },
                       ),
                   ],
                   child: const Icon(LucideIcons.moreHorizontal, size: 18),
