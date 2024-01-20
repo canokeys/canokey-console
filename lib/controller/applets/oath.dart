@@ -61,44 +61,9 @@ class OathController extends MyController {
 
   Future<void> refreshData() async {
     await Apdu.process(() async {
-      String resp = await _transceive('00A4040007A0000005272101');
-      Apdu.assertOK(resp);
-      if (resp == '9000') {
-        version = OathVersion.legacy; // not code support
-      } else {
-        Map info = TLV.parse(hex.decode(Apdu.dropSW(resp)));
-        if (hex.encode(info[0x79]) == '050505') {
-          version = OathVersion.v1;
-        } else if (hex.encode(info[0x79]) == '060000') {
-          version = OathVersion.v2;
-        }
-        if (info.containsKey(0x74)) {
-          if (codeCache.isEmpty) {
-            // without a pin
-            Prompts.showInputPinDialog(
-              title: S.of(Get.context!).oathInputCode,
-              label: S.of(Get.context!).oathCode,
-              prompt: S.of(Get.context!).oathInputCodePrompt,
-            ).then((value) {
-              codeCache = value;
-              refreshData();
-            }).onError((error, stackTrace) => null); // Canceled
-            return;
-          } else {
-            final hmacSha1 = Hmac(Sha1());
-            final pbkdf2 = Pbkdf2(macAlgorithm: hmacSha1, iterations: 1000, bits: 128);
-            final key = await pbkdf2.deriveKey(secretKey: SecretKey(utf8.encode(codeCache)), nonce: info[0x71]);
-            final mac = await hmacSha1.calculateMac(info[0x74], secretKey: key);
-            resp = await _transceive('00A300001C7514${hex.encode(mac.bytes)}740400000000');
-            if (resp == '6a80') {
-              Prompts.showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
-              codeCache = '';
-              return;
-            }
-            Apdu.assertOK(resp);
-          }
-        }
-      }
+      await _selectAndVerifyCode();
+
+      String resp;
       int challenge = DateTime.now().millisecondsSinceEpoch ~/ 30000;
       String challengeStr = challenge.toRadixString(16).padLeft(16, '0');
       if (version == OathVersion.legacy) {
@@ -141,10 +106,7 @@ class OathController extends MyController {
 
   void addAccount(String name, String secretHex, OathType type, OathAlgorithm algo, int digits, bool requireTouch, int initValue) {
     Apdu.process(() async {
-      String resp = await _transceive('00A4040007A0000005272101');
-      Apdu.assertOK(resp);
-
-      // TODO: verify code
+      await _selectAndVerifyCode();
 
       List<int> nameBytes = utf8.encode(name);
       String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}'; // name 0x71
@@ -164,7 +126,7 @@ class OathController extends MyController {
         capduData += '7A04${initValue.toRadixString(16).padLeft(4, '0')}';
       }
 
-      resp = await _transceive('00010000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
+      String resp = await _transceive('00010000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
       if (resp == '6985') {
         Navigator.pop(Get.context!);
         Prompts.showPrompt(S.of(Get.context!).oathDuplicated, ContentThemeColor.danger);
@@ -209,10 +171,7 @@ class OathController extends MyController {
   Future<String> calculate(String name, OathType type) async {
     late String code;
     await Apdu.process(() async {
-      String resp = await _transceive('00A4040007A0000005272101');
-      Apdu.assertOK(resp);
-
-      // TODO: verify code
+      await _selectAndVerifyCode();
 
       List<int> nameBytes = utf8.encode(name);
       String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
@@ -221,6 +180,7 @@ class OathController extends MyController {
         String challengeStr = challenge.toRadixString(16).padLeft(16, '0');
         capduData += '7408$challengeStr';
       }
+      String resp;
       if (version == OathVersion.legacy) {
         resp = await _transceive('00040000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
       } else {
@@ -240,9 +200,8 @@ class OathController extends MyController {
 
   void delete(String name) {
     Apdu.process(() async {
-      String resp = await _transceive('00A4040007A0000005272101');
-      Apdu.assertOK(resp);
-      // TODO: verify code
+      await _selectAndVerifyCode();
+
       List<int> nameBytes = utf8.encode(name);
       String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
       Apdu.assertOK(await _transceive('00020000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
@@ -255,9 +214,8 @@ class OathController extends MyController {
 
   void setDefault(String name, int slot, bool withEnter) {
     Apdu.process(() async {
-      String resp = await _transceive('00A4040007A0000005272101');
-      Apdu.assertOK(resp);
-      // TODO: verify code
+      await _selectAndVerifyCode();
+
       List<int> nameBytes = utf8.encode(name);
       String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
       Apdu.assertOK(await _transceive('00550$slot${withEnter ? '01' : '00'}${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
@@ -301,6 +259,47 @@ class OathController extends MyController {
 
     Navigator.pop(Get.context!);
     showQrConfirmDialog(issuer, account, secretHex, type, algo, digits, counter);
+  }
+
+  Future<void> _selectAndVerifyCode() async {
+    String resp = await _transceive('00A4040007A0000005272101');
+    Apdu.assertOK(resp);
+    if (resp == '9000') {
+      version = OathVersion.legacy; // no code support
+    } else {
+      Map info = TLV.parse(hex.decode(Apdu.dropSW(resp)));
+      if (hex.encode(info[0x79]) == '050505') {
+        version = OathVersion.v1;
+      } else if (hex.encode(info[0x79]) == '060000') {
+        version = OathVersion.v2;
+      }
+      if (info.containsKey(0x74)) {
+        if (codeCache.isEmpty) {
+          // without a valid code cache, we need to ask for a code
+          Prompts.showInputPinDialog(
+            title: S.of(Get.context!).oathInputCode,
+            label: S.of(Get.context!).oathCode,
+            prompt: S.of(Get.context!).oathInputCodePrompt,
+          ).then((value) {
+            codeCache = value;
+            refreshData(); // With a code cache, this will be called only if in the first poll.
+          }).onError((error, stackTrace) => null); // Canceled
+          return;
+        } else {
+          final hmacSha1 = Hmac(Sha1());
+          final pbkdf2 = Pbkdf2(macAlgorithm: hmacSha1, iterations: 1000, bits: 128);
+          final key = await pbkdf2.deriveKey(secretKey: SecretKey(utf8.encode(codeCache)), nonce: info[0x71]);
+          final mac = await hmacSha1.calculateMac(info[0x74], secretKey: key);
+          resp = await _transceive('00A300001C7514${hex.encode(mac.bytes)}740400000000');
+          if (resp == '6a80') {
+            Prompts.showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+            codeCache = '';
+            return;
+          }
+          Apdu.assertOK(resp);
+        }
+      }
+    }
   }
 
   List<OathItem> _parse(List<int> data) {
