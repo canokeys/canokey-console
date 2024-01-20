@@ -450,6 +450,36 @@ class S {
     );
   }
 
+  /// `Hold your iPhone near the CanoKey`
+  String get iosAlertMessage {
+    return Intl.message(
+      'Hold your iPhone near the CanoKey',
+      name: 'iosAlertMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not supported`
+  String get notSupported {
+    return Intl.message(
+      'Not supported',
+      name: 'notSupported',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not supported in NFC mode`
+  String get notSupportedInNFC {
+    return Intl.message(
+      'Not supported in NFC mode',
+      name: 'notSupportedInNFC',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Card Info`
   String get openpgpCardInfo {
     return Intl.message(
@@ -1407,6 +1437,26 @@ class S {
       name: 'webauthnDelete',
       desc: '',
       args: [name],
+    );
+  }
+
+  /// `PIN authentication is blocked. Please reinsert you CanoKey to retry.`
+  String get webauthnPinAuthBlocked {
+    return Intl.message(
+      'PIN authentication is blocked. Please reinsert you CanoKey to retry.',
+      name: 'webauthnPinAuthBlocked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `PIN authentication is blocked. Please reset WebAuthn.`
+  String get webauthnPinBlocked {
+    return Intl.message(
+      'PIN authentication is blocked. Please reset WebAuthn.',
+      name: 'webauthnPinBlocked',
+      desc: '',
+      args: [],
     );
   }
 

@@ -45,17 +45,25 @@ class WebAuthnController extends MyController {
 
       // PIN is not set
       if (ctap.info.options?['clientPin'] == false) {
-        // TODO: fix behaviors on mobile platforms
+        // On mobile platforms, we need to finish NFC before showing the dialog
+        if (isMobile()) {
+          FlutterNfcKit.finish(closeWebUSB: false);
+        }
         pinCache = await Prompts.showInputPinDialog(
           title: S.of(Get.context!).webauthnSetPinTitle,
           label: 'PIN',
           prompt: S.of(Get.context!).webauthnSetPinPrompt,
           validators: [MyLengthValidator(min: 4, max: 63)],
         );
+        // On mobile platforms, we need to poll NFC again after showing the dialog
+        if (isMobile()) {
+          await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
+          String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
+          Apdu.assertOK(resp);
+        }
         final cp = ClientPin(ctap);
         await cp.setPin(pinCache);
         Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
-        return;
       }
 
       assert(ctap.info.options?['clientPin'] == true);
@@ -72,14 +80,31 @@ class WebAuthnController extends MyController {
         );
         // On mobile platforms, we need to poll NFC again after showing the dialog
         if (isMobile()) {
-          await FlutterNfcKit.poll();
+          await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
           String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
           Apdu.assertOK(resp);
         }
       }
 
       final cp = ClientPin(ctap);
-      final pinToken = await cp.getPinToken(pinCache, permissions: [ClientPinPermission.credentialManagement]);
+      late final List<int> pinToken;
+      try {
+        pinToken = await cp.getPinToken(pinCache, permissions: [ClientPinPermission.credentialManagement]);
+      } on CtapException catch (e) {
+        pinCache = '';
+        if (e.errorCode == CtapException.ctap2ErrPinInvalid) {
+          Prompts.showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+        } else if (e.errorCode == CtapException.ctap2ErrPinAuthBlocked) {
+          Prompts.showPrompt(S.of(Get.context!).webauthnPinAuthBlocked, ContentThemeColor.danger);
+        } else if (e.errorCode == CtapException.ctap2ErrPinBlocked) {
+          Prompts.showPrompt(S.of(Get.context!).webauthnPinBlocked, ContentThemeColor.danger);
+        } else {
+          Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
+        }
+        return;
+      }
+
+      webAuthnItems.clear();
       final cm = CredentialManagement(ctap, cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(), pinToken);
       try {
         final rp = await cm.enumerateRpsBegin();
@@ -92,10 +117,11 @@ class WebAuthnController extends MyController {
           ));
         }
       } on CtapException catch (e) {
-        if (e.errorCode == 0x2E) {
+        if (e.errorCode == CtapException.ctap2ErrNoCredentials) {
           log.info('No credentials');
+        } else {
+          rethrow;
         }
-        rethrow;
       }
 
       polled = true;

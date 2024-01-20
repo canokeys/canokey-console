@@ -45,7 +45,7 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
             List<Widget> widgets = [
               InkWell(
                 onTap: controller.refreshData,
-                child: Icon(LucideIcons.refreshCw, size: 18, color: topBarTheme.onBackground),
+                child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
               )
             ];
             if (controller.polled) {
@@ -59,7 +59,7 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                       validators: [MyLengthValidator(min: 4, max: 63)],
                     ).then((value) => controller.changePin(value)).onError((error, stackTrace) => null); // Canceled
                   },
-                  child: Icon(LucideIcons.lock, size: 18, color: topBarTheme.onBackground),
+                  child: Icon(LucideIcons.lock, size: 20, color: topBarTheme.onBackground),
                 ),
                 MySpacing.width(12),
               ]);
@@ -103,6 +103,7 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                   children: [
                     MySpacing.height(20),
                     GridView.builder(
+                      physics: ScrollPhysics(),
                       shrinkWrap: true,
                       scrollDirection: Axis.vertical,
                       itemCount: controller.webAuthnItems.length,

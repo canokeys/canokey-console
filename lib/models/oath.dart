@@ -33,4 +33,9 @@ class OathItem {
   OathItem(this.issuer, this.account, {this.type = OathType.totp, this.requireTouch = false, this.code = ''});
 
   String get name => issuer == '' ? account : '$issuer:$account';
+
+  @override
+  String toString() {
+    return 'OathItem{issuer: $issuer, account: $account, type: $type, requireTouch: $requireTouch, code: $code, length: $length}';
+  }
 }

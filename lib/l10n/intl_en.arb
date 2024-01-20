@@ -39,6 +39,9 @@
   "copied": "Copied",
   "enabled": "Enabled",
   "noCredential": "No credential",
+  "iosAlertMessage": "Hold your iPhone near the CanoKey",
+  "notSupported": "Not supported",
+  "notSupportedInNFC": "Not supported in NFC mode",
   "openpgpCardInfo": "Card Info",
   "openpgpVersion": "Version",
   "openpgpManufacturer": "Manufacturer",
@@ -135,5 +138,7 @@
   "webauthnInputPinTitle": "Unlock WebAuthn",
   "webauthnInputPinPrompt": "Please input your WebAuthn PIN.",
   "webauthnDelete": "This action will delete the account {name} from your CanoKey. Make sure you have other ways to log in.",
+  "webauthnPinAuthBlocked": "PIN authentication is blocked. Please reinsert you CanoKey to retry.",
+  "webauthnPinBlocked": "PIN authentication is blocked. Please reset WebAuthn.",
   "pivChangePUK": "Change PUK"
 }

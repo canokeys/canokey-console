@@ -39,6 +39,9 @@
   "copied": "已复制",
   "enabled": "启用",
   "noCredential": "没有找到凭据",
+  "iosAlertMessage": "使用 iPhone 顶部读取 CanoKey",
+  "notSupported": "不支持该操作",
+  "notSupportedInNFC": "该操作不支持在 NFC 模式下执行",
   "openpgpCardInfo": "卡片信息",
   "openpgpVersion": "版本",
   "openpgpManufacturer": "制造商",
@@ -135,5 +138,7 @@
   "webauthnInputPinTitle": "解锁 WebAuthn",
   "webauthnInputPinPrompt": "请输入您的 WebAuthn PIN。",
   "webauthnDelete": "您正在删除{name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。",
+  "webauthnPinAuthBlocked": "PIN 被锁定，请重新插拔 CanoKey。",
+  "webauthnPinBlocked": "PIN 被锁定，请重置 WebAuthn。",
   "pivChangePUK": "修改 PUK"
 }

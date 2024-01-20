@@ -23,6 +23,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:platform_detector/platform_detector.dart';
 
 final log = Logger('Console:Settings:View');
 
@@ -60,7 +61,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
             }).onError((error, stackTrace) => null); // User canceled
           }
         },
-        child: Icon(LucideIcons.refreshCw, size: 18, color: topBarTheme.onBackground),
+        child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
       ),
       child: GetBuilder(
         init: controller,
@@ -297,7 +298,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                   if (controller.key.getFunctionSet().contains(Func.resetPass)) ...{
                     _buildResetButton(Applet.PASS, S.of(context).settingsResetPass),
                   },
-                  if (controller.key.model == CanoKey.pigeon)
+                  if (controller.key.model == CanoKey.pigeon && !isMobile())
                     MyButton(
                       onPressed: controller.fixNfc,
                       elevation: 0,
@@ -309,7 +310,13 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                 ],
                 // Reset all
                 MyButton(
-                  onPressed: _showResetDialog,
+                  onPressed: () {
+                    if (isMobile()) {
+                      Prompts.showPrompt(S.of(context).notSupportedInNFC, ContentThemeColor.info);
+                    } else {
+                      _showResetDialog();
+                    }
+                  },
                   elevation: 0,
                   padding: MySpacing.xy(20, 16),
                   backgroundColor: contentTheme.danger,

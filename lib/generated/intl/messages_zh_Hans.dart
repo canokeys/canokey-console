@@ -57,10 +57,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "homeScreenTitle":
             MessageLookupByLibrary.simpleMessage("CanoKey Console"),
         "homeSelect": MessageLookupByLibrary.simpleMessage("选择应用"),
+        "iosAlertMessage":
+            MessageLookupByLibrary.simpleMessage("使用 iPhone 顶部读取 CanoKey"),
         "networkError":
             MessageLookupByLibrary.simpleMessage("CanoKey 繁忙，请重新插拔并稍后再试"),
         "newPin": MessageLookupByLibrary.simpleMessage("新 PIN"),
         "noCredential": MessageLookupByLibrary.simpleMessage("没有找到凭据"),
+        "notSupported": MessageLookupByLibrary.simpleMessage("不支持该操作"),
+        "notSupportedInNFC":
+            MessageLookupByLibrary.simpleMessage("该操作不支持在 NFC 模式下执行"),
         "oathAccount": MessageLookupByLibrary.simpleMessage("账户"),
         "oathAddAccount": MessageLookupByLibrary.simpleMessage("增加账户"),
         "oathAdded": MessageLookupByLibrary.simpleMessage("添加成功"),
@@ -198,6 +203,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("请输入您的 WebAuthn PIN。"),
         "webauthnInputPinTitle":
             MessageLookupByLibrary.simpleMessage("解锁 WebAuthn"),
+        "webauthnPinAuthBlocked":
+            MessageLookupByLibrary.simpleMessage("PIN 被锁定，请重新插拔 CanoKey。"),
+        "webauthnPinBlocked":
+            MessageLookupByLibrary.simpleMessage("PIN 被锁定，请重置 WebAuthn。"),
         "webauthnSetPinPrompt": MessageLookupByLibrary.simpleMessage(
             "请设置 PIN 以启用凭据管理。PIN 的长度应当为 4 - 63 个字符。"),
         "webauthnSetPinTitle":

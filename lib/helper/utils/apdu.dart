@@ -22,7 +22,7 @@ class Apdu {
 
   static Future<void> process(Function f) async {
     try {
-      await FlutterNfcKit.poll();
+      await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
       await f();
     } on PlatformException catch (e) {
       if (e.message == 'NotFoundError: No device selected.') {

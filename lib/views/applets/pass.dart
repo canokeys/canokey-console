@@ -56,7 +56,7 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
             }).onError((error, stackTrace) => null); // User canceled
           }
         },
-        child: Icon(LucideIcons.refreshCw, size: 18, color: topBarTheme.onBackground),
+        child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
       ),
       child: GetBuilder(
         init: controller,

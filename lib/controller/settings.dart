@@ -28,106 +28,9 @@ class SettingsController extends MyController {
     } catch (e) {}
   }
 
-  Future<void> refreshData(String pin) async {
+  void refreshData(String pin) {
     Apdu.process(() async {
-      Apdu.assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
-      String resp = await FlutterNfcKit.transceive('0031000000');
-      Apdu.assertOK(resp);
-      String firmwareVersion = String.fromCharCodes(hex.decode(Apdu.dropSW(resp)));
-      resp = await FlutterNfcKit.transceive('0031010000');
-      Apdu.assertOK(resp);
-      String model = String.fromCharCodes(hex.decode(Apdu.dropSW(resp)));
-      resp = await FlutterNfcKit.transceive('0032000000');
-      Apdu.assertOK(resp);
-      String sn = Apdu.dropSW(resp).toUpperCase();
-      resp = await FlutterNfcKit.transceive('0032010000');
-      Apdu.assertOK(resp);
-      String chipId = Apdu.dropSW(resp).toUpperCase();
-      if (!await _verifyPin(pin)) return;
-      pinCache = pin;
-
-      // read configurations
-      FunctionSetVersion functionSetVersion = CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
-      bool ledOn = false;
-      bool hotpOn = false;
-      bool ndefReadonly = false;
-      bool ndefEnabled = false;
-      bool webusbLandingEnabled = false;
-      bool keyboardWithReturn = false;
-      bool sigTouch = false;
-      bool decTouch = false;
-      bool autTouch = false;
-      int cacheTime = 0;
-      bool nfcEnabled = true;
-      resp = await FlutterNfcKit.transceive('0042000000');
-      Apdu.assertOK(resp);
-      switch (functionSetVersion) {
-        case FunctionSetVersion.v1:
-          ledOn = resp.substring(0, 2) == '01';
-          hotpOn = resp.substring(2, 4) == '01';
-          ndefReadonly = resp.substring(4, 6) == '01';
-          sigTouch = resp.substring(6, 8) == '01';
-          decTouch = resp.substring(8, 10) == '01';
-          autTouch = resp.substring(10, 12) == '01';
-          cacheTime = int.parse(resp.substring(12, 14), radix: 16);
-          break;
-        case FunctionSetVersion.v2:
-          ledOn = resp.substring(0, 2) == '01';
-          hotpOn = resp.substring(2, 4) == '01';
-          ndefReadonly = resp.substring(4, 6) == '01';
-          ndefEnabled = resp.substring(6, 8) == '01';
-          webusbLandingEnabled = resp.substring(8, 10) == '01';
-          break;
-        case FunctionSetVersion.v3:
-          ledOn = resp.substring(0, 2) == '01';
-          hotpOn = resp.substring(2, 4) == '01';
-          ndefReadonly = resp.substring(4, 6) == '01';
-          ndefEnabled = resp.substring(6, 8) == '01';
-          webusbLandingEnabled = resp.substring(8, 10) == '01';
-          keyboardWithReturn = resp.substring(10, 12) == '01';
-          break;
-        case FunctionSetVersion.v4:
-          ledOn = resp.substring(0, 2) == '01';
-          hotpOn = resp.substring(2, 4) == '01';
-          ndefReadonly = resp.substring(4, 6) == '01';
-          ndefEnabled = resp.substring(6, 8) == '01';
-          webusbLandingEnabled = resp.substring(8, 10) == '01';
-          keyboardWithReturn = resp.substring(10, 12) == '01';
-          // TODO: NFC
-          break;
-      }
-
-      key = CanoKey(
-          model: model,
-          sn: sn,
-          chipId: chipId,
-          firmwareVersion: firmwareVersion,
-          functionSetVersion: functionSetVersion,
-          ledOn: ledOn,
-          hotpOn: hotpOn,
-          ndefReadonly: ndefReadonly,
-          ndefEnabled: ndefEnabled,
-          webusbLandingEnabled: webusbLandingEnabled,
-          keyboardWithReturn: keyboardWithReturn,
-          sigTouch: sigTouch,
-          decTouch: decTouch,
-          autTouch: autTouch,
-          touchCacheTime: cacheTime,
-          nfcEnabled: nfcEnabled);
-
-      if (key.getFunctionSet().contains(Func.webAuthnSm2Support)) {
-        resp = await FlutterNfcKit.transceive('0011000000');
-        Apdu.assertOK(resp);
-        key.webAuthnSm2Config = WebAuthnSm2Config(
-          enabled: resp.substring(0, 2) == '01',
-          curveId: Int32.parseHex(resp.substring(2, 10)).toInt(),
-          algoId: Int32.parseHex(resp.substring(10, 18)).toInt(),
-        );
-      }
-
-      polled = true;
-
-      update();
+      await _refresh(pin);
     });
   }
 
@@ -138,7 +41,7 @@ class SettingsController extends MyController {
       Apdu.assertOK(await FlutterNfcKit.transceive(_changeSwitchAPDUs[func][value]));
       Navigator.pop(Get.context!);
       Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
-      refreshData(pinCache);
+      await _refresh(pinCache);
     });
   }
 
@@ -159,7 +62,7 @@ class SettingsController extends MyController {
       Navigator.pop(Get.context!);
       Apdu.assertOK(await FlutterNfcKit.transceive(applet.resetApdu));
       Prompts.showPrompt(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
-      refreshData(pinCache);
+      await _refresh(pinCache);
     });
   }
 
@@ -200,8 +103,109 @@ class SettingsController extends MyController {
       Navigator.pop(Get.context!);
       Apdu.assertOK(await FlutterNfcKit.transceive('0012000009$cmdData'));
       Prompts.showPrompt(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
-      refreshData(pinCache);
+      await _refresh(pinCache);
     });
+  }
+
+  _refresh(String pin) async {
+    Apdu.assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
+    String resp = await FlutterNfcKit.transceive('0031000000');
+    Apdu.assertOK(resp);
+    String firmwareVersion = String.fromCharCodes(hex.decode(Apdu.dropSW(resp)));
+    resp = await FlutterNfcKit.transceive('0031010000');
+    Apdu.assertOK(resp);
+    String model = String.fromCharCodes(hex.decode(Apdu.dropSW(resp)));
+    resp = await FlutterNfcKit.transceive('0032000000');
+    Apdu.assertOK(resp);
+    String sn = Apdu.dropSW(resp).toUpperCase();
+    resp = await FlutterNfcKit.transceive('0032010000');
+    Apdu.assertOK(resp);
+    String chipId = Apdu.dropSW(resp).toUpperCase();
+    if (!await _verifyPin(pin)) return;
+    pinCache = pin;
+
+    // read configurations
+    FunctionSetVersion functionSetVersion = CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
+    bool ledOn = false;
+    bool hotpOn = false;
+    bool ndefReadonly = false;
+    bool ndefEnabled = false;
+    bool webusbLandingEnabled = false;
+    bool keyboardWithReturn = false;
+    bool sigTouch = false;
+    bool decTouch = false;
+    bool autTouch = false;
+    int cacheTime = 0;
+    bool nfcEnabled = true;
+    resp = await FlutterNfcKit.transceive('0042000000');
+    Apdu.assertOK(resp);
+    switch (functionSetVersion) {
+    case FunctionSetVersion.v1:
+    ledOn = resp.substring(0, 2) == '01';
+    hotpOn = resp.substring(2, 4) == '01';
+    ndefReadonly = resp.substring(4, 6) == '01';
+    sigTouch = resp.substring(6, 8) == '01';
+    decTouch = resp.substring(8, 10) == '01';
+    autTouch = resp.substring(10, 12) == '01';
+    cacheTime = int.parse(resp.substring(12, 14), radix: 16);
+    break;
+    case FunctionSetVersion.v2:
+    ledOn = resp.substring(0, 2) == '01';
+    hotpOn = resp.substring(2, 4) == '01';
+    ndefReadonly = resp.substring(4, 6) == '01';
+    ndefEnabled = resp.substring(6, 8) == '01';
+    webusbLandingEnabled = resp.substring(8, 10) == '01';
+    break;
+    case FunctionSetVersion.v3:
+    ledOn = resp.substring(0, 2) == '01';
+    hotpOn = resp.substring(2, 4) == '01';
+    ndefReadonly = resp.substring(4, 6) == '01';
+    ndefEnabled = resp.substring(6, 8) == '01';
+    webusbLandingEnabled = resp.substring(8, 10) == '01';
+    keyboardWithReturn = resp.substring(10, 12) == '01';
+    break;
+    case FunctionSetVersion.v4:
+    ledOn = resp.substring(0, 2) == '01';
+    hotpOn = resp.substring(2, 4) == '01';
+    ndefReadonly = resp.substring(4, 6) == '01';
+    ndefEnabled = resp.substring(6, 8) == '01';
+    webusbLandingEnabled = resp.substring(8, 10) == '01';
+    keyboardWithReturn = resp.substring(10, 12) == '01';
+    // TODO: NFC
+    break;
+    }
+
+    key = CanoKey(
+    model: model,
+    sn: sn,
+    chipId: chipId,
+    firmwareVersion: firmwareVersion,
+    functionSetVersion: functionSetVersion,
+    ledOn: ledOn,
+    hotpOn: hotpOn,
+    ndefReadonly: ndefReadonly,
+    ndefEnabled: ndefEnabled,
+    webusbLandingEnabled: webusbLandingEnabled,
+    keyboardWithReturn: keyboardWithReturn,
+    sigTouch: sigTouch,
+    decTouch: decTouch,
+    autTouch: autTouch,
+    touchCacheTime: cacheTime,
+    nfcEnabled: nfcEnabled);
+
+    if (key.getFunctionSet().contains(Func.webAuthnSm2Support)) {
+    resp = await FlutterNfcKit.transceive('0011000000');
+    Apdu.assertOK(resp);
+    key.webAuthnSm2Config = WebAuthnSm2Config(
+    enabled: resp.substring(0, 2) == '01',
+    curveId: Int32.parseHex(resp.substring(2, 10)).toInt(),
+    algoId: Int32.parseHex(resp.substring(10, 18)).toInt(),
+    );
+    }
+
+    polled = true;
+
+    update();
   }
 
   Future<bool> _verifyPin(String pin) async {

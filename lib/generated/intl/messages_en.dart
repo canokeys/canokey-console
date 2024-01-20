@@ -65,10 +65,15 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("CanoKey Console"),
         "homeSelect":
             MessageLookupByLibrary.simpleMessage("to select an applet"),
+        "iosAlertMessage": MessageLookupByLibrary.simpleMessage(
+            "Hold your iPhone near the CanoKey"),
         "networkError": MessageLookupByLibrary.simpleMessage(
             "CanoKey is busy. Replug it, wait for a moment, and retry."),
         "newPin": MessageLookupByLibrary.simpleMessage("New PIN"),
         "noCredential": MessageLookupByLibrary.simpleMessage("No credential"),
+        "notSupported": MessageLookupByLibrary.simpleMessage("Not supported"),
+        "notSupportedInNFC":
+            MessageLookupByLibrary.simpleMessage("Not supported in NFC mode"),
         "oathAccount": MessageLookupByLibrary.simpleMessage("Account name"),
         "oathAddAccount": MessageLookupByLibrary.simpleMessage("Add Account"),
         "oathAdded": MessageLookupByLibrary.simpleMessage("Successfully added"),
@@ -233,6 +238,10 @@ class MessageLookup extends MessageLookupByLibrary {
             "Please input your WebAuthn PIN."),
         "webauthnInputPinTitle":
             MessageLookupByLibrary.simpleMessage("Unlock WebAuthn"),
+        "webauthnPinAuthBlocked": MessageLookupByLibrary.simpleMessage(
+            "PIN authentication is blocked. Please reinsert you CanoKey to retry."),
+        "webauthnPinBlocked": MessageLookupByLibrary.simpleMessage(
+            "PIN authentication is blocked. Please reset WebAuthn."),
         "webauthnSetPinPrompt": MessageLookupByLibrary.simpleMessage(
             "Please set your WebAuthn PIN to enable management of credentials. The length of PIN should be between 4 and 63."),
         "webauthnSetPinTitle":

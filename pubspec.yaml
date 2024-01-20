@@ -37,7 +37,7 @@ dependencies:
   fido2:
     git:
       url: https://github.com/nfcim/fido2.git
-      ref: c75a9dccba59cc6d0bfbb3ac1d3d228270bdff55
+      ref: 45f1bbbe0f4acfd56649c6a5a6ff900f1650d018
 
 dependency_overrides:
   cbor:

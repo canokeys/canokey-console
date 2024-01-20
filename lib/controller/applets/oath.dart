@@ -34,7 +34,8 @@ class OathController extends MyController {
       if (timerController.value.remaining == 0) {
         // set codes to empty for TOTP with touch required
         for (var name in oathMap.keys) {
-          if (oathMap[name]!.requireTouch) {
+          if (oathMap[name]!.requireTouch ||
+              isMobile() && oathMap[name]!.type == OathType.totp) {
             oathMap[name]!.code = '';
           }
         }
@@ -131,10 +132,7 @@ class OathController extends MyController {
         oathMap.remove(name);
       }
 
-      int running = DateTime.now().millisecondsSinceEpoch ~/ 1000 % 30;
-      timerController.reset();
-      timerController.value = new TimerValue(remaining: 30 - running, unit: TimerUnit.second);
-      timerController.start();
+      startTimer();
       update();
     });
   }
@@ -227,6 +225,7 @@ class OathController extends MyController {
       code = _parseResponse(data.sublist(2));
       oathMap[name]!.code = code;
 
+      startTimer();
       update();
     });
     return code;
@@ -337,6 +336,13 @@ class OathController extends MyController {
       rapdu += await FlutterNfcKit.transceive(capdu);
     } while (rapdu.substring(rapdu.length - 4, rapdu.length - 2) == '61');
     return rapdu;
+  }
+
+  startTimer() {
+    int running = DateTime.now().millisecondsSinceEpoch ~/ 1000 % 30;
+    timerController.reset();
+    timerController.value = new TimerValue(remaining: 30 - running, unit: TimerUnit.second);
+    timerController.start();
   }
 
   final List<int> _digitsPower = [1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000];
