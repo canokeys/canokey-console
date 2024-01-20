@@ -76,6 +76,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Not supported in NFC mode"),
         "oathAccount": MessageLookupByLibrary.simpleMessage("Account name"),
         "oathAddAccount": MessageLookupByLibrary.simpleMessage("Add Account"),
+        "oathAddByScanning":
+            MessageLookupByLibrary.simpleMessage("Scan QR Code"),
+        "oathAddManually": MessageLookupByLibrary.simpleMessage("Add Manually"),
         "oathAdded": MessageLookupByLibrary.simpleMessage("Successfully added"),
         "oathAdvancedSettings": MessageLookupByLibrary.simpleMessage(
             "Advanced Settings. Think well before changing them. You could lock yourself out!"),
@@ -89,6 +92,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Not a number"),
         "oathDelete": m1,
         "oathDigits": MessageLookupByLibrary.simpleMessage("Digits"),
+        "oathDuplicated":
+            MessageLookupByLibrary.simpleMessage("Duplicated account"),
         "oathInputCode": MessageLookupByLibrary.simpleMessage("Unlock CanoKey"),
         "oathInputCodePrompt": MessageLookupByLibrary.simpleMessage(
             "To prevent unauthorized access, this CanoKey is protected with a passphrase."),

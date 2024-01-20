@@ -10,6 +10,17 @@ enum OathType {
 
   const OathType(this.value);
 
+  static OathType fromName(String name) {
+    switch (name.toLowerCase()) {
+      case 'totp':
+        return OathType.totp;
+      case 'hotp':
+        return OathType.hotp;
+      default:
+        throw ArgumentError('Invalid oath type: $name');
+    }
+  }
+
   final int value;
 }
 
@@ -19,6 +30,19 @@ enum OathAlgorithm {
   sha512(0x03);
 
   const OathAlgorithm(this.value);
+
+  static OathAlgorithm fromName(String name) {
+    switch (name.toUpperCase()) {
+      case 'SHA1':
+        return OathAlgorithm.sha1;
+      case 'SHA256':
+        return OathAlgorithm.sha256;
+      case 'SHA512':
+        return OathAlgorithm.sha512;
+      default:
+        throw ArgumentError('Invalid algorithm name: $name');
+    }
+  }
 
   final int value;
 }

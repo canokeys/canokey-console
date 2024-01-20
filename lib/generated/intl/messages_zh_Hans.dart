@@ -68,6 +68,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("该操作不支持在 NFC 模式下执行"),
         "oathAccount": MessageLookupByLibrary.simpleMessage("账户"),
         "oathAddAccount": MessageLookupByLibrary.simpleMessage("增加账户"),
+        "oathAddByScanning": MessageLookupByLibrary.simpleMessage("扫码添加"),
+        "oathAddManually": MessageLookupByLibrary.simpleMessage("手动添加"),
         "oathAdded": MessageLookupByLibrary.simpleMessage("添加成功"),
         "oathAdvancedSettings": MessageLookupByLibrary.simpleMessage(
             "高级设置，仅供专业用户使用，不正确的设置可能导致凭据无法使用。"),
@@ -80,6 +82,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("请填写数字"),
         "oathDelete": m1,
         "oathDigits": MessageLookupByLibrary.simpleMessage("位数"),
+        "oathDuplicated": MessageLookupByLibrary.simpleMessage("账户已存在"),
         "oathInputCode": MessageLookupByLibrary.simpleMessage("解锁 CanoKey"),
         "oathInputCodePrompt":
             MessageLookupByLibrary.simpleMessage("该 CanoKey 受口令保护，请输入口令。"),

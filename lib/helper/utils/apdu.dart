@@ -1,11 +1,13 @@
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:get/get.dart';
 
 class Apdu {
+  static bool _polled = false;
+
   static String dropSW(String rapdu) {
     return rapdu.substring(0, rapdu.length - 4);
   }
@@ -21,8 +23,13 @@ class Apdu {
   }
 
   static Future<void> process(Function f) async {
+    bool isFirstCalled = !_polled;
+    _polled = true;
+
     try {
-      await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
+      if (isFirstCalled) {
+        await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
+      }
       await f();
     } on PlatformException catch (e) {
       if (e.message == 'NotFoundError: No device selected.') {
@@ -35,7 +42,10 @@ class Apdu {
         Prompts.showPrompt(e.message ?? 'Unknown error', ContentThemeColor.danger);
       }
     } finally {
-      FlutterNfcKit.finish(closeWebUSB: false);
+      if (isFirstCalled) {
+        FlutterNfcKit.finish(closeWebUSB: false);
+        _polled = false;
+      }
     }
   }
 }

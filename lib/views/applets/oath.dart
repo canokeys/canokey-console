@@ -21,7 +21,9 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:logging/logging.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:platform_detector/platform_detector.dart';
 import 'package:timer_controller/timer_controller.dart';
 
 final log = Logger('Console:OATH:View');
@@ -39,13 +41,13 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
   @override
   void initState() {
     super.initState();
-    controller = Get.put(OathController());
+    controller = Get.put(OathController(showQrConfirmDialog));
   }
 
   @override
   Widget build(BuildContext context) {
     return Layout(
-      title: "TOTP / HOTP",
+      title: 'TOTP / HOTP',
       topActions: GetBuilder(
           init: controller,
           builder: (_) {
@@ -57,10 +59,31 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
             ];
             if (controller.polled) {
               widgets.insertAll(0, [
-                InkWell(
-                  onTap: _showAddAccountDialog,
-                  child: Icon(LucideIcons.plus, size: 20, color: topBarTheme.onBackground),
-                ),
+                if (!isMobile())
+                  InkWell(
+                    onTap: _showAddAccountDialog,
+                    child: Icon(LucideIcons.plus, size: 20, color: topBarTheme.onBackground),
+                  )
+                else
+                  PopupMenuButton(
+                    offset: const Offset(0, 10),
+                    position: PopupMenuPosition.under,
+                    itemBuilder: (BuildContext context) => [
+                      PopupMenuItem(
+                        padding: MySpacing.xy(16, 8),
+                        height: 10,
+                        onTap: _showQrScanner,
+                        child: MyText.bodySmall(S.of(context).oathAddByScanning),
+                      ),
+                      PopupMenuItem(
+                        padding: MySpacing.xy(16, 8),
+                        height: 10,
+                        onTap: _showAddAccountDialog,
+                        child: MyText.bodySmall(S.of(context).oathAddManually),
+                      ),
+                    ],
+                    child: const Icon(LucideIcons.plus, size: 20),
+                  ),
                 MySpacing.width(12),
                 InkWell(
                   onTap: () {
@@ -121,7 +144,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                       itemCount: controller.oathMap.length,
                       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                           maxCrossAxisExtent: 500, crossAxisSpacing: 16, mainAxisSpacing: 16, mainAxisExtent: 150),
-                      itemBuilder: (context, index) => buildOathItem(controller, index),
+                      itemBuilder: (context, index) => _buildOathItem(controller, index),
                     )
                   ],
                 ),
@@ -133,7 +156,96 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
     );
   }
 
-  MyCard buildOathItem(OathController controller, int index) {
+  showQrConfirmDialog(String issuer, String account, String secretHex, OathType type, OathAlgorithm algo, int digits, int initValue) {
+    RxBool requireTouch = false.obs;
+
+    Get.dialog(Dialog(
+      child: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: MySpacing.all(16),
+              child: MyText.labelLarge(S.of(context).oathAddAccount),
+            ),
+            Divider(height: 0, thickness: 1),
+            Padding(
+                padding: MySpacing.all(16),
+                child: Form(
+                    child: Obx(
+                  () => Column(
+                    children: [
+                      TextFormField(
+                        initialValue: issuer,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          labelText: S.of(context).oathIssuer,
+                          border: outlineInputBorder,
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                        ),
+                      ),
+                      MySpacing.height(16),
+                      TextFormField(
+                        initialValue: account,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          labelText: S.of(context).oathAccount,
+                          border: outlineInputBorder,
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                        ),
+                      ),
+                      MySpacing.height(16),
+                      Row(
+                        children: [
+                          Checkbox(
+                            onChanged: (value) => requireTouch.value = value!,
+                            value: requireTouch.value,
+                            activeColor: contentTheme.primary,
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: getCompactDensity,
+                          ),
+                          MySpacing.width(16),
+                          MyText.bodyMedium(S.of(context).oathRequireTouch),
+                        ],
+                      ),
+                    ],
+                  ),
+                ))),
+            Divider(height: 0, thickness: 1),
+            Padding(
+              padding: MySpacing.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  MyButton.rounded(
+                    onPressed: () => Navigator.pop(context),
+                    elevation: 0,
+                    padding: MySpacing.xy(20, 16),
+                    backgroundColor: contentTheme.secondary,
+                    child: MyText.labelMedium(S.of(context).close, color: contentTheme.onSecondary),
+                  ),
+                  MySpacing.width(16),
+                  MyButton.rounded(
+                    onPressed: () {
+                      controller.addAccount('$issuer:$account', secretHex, type, algo, digits, requireTouch.value, initValue);
+                    },
+                    elevation: 0,
+                    padding: MySpacing.xy(20, 16),
+                    backgroundColor: contentTheme.primary,
+                    child: MyText.labelMedium(S.of(context).save, color: contentTheme.onPrimary),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
+  }
+
+  MyCard _buildOathItem(OathController controller, int index) {
     String name = controller.oathMap.keys.toList()[index];
     OathItem item = controller.oathMap[name]!;
     return MyCard(
@@ -634,6 +746,37 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                     child: MyText.labelMedium(S.of(context).confirm, color: contentTheme.onSuccess),
                   ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
+  }
+
+  _showQrScanner() {
+    Get.dialog(Dialog(
+      child: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: MySpacing.all(16),
+              child: MyText.labelLarge('Scan QR Code'),
+            ),
+            Divider(height: 0, thickness: 1),
+            Padding(
+              padding: MySpacing.all(16),
+              child: SizedBox(
+                height: 300,
+                child: MobileScanner(onDetect: (capture) {
+                  final barcodes = capture.barcodes;
+                  for (final barcode in barcodes) {
+                    controller.addUri(barcode.rawValue!);
+                  }
+                }),
               ),
             ),
           ],

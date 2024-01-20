@@ -1190,6 +1190,16 @@ class S {
     );
   }
 
+  /// `Duplicated account`
+  String get oathDuplicated {
+    return Intl.message(
+      'Duplicated account',
+      name: 'oathDuplicated',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Unlock CanoKey`
   String get oathInputCode {
     return Intl.message(
@@ -1275,6 +1285,26 @@ class S {
     return Intl.message(
       'Slot',
       name: 'oathSlot',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Scan QR Code`
+  String get oathAddByScanning {
+    return Intl.message(
+      'Scan QR Code',
+      name: 'oathAddByScanning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add Manually`
+  String get oathAddManually {
+    return Intl.message(
+      'Add Manually',
+      name: 'oathAddManually',
       desc: '',
       args: [],
     );

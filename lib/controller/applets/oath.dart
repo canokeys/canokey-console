@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:base32/base32.dart';
 import 'package:canokey_console/controller/my_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
@@ -10,7 +10,6 @@ import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/models/oath.dart';
 import 'package:convert/convert.dart';
 import 'package:cryptography/cryptography.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:get/get.dart';
@@ -21,11 +20,15 @@ import 'package:timer_controller/timer_controller.dart';
 final log = Logger('Console:OATH:Controller');
 
 class OathController extends MyController {
+  final Function(String issuer, String account, String secretHex, OathType type, OathAlgorithm algo, int digits, int initValue) showQrConfirmDialog;
+
   Map<String, OathItem> oathMap = {};
   OathVersion version = OathVersion.v1;
   bool polled = false;
   TimerController timerController = TimerController.seconds(30);
   String codeCache = '';
+
+  OathController(this.showQrConfirmDialog);
 
   @override
   void onInit() {
@@ -34,8 +37,7 @@ class OathController extends MyController {
       if (timerController.value.remaining == 0) {
         // set codes to empty for TOTP with touch required
         for (var name in oathMap.keys) {
-          if (oathMap[name]!.requireTouch ||
-              isMobile() && oathMap[name]!.type == OathType.totp) {
+          if (oathMap[name]!.requireTouch || isMobile() && oathMap[name]!.type == OathType.totp) {
             oathMap[name]!.code = '';
           }
         }
@@ -57,8 +59,8 @@ class OathController extends MyController {
     } catch (e) {}
   }
 
-  void refreshData() {
-    Apdu.process(() async {
+  Future<void> refreshData() async {
+    await Apdu.process(() async {
       String resp = await _transceive('00A4040007A0000005272101');
       Apdu.assertOK(resp);
       if (resp == '9000') {
@@ -132,7 +134,7 @@ class OathController extends MyController {
         oathMap.remove(name);
       }
 
-      startTimer();
+      _startTimer();
       update();
     });
   }
@@ -163,11 +165,16 @@ class OathController extends MyController {
       }
 
       resp = await _transceive('00010000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
+      if (resp == '6985') {
+        Navigator.pop(Get.context!);
+        Prompts.showPrompt(S.of(Get.context!).oathDuplicated, ContentThemeColor.danger);
+        return;
+      }
       Apdu.assertOK(resp);
 
       Navigator.pop(Get.context!);
       Prompts.showPrompt(S.of(Get.context!).oathAdded, ContentThemeColor.success);
-      refreshData();
+      await refreshData();
     });
   }
 
@@ -225,7 +232,7 @@ class OathController extends MyController {
       code = _parseResponse(data.sublist(2));
       oathMap[name]!.code = code;
 
-      startTimer();
+      _startTimer();
       update();
     });
     return code;
@@ -242,7 +249,7 @@ class OathController extends MyController {
 
       Navigator.pop(Get.context!);
       Prompts.showPrompt(S.of(Get.context!).deleted, ContentThemeColor.success);
-      refreshData();
+      await refreshData();
     });
   }
 
@@ -257,8 +264,43 @@ class OathController extends MyController {
 
       Navigator.pop(Get.context!);
       Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
-      refreshData();
     });
+  }
+
+  void addUri(String keyUri) {
+    final uri = Uri.parse(keyUri);
+    if (uri.scheme != 'otpauth') {
+      return;
+    }
+    final query = uri.queryParameters;
+    if (!query.containsKey('secret')) {
+      return;
+    }
+    late String secretHex;
+    try {
+      secretHex = base32.decodeAsHexString(query['secret']!.toUpperCase());
+    } catch (e) {
+      return;
+    }
+    final algorithm = query['algorithm'] ?? 'SHA1';
+    if (algorithm != 'SHA1' && algorithm != 'SHA256' && algorithm != 'SHA512') {
+      return;
+    }
+    int digits = int.parse(query['digits'] ?? '6');
+    if (digits < 6 || digits > 12) {
+      return;
+    }
+    final account = Uri.decodeComponent(uri.path.substring(1));
+    final issuer = Uri.decodeComponent(query['issuer'] ?? '');
+    final algo = OathAlgorithm.fromName(algorithm);
+    final type = OathType.fromName(uri.host.toLowerCase());
+    if (type == OathType.hotp && !query.containsKey('counter')) {
+      return;
+    }
+    final counter = int.parse(query['counter'] ?? '0');
+
+    Navigator.pop(Get.context!);
+    showQrConfirmDialog(issuer, account, secretHex, type, algo, digits, counter);
   }
 
   List<OathItem> _parse(List<int> data) {
@@ -338,7 +380,7 @@ class OathController extends MyController {
     return rapdu;
   }
 
-  startTimer() {
+  _startTimer() {
     int running = DateTime.now().millisecondsSinceEpoch ~/ 1000 % 30;
     timerController.reset();
     timerController.value = new TimerValue(remaining: 30 - running, unit: TimerUnit.second);
