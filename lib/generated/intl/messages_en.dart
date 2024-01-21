@@ -82,6 +82,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathAddAccount": MessageLookupByLibrary.simpleMessage("Add Account"),
         "oathAddByScanning":
             MessageLookupByLibrary.simpleMessage("Scan QR Code"),
+        "oathAddByScreen":
+            MessageLookupByLibrary.simpleMessage("Scan QR Code on Screen"),
         "oathAddManually": MessageLookupByLibrary.simpleMessage("Add Manually"),
         "oathAdded": MessageLookupByLibrary.simpleMessage("Successfully added"),
         "oathAdvancedSettings": MessageLookupByLibrary.simpleMessage(

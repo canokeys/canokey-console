@@ -72,6 +72,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathAccount": MessageLookupByLibrary.simpleMessage("账户"),
         "oathAddAccount": MessageLookupByLibrary.simpleMessage("增加账户"),
         "oathAddByScanning": MessageLookupByLibrary.simpleMessage("扫码添加"),
+        "oathAddByScreen": MessageLookupByLibrary.simpleMessage("扫描屏幕上的二维码"),
         "oathAddManually": MessageLookupByLibrary.simpleMessage("手动添加"),
         "oathAdded": MessageLookupByLibrary.simpleMessage("添加成功"),
         "oathAdvancedSettings": MessageLookupByLibrary.simpleMessage(

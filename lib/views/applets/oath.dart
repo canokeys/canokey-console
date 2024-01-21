@@ -17,14 +17,17 @@ import 'package:canokey_console/models/oath.dart';
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image/image.dart' as img;
 import 'package:logging/logging.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:platform_detector/platform_detector.dart';
 import 'package:timer_controller/timer_controller.dart';
+import 'package:zxing2/qrcode.dart';
 
 final log = Logger('Console:OATH:View');
 
@@ -35,8 +38,7 @@ class OathPage extends StatefulWidget {
   State<OathPage> createState() => _OathPageState();
 }
 
-class _OathPageState extends State<OathPage>
-    with SingleTickerProviderStateMixin, UIMixin {
+class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin, UIMixin {
   late OathController controller;
 
   @override
@@ -61,33 +63,49 @@ class _OathPageState extends State<OathPage>
             ];
             if (controller.polled) {
               widgets.insertAll(0, [
-                if (!isMobile())
-                  InkWell(
-                    onTap: _showAddAccountDialog,
-                    child: Icon(LucideIcons.plus,
-                        size: 20, color: topBarTheme.onBackground),
-                  )
-                else
-                  PopupMenuButton(
-                    offset: const Offset(0, 10),
-                    position: PopupMenuPosition.under,
-                    itemBuilder: (BuildContext context) => [
+                PopupMenuButton(
+                  offset: const Offset(0, 10),
+                  position: PopupMenuPosition.under,
+                  itemBuilder: (BuildContext context) => [
+                    PopupMenuItem(
+                      padding: MySpacing.xy(16, 8),
+                      height: 10,
+                      onTap: _showQrScanner,
+                      child: MyText.bodySmall(S.of(context).oathAddByScanning),
+                    ),
+                    PopupMenuItem(
+                      padding: MySpacing.xy(16, 8),
+                      height: 10,
+                      onTap: _showAddAccountDialog,
+                      child: MyText.bodySmall(S.of(context).oathAddManually),
+                    ),
+                    if (isWeb())
                       PopupMenuItem(
                         padding: MySpacing.xy(16, 8),
                         height: 10,
-                        onTap: _showQrScanner,
-                        child:
-                            MyText.bodySmall(S.of(context).oathAddByScanning),
+                        onTap: () async {
+                          final stream = await webrtc.navigator.mediaDevices.getDisplayMedia({
+                            'audio': false,
+                            'video': true,
+                          });
+                          final track = stream.getVideoTracks().first;
+                          final buffer = await track.captureFrame();
+                          stream.getTracks().forEach((track) => track.stop());
+                          final image = img.decodePng(buffer.asUint8List())!;
+                          final source = RGBLuminanceSource(
+                            image.width,
+                            image.height,
+                            image.convert(numChannels: 4).getBytes(order: img.ChannelOrder.abgr).buffer.asInt32List(),
+                          );
+                          final bitmap = BinaryBitmap(GlobalHistogramBinarizer(source));
+                          final reader = QRCodeReader();
+                          final result = reader.decode(bitmap);
+                        },
+                        child: MyText.bodySmall(S.of(context).oathAddByScreen),
                       ),
-                      PopupMenuItem(
-                        padding: MySpacing.xy(16, 8),
-                        height: 10,
-                        onTap: _showAddAccountDialog,
-                        child: MyText.bodySmall(S.of(context).oathAddManually),
-                      ),
-                    ],
-                    child: const Icon(LucideIcons.plus, size: 20),
-                  ),
+                  ],
+                  child: const Icon(LucideIcons.plus, size: 20),
+                ),
                 MySpacing.width(12),
                 if (controller.version != OathVersion.legacy) ...{
                   InkWell(
@@ -97,12 +115,9 @@ class _OathPageState extends State<OathPage>
                         label: S.of(context).oathCode,
                         prompt: S.of(context).oathNewCodePrompt,
                         required: false,
-                      )
-                          .then((value) => controller.setCode(value))
-                          .onError((error, stackTrace) => null); // Canceled
+                      ).then((value) => controller.setCode(value)).onError((error, stackTrace) => null); // Canceled
                     },
-                    child: Icon(LucideIcons.lock,
-                        size: 20, color: topBarTheme.onBackground),
+                    child: Icon(LucideIcons.lock, size: 20, color: topBarTheme.onBackground),
                   ),
                   MySpacing.width(12),
                 }
@@ -122,8 +137,7 @@ class _OathPageState extends State<OathPage>
                 Center(
                     child: Padding(
                   padding: MySpacing.horizontal(36),
-                  child: MyText.bodyMedium(S.of(context).pollCanoKey,
-                      fontSize: 24),
+                  child: MyText.bodyMedium(S.of(context).pollCanoKey, fontSize: 24),
                 )),
               ],
             );
@@ -134,9 +148,7 @@ class _OathPageState extends State<OathPage>
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 MySpacing.height(MediaQuery.of(context).size.height / 2 - 100),
-                Center(
-                    child: MyText.bodyMedium(S.of(context).noCredential,
-                        fontSize: 24)),
+                Center(child: MyText.bodyMedium(S.of(context).noCredential, fontSize: 24)),
               ],
             );
           }
@@ -154,14 +166,9 @@ class _OathPageState extends State<OathPage>
                       shrinkWrap: true,
                       scrollDirection: Axis.vertical,
                       itemCount: controller.oathMap.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent: 500,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                              mainAxisExtent: 150),
-                      itemBuilder: (context, index) =>
-                          _buildOathItem(controller, index),
+                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 500, crossAxisSpacing: 16, mainAxisSpacing: 16, mainAxisExtent: 150),
+                      itemBuilder: (context, index) => _buildOathItem(controller, index),
                     )
                   ],
                 ),
@@ -173,8 +180,7 @@ class _OathPageState extends State<OathPage>
     );
   }
 
-  showQrConfirmDialog(String issuer, String account, String secretHex,
-      OathType type, OathAlgorithm algo, int digits, int initValue) {
+  showQrConfirmDialog(String issuer, String account, String secretHex, OathType type, OathAlgorithm algo, int digits, int initValue) {
     RxBool requireTouch = false.obs;
 
     Get.dialog(Dialog(
@@ -221,8 +227,7 @@ class _OathPageState extends State<OathPage>
                             onChanged: (value) => requireTouch.value = value!,
                             value: requireTouch.value,
                             activeColor: contentTheme.primary,
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             visualDensity: getCompactDensity,
                           ),
                           MySpacing.width(16),
@@ -243,20 +248,17 @@ class _OathPageState extends State<OathPage>
                     elevation: 0,
                     padding: MySpacing.xy(20, 16),
                     backgroundColor: contentTheme.secondary,
-                    child: MyText.labelMedium(S.of(context).close,
-                        color: contentTheme.onSecondary),
+                    child: MyText.labelMedium(S.of(context).close, color: contentTheme.onSecondary),
                   ),
                   MySpacing.width(16),
                   MyButton.rounded(
                     onPressed: () {
-                      controller.addAccount('$issuer:$account', secretHex, type,
-                          algo, digits, requireTouch.value, initValue);
+                      controller.addAccount('$issuer:$account', secretHex, type, algo, digits, requireTouch.value, initValue);
                     },
                     elevation: 0,
                     padding: MySpacing.xy(20, 16),
                     backgroundColor: contentTheme.primary,
-                    child: MyText.labelMedium(S.of(context).save,
-                        color: contentTheme.onPrimary),
+                    child: MyText.labelMedium(S.of(context).save, color: contentTheme.onPrimary),
                   ),
                 ],
               ),
@@ -318,8 +320,7 @@ class _OathPageState extends State<OathPage>
                 color: contentTheme.primary.withAlpha(30),
                 paddingAll: 2,
                 clipBehavior: Clip.antiAliasWithSaveLayer,
-                child: Icon(LucideIcons.user,
-                    size: 16, color: contentTheme.primary),
+                child: Icon(LucideIcons.user, size: 16, color: contentTheme.primary),
               ),
               MySpacing.width(12),
               MyText.bodyMedium(item.account),
@@ -333,8 +334,7 @@ class _OathPageState extends State<OathPage>
                   onPressed: () {
                     controller.calculate(item.name, item.type);
                   },
-                  icon: Icon(LucideIcons.refreshCw,
-                      size: 20, color: contentTheme.primary),
+                  icon: Icon(LucideIcons.refreshCw, size: 20, color: contentTheme.primary),
                 ),
               // For TOTP, if no touch required (with a valid code), show the indicator
               if (item.type == OathType.totp && item.code.isNotEmpty)
@@ -348,19 +348,14 @@ class _OathPageState extends State<OathPage>
                           progressColor: contentTheme.primary,
                           backgroundColor: contentTheme.primary.withAlpha(30),
                         )),
-              if (item.type == OathType.totp &&
-                  item.code.isEmpty &&
-                  item.requireTouch)
+              if (item.type == OathType.totp && item.code.isEmpty && item.requireTouch)
                 IconButton(
                   onPressed: () {
                     controller.calculate(item.name, item.type);
                   },
-                  icon: Icon(Icons.touch_app,
-                      size: 20, color: contentTheme.primary),
+                  icon: Icon(Icons.touch_app, size: 20, color: contentTheme.primary),
                 ),
-              if (item.type == OathType.totp &&
-                  item.code.isEmpty &&
-                  !item.requireTouch)
+              if (item.type == OathType.totp && item.code.isEmpty && !item.requireTouch)
                 CircularPercentIndicator(
                   radius: 20,
                   lineWidth: 5,
@@ -376,9 +371,7 @@ class _OathPageState extends State<OathPage>
               ),
               MySpacing.width(16),
               IconButton(
-                color: item.code.isEmpty
-                    ? contentTheme.cardTextMuted
-                    : contentTheme.primary,
+                color: item.code.isEmpty ? contentTheme.cardTextMuted : contentTheme.primary,
                 onPressed: () {
                   if (item.code.isEmpty) {
                     return;
@@ -402,20 +395,12 @@ class _OathPageState extends State<OathPage>
     Rx<OathAlgorithm> oathAlgo = OathAlgorithm.sha1.obs;
     RxInt oathDigits = 6.obs;
 
-    validator.addField('issuer',
-        required: true, controller: TextEditingController());
-    validator.addField('account',
-        required: true, controller: TextEditingController());
-    validator.addField('secret',
-        required: true,
-        controller: TextEditingController(),
-        validators: [MyLengthValidator(min: 8, max: 52)]);
+    validator.addField('issuer', required: true, controller: TextEditingController());
+    validator.addField('account', required: true, controller: TextEditingController());
+    validator.addField('secret', required: true, controller: TextEditingController(), validators: [MyLengthValidator(min: 8, max: 52)]);
     TextEditingController counterController = TextEditingController();
     counterController.text = '0';
-    validator.addField('counter',
-        required: true,
-        controller: counterController,
-        validators: [MyIntValidator(min: 0, max: 4294967295)]);
+    validator.addField('counter', required: true, controller: counterController, validators: [MyIntValidator(min: 0, max: 4294967295)]);
 
     Get.dialog(
         Dialog(
@@ -445,20 +430,17 @@ class _OathPageState extends State<OathPage>
                                   decoration: InputDecoration(
                                     labelText: S.of(context).oathIssuer,
                                     border: outlineInputBorder,
-                                    floatingLabelBehavior:
-                                        FloatingLabelBehavior.auto,
+                                    floatingLabelBehavior: FloatingLabelBehavior.auto,
                                   ),
                                 ),
                                 MySpacing.height(16),
                                 TextFormField(
-                                  controller:
-                                      validator.getController('account'),
+                                  controller: validator.getController('account'),
                                   validator: validator.getValidator('account'),
                                   decoration: InputDecoration(
                                     labelText: S.of(context).oathAccount,
                                     border: outlineInputBorder,
-                                    floatingLabelBehavior:
-                                        FloatingLabelBehavior.auto,
+                                    floatingLabelBehavior: FloatingLabelBehavior.auto,
                                   ),
                                 ),
                                 MySpacing.height(16),
@@ -468,37 +450,29 @@ class _OathPageState extends State<OathPage>
                                   decoration: InputDecoration(
                                     labelText: S.of(context).oathSecret,
                                     border: outlineInputBorder,
-                                    floatingLabelBehavior:
-                                        FloatingLabelBehavior.auto,
+                                    floatingLabelBehavior: FloatingLabelBehavior.auto,
                                   ),
                                 ),
                                 MySpacing.height(16),
                                 Row(
                                   children: [
                                     Checkbox(
-                                      onChanged: (value) =>
-                                          requireTouch.value = value!,
+                                      onChanged: (value) => requireTouch.value = value!,
                                       value: requireTouch.value,
                                       activeColor: contentTheme.primary,
-                                      materialTapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
+                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                       visualDensity: getCompactDensity,
                                     ),
                                     MySpacing.width(16),
-                                    MyText.bodyMedium(
-                                        S.of(context).oathRequireTouch),
+                                    MyText.bodyMedium(S.of(context).oathRequireTouch),
                                   ],
                                 ),
                                 MySpacing.height(16),
-                                MyText.bodyMedium(
-                                    S.of(context).oathAdvancedSettings),
+                                MyText.bodyMedium(S.of(context).oathAdvancedSettings),
                                 MySpacing.height(12),
                                 Row(
                                   children: [
-                                    SizedBox(
-                                        width: 90,
-                                        child: MyText.labelLarge(
-                                            S.of(context).oathType)),
+                                    SizedBox(width: 90, child: MyText.labelLarge(S.of(context).oathType)),
                                     Expanded(
                                         child: Wrap(
                                             spacing: 16,
@@ -506,29 +480,18 @@ class _OathPageState extends State<OathPage>
                                                 .map(
                                                   (type) => InkWell(
                                                     child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
+                                                      mainAxisSize: MainAxisSize.min,
                                                       children: [
                                                         Radio<OathType>(
                                                           value: type,
-                                                          activeColor:
-                                                              contentTheme
-                                                                  .primary,
-                                                          groupValue:
-                                                              oathType.value,
-                                                          onChanged: (type) =>
-                                                              oathType.value =
-                                                                  type!,
-                                                          visualDensity:
-                                                              getCompactDensity,
-                                                          materialTapTargetSize:
-                                                              MaterialTapTargetSize
-                                                                  .shrinkWrap,
+                                                          activeColor: contentTheme.primary,
+                                                          groupValue: oathType.value,
+                                                          onChanged: (type) => oathType.value = type!,
+                                                          visualDensity: getCompactDensity,
+                                                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                                         ),
                                                         MySpacing.width(8),
-                                                        MyText.labelMedium(type
-                                                            .name
-                                                            .toUpperCase())
+                                                        MyText.labelMedium(type.name.toUpperCase())
                                                       ],
                                                     ),
                                                   ),
@@ -539,10 +502,7 @@ class _OathPageState extends State<OathPage>
                                 MySpacing.height(12),
                                 Row(
                                   children: [
-                                    SizedBox(
-                                        width: 90,
-                                        child: MyText.labelLarge(
-                                            S.of(context).oathAlgorithm)),
+                                    SizedBox(width: 90, child: MyText.labelLarge(S.of(context).oathAlgorithm)),
                                     Expanded(
                                         child: Wrap(
                                             spacing: 16,
@@ -550,29 +510,18 @@ class _OathPageState extends State<OathPage>
                                                 .map(
                                                   (algo) => InkWell(
                                                     child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
+                                                      mainAxisSize: MainAxisSize.min,
                                                       children: [
                                                         Radio<OathAlgorithm>(
                                                           value: algo,
-                                                          activeColor:
-                                                              contentTheme
-                                                                  .primary,
-                                                          groupValue:
-                                                              oathAlgo.value,
-                                                          onChanged: (algo) =>
-                                                              oathAlgo.value =
-                                                                  algo!,
-                                                          visualDensity:
-                                                              getCompactDensity,
-                                                          materialTapTargetSize:
-                                                              MaterialTapTargetSize
-                                                                  .shrinkWrap,
+                                                          activeColor: contentTheme.primary,
+                                                          groupValue: oathAlgo.value,
+                                                          onChanged: (algo) => oathAlgo.value = algo!,
+                                                          visualDensity: getCompactDensity,
+                                                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                                         ),
                                                         MySpacing.width(8),
-                                                        MyText.labelMedium(algo
-                                                            .name
-                                                            .toUpperCase())
+                                                        MyText.labelMedium(algo.name.toUpperCase())
                                                       ],
                                                     ),
                                                   ),
@@ -583,10 +532,7 @@ class _OathPageState extends State<OathPage>
                                 MySpacing.height(12),
                                 Row(
                                   children: [
-                                    SizedBox(
-                                        width: 90,
-                                        child: MyText.labelLarge(
-                                            S.of(context).oathDigits)),
+                                    SizedBox(width: 90, child: MyText.labelLarge(S.of(context).oathDigits)),
                                     Expanded(
                                         child: Wrap(
                                             spacing: 16,
@@ -594,28 +540,18 @@ class _OathPageState extends State<OathPage>
                                                 .map(
                                                   (digits) => InkWell(
                                                     child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
+                                                      mainAxisSize: MainAxisSize.min,
                                                       children: [
                                                         Radio<int>(
                                                           value: digits,
-                                                          activeColor:
-                                                              contentTheme
-                                                                  .primary,
-                                                          groupValue:
-                                                              oathDigits.value,
-                                                          onChanged: (digits) =>
-                                                              oathDigits.value =
-                                                                  digits!,
-                                                          visualDensity:
-                                                              getCompactDensity,
-                                                          materialTapTargetSize:
-                                                              MaterialTapTargetSize
-                                                                  .shrinkWrap,
+                                                          activeColor: contentTheme.primary,
+                                                          groupValue: oathDigits.value,
+                                                          onChanged: (digits) => oathDigits.value = digits!,
+                                                          visualDensity: getCompactDensity,
+                                                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                                         ),
                                                         MySpacing.width(8),
-                                                        MyText.labelMedium(
-                                                            digits.toString())
+                                                        MyText.labelMedium(digits.toString())
                                                       ],
                                                     ),
                                                   ),
@@ -627,15 +563,12 @@ class _OathPageState extends State<OathPage>
                                   Column(children: [
                                     MySpacing.height(16),
                                     TextFormField(
-                                      controller:
-                                          validator.getController('counter'),
-                                      validator:
-                                          validator.getValidator('counter'),
+                                      controller: validator.getController('counter'),
+                                      validator: validator.getValidator('counter'),
                                       decoration: InputDecoration(
                                         labelText: S.of(context).oathCounter,
                                         border: outlineInputBorder,
-                                        floatingLabelBehavior:
-                                            FloatingLabelBehavior.auto,
+                                        floatingLabelBehavior: FloatingLabelBehavior.auto,
                                       ),
                                     ),
                                   ]),
@@ -654,8 +587,7 @@ class _OathPageState extends State<OathPage>
                           elevation: 0,
                           padding: MySpacing.xy(20, 16),
                           backgroundColor: contentTheme.secondary,
-                          child: MyText.labelMedium(S.of(context).close,
-                              color: contentTheme.onSecondary),
+                          child: MyText.labelMedium(S.of(context).close, color: contentTheme.onSecondary),
                         ),
                         MySpacing.width(16),
                         MyButton.rounded(
@@ -666,39 +598,27 @@ class _OathPageState extends State<OathPage>
                             String issuer = validator.getData()['issuer'];
                             String account = validator.getData()['account'];
                             String secret = validator.getData()['secret'];
-                            int initValue =
-                                int.parse(validator.getData()['counter']);
+                            int initValue = int.parse(validator.getData()['counter']);
                             String name = '$issuer:$account';
                             if (name.length > 63) {
-                              validator.addError(
-                                  'account', S.of(context).oathTooLong);
+                              validator.addError('account', S.of(context).oathTooLong);
                               validator.formKey.currentState!.validate();
                               return;
                             }
                             late String secretHex;
                             try {
-                              secretHex = base32
-                                  .decodeAsHexString(secret.toUpperCase());
+                              secretHex = base32.decodeAsHexString(secret.toUpperCase());
                             } catch (e) {
-                              validator.addError(
-                                  'secret', S.of(Get.context!).oathInvalidKey);
+                              validator.addError('secret', S.of(Get.context!).oathInvalidKey);
                               validator.formKey.currentState!.validate();
                               return;
                             }
-                            controller.addAccount(
-                                name,
-                                secretHex,
-                                oathType.value,
-                                oathAlgo.value,
-                                oathDigits.value,
-                                requireTouch.value,
-                                initValue);
+                            controller.addAccount(name, secretHex, oathType.value, oathAlgo.value, oathDigits.value, requireTouch.value, initValue);
                           },
                           elevation: 0,
                           padding: MySpacing.xy(20, 16),
                           backgroundColor: contentTheme.primary,
-                          child: MyText.labelMedium(S.of(context).save,
-                              color: contentTheme.onPrimary),
+                          child: MyText.labelMedium(S.of(context).save, color: contentTheme.onPrimary),
                         ),
                       ],
                     ),
@@ -739,8 +659,7 @@ class _OathPageState extends State<OathPage>
                     elevation: 0,
                     padding: MySpacing.xy(20, 16),
                     backgroundColor: contentTheme.secondary,
-                    child: MyText.labelMedium(S.of(context).cancel,
-                        color: contentTheme.onSecondary),
+                    child: MyText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
                   ),
                   MySpacing.width(16),
                   MyButton.rounded(
@@ -748,8 +667,7 @@ class _OathPageState extends State<OathPage>
                     elevation: 0,
                     padding: MySpacing.xy(20, 16),
                     backgroundColor: contentTheme.danger,
-                    child: MyText.labelMedium(S.of(context).delete,
-                        color: contentTheme.onDanger),
+                    child: MyText.labelMedium(S.of(context).delete, color: contentTheme.onDanger),
                   ),
                 ],
               ),
@@ -785,23 +703,19 @@ class _OathPageState extends State<OathPage>
                     MySpacing.height(16),
                     Row(
                       children: [
-                        SizedBox(
-                            width: 80,
-                            child: MyText.labelLarge(S.of(context).oathSlot)),
+                        SizedBox(width: 80, child: MyText.labelLarge(S.of(context).oathSlot)),
                         PopupMenuButton(
                             itemBuilder: (BuildContext context) => [
                                   PopupMenuItem(
                                     padding: MySpacing.xy(16, 8),
                                     height: 10,
-                                    child: MyText.bodySmall(
-                                        S.of(context).passSlotShort),
+                                    child: MyText.bodySmall(S.of(context).passSlotShort),
                                     onTap: () => slot.value = 1,
                                   ),
                                   PopupMenuItem(
                                     padding: MySpacing.xy(16, 8),
                                     height: 10,
-                                    child: MyText.bodySmall(
-                                        S.of(context).passSlotLong),
+                                    child: MyText.bodySmall(S.of(context).passSlotLong),
                                     onTap: () => slot.value = 2,
                                   ),
                                 ],
@@ -810,16 +724,12 @@ class _OathPageState extends State<OathPage>
                               child: Row(
                                 children: <Widget>[
                                   MyText.labelMedium(
-                                    slot.value == 1
-                                        ? S.of(context).passSlotShort
-                                        : S.of(context).passSlotLong,
+                                    slot.value == 1 ? S.of(context).passSlotShort : S.of(context).passSlotLong,
                                     color: contentTheme.onBackground,
                                   ),
                                   Container(
                                     margin: EdgeInsets.only(left: 4),
-                                    child: Icon(Icons.expand_more_outlined,
-                                        size: 22,
-                                        color: contentTheme.onBackground),
+                                    child: Icon(Icons.expand_more_outlined, size: 22, color: contentTheme.onBackground),
                                   )
                                 ],
                               ),
@@ -833,8 +743,7 @@ class _OathPageState extends State<OathPage>
                           onChanged: (value) => withEnter.value = value!,
                           value: withEnter.value,
                           activeColor: contentTheme.primary,
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           visualDensity: getCompactDensity,
                         ),
                         MySpacing.width(16),
@@ -856,18 +765,15 @@ class _OathPageState extends State<OathPage>
                     elevation: 0,
                     padding: MySpacing.xy(20, 16),
                     backgroundColor: contentTheme.secondary,
-                    child: MyText.labelMedium(S.of(context).cancel,
-                        color: contentTheme.onSecondary),
+                    child: MyText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
                   ),
                   MySpacing.width(16),
                   MyButton.rounded(
-                    onPressed: () => controller.setDefault(
-                        name, slot.value, withEnter.value),
+                    onPressed: () => controller.setDefault(name, slot.value, withEnter.value),
                     elevation: 0,
                     padding: MySpacing.xy(20, 16),
                     backgroundColor: contentTheme.success,
-                    child: MyText.labelMedium(S.of(context).confirm,
-                        color: contentTheme.onSuccess),
+                    child: MyText.labelMedium(S.of(context).confirm, color: contentTheme.onSuccess),
                   ),
                 ],
               ),

@@ -1330,6 +1330,16 @@ class S {
     );
   }
 
+  /// `Scan QR Code on Screen`
+  String get oathAddByScreen {
+    return Intl.message(
+      'Scan QR Code on Screen',
+      name: 'oathAddByScreen',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Please input your Setting PIN. The default value is 123456.`
   String get passInputPinPrompt {
     return Intl.message(

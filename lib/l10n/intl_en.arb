@@ -127,6 +127,7 @@
   "oathSlot": "Slot",
   "oathAddByScanning": "Scan QR Code",
   "oathAddManually": "Add Manually",
+  "oathAddByScreen": "Scan QR Code on Screen",
   "passInputPinPrompt": "Please input your Setting PIN. The default value is 123456.",
   "passSlotConfigTitle": "Slot Configuration",
   "passSlotConfigPrompt": "Please select a slot type to configure. If you want to use HOTP, set it in the HOTP applet.",
