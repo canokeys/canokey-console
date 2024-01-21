@@ -40,6 +40,8 @@
   "enabled": "启用",
   "noCredential": "没有找到凭据",
   "iosAlertMessage": "使用 iPhone 顶部读取 CanoKey",
+  "androidAlertTitle": "读取 CanoKey",
+  "androidAlertMessage": "请紧贴手机直到读取结束",
   "notSupported": "不支持该操作",
   "notSupportedInNFC": "该操作不支持在 NFC 模式下执行",
   "openpgpCardInfo": "卡片信息",

@@ -39,6 +39,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "about": MessageLookupByLibrary.simpleMessage("关于"),
         "actions": MessageLookupByLibrary.simpleMessage("操作"),
         "add": MessageLookupByLibrary.simpleMessage("增加"),
+        "androidAlertMessage":
+            MessageLookupByLibrary.simpleMessage("请紧贴手机直到读取结束"),
+        "androidAlertTitle": MessageLookupByLibrary.simpleMessage("读取 CanoKey"),
         "appletLocked": MessageLookupByLibrary.simpleMessage("该应用已被锁定"),
         "applets": MessageLookupByLibrary.simpleMessage("应用"),
         "cancel": MessageLookupByLibrary.simpleMessage("取消"),

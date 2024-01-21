@@ -40,6 +40,8 @@
   "enabled": "Enabled",
   "noCredential": "No credential",
   "iosAlertMessage": "Hold your iPhone near the CanoKey",
+  "androidAlertTitle": "Touch your CanoKey",
+  "androidAlertMessage": "Hold the CanoKey until finished",
   "notSupported": "Not supported",
   "notSupportedInNFC": "Not supported in NFC mode",
   "openpgpCardInfo": "Card Info",

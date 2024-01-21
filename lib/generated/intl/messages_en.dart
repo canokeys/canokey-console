@@ -44,6 +44,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "about": MessageLookupByLibrary.simpleMessage("About"),
         "actions": MessageLookupByLibrary.simpleMessage("Actions"),
         "add": MessageLookupByLibrary.simpleMessage("Add"),
+        "androidAlertMessage": MessageLookupByLibrary.simpleMessage(
+            "Hold the CanoKey until finished"),
+        "androidAlertTitle":
+            MessageLookupByLibrary.simpleMessage("Touch your CanoKey"),
         "appletLocked": MessageLookupByLibrary.simpleMessage(
             "This applet has been locked."),
         "applets": MessageLookupByLibrary.simpleMessage("Applets"),

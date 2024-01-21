@@ -27,6 +27,7 @@ class Apdu {
     _polled = true;
 
     try {
+      Prompts.promptPolling();
       if (isFirstCalled) {
         await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
       }
@@ -42,6 +43,7 @@ class Apdu {
         Prompts.showPrompt(e.message ?? 'Unknown error', ContentThemeColor.danger);
       }
     } finally {
+      Prompts.stopPromptPolling();
       if (isFirstCalled) {
         FlutterNfcKit.finish(closeWebUSB: false);
         _polled = false;

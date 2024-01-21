@@ -9,10 +9,13 @@ import 'package:canokey_console/helper/widgets/my_form_validator.dart';
 import 'package:canokey_console/helper/widgets/my_spacing.dart';
 import 'package:canokey_console/helper/widgets/my_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:platform_detector/platform_detector.dart';
 
 class Prompts {
+  static late SnackbarController _snackbarController;
+
   static void promptPinFailureResult(String resp) {
     if (resp == '6983') {
       showPrompt(S.of(Get.context!).appletLocked, ContentThemeColor.danger);
@@ -155,6 +158,26 @@ class Prompts {
         barrierDismissible: false);
 
     return c.future;
+  }
+
+  static promptPolling() {
+    if (isAndroidApp()) {
+      _snackbarController = Get.snackbar(
+        S.of(Get.context!).androidAlertTitle,
+        S.of(Get.context!).androidAlertMessage,
+        icon: SpinKitHourGlass(color: Colors.tealAccent, size: 32.0),
+        duration: const Duration(seconds: 99),
+        backgroundColor: Colors.grey.withOpacity(0.8),
+        snackPosition: SnackPosition.BOTTOM,
+        maxWidth: 400,
+      );
+    }
+  }
+
+  static stopPromptPolling() {
+    if (isAndroidApp()) {
+      _snackbarController.close();
+    }
   }
 }
 

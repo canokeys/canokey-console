@@ -47,6 +47,7 @@ class WebAuthnController extends MyController {
       if (ctap.info.options?['clientPin'] == false) {
         // On mobile platforms, we need to finish NFC before showing the dialog
         if (isMobile()) {
+          Prompts.stopPromptPolling();
           FlutterNfcKit.finish(closeWebUSB: false);
         }
         pinCache = await Prompts.showInputPinDialog(
@@ -57,6 +58,7 @@ class WebAuthnController extends MyController {
         );
         // On mobile platforms, we need to poll NFC again after showing the dialog
         if (isMobile()) {
+          Prompts.promptPolling();
           await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
           String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
           Apdu.assertOK(resp);
@@ -71,6 +73,7 @@ class WebAuthnController extends MyController {
       if (pinCache.isEmpty) {
         // On mobile platforms, we need to finish NFC before showing the dialog
         if (isMobile()) {
+          Prompts.stopPromptPolling();
           FlutterNfcKit.finish(closeWebUSB: false);
         }
         pinCache = await Prompts.showInputPinDialog(
@@ -80,6 +83,7 @@ class WebAuthnController extends MyController {
         );
         // On mobile platforms, we need to poll NFC again after showing the dialog
         if (isMobile()) {
+          Prompts.promptPolling();
           await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
           String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
           Apdu.assertOK(resp);

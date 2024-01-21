@@ -460,6 +460,26 @@ class S {
     );
   }
 
+  /// `Touch your CanoKey`
+  String get androidAlertTitle {
+    return Intl.message(
+      'Touch your CanoKey',
+      name: 'androidAlertTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Hold the CanoKey until finished`
+  String get androidAlertMessage {
+    return Intl.message(
+      'Hold the CanoKey until finished',
+      name: 'androidAlertMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Not supported`
   String get notSupported {
     return Intl.message(

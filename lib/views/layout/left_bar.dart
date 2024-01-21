@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/services/url_service.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
@@ -9,11 +7,11 @@ import 'package:canokey_console/helper/widgets/my_card.dart';
 import 'package:canokey_console/helper/widgets/my_container.dart';
 import 'package:canokey_console/helper/widgets/my_spacing.dart';
 import 'package:canokey_console/helper/widgets/my_text.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/route_manager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:platform_detector/platform_detector.dart';
 
 typedef LeftbarMenuFunction = void Function(String key);
 
@@ -69,7 +67,7 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (!kIsWeb && Platform.isIOS) MySpacing.height(60),
+            if (isMobile()) MySpacing.height(60),
             SizedBox(
               height: 70,
               child: Row(
@@ -137,12 +135,12 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
                     isCondensed: isCondensed,
                     route: '/settings',
                   ),
-                  NavigationItem(
-                    iconData: LucideIcons.info,
-                    title: S.of(context).about,
-                    isCondensed: isCondensed,
-                    route: '/about',
-                  ),
+                  // NavigationItem(
+                  //   iconData: LucideIcons.info,
+                  //   title: S.of(context).about,
+                  //   isCondensed: isCondensed,
+                  //   route: '/about',
+                  // ),
                 ],
               ),
             ))
