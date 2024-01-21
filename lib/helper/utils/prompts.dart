@@ -23,7 +23,8 @@ class Prompts {
       showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
     } else if (resp.toUpperCase().startsWith('63C')) {
       String retries = resp[resp.length - 1];
-      showPrompt(S.of(Get.context!).pinRetries(retries), ContentThemeColor.danger);
+      showPrompt(
+          S.of(Get.context!).pinRetries(retries), ContentThemeColor.danger);
     } else if (resp == '6700') {
       showPrompt(S.of(Get.context!).pinLength, ContentThemeColor.danger);
     } else {
@@ -73,7 +74,10 @@ class Prompts {
     RxBool showPassword = false.obs;
     Completer<String> c = new Completer<String>();
     MyFormValidator validator = MyFormValidator();
-    validator.addField('pin', required: required, controller: TextEditingController(), validators: validators);
+    validator.addField('pin',
+        required: required,
+        controller: TextEditingController(),
+        validators: validators);
 
     onSubmit() {
       if (validator.validateForm()) {
@@ -112,13 +116,23 @@ class Prompts {
                                   decoration: InputDecoration(
                                     labelText: label,
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                                      borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onBackground.withAlpha(80)),
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(4)),
+                                      borderSide: BorderSide(
+                                          width: 1,
+                                          strokeAlign: 0,
+                                          color: AppTheme
+                                              .theme.colorScheme.onBackground
+                                              .withAlpha(80)),
                                     ),
-                                    floatingLabelBehavior: FloatingLabelBehavior.auto,
+                                    floatingLabelBehavior:
+                                        FloatingLabelBehavior.auto,
                                     suffixIcon: IconButton(
-                                      onPressed: () => showPassword.value = !showPassword.value,
-                                      icon: Icon(showPassword.value ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                                      onPressed: () => showPassword.value =
+                                          !showPassword.value,
+                                      icon: Icon(showPassword.value
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined),
                                     ),
                                   ),
                                 )),
@@ -138,7 +152,8 @@ class Prompts {
                         elevation: 0,
                         padding: MySpacing.xy(20, 16),
                         backgroundColor: ContentThemeColor.secondary.color,
-                        child: MyText.labelMedium(S.of(Get.context!).cancel, color: ContentThemeColor.secondary.onColor),
+                        child: MyText.labelMedium(S.of(Get.context!).cancel,
+                            color: ContentThemeColor.secondary.onColor),
                       ),
                       MySpacing.width(16),
                       MyButton.rounded(
@@ -146,7 +161,8 @@ class Prompts {
                         elevation: 0,
                         padding: MySpacing.xy(20, 16),
                         backgroundColor: ContentThemeColor.primary.color,
-                        child: MyText.labelMedium(S.of(Get.context!).confirm, color: ContentThemeColor.primary.onColor),
+                        child: MyText.labelMedium(S.of(Get.context!).confirm,
+                            color: ContentThemeColor.primary.onColor),
                       ),
                     ],
                   ),

@@ -169,9 +169,16 @@ class MyContainer extends StatelessWidget {
           color: color ?? theme.cardTheme.color,
           shape: shape,
           borderRadius: enableBorderRadius
-              ? (shape == BoxShape.rectangle ? borderRadius ?? BorderRadius.all(Radius.circular(borderRadiusAll ?? MyConstant.constant.containerRadius)) : null)
+              ? (shape == BoxShape.rectangle
+                  ? borderRadius ??
+                      BorderRadius.all(Radius.circular(borderRadiusAll ??
+                          MyConstant.constant.containerRadius))
+                  : null)
               : null,
-          border: bordered ? border ?? Border.all(color: borderColor ?? theme.dividerColor, width: 1) : null),
+          border: bordered
+              ? border ??
+                  Border.all(color: borderColor ?? theme.dividerColor, width: 1)
+              : null),
       padding: padding ?? MySpacing.all(paddingAll ?? 16),
       clipBehavior: clipBehavior ?? Clip.none,
       child: child,
@@ -179,8 +186,11 @@ class MyContainer extends StatelessWidget {
 
     if (onTap != null) {
       return InkWell(
-        borderRadius:
-            shape != BoxShape.circle ? borderRadius ?? BorderRadius.all(Radius.circular(borderRadiusAll ?? MyConstant.constant.containerRadius)) : null,
+        borderRadius: shape != BoxShape.circle
+            ? borderRadius ??
+                BorderRadius.all(Radius.circular(
+                    borderRadiusAll ?? MyConstant.constant.containerRadius))
+            : null,
         onTap: onTap,
         splashColor: splashColor ?? Colors.transparent,
         highlightColor: splashColor ?? Colors.transparent,

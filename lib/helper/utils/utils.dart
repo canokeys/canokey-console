@@ -1,13 +1,17 @@
 import 'package:canokey_console/helper/extensions/extensions.dart';
 
 class Utils {
-  static getDateStringFromDateTime(DateTime dateTime, {bool showMonthShort = false}) {
-    String date = dateTime.day < 10 ? "0${dateTime.day}" : dateTime.day.toString();
+  static getDateStringFromDateTime(DateTime dateTime,
+      {bool showMonthShort = false}) {
+    String date =
+        dateTime.day < 10 ? "0${dateTime.day}" : dateTime.day.toString();
     late String month;
     if (showMonthShort) {
       month = dateTime.getMonthName();
     } else {
-      month = dateTime.month < 10 ? "0${dateTime.month}" : dateTime.month.toString();
+      month = dateTime.month < 10
+          ? "0${dateTime.month}"
+          : dateTime.month.toString();
     }
 
     String year = dateTime.year.toString();
@@ -24,11 +28,15 @@ class Utils {
       hour = (dateTime.hour - 12).toString();
     }
 
-    String minute = dateTime.minute < 10 ? "0${dateTime.minute}" : dateTime.minute.toString();
+    String minute = dateTime.minute < 10
+        ? "0${dateTime.minute}"
+        : dateTime.minute.toString();
     String second = "";
 
     if (showSecond) {
-      second = dateTime.second < 10 ? "0${dateTime.second}" : dateTime.second.toString();
+      second = dateTime.second < 10
+          ? "0${dateTime.second}"
+          : dateTime.second.toString();
     }
     String meridian = "";
     meridian = dateTime.hour < 12 ? " AM" : " PM";

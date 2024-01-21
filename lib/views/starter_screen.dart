@@ -13,7 +13,8 @@ class StarterScreen extends StatefulWidget {
   State<StarterScreen> createState() => _StarterScreenState();
 }
 
-class _StarterScreenState extends State<StarterScreen> with SingleTickerProviderStateMixin, UIMixin {
+class _StarterScreenState extends State<StarterScreen>
+    with SingleTickerProviderStateMixin, UIMixin {
   late StarterController controller;
 
   @override
@@ -34,16 +35,19 @@ class _StarterScreenState extends State<StarterScreen> with SingleTickerProvider
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  MySpacing.height(MediaQuery.of(context).size.height / 2 - 100),
+                  MySpacing.height(
+                      MediaQuery.of(context).size.height / 2 - 100),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(S.of(context).homePress, style: TextStyle(fontSize: 18.0)),
+                      Text(S.of(context).homePress,
+                          style: TextStyle(fontSize: 18.0)),
                       SizedBox(width: 5.0),
                       Icon(Icons.menu, color: Colors.black, size: 22.0),
                       SizedBox(width: 5.0),
-                      Text(S.of(context).homeSelect, style: TextStyle(fontSize: 18.0)),
+                      Text(S.of(context).homeSelect,
+                          style: TextStyle(fontSize: 18.0)),
                     ],
                   ),
                 ],

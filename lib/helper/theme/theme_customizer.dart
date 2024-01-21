@@ -5,7 +5,8 @@ import 'package:canokey_console/helper/theme/app_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-typedef ThemeChangeCallback = void Function(ThemeCustomizer oldVal, ThemeCustomizer newVal);
+typedef ThemeChangeCallback = void Function(
+    ThemeCustomizer oldVal, ThemeCustomizer newVal);
 
 class ThemeCustomizer {
   ThemeCustomizer();
@@ -35,7 +36,8 @@ class ThemeCustomizer {
   static void _notify() {
     AdminTheme.setTheme();
     if (NavigationService.globalContext != null) {
-      Provider.of<AppNotifier>(NavigationService.globalContext!, listen: false).updateTheme(instance);
+      Provider.of<AppNotifier>(NavigationService.globalContext!, listen: false)
+          .updateTheme(instance);
     }
     for (var value in _notifier) {
       value(oldInstance, instance);

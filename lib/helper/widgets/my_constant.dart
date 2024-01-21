@@ -3,7 +3,8 @@ class MyConstantData {
   final double cardRadius;
   final double buttonRadius;
 
-  MyConstantData({this.containerRadius = 4, this.cardRadius = 4, this.buttonRadius = 4});
+  MyConstantData(
+      {this.containerRadius = 4, this.cardRadius = 4, this.buttonRadius = 4});
 }
 
 class MyConstant {

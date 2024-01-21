@@ -24,7 +24,8 @@ extension StringUtil on String {
   bool toBool([bool defaultValue = false]) {
     if (toString().compareTo('1') == 0 || toString().compareTo('true') == 0) {
       return true;
-    } else if (toString().compareTo('0') == 0 || toString().compareTo('false') == 0) {
+    } else if (toString().compareTo('0') == 0 ||
+        toString().compareTo('false') == 0) {
       return false;
     }
     return defaultValue;

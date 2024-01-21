@@ -36,8 +36,10 @@ class PassController extends MyController {
 
       String resp = await FlutterNfcKit.transceive('0031000000');
       Apdu.assertOK(resp);
-      String firmwareVersion = String.fromCharCodes(hex.decode(Apdu.dropSW(resp)));
-      FunctionSetVersion functionSetVersion = CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
+      String firmwareVersion =
+          String.fromCharCodes(hex.decode(Apdu.dropSW(resp)));
+      FunctionSetVersion functionSetVersion =
+          CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
       if (!CanoKey.functionSet(functionSetVersion).contains(Func.pass)) {
         Prompts.showPrompt('Not supported', ContentThemeColor.danger);
         return;
@@ -67,20 +69,24 @@ class PassController extends MyController {
       if (type == PassSlotType.none) {
         capduData = '00';
       } else if (type == PassSlotType.static) {
-        capduData = '02${password.length.toRadixString(16).padLeft(2, '0')}${hex.encode(password.codeUnits)}${withEnter ? '01' : '00'}';
+        capduData =
+            '02${password.length.toRadixString(16).padLeft(2, '0')}${hex.encode(password.codeUnits)}${withEnter ? '01' : '00'}';
       } else {
         log.warning('unsupported slot type');
         return;
       }
-      await FlutterNfcKit.transceive('0044${index == short ? '01' : '02'}00${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
-      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
+      await FlutterNfcKit.transceive(
+          '0044${index == short ? '01' : '02'}00${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
+      Prompts.showPrompt(
+          S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
       refreshData(pinCache);
       update();
     });
   }
 
   Future<bool> _verifyPin(String pin) async {
-    String resp = await FlutterNfcKit.transceive('00200000${pin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(pin.codeUnits)}');
+    String resp = await FlutterNfcKit.transceive(
+        '00200000${pin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(pin.codeUnits)}');
     if (Apdu.isOK(resp)) return true;
     Prompts.promptPinFailureResult(resp);
     return false;

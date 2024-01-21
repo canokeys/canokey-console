@@ -14,16 +14,25 @@ class MyFormValidator {
   final Map<String, dynamic> _data = {};
 
   void addField<T>(String name,
-      {bool required = false, List<MyFieldValidatorRule<T>> validators = const [], String? label, TextEditingController? controller}) {
-    _validators[name] = _createValidation<T>(name, required: required, validators: validators, label: label);
+      {bool required = false,
+      List<MyFieldValidatorRule<T>> validators = const [],
+      String? label,
+      TextEditingController? controller}) {
+    _validators[name] = _createValidation<T>(name,
+        required: required, validators: validators, label: label);
     if (controller != null) _controllers[name] = controller;
   }
 
-  MyFieldValidator<T>? getValidator<T>(String name) => _validators[name] != null ? _validators[name] as MyFieldValidator<T> : null;
+  MyFieldValidator<T>? getValidator<T>(String name) => _validators[name] != null
+      ? _validators[name] as MyFieldValidator<T>
+      : null;
 
   TextEditingController? getController(String name) => _controllers[name];
 
-  MyFieldValidator<T> _createValidation<T>(String name, {bool required = false, List<MyFieldValidatorRule<T>> validators = const [], String? label}) {
+  MyFieldValidator<T> _createValidation<T>(String name,
+      {bool required = false,
+      List<MyFieldValidatorRule<T>> validators = const [],
+      String? label}) {
     return (T? value) {
       label ??= name.capitalize;
       String? error = getError(name);
@@ -35,7 +44,8 @@ class MyFormValidator {
         return S.of(Get.context!).oathRequired;
       }
       for (MyFieldValidatorRule validator in validators) {
-        String? validationError = validator.validate(value, required, getData());
+        String? validationError =
+            validator.validate(value, required, getData());
         if (validationError != null) {
           return validationError;
         }

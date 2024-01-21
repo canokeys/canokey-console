@@ -44,7 +44,8 @@ class WebAuthnSm2Config {
   final int curveId; // encoding as four bytes as big endian signed int
   final int algoId; // encoding as four bytes as big endian signed int
 
-  WebAuthnSm2Config({required this.enabled, required this.curveId, required this.algoId});
+  WebAuthnSm2Config(
+      {required this.enabled, required this.curveId, required this.algoId});
 }
 
 class CanoKey {
@@ -92,11 +93,32 @@ class CanoKey {
   static Set<Func> functionSet(FunctionSetVersion functionSetVersion) {
     switch (functionSetVersion) {
       case FunctionSetVersion.v1:
-        return {Func.led, Func.hotp, Func.ndefReadonly, Func.sigTouch, Func.decTouch, Func.autTouch, Func.touchCacheTime};
+        return {
+          Func.led,
+          Func.hotp,
+          Func.ndefReadonly,
+          Func.sigTouch,
+          Func.decTouch,
+          Func.autTouch,
+          Func.touchCacheTime
+        };
       case FunctionSetVersion.v2:
-        return {Func.led, Func.hotp, Func.webusbLandingPage, Func.ndefEnabled, Func.ndefReadonly};
+        return {
+          Func.led,
+          Func.hotp,
+          Func.webusbLandingPage,
+          Func.ndefEnabled,
+          Func.ndefReadonly
+        };
       case FunctionSetVersion.v3:
-        return {Func.led, Func.hotp, Func.webusbLandingPage, Func.ndefEnabled, Func.ndefReadonly, Func.keyboardWithReturn};
+        return {
+          Func.led,
+          Func.hotp,
+          Func.webusbLandingPage,
+          Func.ndefEnabled,
+          Func.ndefReadonly,
+          Func.keyboardWithReturn
+        };
       case FunctionSetVersion.v4:
         return {
           Func.led,
@@ -112,7 +134,8 @@ class CanoKey {
     }
   }
 
-  static FunctionSetVersion functionSetFromFirmwareVersion(String firmwareVersion) {
+  static FunctionSetVersion functionSetFromFirmwareVersion(
+      String firmwareVersion) {
     if (firmwareVersion.compareTo('1.5.') < 0) {
       log.info("Function Set: V1");
       return FunctionSetVersion.v1;

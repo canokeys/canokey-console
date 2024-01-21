@@ -56,7 +56,8 @@ class SettingsController extends MyController {
       }).onError((error, stackTrace) => null); // User canceled
       return false;
     } else {
-      String resp = await FlutterNfcKit.transceive('00200000${pinCache.length.toRadixString(16).padLeft(2, '0')}${hex.encode(pinCache.codeUnits)}');
+      String resp = await FlutterNfcKit.transceive(
+          '00200000${pinCache.length.toRadixString(16).padLeft(2, '0')}${hex.encode(pinCache.codeUnits)}');
       if (Apdu.isOK(resp)) {
         return true;
       }
@@ -73,7 +74,8 @@ class SettingsController extends MyController {
 
       String resp = await FlutterNfcKit.transceive('0031000000');
       Apdu.assertOK(resp);
-      String firmwareVersion = String.fromCharCodes(hex.decode(Apdu.dropSW(resp)));
+      String firmwareVersion =
+          String.fromCharCodes(hex.decode(Apdu.dropSW(resp)));
       resp = await FlutterNfcKit.transceive('0031010000');
       Apdu.assertOK(resp);
       String model = String.fromCharCodes(hex.decode(Apdu.dropSW(resp)));
@@ -85,7 +87,8 @@ class SettingsController extends MyController {
       String chipId = Apdu.dropSW(resp).toUpperCase();
 
       // read configurations
-      FunctionSetVersion functionSetVersion = CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
+      FunctionSetVersion functionSetVersion =
+          CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
       bool ledOn = false;
       bool hotpOn = false;
       bool ndefReadonly = false;
@@ -177,8 +180,10 @@ class SettingsController extends MyController {
         return;
       }
 
-      Apdu.assertOK(await FlutterNfcKit.transceive(_changeSwitchAPDUs[func][value]));
-      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
+      Apdu.assertOK(
+          await FlutterNfcKit.transceive(_changeSwitchAPDUs[func][value]));
+      Prompts.showPrompt(
+          S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
       await refreshData();
     });
   }
@@ -189,8 +194,10 @@ class SettingsController extends MyController {
         return;
       }
 
-      Apdu.assertOK(await FlutterNfcKit.transceive('00210000${newPin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(newPin.codeUnits)}'));
-      Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
+      Apdu.assertOK(await FlutterNfcKit.transceive(
+          '00210000${newPin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(newPin.codeUnits)}'));
+      Prompts.showPrompt(
+          S.of(Get.context!).pinChanged, ContentThemeColor.success);
       pinCache = newPin;
     });
   }
@@ -204,7 +211,8 @@ class SettingsController extends MyController {
       }
 
       Apdu.assertOK(await FlutterNfcKit.transceive(applet.resetApdu));
-      Prompts.showPrompt(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
+      Prompts.showPrompt(
+          S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
     });
   }
 
@@ -216,11 +224,15 @@ class SettingsController extends MyController {
       Get.context!.loaderOverlay.hide();
       Navigator.pop(Get.context!);
       if (resp == '9000') {
-        Prompts.showPrompt(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
+        Prompts.showPrompt(
+            S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
       } else if (resp == '6985') {
-        Prompts.showPrompt(S.of(Get.context!).settingsResetConditionNotSatisfying, ContentThemeColor.danger);
+        Prompts.showPrompt(
+            S.of(Get.context!).settingsResetConditionNotSatisfying,
+            ContentThemeColor.danger);
       } else if (resp == '6982') {
-        Prompts.showPrompt(S.of(Get.context!).settingsResetPresenceTestFailed, ContentThemeColor.danger);
+        Prompts.showPrompt(S.of(Get.context!).settingsResetPresenceTestFailed,
+            ContentThemeColor.danger);
       } else {
         Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
       }
@@ -234,22 +246,27 @@ class SettingsController extends MyController {
       }
 
       Apdu.assertOK(await FlutterNfcKit.transceive('00FF01000603A044000420'));
-      Apdu.assertOK(await FlutterNfcKit.transceive('00FF01000903B005720300B39900'));
-      Prompts.showPrompt(S.of(Get.context!).settingsFixNFCSuccess, ContentThemeColor.success);
+      Apdu.assertOK(
+          await FlutterNfcKit.transceive('00FF01000903B005720300B39900'));
+      Prompts.showPrompt(
+          S.of(Get.context!).settingsFixNFCSuccess, ContentThemeColor.success);
     });
   }
 
   void changeWebAuthnSm2Config(bool enabled, int curveId, int algoId) {
     Navigator.pop(Get.context!);
 
-    String cmdData = (enabled ? '01' : '00') + hex.encode(Int32(curveId).toBytes().reversed.toList()) + hex.encode(Int32(algoId).toBytes().reversed.toList());
+    String cmdData = (enabled ? '01' : '00') +
+        hex.encode(Int32(curveId).toBytes().reversed.toList()) +
+        hex.encode(Int32(algoId).toBytes().reversed.toList());
     Apdu.process(() async {
       if (!await selectAndVerifyPin()) {
         return;
       }
 
       Apdu.assertOK(await FlutterNfcKit.transceive('0012000009$cmdData'));
-      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
+      Prompts.showPrompt(
+          S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
       await refreshData();
     });
   }

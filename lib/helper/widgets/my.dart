@@ -15,7 +15,8 @@ class My {
     MyTextStyle.changeDefaultFontWeight(defaultFontWeight);
   }
 
-  static void changeDefaultTextFontWeight(Map<MyTextType, int> defaultFontWeight) {
+  static void changeDefaultTextFontWeight(
+      Map<MyTextType, int> defaultFontWeight) {
     MyTextStyle.changeDefaultTextFontWeight(defaultFontWeight);
   }
 
@@ -23,7 +24,8 @@ class My {
     MyTextStyle.changeDefaultTextSize(defaultTextSize);
   }
 
-  static void changeDefaultLetterSpacing(Map<MyTextType, double> defaultLetterSpacing) {
+  static void changeDefaultLetterSpacing(
+      Map<MyTextType, double> defaultLetterSpacing) {
     MyTextStyle.changeDefaultLetterSpacing(defaultLetterSpacing);
   }
 

@@ -36,11 +36,10 @@ class Layout extends StatelessWidget {
     return Scaffold(
       key: controller.scaffoldKey,
       appBar: AppBar(
-        elevation: 0,
-        centerTitle: true,
-        title: MyText.titleMedium(title),
-        actions: [topActions!, MySpacing.width(20)]
-      ),
+          elevation: 0,
+          centerTitle: true,
+          title: MyText.titleMedium(title),
+          actions: [topActions!, MySpacing.width(20)]),
       drawer: LeftBar(),
       body: SingleChildScrollView(key: controller.scrollKey, child: child),
     );
@@ -60,9 +59,17 @@ class Layout extends StatelessWidget {
                 right: 0,
                 left: 0,
                 bottom: 0,
-                child: SingleChildScrollView(padding: MySpacing.fromLTRB(0, 58 + flexSpacing, 0, flexSpacing), key: controller.scrollKey, child: child),
+                child: SingleChildScrollView(
+                    padding:
+                        MySpacing.fromLTRB(0, 58 + flexSpacing, 0, flexSpacing),
+                    key: controller.scrollKey,
+                    child: child),
               ),
-              Positioned(top: 0, left: 0, right: 0, child: TopBar(actions: topActions)),
+              Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: TopBar(actions: topActions)),
             ],
           )),
         ],

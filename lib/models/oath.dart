@@ -54,7 +54,8 @@ class OathItem {
   String code = '';
   int length = 0; // item size in bytes
 
-  OathItem(this.issuer, this.account, {this.type = OathType.totp, this.requireTouch = false, this.code = ''});
+  OathItem(this.issuer, this.account,
+      {this.type = OathType.totp, this.requireTouch = false, this.code = ''});
 
   String get name => issuer == '' ? account : '$issuer:$account';
 

@@ -17,5 +17,11 @@ getPageRoute() {
     GetPage(name: '/settings', page: () => const SettingsPage()),
   ];
 
-  return routes.map((e) => GetPage(name: e.name, page: e.page, middlewares: e.middlewares, transition: Transition.noTransition)).toList();
+  return routes
+      .map((e) => GetPage(
+          name: e.name,
+          page: e.page,
+          middlewares: e.middlewares,
+          transition: Transition.noTransition))
+      .toList();
 }

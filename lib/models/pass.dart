@@ -24,9 +24,12 @@ class PassSlot {
     while (i < hexData.length) {
       int type = int.parse(hexData.substring(i, i + 2), radix: 16);
       i += 2;
-      if (type == 0) { // OFF
-        slots.add(PassSlot(type: PassSlotType.none, name: '', withEnter: false));
-      } else if (type == 1) { // OATH
+      if (type == 0) {
+        // OFF
+        slots
+            .add(PassSlot(type: PassSlotType.none, name: '', withEnter: false));
+      } else if (type == 1) {
+        // OATH
         int nameLen = int.parse(hexData.substring(i, i + 2), radix: 16);
         i += 2;
         String nameHex = hexData.substring(i, i + nameLen * 2);
@@ -34,11 +37,14 @@ class PassSlot {
         i += nameLen * 2;
         int withEnter = int.parse(hexData.substring(i, i + 2), radix: 16);
         i += 2;
-        slots.add(PassSlot(type: PassSlotType.oath, name: name, withEnter: withEnter == 1));
-      } else if (type == 2) { // STATIC
+        slots.add(PassSlot(
+            type: PassSlotType.oath, name: name, withEnter: withEnter == 1));
+      } else if (type == 2) {
+        // STATIC
         int withEnter = int.parse(hexData.substring(i, i + 2), radix: 16);
         i += 2;
-        slots.add(PassSlot(type: PassSlotType.static, name: '', withEnter: withEnter == 1));
+        slots.add(PassSlot(
+            type: PassSlotType.static, name: '', withEnter: withEnter == 1));
       }
     }
     return slots;

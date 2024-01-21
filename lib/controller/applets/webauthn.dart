@@ -39,14 +39,16 @@ class WebAuthnController extends MyController {
         _pinCache = '';
       }
 
-      String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
+      String resp =
+          await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
       Apdu.assertOK(resp);
 
       _ctap = await Ctap2.create(CtapNfc());
 
       // We do nothing if the device does not support clientPin
       if (_ctap.info.options?['clientPin'] == null) {
-        Prompts.showPrompt(S.of(Get.context!).webauthnClientPinNotSupported, ContentThemeColor.danger);
+        Prompts.showPrompt(S.of(Get.context!).webauthnClientPinNotSupported,
+            ContentThemeColor.danger);
         return;
       }
 
@@ -66,13 +68,16 @@ class WebAuthnController extends MyController {
         // On mobile platforms, we need to poll NFC again after showing the dialog
         if (isMobile()) {
           Prompts.promptPolling();
-          await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
-          String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
+          await FlutterNfcKit.poll(
+              iosAlertMessage: S.of(Get.context!).iosAlertMessage);
+          String resp =
+              await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
           Apdu.assertOK(resp);
         }
         final cp = ClientPin(_ctap);
         await cp.setPin(_pinCache);
-        Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
+        Prompts.showPrompt(
+            S.of(Get.context!).pinChanged, ContentThemeColor.success);
       }
 
       assert(_ctap.info.options?['clientPin'] == true);
@@ -91,8 +96,10 @@ class WebAuthnController extends MyController {
         // On mobile platforms, we need to poll NFC again after showing the dialog
         if (isMobile()) {
           Prompts.promptPolling();
-          await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
-          String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
+          await FlutterNfcKit.poll(
+              iosAlertMessage: S.of(Get.context!).iosAlertMessage);
+          String resp =
+              await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
           Apdu.assertOK(resp);
         }
       }
@@ -100,15 +107,19 @@ class WebAuthnController extends MyController {
       final cp = ClientPin(_ctap);
       late final List<int> pinToken;
       try {
-        pinToken = await cp.getPinToken(_pinCache, permissions: [ClientPinPermission.credentialManagement]);
+        pinToken = await cp.getPinToken(_pinCache,
+            permissions: [ClientPinPermission.credentialManagement]);
       } on CtapException catch (e) {
         _pinCache = '';
         if (e.errorCode == CtapException.ctap2ErrPinInvalid) {
-          Prompts.showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+          Prompts.showPrompt(
+              S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
         } else if (e.errorCode == CtapException.ctap2ErrPinAuthBlocked) {
-          Prompts.showPrompt(S.of(Get.context!).webauthnPinAuthBlocked, ContentThemeColor.danger);
+          Prompts.showPrompt(S.of(Get.context!).webauthnPinAuthBlocked,
+              ContentThemeColor.danger);
         } else if (e.errorCode == CtapException.ctap2ErrPinBlocked) {
-          Prompts.showPrompt(S.of(Get.context!).webauthnPinBlocked, ContentThemeColor.danger);
+          Prompts.showPrompt(
+              S.of(Get.context!).webauthnPinBlocked, ContentThemeColor.danger);
         } else {
           Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
         }
@@ -116,7 +127,10 @@ class WebAuthnController extends MyController {
       }
 
       webAuthnItems.clear();
-      final cm = CredentialManagement(_ctap, cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(), pinToken);
+      final cm = CredentialManagement(
+          _ctap,
+          cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(),
+          pinToken);
       try {
         final rp = await cm.enumerateRpsBegin();
         for (var element in (await cm.enumerateCredentials(rp.rpIdHash))) {
@@ -147,7 +161,8 @@ class WebAuthnController extends MyController {
         return;
       }
 
-      String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
+      String resp =
+          await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
       Apdu.assertOK(resp);
 
       final cp = ClientPin(_ctap);
@@ -155,7 +170,8 @@ class WebAuthnController extends MyController {
         Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
         return;
       }
-      Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
+      Prompts.showPrompt(
+          S.of(Get.context!).pinChanged, ContentThemeColor.success);
       _pinCache = newPin;
     });
   }
@@ -167,17 +183,23 @@ class WebAuthnController extends MyController {
         return;
       }
 
-      String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
+      String resp =
+          await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
       Apdu.assertOK(resp);
 
       final cp = ClientPin(_ctap);
-      final pinToken = await cp.getPinToken(_pinCache, permissions: [ClientPinPermission.credentialManagement]);
-      final cm = CredentialManagement(_ctap, cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(), pinToken);
+      final pinToken = await cp.getPinToken(_pinCache,
+          permissions: [ClientPinPermission.credentialManagement]);
+      final cm = CredentialManagement(
+          _ctap,
+          cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(),
+          pinToken);
       await cm.deleteCredential(credentialId);
 
       Navigator.pop(Get.context!);
       Prompts.showPrompt(S.of(Get.context!).delete, ContentThemeColor.success);
-      webAuthnItems.removeWhere((element) => element.credentialId == credentialId);
+      webAuthnItems
+          .removeWhere((element) => element.credentialId == credentialId);
       update();
     });
   }

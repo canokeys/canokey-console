@@ -19,10 +19,13 @@ class TLV {
       if (off + lengthCount + length > len) {
         throw FormatException("Illegal TLV length");
       }
-      if (tag == 0x73) { // OpenPGP
-        result[tag] = _parse(buf, off + lengthCount, off + lengthCount + length);
+      if (tag == 0x73) {
+        // OpenPGP
+        result[tag] =
+            _parse(buf, off + lengthCount, off + lengthCount + length);
       } else {
-        result[tag] = buf.sublist(off + lengthCount, off + lengthCount + length);
+        result[tag] =
+            buf.sublist(off + lengthCount, off + lengthCount + length);
       }
       off += lengthCount + length;
     }
@@ -63,7 +66,8 @@ class TLV {
     if ((length & 0x80) == 0x80) {
       int numberOfBytes = length & 0x7F;
       if (numberOfBytes > 3) {
-        throw FormatException('At position $off the len is more then 3 [$numberOfBytes]');
+        throw FormatException(
+            'At position $off the len is more then 3 [$numberOfBytes]');
       }
 
       length = 0;

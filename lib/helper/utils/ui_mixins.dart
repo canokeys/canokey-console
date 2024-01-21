@@ -12,13 +12,17 @@ mixin UIMixin {
 
   ContentTheme get contentTheme => AdminTheme.theme.contentTheme;
 
-  VisualDensity get getCompactDensity => VisualDensity(horizontal: -4, vertical: -4);
+  VisualDensity get getCompactDensity =>
+      VisualDensity(horizontal: -4, vertical: -4);
 
   // theme.colorScheme. get theme.colorScheme. => theme.theme.colorScheme.;
 
   OutlineInputBorder get outlineInputBorder => OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(4)),
-        borderSide: BorderSide(width: 1, strokeAlign: 0, color: theme.colorScheme.onBackground.withAlpha(80)),
+        borderSide: BorderSide(
+            width: 1,
+            strokeAlign: 0,
+            color: theme.colorScheme.onBackground.withAlpha(80)),
       );
 
   OutlineInputBorder focusedInputBorder = OutlineInputBorder(
@@ -26,14 +30,16 @@ mixin UIMixin {
     borderSide: BorderSide(width: 1, color: theme.colorScheme.primary),
   );
 
-  OutlineInputBorder generateOutlineInputBorder({double radius = 4}) => OutlineInputBorder(
+  OutlineInputBorder generateOutlineInputBorder({double radius = 4}) =>
+      OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(radius)),
         borderSide: BorderSide(
           color: Colors.transparent,
         ),
       );
 
-  OutlineInputBorder generateFocusedInputBorder({double radius = 4}) => OutlineInputBorder(
+  OutlineInputBorder generateFocusedInputBorder({double radius = 4}) =>
+      OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(radius)),
         borderSide: BorderSide(width: 1, color: theme.colorScheme.primary),
       );
@@ -42,12 +48,17 @@ mixin UIMixin {
     return InkWell(
       onTap: navigationMixin.goBack,
       child: Center(
-        child: Icon(Icons.chevron_left_rounded, size: 26, color: theme.colorScheme.onBackground),
+        child: Icon(Icons.chevron_left_rounded,
+            size: 26, color: theme.colorScheme.onBackground),
       ),
     );
   }
 
   Widget getDashedDivider() {
-    return MyDashedDivider(dashWidth: 6, dashSpace: 4, color: theme.colorScheme.onBackground.withAlpha(64), height: 0.5);
+    return MyDashedDivider(
+        dashWidth: 6,
+        dashSpace: 4,
+        color: theme.colorScheme.onBackground.withAlpha(64),
+        height: 0.5);
   }
 }

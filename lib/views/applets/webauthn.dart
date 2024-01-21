@@ -26,7 +26,8 @@ class WebAuthnPage extends StatefulWidget {
   State<WebAuthnPage> createState() => _WebAuthnPageState();
 }
 
-class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderStateMixin, UIMixin {
+class _WebAuthnPageState extends State<WebAuthnPage>
+    with SingleTickerProviderStateMixin, UIMixin {
   late WebAuthnController controller;
 
   @override
@@ -45,7 +46,8 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
             List<Widget> widgets = [
               InkWell(
                 onTap: controller.refreshData,
-                child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
+                child: Icon(LucideIcons.refreshCw,
+                    size: 20, color: topBarTheme.onBackground),
               )
             ];
             if (controller.polled) {
@@ -57,9 +59,12 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                       label: 'PIN',
                       prompt: S.of(context).changePinPrompt(4, 63),
                       validators: [MyLengthValidator(min: 4, max: 63)],
-                    ).then((value) => controller.changePin(value)).onError((error, stackTrace) => null); // Canceled
+                    )
+                        .then((value) => controller.changePin(value))
+                        .onError((error, stackTrace) => null); // Canceled
                   },
-                  child: Icon(LucideIcons.lock, size: 20, color: topBarTheme.onBackground),
+                  child: Icon(LucideIcons.lock,
+                      size: 20, color: topBarTheme.onBackground),
                 ),
                 MySpacing.width(12),
               ]);
@@ -78,7 +83,8 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                 Center(
                     child: Padding(
                   padding: MySpacing.horizontal(36),
-                  child: MyText.bodyMedium(S.of(context).pollCanoKey, fontSize: 24),
+                  child: MyText.bodyMedium(S.of(context).pollCanoKey,
+                      fontSize: 24),
                 )),
               ],
             );
@@ -89,7 +95,9 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 MySpacing.height(MediaQuery.of(context).size.height / 2 - 100),
-                Center(child: MyText.bodyMedium(S.of(context).noCredential, fontSize: 24)),
+                Center(
+                    child: MyText.bodyMedium(S.of(context).noCredential,
+                        fontSize: 24)),
               ],
             );
           }
@@ -107,9 +115,14 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                       shrinkWrap: true,
                       scrollDirection: Axis.vertical,
                       itemCount: controller.webAuthnItems.length,
-                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 500, crossAxisSpacing: 16, mainAxisSpacing: 16, mainAxisExtent: 120),
-                      itemBuilder: (context, index) => buildWebAuthnItem(controller, index),
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 500,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              mainAxisExtent: 120),
+                      itemBuilder: (context, index) =>
+                          buildWebAuthnItem(controller, index),
                     )
                   ],
                 ),
@@ -132,7 +145,8 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              MyText.bodyMedium(item.userDisplayName, fontSize: 16, fontWeight: 600),
+              MyText.bodyMedium(item.userDisplayName,
+                  fontSize: 16, fontWeight: 600),
               MyContainer.none(
                 paddingAll: 8,
                 borderRadiusAll: 5,
@@ -158,7 +172,8 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                 color: contentTheme.primary.withAlpha(30),
                 paddingAll: 2,
                 clipBehavior: Clip.antiAliasWithSaveLayer,
-                child: Icon(LucideIcons.user, size: 16, color: contentTheme.primary),
+                child: Icon(LucideIcons.user,
+                    size: 16, color: contentTheme.primary),
               ),
               MySpacing.width(12),
               MyText.bodyMedium(item.userName),
@@ -170,7 +185,8 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                 color: contentTheme.primary.withAlpha(30),
                 paddingAll: 2,
                 clipBehavior: Clip.antiAliasWithSaveLayer,
-                child: Icon(LucideIcons.globe, size: 16, color: contentTheme.primary),
+                child: Icon(LucideIcons.globe,
+                    size: 16, color: contentTheme.primary),
               ),
               MySpacing.width(12),
               MyText.bodyMedium(item.rpId),
@@ -196,7 +212,8 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
             Divider(height: 0, thickness: 1),
             Padding(
               padding: MySpacing.all(16),
-              child: MyText.labelLarge(S.of(context).webauthnDelete('${item.userDisplayName} (${item.userName})')),
+              child: MyText.labelLarge(S.of(context).webauthnDelete(
+                  '${item.userDisplayName} (${item.userName})')),
             ),
             Divider(height: 0, thickness: 1),
             Padding(
@@ -209,7 +226,8 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                     elevation: 0,
                     padding: MySpacing.xy(20, 16),
                     backgroundColor: contentTheme.secondary,
-                    child: MyText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
+                    child: MyText.labelMedium(S.of(context).cancel,
+                        color: contentTheme.onSecondary),
                   ),
                   MySpacing.width(16),
                   MyButton.rounded(
@@ -217,7 +235,8 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                     elevation: 0,
                     padding: MySpacing.xy(20, 16),
                     backgroundColor: contentTheme.danger,
-                    child: MyText.labelMedium(S.of(context).delete, color: contentTheme.onDanger),
+                    child: MyText.labelMedium(S.of(context).delete,
+                        color: contentTheme.onDanger),
                   ),
                 ],
               ),

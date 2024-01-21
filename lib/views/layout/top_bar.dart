@@ -17,7 +17,8 @@ class TopBar extends StatefulWidget {
   _TopBarState createState() => _TopBarState();
 }
 
-class _TopBarState extends State<TopBar> with SingleTickerProviderStateMixin, UIMixin {
+class _TopBarState extends State<TopBar>
+    with SingleTickerProviderStateMixin, UIMixin {
   @override
   Widget build(BuildContext context) {
     return MyCard(
@@ -36,7 +37,8 @@ class _TopBarState extends State<TopBar> with SingleTickerProviderStateMixin, UI
                   onTap: () {
                     ThemeCustomizer.toggleLeftBarCondensed();
                   },
-                  child: Icon(LucideIcons.menu, color: topBarTheme.onBackground)),
+                  child:
+                      Icon(LucideIcons.menu, color: topBarTheme.onBackground)),
               MySpacing.width(24),
               SizedBox(
                 width: 200,
@@ -49,8 +51,14 @@ class _TopBarState extends State<TopBar> with SingleTickerProviderStateMixin, UI
                       border: outlineInputBorder,
                       enabledBorder: outlineInputBorder,
                       focusedBorder: focusedInputBorder,
-                      prefixIcon: const Align(alignment: Alignment.center, child: Icon(LucideIcons.search, size: 14)),
-                      prefixIconConstraints: const BoxConstraints(minWidth: 36, maxWidth: 36, minHeight: 32, maxHeight: 32),
+                      prefixIcon: const Align(
+                          alignment: Alignment.center,
+                          child: Icon(LucideIcons.search, size: 14)),
+                      prefixIconConstraints: const BoxConstraints(
+                          minWidth: 36,
+                          maxWidth: 36,
+                          minHeight: 32,
+                          maxHeight: 32),
                       contentPadding: MySpacing.xy(16, 12),
                       isCollapsed: true,
                       floatingLabelBehavior: FloatingLabelBehavior.never),
@@ -58,7 +66,10 @@ class _TopBarState extends State<TopBar> with SingleTickerProviderStateMixin, UI
               ),
             ],
           ),
-          Expanded(child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [widget.actions ?? Container()]))
+          Expanded(
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [widget.actions ?? Container()]))
         ],
       ),
     );
