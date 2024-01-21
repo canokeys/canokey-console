@@ -15,6 +15,12 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
+    - name: Setup Flutter SDK
+      uses: flutter-actions/setup-flutter@v2
+      with:
+        channel: stable
+        version: 3.16.8
+        cache: true
     - run: flutter pub get
     - run: dart format --output=none --set-exit-if-changed .
     - run: dart analyze
