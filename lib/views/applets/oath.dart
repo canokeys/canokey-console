@@ -85,18 +85,20 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                     child: const Icon(LucideIcons.plus, size: 20),
                   ),
                 MySpacing.width(12),
-                InkWell(
-                  onTap: () {
-                    Prompts.showInputPinDialog(
-                      title: S.of(context).oathSetCode,
-                      label: S.of(context).oathCode,
-                      prompt: S.of(context).oathNewCodePrompt,
-                      required: false,
-                    ).then((value) => controller.setCode(value)).onError((error, stackTrace) => null); // Canceled
-                  },
-                  child: Icon(LucideIcons.lock, size: 20, color: topBarTheme.onBackground),
-                ),
-                MySpacing.width(12),
+                if (controller.version != OathVersion.legacy) ...{
+                  InkWell(
+                    onTap: () {
+                      Prompts.showInputPinDialog(
+                        title: S.of(context).oathSetCode,
+                        label: S.of(context).oathCode,
+                        prompt: S.of(context).oathNewCodePrompt,
+                        required: false,
+                      ).then((value) => controller.setCode(value)).onError((error, stackTrace) => null); // Canceled
+                    },
+                    child: Icon(LucideIcons.lock, size: 20, color: topBarTheme.onBackground),
+                  ),
+                  MySpacing.width(12),
+                }
               ]);
             }
             return Row(children: widgets);

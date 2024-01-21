@@ -8,6 +8,8 @@ import 'package:get/get.dart';
 class Apdu {
   static bool _polled = false;
 
+  static String currentId = '';
+
   static String dropSW(String rapdu) {
     return rapdu.substring(0, rapdu.length - 4);
   }
@@ -29,7 +31,8 @@ class Apdu {
     try {
       Prompts.promptPolling();
       if (isFirstCalled) {
-        await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
+        final tag = await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
+        currentId = tag.id;
       }
       await f();
     } on PlatformException catch (e) {
@@ -47,6 +50,7 @@ class Apdu {
       if (isFirstCalled) {
         FlutterNfcKit.finish(closeWebUSB: false);
         _polled = false;
+        currentId = '';
       }
     }
   }

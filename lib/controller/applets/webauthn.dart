@@ -16,9 +16,11 @@ import 'package:platform_detector/platform_detector.dart';
 final log = Logger('Console:WebAuthn:Controller');
 
 class WebAuthnController extends MyController {
-  late Ctap2 ctap;
+  late Ctap2 _ctap;
+  String _pinCache = '';
+  String _uid = '';
+
   bool polled = false;
-  String pinCache = '';
   List<WebAuthnItem> webAuthnItems = [];
 
   @override
@@ -32,25 +34,30 @@ class WebAuthnController extends MyController {
 
   void refreshData() {
     Apdu.process(() async {
+      if (_uid != Apdu.currentId) {
+        _uid = Apdu.currentId;
+        _pinCache = '';
+      }
+
       String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
       Apdu.assertOK(resp);
 
-      ctap = await Ctap2.create(CtapNfc());
+      _ctap = await Ctap2.create(CtapNfc());
 
       // We do nothing if the device does not support clientPin
-      if (ctap.info.options?['clientPin'] == null) {
+      if (_ctap.info.options?['clientPin'] == null) {
         Prompts.showPrompt(S.of(Get.context!).webauthnClientPinNotSupported, ContentThemeColor.danger);
         return;
       }
 
       // PIN is not set
-      if (ctap.info.options?['clientPin'] == false) {
+      if (_ctap.info.options?['clientPin'] == false) {
         // On mobile platforms, we need to finish NFC before showing the dialog
         if (isMobile()) {
           Prompts.stopPromptPolling();
           FlutterNfcKit.finish(closeWebUSB: false);
         }
-        pinCache = await Prompts.showInputPinDialog(
+        _pinCache = await Prompts.showInputPinDialog(
           title: S.of(Get.context!).webauthnSetPinTitle,
           label: 'PIN',
           prompt: S.of(Get.context!).webauthnSetPinPrompt,
@@ -63,20 +70,20 @@ class WebAuthnController extends MyController {
           String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
           Apdu.assertOK(resp);
         }
-        final cp = ClientPin(ctap);
-        await cp.setPin(pinCache);
+        final cp = ClientPin(_ctap);
+        await cp.setPin(_pinCache);
         Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
       }
 
-      assert(ctap.info.options?['clientPin'] == true);
+      assert(_ctap.info.options?['clientPin'] == true);
 
-      if (pinCache.isEmpty) {
+      if (_pinCache.isEmpty) {
         // On mobile platforms, we need to finish NFC before showing the dialog
         if (isMobile()) {
           Prompts.stopPromptPolling();
           FlutterNfcKit.finish(closeWebUSB: false);
         }
-        pinCache = await Prompts.showInputPinDialog(
+        _pinCache = await Prompts.showInputPinDialog(
           title: S.of(Get.context!).webauthnInputPinTitle,
           label: 'PIN',
           prompt: S.of(Get.context!).webauthnInputPinPrompt,
@@ -90,12 +97,12 @@ class WebAuthnController extends MyController {
         }
       }
 
-      final cp = ClientPin(ctap);
+      final cp = ClientPin(_ctap);
       late final List<int> pinToken;
       try {
-        pinToken = await cp.getPinToken(pinCache, permissions: [ClientPinPermission.credentialManagement]);
+        pinToken = await cp.getPinToken(_pinCache, permissions: [ClientPinPermission.credentialManagement]);
       } on CtapException catch (e) {
-        pinCache = '';
+        _pinCache = '';
         if (e.errorCode == CtapException.ctap2ErrPinInvalid) {
           Prompts.showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
         } else if (e.errorCode == CtapException.ctap2ErrPinAuthBlocked) {
@@ -109,7 +116,7 @@ class WebAuthnController extends MyController {
       }
 
       webAuthnItems.clear();
-      final cm = CredentialManagement(ctap, cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(), pinToken);
+      final cm = CredentialManagement(_ctap, cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(), pinToken);
       try {
         final rp = await cm.enumerateRpsBegin();
         for (var element in (await cm.enumerateCredentials(rp.rpIdHash))) {
@@ -135,27 +142,37 @@ class WebAuthnController extends MyController {
 
   changePin(String newPin) {
     Apdu.process(() async {
+      if (_uid != Apdu.currentId) {
+        refreshData();
+        return;
+      }
+
       String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
       Apdu.assertOK(resp);
 
-      final cp = ClientPin(ctap);
-      if (!await cp.changePin(pinCache, newPin)) {
+      final cp = ClientPin(_ctap);
+      if (!await cp.changePin(_pinCache, newPin)) {
         Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
         return;
       }
       Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
-      pinCache = newPin;
+      _pinCache = newPin;
     });
   }
 
   delete(PublicKeyCredentialDescriptor credentialId) {
     Apdu.process(() async {
+      if (_uid != Apdu.currentId) {
+        refreshData();
+        return;
+      }
+
       String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
       Apdu.assertOK(resp);
 
-      final cp = ClientPin(ctap);
-      final pinToken = await cp.getPinToken(pinCache, permissions: [ClientPinPermission.credentialManagement]);
-      final cm = CredentialManagement(ctap, cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(), pinToken);
+      final cp = ClientPin(_ctap);
+      final pinToken = await cp.getPinToken(_pinCache, permissions: [ClientPinPermission.credentialManagement]);
+      final cm = CredentialManagement(_ctap, cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(), pinToken);
       await cm.deleteCredential(credentialId);
 
       Navigator.pop(Get.context!);

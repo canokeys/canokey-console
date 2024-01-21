@@ -15,6 +15,8 @@ import 'package:logging/logging.dart';
 final log = Logger('Console:Settings:Controller');
 
 class SettingsController extends MyController {
+  String _uid = '';
+
   late CanoKey key;
   bool polled = false;
   String pinCache = '';
@@ -28,9 +30,47 @@ class SettingsController extends MyController {
     } catch (e) {}
   }
 
-  Future<void> refreshData(String pin) async {
+  /// Returns true if pin is verified
+  ///
+  /// If [skipClear] is true, the pin cache will not be cleared when the uid changes.
+  /// This is used for the first time when the uid is never set.
+  Future<bool> selectAndVerifyPin({bool skipClear = false}) async {
+    if (_uid != Apdu.currentId) {
+      _uid = Apdu.currentId;
+      if (!skipClear) {
+        pinCache = '';
+      }
+    }
+
+    String resp = await FlutterNfcKit.transceive('00A4040005F000000000');
+    Apdu.assertOK(resp);
+
+    if (pinCache.isEmpty) {
+      Prompts.showInputPinDialog(
+        title: S.of(Get.context!).settingsInputPin,
+        label: 'PIN',
+        prompt: S.of(Get.context!).settingsInputPinPrompt,
+      ).then((value) {
+        pinCache = value;
+        refreshData();
+      }).onError((error, stackTrace) => null); // User canceled
+      return false;
+    } else {
+      String resp = await FlutterNfcKit.transceive('00200000${pinCache.length.toRadixString(16).padLeft(2, '0')}${hex.encode(pinCache.codeUnits)}');
+      if (Apdu.isOK(resp)) {
+        return true;
+      }
+      Prompts.promptPinFailureResult(resp);
+      return false;
+    }
+  }
+
+  Future<void> refreshData() async {
     await Apdu.process(() async {
-      Apdu.assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
+      if (!await selectAndVerifyPin()) {
+        return;
+      }
+
       String resp = await FlutterNfcKit.transceive('0031000000');
       Apdu.assertOK(resp);
       String firmwareVersion = String.fromCharCodes(hex.decode(Apdu.dropSW(resp)));
@@ -43,8 +83,6 @@ class SettingsController extends MyController {
       resp = await FlutterNfcKit.transceive('0032010000');
       Apdu.assertOK(resp);
       String chipId = Apdu.dropSW(resp).toUpperCase();
-      if (!await _verifyPin(pin)) return;
-      pinCache = pin;
 
       // read configurations
       FunctionSetVersion functionSetVersion = CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
@@ -132,20 +170,25 @@ class SettingsController extends MyController {
   }
 
   void changeSwitch(Func func, bool value) {
+    Navigator.pop(Get.context!);
+
     Apdu.process(() async {
-      Apdu.assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
-      if (!await _verifyPin(pinCache)) return;
+      if (!await selectAndVerifyPin()) {
+        return;
+      }
+
       Apdu.assertOK(await FlutterNfcKit.transceive(_changeSwitchAPDUs[func][value]));
-      Navigator.pop(Get.context!);
       Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
-      await refreshData(pinCache);
+      await refreshData();
     });
   }
 
   void changePin(String newPin) {
     Apdu.process(() async {
-      Apdu.assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
-      if (!await _verifyPin(pinCache)) return;
+      if (!await selectAndVerifyPin()) {
+        return;
+      }
+
       Apdu.assertOK(await FlutterNfcKit.transceive('00210000${newPin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(newPin.codeUnits)}'));
       Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
       pinCache = newPin;
@@ -153,10 +196,13 @@ class SettingsController extends MyController {
   }
 
   void resetApplet(Applet applet) {
+    Navigator.pop(Get.context!);
+
     Apdu.process(() async {
-      Apdu.assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
-      if (!await _verifyPin(pinCache)) return;
-      Navigator.pop(Get.context!);
+      if (!await selectAndVerifyPin()) {
+        return;
+      }
+
       Apdu.assertOK(await FlutterNfcKit.transceive(applet.resetApdu));
       Prompts.showPrompt(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
     });
@@ -183,8 +229,10 @@ class SettingsController extends MyController {
 
   void fixNfc() {
     Apdu.process(() async {
-      Apdu.assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
-      if (!await _verifyPin(pinCache)) return;
+      if (!await selectAndVerifyPin()) {
+        return;
+      }
+
       Apdu.assertOK(await FlutterNfcKit.transceive('00FF01000603A044000420'));
       Apdu.assertOK(await FlutterNfcKit.transceive('00FF01000903B005720300B39900'));
       Prompts.showPrompt(S.of(Get.context!).settingsFixNFCSuccess, ContentThemeColor.success);
@@ -192,22 +240,18 @@ class SettingsController extends MyController {
   }
 
   void changeWebAuthnSm2Config(bool enabled, int curveId, int algoId) {
+    Navigator.pop(Get.context!);
+
     String cmdData = (enabled ? '01' : '00') + hex.encode(Int32(curveId).toBytes().reversed.toList()) + hex.encode(Int32(algoId).toBytes().reversed.toList());
     Apdu.process(() async {
-      Apdu.assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
-      if (!await _verifyPin(pinCache)) return;
-      Navigator.pop(Get.context!);
+      if (!await selectAndVerifyPin()) {
+        return;
+      }
+
       Apdu.assertOK(await FlutterNfcKit.transceive('0012000009$cmdData'));
       Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
-      await refreshData(pinCache);
+      await refreshData();
     });
-  }
-
-  Future<bool> _verifyPin(String pin) async {
-    String resp = await FlutterNfcKit.transceive('00200000${pin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(pin.codeUnits)}');
-    if (Apdu.isOK(resp)) return true;
-    Prompts.promptPinFailureResult(resp);
-    return false;
   }
 
   final Map _changeSwitchAPDUs = {

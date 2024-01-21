@@ -5,6 +5,7 @@ import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_style.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
+import 'package:canokey_console/helper/utils/apdu.dart';
 import 'package:canokey_console/helper/utils/my_shadow.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
@@ -50,14 +51,18 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
       topActions: InkWell(
         onTap: () {
           if (controller.polled) {
-            controller.refreshData(controller.pinCache);
+            controller.refreshData();
           } else {
             Prompts.showInputPinDialog(
               title: S.of(context).settingsInputPin,
               label: 'PIN',
               prompt: S.of(context).settingsInputPinPrompt,
             ).then((value) {
-              controller.refreshData(value);
+              controller.pinCache = value;
+              Apdu.process(() async {
+                await controller.selectAndVerifyPin(skipClear: true);
+                await controller.refreshData();
+              });
             }).onError((error, stackTrace) => null); // User canceled
           }
         },
@@ -224,6 +229,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                     _buildActionCard(context),
                     MySpacing.height(20),
                     _buildOtherSettingsCard(context),
+                    MySpacing.height(40),
                   ],
                 ),
               ),
