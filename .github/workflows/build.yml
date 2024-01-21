@@ -1,0 +1,25 @@
+name: Build Android App
+
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    - run: flutter pub get
+    - run: dart format --output=none --set-exit-if-changed .
+    - run: dart analyze
+    - run: flutter build apk --debug --verbose
+    - uses: actions/upload-artifact@v4
+      with:
+        name: apk-debug
+        path: build/app/outputs/apk/debug/app-debug.apk
