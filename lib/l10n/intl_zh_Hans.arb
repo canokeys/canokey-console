@@ -128,6 +128,7 @@
   "oathAddByScanning": "扫码添加",
   "oathAddManually": "手动添加",
   "oathAddByScreen": "扫描屏幕上的二维码",
+  "oathNoQr": "未检测到二维码",
   "passInputPinPrompt": "请输入您的管理员（设置应用） PIN（默认值为 123456）。",
   "passSlotConfigTitle": "配置",
   "passSlotConfigPrompt": "请配置该密码槽。如需配置HOTP，请前往HOTP应用配置。",

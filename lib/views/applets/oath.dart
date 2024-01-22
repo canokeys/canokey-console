@@ -99,8 +99,14 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                           );
                           final bitmap = BinaryBitmap(GlobalHistogramBinarizer(source));
                           final reader = QRCodeReader();
-                          final result = reader.decode(bitmap);
-                          print(result);
+                          try {
+                            final result = reader.decode(bitmap);
+                            controller.addUri(result.text);
+                          } catch (e) {
+                            if (context.mounted) {
+                              Prompts.showPrompt(S.of(context).oathNoQr, ContentThemeColor.danger);
+                            }
+                          }
                         },
                         child: MyText.bodySmall(S.of(context).oathAddByScreen),
                       ),
@@ -795,7 +801,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
           children: [
             Padding(
               padding: MySpacing.all(16),
-              child: MyText.labelLarge('Scan QR Code'),
+              child: MyText.labelLarge(S.of(context).oathAddByScanning),
             ),
             Divider(height: 0, thickness: 1),
             Padding(

@@ -95,6 +95,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathNewCode": MessageLookupByLibrary.simpleMessage("新口令"),
         "oathNewCodePrompt":
             MessageLookupByLibrary.simpleMessage("请输入新口令，如需删除，请留空。"),
+        "oathNoQr": MessageLookupByLibrary.simpleMessage("未检测到二维码"),
         "oathPeriod": MessageLookupByLibrary.simpleMessage("周期"),
         "oathRequireTouch": MessageLookupByLibrary.simpleMessage("需要触摸"),
         "oathRequired": MessageLookupByLibrary.simpleMessage("不得为空"),

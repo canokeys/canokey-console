@@ -109,6 +109,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathNewCode": MessageLookupByLibrary.simpleMessage("New Passphrase"),
         "oathNewCodePrompt": MessageLookupByLibrary.simpleMessage(
             "Enter a new passphrase. Leave it empty to disable current passphrase."),
+        "oathNoQr": MessageLookupByLibrary.simpleMessage("No QR Code detected"),
         "oathPeriod": MessageLookupByLibrary.simpleMessage("Period"),
         "oathRequireTouch":
             MessageLookupByLibrary.simpleMessage("Require Touch"),

@@ -1340,6 +1340,16 @@ class S {
     );
   }
 
+  /// `No QR Code detected`
+  String get oathNoQr {
+    return Intl.message(
+      'No QR Code detected',
+      name: 'oathNoQr',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Please input your Setting PIN. The default value is 123456.`
   String get passInputPinPrompt {
     return Intl.message(
