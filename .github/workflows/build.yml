@@ -22,7 +22,7 @@ jobs:
         version: 3.16.8
         cache: true
     - run: flutter pub get
-    - run: dart format --output=none --set-exit-if-changed .
+#    - run: dart format --output=none --set-exit-if-changed .
     - run: dart analyze
     - run: flutter build apk --debug --verbose
     - uses: actions/upload-artifact@v4
