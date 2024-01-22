@@ -100,6 +100,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                           final bitmap = BinaryBitmap(GlobalHistogramBinarizer(source));
                           final reader = QRCodeReader();
                           final result = reader.decode(bitmap);
+                          print(result);
                         },
                         child: MyText.bodySmall(S.of(context).oathAddByScreen),
                       ),
