@@ -109,15 +109,15 @@ class WebAuthnController extends MyController {
       try {
         pinToken = await cp.getPinToken(_pinCache,
             permissions: [ClientPinPermission.credentialManagement]);
-      } on CtapException catch (e) {
+      } on CtapError catch (e) {
         _pinCache = '';
-        if (e.errorCode == CtapException.ctap2ErrPinInvalid) {
+        if (e.status == CtapStatusCode.ctap2ErrPinInvalid) {
           Prompts.showPrompt(
               S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
-        } else if (e.errorCode == CtapException.ctap2ErrPinAuthBlocked) {
+        } else if (e.status == CtapStatusCode.ctap2ErrPinAuthBlocked) {
           Prompts.showPrompt(S.of(Get.context!).webauthnPinAuthBlocked,
               ContentThemeColor.danger);
-        } else if (e.errorCode == CtapException.ctap2ErrPinBlocked) {
+        } else if (e.status == CtapStatusCode.ctap2ErrPinBlocked) {
           Prompts.showPrompt(
               S.of(Get.context!).webauthnPinBlocked, ContentThemeColor.danger);
         } else {
@@ -141,8 +141,8 @@ class WebAuthnController extends MyController {
             credentialId: element.credentialId,
           ));
         }
-      } on CtapException catch (e) {
-        if (e.errorCode == CtapException.ctap2ErrNoCredentials) {
+      } on CtapError catch (e) {
+        if (e.status == CtapStatusCode.ctap2ErrNoCredentials) {
           log.info('No credentials');
         } else {
           rethrow;

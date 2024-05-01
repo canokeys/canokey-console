@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:base32/base32.dart';
 import 'package:canokey_console/controller/applets/oath.dart';
 import 'package:canokey_console/generated/l10n.dart';
@@ -27,7 +29,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:platform_detector/platform_detector.dart';
 import 'package:timer_controller/timer_controller.dart';
-import 'package:zxing2/qrcode.dart';
+import 'package:zxing2/qrcode.dart' as zxing;
 
 final log = Logger('Console:OATH:View');
 
@@ -38,13 +40,53 @@ class OathPage extends StatefulWidget {
   State<OathPage> createState() => _OathPageState();
 }
 
-class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin, UIMixin {
+class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin, UIMixin, WidgetsBindingObserver {
+  final MobileScannerController scannerController = MobileScannerController(formats: [BarcodeFormat.qrCode]);
+
   late OathController controller;
+  late StreamSubscription<Object?>? _subscription;
+
+  void _handleBarcode(BarcodeCapture event) {
+    var barcode = event.barcodes.firstOrNull;
+    if (barcode != null) {
+      controller.addUri(barcode.rawValue!);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     controller = Get.put(OathController(showQrConfirmDialog));
+    _subscription = scannerController.barcodes.listen(_handleBarcode);
+  }
+
+  @override
+  Future<void> dispose() async {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_subscription?.cancel());
+    _subscription = null;
+    super.dispose();
+    await scannerController.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!scannerController.value.isInitialized) {
+      return;
+    }
+
+    switch (state) {
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+        return;
+      case AppLifecycleState.resumed:
+        _subscription = scannerController.barcodes.listen(_handleBarcode);
+      case AppLifecycleState.inactive:
+        unawaited(_subscription?.cancel());
+        _subscription = null;
+        unawaited(scannerController.stop());
+    }
   }
 
   @override
@@ -92,13 +134,13 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                           final buffer = await track.captureFrame();
                           stream.getTracks().forEach((track) => track.stop());
                           final image = img.decodePng(buffer.asUint8List())!;
-                          final source = RGBLuminanceSource(
+                          final source = zxing.RGBLuminanceSource(
                             image.width,
                             image.height,
                             image.convert(numChannels: 4).getBytes(order: img.ChannelOrder.abgr).buffer.asInt32List(),
                           );
-                          final bitmap = BinaryBitmap(GlobalHistogramBinarizer(source));
-                          final reader = QRCodeReader();
+                          final bitmap = zxing.BinaryBitmap(zxing.GlobalHistogramBinarizer(source));
+                          final reader = zxing.QRCodeReader();
                           try {
                             final result = reader.decode(bitmap);
                             controller.addUri(result.text);
@@ -792,6 +834,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
   }
 
   _showQrScanner() {
+    scannerController.start();
     Get.dialog(Dialog(
       child: SizedBox(
         width: 400,
@@ -808,17 +851,14 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
               padding: MySpacing.all(16),
               child: SizedBox(
                 height: 300,
-                child: MobileScanner(onDetect: (capture) {
-                  final barcodes = capture.barcodes;
-                  for (final barcode in barcodes) {
-                    controller.addUri(barcode.rawValue!);
-                  }
-                }),
+                child: MobileScanner(controller: scannerController),
               ),
             ),
           ],
         ),
       ),
-    ));
+    )).then((_) {
+      unawaited(scannerController.stop());
+    });
   }
 }
