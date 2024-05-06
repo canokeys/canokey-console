@@ -1,5 +1,4 @@
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/services/url_service.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
 import 'package:canokey_console/helper/utils/my_shadow.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
@@ -42,12 +41,10 @@ class LeftBar extends StatefulWidget {
   _LeftBarState createState() => _LeftBarState();
 }
 
-class _LeftBarState extends State<LeftBar>
-    with SingleTickerProviderStateMixin, UIMixin {
+class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, UIMixin {
   final ThemeCustomizer customizer = ThemeCustomizer.instance;
 
   bool isCondensed = false;
-  String path = UrlService.getCurrentUrl();
 
   @override
   void initState() {
@@ -74,10 +71,7 @@ class _LeftBarState extends State<LeftBar>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  InkWell(
-                      child: Image.asset(
-                          'assets/images/logo/logo_icon_dark.png',
-                          height: widget.isCondensed ? 24 : 32)),
+                  InkWell(child: Image.asset('assets/images/logo/logo_icon_dark.png', height: widget.isCondensed ? 24 : 32)),
                   if (!widget.isCondensed)
                     Flexible(
                       fit: FlexFit.loose,
@@ -88,11 +82,7 @@ class _LeftBarState extends State<LeftBar>
                       fit: FlexFit.loose,
                       child: MyText.labelLarge(
                         "CanoKey",
-                        style: GoogleFonts.raleway(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: contentTheme.primary,
-                            letterSpacing: 1),
+                        style: GoogleFonts.raleway(fontSize: 24, fontWeight: FontWeight.w800, color: contentTheme.primary, letterSpacing: 1),
                         maxLines: 1,
                       ),
                     )
@@ -181,13 +171,7 @@ class NavigationItem extends StatefulWidget {
   final bool isCondensed;
   final String? route;
 
-  const NavigationItem(
-      {Key? key,
-      this.iconData,
-      required this.title,
-      this.isCondensed = false,
-      this.route})
-      : super(key: key);
+  const NavigationItem({Key? key, this.iconData, required this.title, this.isCondensed = false, this.route}) : super(key: key);
 
   @override
   _NavigationItemState createState() => _NavigationItemState();
@@ -198,7 +182,7 @@ class _NavigationItemState extends State<NavigationItem> with UIMixin {
 
   @override
   Widget build(BuildContext context) {
-    bool isActive = UrlService.getCurrentUrl() == widget.route;
+    bool isActive = Get.currentRoute == widget.route;
     return GestureDetector(
       onTap: () {
         if (widget.route != null) {
@@ -215,32 +199,21 @@ class _NavigationItemState extends State<NavigationItem> with UIMixin {
         },
         child: MyContainer.transparent(
           margin: MySpacing.fromLTRB(16, 0, 16, 8),
-          color: isActive || isHover
-              ? leftBarTheme.activeItemBackground
-              : Colors.transparent,
+          color: isActive || isHover ? leftBarTheme.activeItemBackground : Colors.transparent,
           padding: MySpacing.xy(8, 8),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               if (widget.iconData != null)
                 Center(
-                  child: Icon(widget.iconData,
-                      color: (isHover || isActive)
-                          ? leftBarTheme.activeItemColor
-                          : leftBarTheme.onBackground,
-                      size: 20),
+                  child: Icon(widget.iconData, color: (isHover || isActive) ? leftBarTheme.activeItemColor : leftBarTheme.onBackground, size: 20),
                 ),
-              if (!widget.isCondensed)
-                Flexible(fit: FlexFit.loose, child: MySpacing.width(16)),
+              if (!widget.isCondensed) Flexible(fit: FlexFit.loose, child: MySpacing.width(16)),
               if (!widget.isCondensed)
                 Expanded(
                   flex: 3,
                   child: MyText.labelLarge(widget.title,
-                      overflow: TextOverflow.clip,
-                      maxLines: 1,
-                      color: isActive || isHover
-                          ? leftBarTheme.activeItemColor
-                          : leftBarTheme.onBackground),
+                      overflow: TextOverflow.clip, maxLines: 1, color: isActive || isHover ? leftBarTheme.activeItemColor : leftBarTheme.onBackground),
                 )
             ],
           ),

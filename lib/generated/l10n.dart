@@ -120,6 +120,16 @@ class S {
     );
   }
 
+  /// `Select an applet to start`
+  String get homeDirectlySelect {
+    return Intl.message(
+      'Select an applet to start',
+      name: 'homeDirectlySelect',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Home`
   String get home {
     return Intl.message(
@@ -475,6 +485,26 @@ class S {
     return Intl.message(
       'Hold the CanoKey until finished',
       name: 'androidAlertMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `CanoKey not found`
+  String get noCard {
+    return Intl.message(
+      'CanoKey not found',
+      name: 'noCard',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your browser does not support WebUSB`
+  String get browserNotSupported {
+    return Intl.message(
+      'Your browser does not support WebUSB',
+      name: 'browserNotSupported',
       desc: '',
       args: [],
     );

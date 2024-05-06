@@ -1,11 +1,11 @@
 PODS:
-  - flutter_ccid (0.0.1):
+  - ccid (0.1.1):
     - FlutterMacOS
   - flutter_webrtc (0.9.36):
     - FlutterMacOS
-    - WebRTC-SDK (= 114.5735.08)
+    - WebRTC-SDK (= 114.5735.09)
   - FlutterMacOS (1.0.0)
-  - mobile_scanner (3.5.6):
+  - mobile_scanner (5.0.2):
     - FlutterMacOS
   - path_provider_foundation (0.0.1):
     - Flutter
@@ -15,10 +15,10 @@ PODS:
     - FlutterMacOS
   - url_launcher_macos (0.0.1):
     - FlutterMacOS
-  - WebRTC-SDK (114.5735.08)
+  - WebRTC-SDK (114.5735.09)
 
 DEPENDENCIES:
-  - flutter_ccid (from `Flutter/ephemeral/.symlinks/plugins/flutter_ccid/macos`)
+  - ccid (from `Flutter/ephemeral/.symlinks/plugins/ccid/macos`)
   - flutter_webrtc (from `Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - mobile_scanner (from `Flutter/ephemeral/.symlinks/plugins/mobile_scanner/macos`)
@@ -31,8 +31,8 @@ SPEC REPOS:
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
-  flutter_ccid:
-    :path: Flutter/ephemeral/.symlinks/plugins/flutter_ccid/macos
+  ccid:
+    :path: Flutter/ephemeral/.symlinks/plugins/ccid/macos
   flutter_webrtc:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos
   FlutterMacOS:
@@ -47,14 +47,14 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
 
 SPEC CHECKSUMS:
-  flutter_ccid: ffdf37f036fb623144ffa4de3d17476c4c3e6415
-  flutter_webrtc: cf7dc44d26cbb5c5f1ae5f583dab545871f287f9
+  ccid: 27d2241987cf780c752a5567dc07cceaa226fcde
+  flutter_webrtc: e72bd998301fa4abde8ac5fdea3d6ca2dcab1fc0
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
-  mobile_scanner: 54ceceae0c8da2457e26a362a6be5c61154b1829
+  mobile_scanner: a4a27e8b2f2366195782c0255e29ff75f38c94a9
   path_provider_foundation: 3784922295ac71e43754bd15e0653ccfd36a147c
   shared_preferences_foundation: b4c3b4cddf1c21f02770737f147a3f5da9d39695
   url_launcher_macos: d2691c7dd33ed713bf3544850a623080ec693d95
-  WebRTC-SDK: c24d2a6c9f571f2ed42297cb8ffba9557093142b
+  WebRTC-SDK: efc3e67e0355b1ee14bfe3c91188cada6000cb94
 
 PODFILE CHECKSUM: 236401fc2c932af29a9fcf0e97baeeb2d750d367
 

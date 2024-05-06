@@ -44,6 +44,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "androidAlertTitle": MessageLookupByLibrary.simpleMessage("读取 CanoKey"),
         "appletLocked": MessageLookupByLibrary.simpleMessage("该应用已被锁定"),
         "applets": MessageLookupByLibrary.simpleMessage("应用"),
+        "browserNotSupported": MessageLookupByLibrary.simpleMessage("不支持该浏览器"),
         "cancel": MessageLookupByLibrary.simpleMessage("取消"),
         "change": MessageLookupByLibrary.simpleMessage("修改"),
         "changePin": MessageLookupByLibrary.simpleMessage("修改 PIN"),
@@ -56,6 +57,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "deleted": MessageLookupByLibrary.simpleMessage("删除成功"),
         "enabled": MessageLookupByLibrary.simpleMessage("启用"),
         "home": MessageLookupByLibrary.simpleMessage("首页"),
+        "homeDirectlySelect": MessageLookupByLibrary.simpleMessage("请选择应用"),
         "homePress": MessageLookupByLibrary.simpleMessage("点击"),
         "homeScreenTitle":
             MessageLookupByLibrary.simpleMessage("CanoKey Console"),
@@ -65,6 +67,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "networkError":
             MessageLookupByLibrary.simpleMessage("CanoKey 繁忙，请重新插拔并稍后再试"),
         "newPin": MessageLookupByLibrary.simpleMessage("新 PIN"),
+        "noCard": MessageLookupByLibrary.simpleMessage("未找到 CanoKey"),
         "noCredential": MessageLookupByLibrary.simpleMessage("没有找到凭据"),
         "notSupported": MessageLookupByLibrary.simpleMessage("不支持该操作"),
         "notSupportedInNFC":

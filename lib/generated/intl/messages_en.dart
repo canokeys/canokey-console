@@ -51,6 +51,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "appletLocked": MessageLookupByLibrary.simpleMessage(
             "This applet has been locked."),
         "applets": MessageLookupByLibrary.simpleMessage("Applets"),
+        "browserNotSupported": MessageLookupByLibrary.simpleMessage(
+            "Your browser does not support WebUSB"),
         "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
         "change": MessageLookupByLibrary.simpleMessage("Change"),
         "changePin": MessageLookupByLibrary.simpleMessage("Change PIN"),
@@ -64,6 +66,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "deleted": MessageLookupByLibrary.simpleMessage("Successfully deleted"),
         "enabled": MessageLookupByLibrary.simpleMessage("Enabled"),
         "home": MessageLookupByLibrary.simpleMessage("Home"),
+        "homeDirectlySelect":
+            MessageLookupByLibrary.simpleMessage("Select an applet to start"),
         "homePress": MessageLookupByLibrary.simpleMessage("Press"),
         "homeScreenTitle":
             MessageLookupByLibrary.simpleMessage("CanoKey Console"),
@@ -74,6 +78,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "networkError": MessageLookupByLibrary.simpleMessage(
             "CanoKey is busy. Replug it, wait for a moment, and retry."),
         "newPin": MessageLookupByLibrary.simpleMessage("New PIN"),
+        "noCard": MessageLookupByLibrary.simpleMessage("CanoKey not found"),
         "noCredential": MessageLookupByLibrary.simpleMessage("No credential"),
         "notSupported": MessageLookupByLibrary.simpleMessage("Not supported"),
         "notSupportedInNFC":

@@ -6,6 +6,7 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/my_shadow.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
+import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/my_button.dart';
 import 'package:canokey_console/helper/widgets/my_card.dart';
@@ -473,6 +474,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                             () => Column(
                               children: [
                                 TextFormField(
+                                  onTap: () => SmartCard.eject(),
                                   autofocus: true,
                                   controller: validator.getController('issuer'),
                                   validator: validator.getValidator('issuer'),
@@ -484,6 +486,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                                 ),
                                 MySpacing.height(16),
                                 TextFormField(
+                                  onTap: () => SmartCard.eject(),
                                   controller: validator.getController('account'),
                                   validator: validator.getValidator('account'),
                                   decoration: InputDecoration(
@@ -494,6 +497,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                                 ),
                                 MySpacing.height(16),
                                 TextFormField(
+                                  onTap: () => SmartCard.eject(),
                                   controller: validator.getController('secret'),
                                   validator: validator.getValidator('secret'),
                                   decoration: InputDecoration(
@@ -612,6 +616,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
                                   Column(children: [
                                     MySpacing.height(16),
                                     TextFormField(
+                                      onTap: () => SmartCard.eject(),
                                       controller: validator.getController('counter'),
                                       validator: validator.getValidator('counter'),
                                       decoration: InputDecoration(

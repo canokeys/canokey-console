@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/localization/language.dart';
 import 'package:canokey_console/helper/services/navigation_service.dart';
@@ -6,15 +8,21 @@ import 'package:canokey_console/helper/theme/app_notifier.dart';
 import 'package:canokey_console/helper/theme/app_style.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
+import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/routes.dart';
+import 'package:canokey_console/views/layout/layout.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:logging/logging.dart';
+import 'package:platform_detector/platform_detector.dart';
 import 'package:provider/provider.dart';
 import 'package:url_strategy/url_strategy.dart';
+
+final log = Logger('Console:main');
 
 Future<void> main() async {
   Logger.root.level = Level.ALL; // defaults to Level.INFO
@@ -28,6 +36,17 @@ Future<void> main() async {
   await LocalStorage.init();
   AppStyle.init();
   await Language.init();
+
+  if (!isWeb()) {
+    SmartCard.pollCcid();
+  } else {
+    final deviceInfo = DeviceInfoPlugin();
+    final info = await deviceInfo.webBrowserInfo;
+    if (info.browserName != BrowserName.chrome && info.browserName != BrowserName.edge) {
+      log.severe('Browser not supported');
+      Layout.notSupported = true;
+    }
+  }
 
   runApp(ChangeNotifierProvider<AppNotifier>(
     create: (context) => AppNotifier(),

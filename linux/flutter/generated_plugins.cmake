@@ -3,7 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  flutter_ccid
+  ccid
   flutter_webrtc
   url_launcher_linux
 )

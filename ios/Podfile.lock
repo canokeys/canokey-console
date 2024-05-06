@@ -1,4 +1,8 @@
 PODS:
+  - ccid (0.1.1):
+    - Flutter
+  - device_info_plus (0.0.1):
+    - Flutter
   - DKImagePickerController/Core (4.3.8):
     - DKImagePickerController/ImageDataManager
     - DKImagePickerController/Resource
@@ -34,8 +38,6 @@ PODS:
     - DKImagePickerController/PhotoGallery
     - Flutter
   - Flutter (1.0.0)
-  - flutter_ccid (0.0.1):
-    - Flutter
   - flutter_nfc_kit (2.0.0):
     - Flutter
   - flutter_webrtc (0.9.36):
@@ -109,9 +111,10 @@ PODS:
   - WebRTC-SDK (114.5735.09)
 
 DEPENDENCIES:
+  - ccid (from `.symlinks/plugins/ccid/ios`)
+  - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
-  - flutter_ccid (from `.symlinks/plugins/flutter_ccid/ios`)
   - flutter_nfc_kit (from `.symlinks/plugins/flutter_nfc_kit/ios`)
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
   - mobile_scanner (from `.symlinks/plugins/mobile_scanner/ios`)
@@ -140,12 +143,14 @@ SPEC REPOS:
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
+  ccid:
+    :path: ".symlinks/plugins/ccid/ios"
+  device_info_plus:
+    :path: ".symlinks/plugins/device_info_plus/ios"
   file_picker:
     :path: ".symlinks/plugins/file_picker/ios"
   Flutter:
     :path: Flutter
-  flutter_ccid:
-    :path: ".symlinks/plugins/flutter_ccid/ios"
   flutter_nfc_kit:
     :path: ".symlinks/plugins/flutter_nfc_kit/ios"
   flutter_webrtc:
@@ -160,11 +165,12 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
+  ccid: f196fb7dc141fa1ee3497ee6e5486a483f1ef9d1
+  device_info_plus: 97af1d7e84681a90d0693e63169a5d50e0839a0d
   DKImagePickerController: a7836546cfdfe014171694f643a7d575bc8ace7f
   DKPhotoGallery: acbd8a3bab19cf6e5fe64a853fc07bfbd247a8f6
   file_picker: 09aa5ec1ab24135ccd7a1621c46c84134bfd6655
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_ccid: 3e487d29d95db69b4fa8aa29da7f714adb37a28a
   flutter_nfc_kit: 965c98c3fa68f5609f1cc89abb968fe1b8ffdbaa
   flutter_webrtc: 9bc044b0b5bcaabd0fb7d52c90421fb540f8c35e
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
