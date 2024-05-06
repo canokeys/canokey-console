@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
+import 'package:flutter/material.dart';
 
 enum CustomPopupMenuPlacement { left, right, top, bottom }
 
@@ -34,8 +34,7 @@ class CustomPopupMenu extends StatefulWidget {
   _CustomPopupMenuState createState() => _CustomPopupMenuState();
 }
 
-class _CustomPopupMenuState extends State<CustomPopupMenu>
-    with SingleTickerProviderStateMixin, UIMixin {
+class _CustomPopupMenuState extends State<CustomPopupMenu> with SingleTickerProviderStateMixin, UIMixin {
   late GlobalKey _key;
   bool isMenuOpen = false;
   late Offset buttonPosition;
@@ -53,8 +52,7 @@ class _CustomPopupMenuState extends State<CustomPopupMenu>
   }
 
   findButton() {
-    RenderBox? renderBox =
-        _key.currentContext!.findRenderObject() as RenderBox?;
+    RenderBox? renderBox = _key.currentContext!.findRenderObject() as RenderBox?;
     buttonSize = renderBox!.size;
     buttonPosition = renderBox.localToGlobal(Offset.zero);
   }
@@ -129,9 +127,7 @@ class _CustomPopupMenuState extends State<CustomPopupMenu>
           child: Container(
             height: MediaQuery.of(context).size.height,
             width: MediaQuery.of(context).size.width,
-            color: widget.backdrop
-                ? theme.colorScheme.onBackground.withAlpha(12)
-                : Colors.transparent,
+            color: widget.backdrop ? theme.colorScheme.onBackground.withAlpha(12) : Colors.transparent,
           ),
         );
       },

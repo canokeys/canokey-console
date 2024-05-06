@@ -1,18 +1,18 @@
 import 'package:canokey_console/controller/applets/pass.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
-import 'package:canokey_console/helper/utils/my_shadow.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
+import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
-import 'package:canokey_console/helper/widgets/my_button.dart';
-import 'package:canokey_console/helper/widgets/my_card.dart';
-import 'package:canokey_console/helper/widgets/my_container.dart';
-import 'package:canokey_console/helper/widgets/my_form_validator.dart';
-import 'package:canokey_console/helper/widgets/my_spacing.dart';
-import 'package:canokey_console/helper/widgets/my_text.dart';
-import 'package:canokey_console/helper/widgets/my_validators.dart';
+import 'package:canokey_console/helper/widgets/customized_text.dart';
+import 'package:canokey_console/helper/widgets/form_validator.dart';
+import 'package:canokey_console/helper/widgets/customized_button.dart';
+import 'package:canokey_console/helper/widgets/customized_card.dart';
+import 'package:canokey_console/helper/widgets/customized_container.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
+import 'package:canokey_console/helper/widgets/spacing.dart';
+import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/models/pass.dart';
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
@@ -67,11 +67,11 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                MySpacing.height(MediaQuery.of(context).size.height / 2 - 120),
+                Spacing.height(MediaQuery.of(context).size.height / 2 - 120),
                 Center(
                     child: Padding(
-                  padding: MySpacing.horizontal(36),
-                  child: MyText.bodyMedium(S.of(context).pollCanoKey, fontSize: 24),
+                  padding: Spacing.horizontal(36),
+                  child: CustomizedText.bodyMedium(S.of(context).pollCanoKey, fontSize: 24),
                 )),
               ],
             );
@@ -81,31 +81,31 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: MySpacing.x(flexSpacing),
+                padding: Spacing.x(flexSpacing),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    MySpacing.height(20),
-                    MyCard(
+                    Spacing.height(20),
+                    CustomizedCard(
                       clipBehavior: Clip.antiAliasWithSaveLayer,
-                      shadow: MyShadow(elevation: 0.5, position: MyShadowPosition.bottom),
+                      shadow: Shadow(elevation: 0.5, position: ShadowPosition.bottom),
                       paddingAll: 0,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Container(
                             color: contentTheme.primary.withOpacity(0.08),
-                            padding: MySpacing.xy(16, 12),
+                            padding: Spacing.xy(16, 12),
                             child: Row(
                               children: [
                                 Icon(LucideIcons.keyboard, color: contentTheme.primary, size: 16),
-                                MySpacing.width(12),
-                                MyText.titleMedium(S.of(context).passSlotShort, fontWeight: 600, color: contentTheme.primary)
+                                Spacing.width(12),
+                                CustomizedText.titleMedium(S.of(context).passSlotShort, fontWeight: 600, color: contentTheme.primary)
                               ],
                             ),
                           ),
                           Padding(
-                            padding: MySpacing.xy(flexSpacing, 16),
+                            padding: Spacing.xy(flexSpacing, 16),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -117,27 +117,27 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
                         ],
                       ),
                     ),
-                    MySpacing.height(20),
-                    MyCard(
+                    Spacing.height(20),
+                    CustomizedCard(
                       clipBehavior: Clip.antiAliasWithSaveLayer,
-                      shadow: MyShadow(elevation: 0.5, position: MyShadowPosition.bottom),
+                      shadow: Shadow(elevation: 0.5, position: ShadowPosition.bottom),
                       paddingAll: 0,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Container(
                             color: contentTheme.primary.withOpacity(0.08),
-                            padding: MySpacing.xy(16, 12),
+                            padding: Spacing.xy(16, 12),
                             child: Row(
                               children: [
                                 Icon(LucideIcons.keyboard, color: contentTheme.primary, size: 16),
-                                MySpacing.width(12),
-                                MyText.titleMedium(S.of(context).passSlotLong, fontWeight: 600, color: contentTheme.primary)
+                                Spacing.width(12),
+                                CustomizedText.titleMedium(S.of(context).passSlotLong, fontWeight: 600, color: contentTheme.primary)
                               ],
                             ),
                           ),
                           Padding(
-                            padding: MySpacing.xy(flexSpacing, 16),
+                            padding: Spacing.xy(flexSpacing, 16),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -164,20 +164,20 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
       onTap: handler,
       child: Row(
         children: [
-          MyContainer(
+          CustomizedContainer(
             paddingAll: 4,
             height: 32,
             width: 32,
             child: Icon(iconData, size: 20),
           ),
-          MySpacing.width(16),
+          Spacing.width(16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                MyText.bodyMedium(title, fontSize: 16),
+                CustomizedText.bodyMedium(title, fontSize: 16),
                 InkWell(
-                    child: MyText.bodySmall(value),
+                    child: CustomizedText.bodySmall(value),
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: value));
                       Prompts.showPrompt(S.of(context).copied, ContentThemeColor.success);
@@ -196,8 +196,8 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
     RxBool withEnter = slot.withEnter.obs;
     Rx<PassSlotType> slotType = Rx<PassSlotType>(slot.type);
 
-    MyFormValidator validator = MyFormValidator();
-    validator.addField('password', required: true, controller: TextEditingController(), validators: [MyLengthValidator(min: 1, max: 32)]);
+    FormValidator validator = FormValidator();
+    validator.addField('password', required: true, controller: TextEditingController(), validators: [LengthValidator(min: 1, max: 32)]);
 
     Get.dialog(Dialog(
       child: SizedBox(
@@ -207,22 +207,22 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: MySpacing.all(16),
-              child: MyText.labelLarge(S.of(context).passSlotConfigTitle),
+              padding: Spacing.all(16),
+              child: CustomizedText.labelLarge(S.of(context).passSlotConfigTitle),
             ),
             Divider(height: 0, thickness: 1),
             Padding(
-                padding: MySpacing.all(16),
+                padding: Spacing.all(16),
                 child: Form(
                     key: validator.formKey,
                     child: Obx(
                       () => Column(
                         children: [
-                          MyText.labelLarge(S.of(context).passSlotConfigPrompt),
-                          MySpacing.height(16),
+                          CustomizedText.labelLarge(S.of(context).passSlotConfigPrompt),
+                          Spacing.height(16),
                           Row(
                             children: [
-                              SizedBox(width: 90, child: MyText.labelLarge(S.of(context).oathType)),
+                              SizedBox(width: 90, child: CustomizedText.labelLarge(S.of(context).oathType)),
                               Expanded(
                                 child: Wrap(spacing: 16, children: [
                                   InkWell(
@@ -237,8 +237,8 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
                                           visualDensity: getCompactDensity,
                                           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                         ),
-                                        MySpacing.width(8),
-                                        MyText.labelMedium(_slotTypeName(PassSlotType.none))
+                                        Spacing.width(8),
+                                        CustomizedText.labelMedium(_slotTypeName(PassSlotType.none))
                                       ],
                                     ),
                                   ),
@@ -254,8 +254,8 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
                                           visualDensity: getCompactDensity,
                                           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                         ),
-                                        MySpacing.width(8),
-                                        MyText.labelMedium(_slotTypeName(PassSlotType.static))
+                                        Spacing.width(8),
+                                        CustomizedText.labelMedium(_slotTypeName(PassSlotType.static))
                                       ],
                                     ),
                                   ),
@@ -264,7 +264,7 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
                             ],
                           ),
                           if (slotType.value == PassSlotType.static) ...{
-                            MySpacing.height(16),
+                            Spacing.height(16),
                             TextFormField(
                               onTap: () => SmartCard.eject(),
                               obscureText: !showPassword.value,
@@ -282,7 +282,7 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
                             ),
                           },
                           if (slotType.value != PassSlotType.none) ...{
-                            MySpacing.height(16),
+                            Spacing.height(16),
                             Row(
                               children: [
                                 Obx(() => Checkbox(
@@ -292,8 +292,8 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
                                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                       visualDensity: getCompactDensity,
                                     )),
-                                MySpacing.width(16),
-                                MyText.bodyMedium(S.of(context).passSlotWithEnter),
+                                Spacing.width(16),
+                                CustomizedText.bodyMedium(S.of(context).passSlotWithEnter),
                               ],
                             ),
                           }
@@ -302,19 +302,19 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
                     ))),
             Divider(height: 0, thickness: 1),
             Padding(
-              padding: MySpacing.all(16),
+              padding: Spacing.all(16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  MyButton.rounded(
+                  CustomizedButton.rounded(
                     onPressed: () => Navigator.pop(context),
                     elevation: 0,
-                    padding: MySpacing.xy(20, 16),
+                    padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.secondary,
-                    child: MyText.labelMedium(S.of(context).close, color: contentTheme.onSecondary),
+                    child: CustomizedText.labelMedium(S.of(context).close, color: contentTheme.onSecondary),
                   ),
-                  MySpacing.width(16),
-                  MyButton.rounded(
+                  Spacing.width(16),
+                  CustomizedButton.rounded(
                     onPressed: () {
                       if (slotType.value == PassSlotType.static && !validator.validateForm()) {
                         return;
@@ -322,9 +322,9 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
                       controller.setSlot(index, slotType.value, validator.getController('password')!.text, withEnter.value);
                     },
                     elevation: 0,
-                    padding: MySpacing.xy(20, 16),
+                    padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.primary,
-                    child: MyText.labelMedium(S.of(context).save, color: contentTheme.onPrimary),
+                    child: CustomizedText.labelMedium(S.of(context).save, color: contentTheme.onPrimary),
                   ),
                 ],
               ),

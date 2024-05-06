@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-class MyStringUtils {
+class StringUtils {
   static bool isFirstCapital(String string) {
     if (string.codeUnitAt(0) >= 65 && string.codeUnitAt(0) <= 90) {
       return true;
@@ -45,8 +45,7 @@ class MyStringUtils {
     return false;
   }
 
-  static bool isIncludedCharactersPresent(
-      String string, List<String>? includeCharacters) {
+  static bool isIncludedCharactersPresent(String string, List<String>? includeCharacters) {
     if (includeCharacters == null) {
       return false;
     }
@@ -59,8 +58,7 @@ class MyStringUtils {
     return false;
   }
 
-  static bool isIgnoreCharactersPresent(
-      String string, List<String>? ignoreCharacters) {
+  static bool isIgnoreCharactersPresent(String string, List<String>? ignoreCharacters) {
     if (ignoreCharacters == null) {
       return false;
     }
@@ -207,8 +205,7 @@ class MyStringUtils {
     return regex.hasMatch(email);
   }
 
-  static bool validateStringRange(String text,
-      [int minLength = 8, int maxLength = 20]) {
+  static bool validateStringRange(String text, [int minLength = 8, int maxLength = 20]) {
     return text.length >= minLength && text.length <= maxLength;
   }
 }

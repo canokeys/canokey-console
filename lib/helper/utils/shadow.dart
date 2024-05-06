@@ -1,8 +1,6 @@
-// ignore_for_file: prefer_initializing_formals
-
 import 'package:flutter/material.dart';
 
-enum MyShadowPosition {
+enum ShadowPosition {
   topLeft("Top Left"),
   top("Top"),
   topRight("Top Right"),
@@ -15,23 +13,23 @@ enum MyShadowPosition {
 
   final String humanReadable;
 
-  const MyShadowPosition(this.humanReadable);
+  const ShadowPosition(this.humanReadable);
 }
 
-class MyShadow {
+class Shadow {
   late int alpha;
   late double elevation, spreadRadius, blurRadius;
   Offset? offset;
-  MyShadowPosition? position;
+  ShadowPosition? position;
   Color? color;
   bool? darkShadow;
 
-  MyShadow(
+  Shadow(
       {this.elevation = 3,
       double? spreadRadius,
       double? blurRadius,
       Offset? offset,
-      MyShadowPosition position = MyShadowPosition.bottom,
+      ShadowPosition position = ShadowPosition.bottom,
       int? alpha,
       Color? color,
       bool darkShadow = false}) {
@@ -45,45 +43,45 @@ class MyShadow {
 
     if (offset == null) {
       switch (position) {
-        case MyShadowPosition.topLeft:
+        case ShadowPosition.topLeft:
           this.offset = Offset(-elevation, -elevation);
           break;
-        case MyShadowPosition.top:
+        case ShadowPosition.top:
           this.offset = Offset(0, -elevation);
           break;
-        case MyShadowPosition.topRight:
+        case ShadowPosition.topRight:
           this.offset = Offset(elevation, -elevation);
           break;
         //TODO: Shadow problem
-        case MyShadowPosition.centerLeft:
+        case ShadowPosition.centerLeft:
           this.offset = Offset(-elevation, elevation * 0.25);
           break;
-        case MyShadowPosition.center:
+        case ShadowPosition.center:
           this.offset = Offset(0, 0);
           break;
         //TODO: Shadow problem
-        case MyShadowPosition.centerRight:
+        case ShadowPosition.centerRight:
           this.offset = Offset(elevation, elevation * 0.25);
           break;
-        case MyShadowPosition.bottomLeft:
+        case ShadowPosition.bottomLeft:
           this.offset = Offset(-elevation, elevation);
           break;
-        case MyShadowPosition.bottom:
+        case ShadowPosition.bottom:
           this.offset = Offset(0, elevation);
           break;
-        case MyShadowPosition.bottomRight:
+        case ShadowPosition.bottomRight:
           this.offset = Offset(elevation, elevation);
           break;
       }
     }
   }
 
-  MyShadow.none(
+  Shadow.none(
       {this.elevation = 0,
       double? spreadRadius,
       double? blurRadius,
       Offset? offset,
-      MyShadowPosition position = MyShadowPosition.bottom,
+      ShadowPosition position = ShadowPosition.bottom,
       int? alpha,
       Color? color,
       bool darkShadow = false}) {
@@ -97,33 +95,33 @@ class MyShadow {
 
     if (offset == null) {
       switch (position) {
-        case MyShadowPosition.topLeft:
+        case ShadowPosition.topLeft:
           this.offset = Offset(-elevation, -elevation);
           break;
-        case MyShadowPosition.top:
+        case ShadowPosition.top:
           this.offset = Offset(0, -elevation);
           break;
-        case MyShadowPosition.topRight:
+        case ShadowPosition.topRight:
           this.offset = Offset(elevation, -elevation);
           break;
         //TODO: Shadow problem
-        case MyShadowPosition.centerLeft:
+        case ShadowPosition.centerLeft:
           this.offset = Offset(-elevation, elevation * 0.25);
           break;
-        case MyShadowPosition.center:
+        case ShadowPosition.center:
           this.offset = Offset(0, 0);
           break;
         //TODO: Shadow problem
-        case MyShadowPosition.centerRight:
+        case ShadowPosition.centerRight:
           this.offset = Offset(elevation, elevation * 0.25);
           break;
-        case MyShadowPosition.bottomLeft:
+        case ShadowPosition.bottomLeft:
           this.offset = Offset(-elevation, elevation);
           break;
-        case MyShadowPosition.bottom:
+        case ShadowPosition.bottom:
           this.offset = Offset(0, elevation);
           break;
-        case MyShadowPosition.bottomRight:
+        case ShadowPosition.bottomRight:
           this.offset = Offset(elevation, elevation);
           break;
       }

@@ -1,7 +1,7 @@
 import 'package:canokey_console/controller/starter_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
-import 'package:canokey_console/helper/widgets/my_spacing.dart';
+import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -34,7 +34,7 @@ class _StarterScreenState extends State<StarterScreen> with SingleTickerProvider
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  MySpacing.height(MediaQuery.of(context).size.height / 2 - 100),
+                  Spacing.height(MediaQuery.of(context).size.height / 2 - 100),
                   if (Layout.hasSidebar())
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

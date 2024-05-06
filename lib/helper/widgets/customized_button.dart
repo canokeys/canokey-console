@@ -1,12 +1,12 @@
 // ignore_for_file: curly_braces_in_flow_control_structures
 
+import 'package:canokey_console/helper/widgets/constant.dart';
 import 'package:flutter/material.dart';
-import 'package:canokey_console/helper/widgets/my_constant.dart';
 
-enum MyButtonType { elevated, outlined, text }
+enum ButtonType { elevated, outlined, text }
 
-class MyButton extends StatelessWidget {
-  final MyButtonType? buttonType;
+class CustomizedButton extends StatelessWidget {
+  final ButtonType? buttonType;
 
   final ButtonStyle? style;
 
@@ -43,7 +43,7 @@ class MyButton extends StatelessWidget {
 
   final Widget child;
 
-  MyButton(
+  CustomizedButton(
       {this.onPressed,
       required this.child,
       this.msPadding,
@@ -54,7 +54,7 @@ class MyButton extends StatelessWidget {
       this.borderRadiusAll = 0,
       this.msBackgroundColor,
       this.backgroundColor,
-      this.buttonType = MyButtonType.elevated,
+      this.buttonType = ButtonType.elevated,
       this.style,
       this.msShadowColor,
       this.msSide,
@@ -69,7 +69,7 @@ class MyButton extends StatelessWidget {
       this.tapTargetSize = MaterialTapTargetSize.padded,
       this.splashColor});
 
-  MyButton.rounded(
+  CustomizedButton.rounded(
       {required this.onPressed,
       required this.child,
       this.msPadding,
@@ -80,7 +80,7 @@ class MyButton extends StatelessWidget {
       this.borderRadiusAll,
       this.msBackgroundColor,
       this.backgroundColor,
-      this.buttonType = MyButtonType.elevated,
+      this.buttonType = ButtonType.elevated,
       this.style,
       this.block = false,
       this.msSide,
@@ -95,7 +95,7 @@ class MyButton extends StatelessWidget {
       this.tapTargetSize = MaterialTapTargetSize.padded,
       this.splashColor});
 
-  MyButton.small(
+  CustomizedButton.small(
       {required this.onPressed,
       required this.child,
       this.msPadding,
@@ -106,7 +106,7 @@ class MyButton extends StatelessWidget {
       this.borderRadiusAll,
       this.msBackgroundColor,
       this.backgroundColor,
-      this.buttonType = MyButtonType.elevated,
+      this.buttonType = ButtonType.elevated,
       this.style,
       this.block = false,
       this.msSide,
@@ -121,7 +121,7 @@ class MyButton extends StatelessWidget {
       this.tapTargetSize = MaterialTapTargetSize.padded,
       this.splashColor});
 
-  MyButton.medium(
+  CustomizedButton.medium(
       {required this.onPressed,
       required this.child,
       this.msPadding,
@@ -134,7 +134,7 @@ class MyButton extends StatelessWidget {
       this.borderRadiusAll,
       this.msBackgroundColor,
       this.backgroundColor,
-      this.buttonType = MyButtonType.elevated,
+      this.buttonType = ButtonType.elevated,
       this.style,
       this.msSide,
       this.disabled = false,
@@ -147,7 +147,7 @@ class MyButton extends StatelessWidget {
       this.tapTargetSize = MaterialTapTargetSize.padded,
       this.splashColor});
 
-  MyButton.text(
+  CustomizedButton.text(
       {required this.onPressed,
       required this.child,
       this.msPadding,
@@ -160,7 +160,7 @@ class MyButton extends StatelessWidget {
       this.borderRadiusAll,
       this.msBackgroundColor,
       this.backgroundColor,
-      this.buttonType = MyButtonType.text,
+      this.buttonType = ButtonType.text,
       this.style,
       this.msSide,
       this.disabled = false,
@@ -173,7 +173,7 @@ class MyButton extends StatelessWidget {
       this.tapTargetSize = MaterialTapTargetSize.padded,
       this.splashColor});
 
-  MyButton.block(
+  CustomizedButton.block(
       {required this.onPressed,
       required this.child,
       this.msPadding,
@@ -186,7 +186,7 @@ class MyButton extends StatelessWidget {
       this.borderRadiusAll,
       this.msBackgroundColor,
       this.backgroundColor,
-      this.buttonType = MyButtonType.elevated,
+      this.buttonType = ButtonType.elevated,
       this.style,
       this.msSide,
       this.disabled = false,
@@ -199,7 +199,7 @@ class MyButton extends StatelessWidget {
       this.tapTargetSize = MaterialTapTargetSize.padded,
       this.splashColor});
 
-  MyButton.outlined(
+  CustomizedButton.outlined(
       {required this.onPressed,
       required this.child,
       this.msPadding,
@@ -211,7 +211,7 @@ class MyButton extends StatelessWidget {
       this.borderRadiusAll,
       this.msBackgroundColor,
       this.backgroundColor,
-      this.buttonType = MyButtonType.outlined,
+      this.buttonType = ButtonType.outlined,
       this.style,
       this.msSide,
       this.block = false,
@@ -225,7 +225,7 @@ class MyButton extends StatelessWidget {
       this.tapTargetSize = MaterialTapTargetSize.padded,
       this.splashColor});
 
-  MyButton.large(
+  CustomizedButton.large(
       {required this.onPressed,
       required this.child,
       this.msPadding,
@@ -237,7 +237,7 @@ class MyButton extends StatelessWidget {
       this.borderRadiusAll,
       this.msBackgroundColor,
       this.backgroundColor,
-      this.buttonType = MyButtonType.elevated,
+      this.buttonType = ButtonType.elevated,
       this.style,
       this.disabled = false,
       this.msSide,
@@ -256,7 +256,7 @@ class MyButton extends StatelessWidget {
     Widget button;
     Color bgColor = backgroundColor ?? Theme.of(context).colorScheme.primary;
 
-    if (buttonType == MyButtonType.outlined) {
+    if (buttonType == ButtonType.outlined) {
       button = OutlinedButton(
         onPressed: onPressed,
         style: style ??
@@ -265,28 +265,21 @@ class MyButton extends StatelessWidget {
                 side: msSide ??
                     MaterialStateProperty.all(side ??
                         BorderSide(
-                          color:
-                              soft ? borderColor.withAlpha(100) : borderColor,
+                          color: soft ? borderColor.withAlpha(100) : borderColor,
                           width: soft ? 0.8 : 1,
                         )),
-                overlayColor: MaterialStateProperty.all(
-                    splashColor ?? (bgColor.withAlpha(40))),
-                backgroundColor: soft
-                    ? MaterialStateProperty.all(borderColor.withAlpha(40))
-                    : null,
-                foregroundColor:
-                    MaterialStateProperty.all(borderColor.withAlpha(40)),
-                shadowColor:
-                    msShadowColor ?? MaterialStateProperty.all(shadowColor),
+                overlayColor: MaterialStateProperty.all(splashColor ?? (bgColor.withAlpha(40))),
+                backgroundColor: soft ? MaterialStateProperty.all(borderColor.withAlpha(40)) : null,
+                foregroundColor: MaterialStateProperty.all(borderColor.withAlpha(40)),
+                shadowColor: msShadowColor ?? MaterialStateProperty.all(shadowColor),
                 padding: msPadding ?? MaterialStateProperty.all(padding),
                 shape: MaterialStateProperty.all(shape ??
                     RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                          borderRadiusAll ?? MyConstant.constant.buttonRadius),
+                      borderRadius: BorderRadius.circular(borderRadiusAll ?? WidgetConstant.constant.buttonRadius),
                     ))),
         child: child,
       );
-    } else if (buttonType == MyButtonType.elevated) {
+    } else if (buttonType == ButtonType.elevated) {
       button = ElevatedButton(
           style: style ??
               ButtonStyle(
@@ -299,51 +292,38 @@ class MyButton extends StatelessWidget {
                             return 0;
                           } else if (states.contains(MaterialState.pressed))
                             return elevation! * 2;
-                          else if (states.contains(MaterialState.hovered))
-                            return elevation! * 1.5;
+                          else if (states.contains(MaterialState.hovered)) return elevation! * 1.5;
                           return elevation!;
                         },
                       ),
                   backgroundColor: msBackgroundColor ??
                       MaterialStateProperty.resolveWith<Color>(
                         (Set<MaterialState> states) {
-                          if (states.contains(MaterialState.disabled))
-                            return bgColor.withAlpha(100);
+                          if (states.contains(MaterialState.disabled)) return bgColor.withAlpha(100);
                           return bgColor;
                         },
                       ),
-                  shadowColor: msShadowColor ??
-                      MaterialStateProperty.all(shadowColor ?? bgColor),
+                  shadowColor: msShadowColor ?? MaterialStateProperty.all(shadowColor ?? bgColor),
                   padding: msPadding ?? MaterialStateProperty.all(padding),
-                  overlayColor: MaterialStateProperty.all(splashColor ??
-                      (Theme.of(context).colorScheme.onPrimary.withAlpha(36))),
+                  overlayColor: MaterialStateProperty.all(splashColor ?? (Theme.of(context).colorScheme.onPrimary.withAlpha(36))),
                   shape: MaterialStateProperty.all(shape ??
                       RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(borderRadiusAll ??
-                            MyConstant.constant.buttonRadius),
+                        borderRadius: BorderRadius.circular(borderRadiusAll ?? WidgetConstant.constant.buttonRadius),
                       ))),
           onPressed: onPressed,
           child: child);
     } else {
       button = TextButton(
         style: ButtonStyle(
-            overlayColor: MaterialStateProperty.all(
-                splashColor ?? (bgColor.withAlpha(40))),
+            overlayColor: MaterialStateProperty.all(splashColor ?? (bgColor.withAlpha(40))),
             padding: msPadding ?? MaterialStateProperty.all(padding),
             // visualDensity: VisualDensity.standard,
-
             tapTargetSize: tapTargetSize),
         onPressed: onPressed,
         child: child,
       );
     }
 
-    return block!
-        ? Row(
-            children: [
-              Expanded(child: button),
-            ],
-          )
-        : button;
+    return block! ? Row(children: [Expanded(child: button)]) : button;
   }
 }

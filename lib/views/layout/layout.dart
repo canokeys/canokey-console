@@ -2,10 +2,9 @@ import 'package:canokey_console/controller/layout/layout_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
-import 'package:canokey_console/helper/widgets/my_responsiv.dart';
-import 'package:canokey_console/helper/widgets/my_spacing.dart';
-import 'package:canokey_console/helper/widgets/my_text.dart';
+import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
+import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/views/layout/left_bar.dart';
 import 'package:canokey_console/views/layout/top_bar.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +25,7 @@ class Layout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MyResponsive(builder: (BuildContext context, _, screenMT) {
+    return Responsive(builder: (BuildContext context, _, screenMT) {
       return GetBuilder(
           init: controller,
           builder: (_) {
@@ -39,7 +38,7 @@ class Layout extends StatelessWidget {
   Widget mobileScreen() {
     return Scaffold(
       key: controller.scaffoldKey,
-      appBar: AppBar(elevation: 0, centerTitle: true, title: MyText.titleMedium(title), actions: [topActions!, MySpacing.width(20)]),
+      appBar: AppBar(elevation: 0, centerTitle: true, title: CustomizedText.titleMedium(title), actions: [topActions!, Spacing.width(20)]),
       drawer: LeftBar(),
       body: SingleChildScrollView(key: controller.scrollKey, child: child),
     );
@@ -48,14 +47,14 @@ class Layout extends StatelessWidget {
   Widget notSupportedScreen() {
     return Scaffold(
       key: controller.scaffoldKey,
-      appBar: AppBar(elevation: 0, centerTitle: true, title: MyText.titleMedium('CanoKey Console')),
+      appBar: AppBar(elevation: 0, centerTitle: true, title: CustomizedText.titleMedium('CanoKey Console')),
       body: SingleChildScrollView(
           key: controller.scrollKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              MySpacing.height(MediaQuery.of(Get.context!).size.height / 2 - 100),
+              Spacing.height(MediaQuery.of(Get.context!).size.height / 2 - 100),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -82,7 +81,7 @@ class Layout extends StatelessWidget {
                 right: 0,
                 left: 0,
                 bottom: 0,
-                child: SingleChildScrollView(padding: MySpacing.fromLTRB(0, 58 + flexSpacing, 0, flexSpacing), key: controller.scrollKey, child: child),
+                child: SingleChildScrollView(padding: Spacing.fromLTRB(0, 58 + flexSpacing, 0, flexSpacing), key: controller.scrollKey, child: child),
               ),
               Positioned(top: 0, left: 0, right: 0, child: TopBar(actions: topActions)),
             ],
@@ -93,6 +92,6 @@ class Layout extends StatelessWidget {
   }
 
   static bool hasSidebar() {
-    return MyScreenMedia.getTypeFromWidth(MediaQuery.of(Get.context!).size.width).isMobile;
+    return ScreenMedia.getTypeFromWidth(MediaQuery.of(Get.context!).size.width).isMobile;
   }
 }

@@ -1,4 +1,4 @@
-import 'package:canokey_console/controller/my_controller.dart';
+import 'package:canokey_console/controller/base_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
@@ -12,7 +12,7 @@ import 'package:logging/logging.dart';
 
 final log = Logger('Console:Pass:Controller');
 
-class PassController extends MyController {
+class PassController extends Controller {
   PassSlot get slotShort => slots[0];
 
   PassSlot get slotLong => slots[1];

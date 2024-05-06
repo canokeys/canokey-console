@@ -1,12 +1,10 @@
 // ignore_for_file: prefer_generic_function_type_aliases
 
-import 'dart:ui';
-
+import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:canokey_console/helper/theme/app_theme.dart';
 
-enum MyTextType {
+enum TextType {
   displayLarge,
   displayMedium,
   displaySmall,
@@ -47,7 +45,7 @@ typedef TextStyle GoogleFontFunction({
   double? decorationThickness,
 });
 
-class MyTextStyle {
+class CustomizedTextStyle {
   static GoogleFontFunction _fontFamily = GoogleFonts.ibmPlexSans;
 
   static changeFontFamily(GoogleFontFunction value) {
@@ -56,27 +54,27 @@ class MyTextStyle {
 
   static Map<int, FontWeight> _defaultFontWeight = {};
 
-  static Map<MyTextType, double> _defaultTextSize = {
-    MyTextType.displayLarge: 57,
-    MyTextType.displayMedium: 45,
-    MyTextType.displaySmall: 36,
-    MyTextType.headlineLarge: 32,
-    MyTextType.headlineMedium: 28,
-    MyTextType.headlineSmall: 26,
-    MyTextType.titleLarge: 22,
-    MyTextType.titleMedium: 16,
-    MyTextType.titleSmall: 14,
-    MyTextType.labelLarge: 14,
-    MyTextType.labelMedium: 12,
-    MyTextType.labelSmall: 11,
-    MyTextType.bodyLarge: 16,
-    MyTextType.bodyMedium: 14,
-    MyTextType.bodySmall: 12,
+  static Map<TextType, double> _defaultTextSize = {
+    TextType.displayLarge: 57,
+    TextType.displayMedium: 45,
+    TextType.displaySmall: 36,
+    TextType.headlineLarge: 32,
+    TextType.headlineMedium: 28,
+    TextType.headlineSmall: 26,
+    TextType.titleLarge: 22,
+    TextType.titleMedium: 16,
+    TextType.titleSmall: 14,
+    TextType.labelLarge: 14,
+    TextType.labelMedium: 12,
+    TextType.labelSmall: 11,
+    TextType.bodyLarge: 16,
+    TextType.bodyMedium: 14,
+    TextType.bodySmall: 12,
   };
 
-  static Map<MyTextType, int> _defaultTextFontWeight = {};
+  static Map<TextType, int> _defaultTextFontWeight = {};
 
-  static Map<MyTextType, double> _defaultLetterSpacing = {};
+  static Map<TextType, double> _defaultLetterSpacing = {};
 
   static TextStyle getStyle(
       {TextStyle? textStyle,
@@ -89,13 +87,10 @@ class MyTextStyle {
       double? height,
       double? wordSpacing,
       double? fontSize}) {
-    double? finalFontSize =
-        fontSize ?? (textStyle == null ? 40 : textStyle.fontSize);
+    double? finalFontSize = fontSize ?? (textStyle == null ? 40 : textStyle.fontSize);
 
     Color finalColor = color ?? theme.colorScheme.onBackground;
-    finalColor = xMuted
-        ? finalColor.withAlpha(160)
-        : (muted ? finalColor.withAlpha(200) : finalColor);
+    finalColor = xMuted ? finalColor.withAlpha(160) : (muted ? finalColor.withAlpha(200) : finalColor);
 
     return _fontFamily(
         fontSize: finalFontSize,
@@ -120,13 +115,12 @@ class MyTextStyle {
       double? wordSpacing,
       double? fontSize}) {
     return getStyle(
-        fontSize: fontSize ?? _defaultTextSize[MyTextType.displayLarge],
+        fontSize: fontSize ?? _defaultTextSize[TextType.displayLarge],
         color: color,
         height: height,
         muted: muted,
-        letterSpacing:
-            letterSpacing ?? _defaultLetterSpacing[MyTextType.displayLarge],
-        fontWeight: _defaultTextFontWeight[MyTextType.displayLarge],
+        letterSpacing: letterSpacing ?? _defaultLetterSpacing[TextType.displayLarge],
+        fontWeight: _defaultTextFontWeight[TextType.displayLarge],
         decoration: decoration,
         textStyle: textStyle,
         wordSpacing: wordSpacing,
@@ -145,13 +139,12 @@ class MyTextStyle {
       double? wordSpacing,
       double? fontSize}) {
     return getStyle(
-        fontSize: fontSize ?? _defaultTextSize[MyTextType.displayMedium],
+        fontSize: fontSize ?? _defaultTextSize[TextType.displayMedium],
         color: color,
         height: height,
         muted: muted,
-        letterSpacing:
-            letterSpacing ?? _defaultLetterSpacing[MyTextType.displayMedium],
-        fontWeight: _defaultTextFontWeight[MyTextType.displayMedium],
+        letterSpacing: letterSpacing ?? _defaultLetterSpacing[TextType.displayMedium],
+        fontWeight: _defaultTextFontWeight[TextType.displayMedium],
         decoration: decoration,
         textStyle: textStyle,
         wordSpacing: wordSpacing,
@@ -170,13 +163,12 @@ class MyTextStyle {
       double? wordSpacing,
       double? fontSize}) {
     return getStyle(
-        fontSize: fontSize ?? _defaultTextSize[MyTextType.displaySmall],
+        fontSize: fontSize ?? _defaultTextSize[TextType.displaySmall],
         color: color,
         height: height,
         muted: muted,
-        letterSpacing:
-            letterSpacing ?? _defaultLetterSpacing[MyTextType.displaySmall],
-        fontWeight: _defaultTextFontWeight[MyTextType.displaySmall],
+        letterSpacing: letterSpacing ?? _defaultLetterSpacing[TextType.displaySmall],
+        fontWeight: _defaultTextFontWeight[TextType.displaySmall],
         decoration: decoration,
         textStyle: textStyle,
         wordSpacing: wordSpacing,
@@ -195,13 +187,12 @@ class MyTextStyle {
       double? wordSpacing,
       double? fontSize}) {
     return getStyle(
-        fontSize: fontSize ?? _defaultTextSize[MyTextType.headlineLarge],
+        fontSize: fontSize ?? _defaultTextSize[TextType.headlineLarge],
         color: color,
         height: height,
         muted: muted,
-        letterSpacing:
-            letterSpacing ?? _defaultLetterSpacing[MyTextType.headlineLarge],
-        fontWeight: _defaultTextFontWeight[MyTextType.headlineLarge],
+        letterSpacing: letterSpacing ?? _defaultLetterSpacing[TextType.headlineLarge],
+        fontWeight: _defaultTextFontWeight[TextType.headlineLarge],
         decoration: decoration,
         textStyle: textStyle,
         wordSpacing: wordSpacing,
@@ -220,13 +211,12 @@ class MyTextStyle {
       double? wordSpacing,
       double? fontSize}) {
     return getStyle(
-        fontSize: fontSize ?? _defaultTextSize[MyTextType.headlineMedium],
+        fontSize: fontSize ?? _defaultTextSize[TextType.headlineMedium],
         color: color,
         height: height,
         muted: muted,
-        letterSpacing:
-            letterSpacing ?? _defaultLetterSpacing[MyTextType.headlineMedium],
-        fontWeight: _defaultTextFontWeight[MyTextType.headlineMedium],
+        letterSpacing: letterSpacing ?? _defaultLetterSpacing[TextType.headlineMedium],
+        fontWeight: _defaultTextFontWeight[TextType.headlineMedium],
         decoration: decoration,
         textStyle: textStyle,
         wordSpacing: wordSpacing,
@@ -245,13 +235,12 @@ class MyTextStyle {
       double? wordSpacing,
       double? fontSize}) {
     return getStyle(
-        fontSize: fontSize ?? _defaultTextSize[MyTextType.headlineSmall],
+        fontSize: fontSize ?? _defaultTextSize[TextType.headlineSmall],
         color: color,
         height: height,
         muted: muted,
-        letterSpacing:
-            letterSpacing ?? _defaultLetterSpacing[MyTextType.headlineSmall],
-        fontWeight: _defaultTextFontWeight[MyTextType.headlineSmall],
+        letterSpacing: letterSpacing ?? _defaultLetterSpacing[TextType.headlineSmall],
+        fontWeight: _defaultTextFontWeight[TextType.headlineSmall],
         decoration: decoration,
         textStyle: textStyle,
         wordSpacing: wordSpacing,
@@ -270,13 +259,12 @@ class MyTextStyle {
       double? wordSpacing,
       double? fontSize}) {
     return getStyle(
-        fontSize: fontSize ?? _defaultTextSize[MyTextType.titleLarge],
+        fontSize: fontSize ?? _defaultTextSize[TextType.titleLarge],
         color: color,
         height: height,
         muted: muted,
-        letterSpacing:
-            letterSpacing ?? _defaultLetterSpacing[MyTextType.titleLarge],
-        fontWeight: _defaultTextFontWeight[MyTextType.titleLarge],
+        letterSpacing: letterSpacing ?? _defaultLetterSpacing[TextType.titleLarge],
+        fontWeight: _defaultTextFontWeight[TextType.titleLarge],
         decoration: decoration,
         textStyle: textStyle,
         wordSpacing: wordSpacing,
@@ -295,13 +283,12 @@ class MyTextStyle {
       double? wordSpacing,
       double? fontSize}) {
     return getStyle(
-        fontSize: fontSize ?? _defaultTextSize[MyTextType.titleMedium],
+        fontSize: fontSize ?? _defaultTextSize[TextType.titleMedium],
         color: color,
         height: height,
         muted: muted,
-        letterSpacing:
-            letterSpacing ?? _defaultLetterSpacing[MyTextType.titleMedium],
-        fontWeight: _defaultTextFontWeight[MyTextType.titleMedium],
+        letterSpacing: letterSpacing ?? _defaultLetterSpacing[TextType.titleMedium],
+        fontWeight: _defaultTextFontWeight[TextType.titleMedium],
         decoration: decoration,
         textStyle: textStyle,
         wordSpacing: wordSpacing,
@@ -320,13 +307,12 @@ class MyTextStyle {
       double? wordSpacing,
       double? fontSize}) {
     return getStyle(
-        fontSize: fontSize ?? _defaultTextSize[MyTextType.titleSmall],
+        fontSize: fontSize ?? _defaultTextSize[TextType.titleSmall],
         color: color,
         height: height,
         muted: muted,
-        letterSpacing:
-            letterSpacing ?? _defaultLetterSpacing[MyTextType.titleSmall],
-        fontWeight: _defaultTextFontWeight[MyTextType.titleSmall],
+        letterSpacing: letterSpacing ?? _defaultLetterSpacing[TextType.titleSmall],
+        fontWeight: _defaultTextFontWeight[TextType.titleSmall],
         decoration: decoration,
         textStyle: textStyle,
         wordSpacing: wordSpacing,
@@ -345,13 +331,12 @@ class MyTextStyle {
       double? wordSpacing,
       double? fontSize}) {
     return getStyle(
-        fontSize: fontSize ?? _defaultTextSize[MyTextType.labelLarge],
+        fontSize: fontSize ?? _defaultTextSize[TextType.labelLarge],
         color: color,
         height: height,
         muted: muted,
-        letterSpacing:
-            letterSpacing ?? _defaultLetterSpacing[MyTextType.labelLarge],
-        fontWeight: _defaultTextFontWeight[MyTextType.labelLarge],
+        letterSpacing: letterSpacing ?? _defaultLetterSpacing[TextType.labelLarge],
+        fontWeight: _defaultTextFontWeight[TextType.labelLarge],
         decoration: decoration,
         textStyle: textStyle,
         wordSpacing: wordSpacing,
@@ -370,13 +355,12 @@ class MyTextStyle {
       double? wordSpacing,
       double? fontSize}) {
     return getStyle(
-        fontSize: fontSize ?? _defaultTextSize[MyTextType.labelMedium],
+        fontSize: fontSize ?? _defaultTextSize[TextType.labelMedium],
         color: color,
         height: height,
         muted: muted,
-        letterSpacing:
-            letterSpacing ?? _defaultLetterSpacing[MyTextType.labelMedium],
-        fontWeight: _defaultTextFontWeight[MyTextType.labelMedium],
+        letterSpacing: letterSpacing ?? _defaultLetterSpacing[TextType.labelMedium],
+        fontWeight: _defaultTextFontWeight[TextType.labelMedium],
         decoration: decoration,
         textStyle: textStyle,
         wordSpacing: wordSpacing,
@@ -395,13 +379,12 @@ class MyTextStyle {
       double? wordSpacing,
       double? fontSize}) {
     return getStyle(
-        fontSize: fontSize ?? _defaultTextSize[MyTextType.labelSmall],
+        fontSize: fontSize ?? _defaultTextSize[TextType.labelSmall],
         color: color,
         height: height,
         muted: muted,
-        letterSpacing:
-            letterSpacing ?? _defaultLetterSpacing[MyTextType.labelSmall],
-        fontWeight: _defaultTextFontWeight[MyTextType.labelSmall],
+        letterSpacing: letterSpacing ?? _defaultLetterSpacing[TextType.labelSmall],
+        fontWeight: _defaultTextFontWeight[TextType.labelSmall],
         decoration: decoration,
         textStyle: textStyle,
         wordSpacing: wordSpacing,
@@ -420,13 +403,12 @@ class MyTextStyle {
       double? wordSpacing,
       double? fontSize}) {
     return getStyle(
-        fontSize: fontSize ?? _defaultTextSize[MyTextType.bodyLarge],
+        fontSize: fontSize ?? _defaultTextSize[TextType.bodyLarge],
         color: color,
         height: height,
         muted: muted,
-        letterSpacing:
-            letterSpacing ?? _defaultLetterSpacing[MyTextType.bodyLarge],
-        fontWeight: fontWeight ?? _defaultTextFontWeight[MyTextType.bodyLarge],
+        letterSpacing: letterSpacing ?? _defaultLetterSpacing[TextType.bodyLarge],
+        fontWeight: fontWeight ?? _defaultTextFontWeight[TextType.bodyLarge],
         decoration: decoration,
         textStyle: textStyle,
         wordSpacing: wordSpacing,
@@ -445,13 +427,12 @@ class MyTextStyle {
       double? wordSpacing,
       double? fontSize}) {
     return getStyle(
-        fontSize: fontSize ?? _defaultTextSize[MyTextType.bodyMedium],
+        fontSize: fontSize ?? _defaultTextSize[TextType.bodyMedium],
         color: color,
         height: height,
         muted: muted,
-        letterSpacing:
-            letterSpacing ?? _defaultLetterSpacing[MyTextType.bodyMedium],
-        fontWeight: _defaultTextFontWeight[MyTextType.bodyMedium],
+        letterSpacing: letterSpacing ?? _defaultLetterSpacing[TextType.bodyMedium],
+        fontWeight: _defaultTextFontWeight[TextType.bodyMedium],
         decoration: decoration,
         textStyle: textStyle,
         wordSpacing: wordSpacing,
@@ -470,13 +451,12 @@ class MyTextStyle {
       double? wordSpacing,
       double? fontSize}) {
     return getStyle(
-        fontSize: fontSize ?? _defaultTextSize[MyTextType.bodySmall],
+        fontSize: fontSize ?? _defaultTextSize[TextType.bodySmall],
         color: color,
         height: height,
         muted: muted,
-        letterSpacing:
-            letterSpacing ?? _defaultLetterSpacing[MyTextType.bodySmall],
-        fontWeight: _defaultTextFontWeight[MyTextType.bodySmall],
+        letterSpacing: letterSpacing ?? _defaultLetterSpacing[TextType.bodySmall],
+        fontWeight: _defaultTextFontWeight[TextType.bodySmall],
         decoration: decoration,
         textStyle: textStyle,
         wordSpacing: wordSpacing,
@@ -484,30 +464,26 @@ class MyTextStyle {
   }
 
   static void changeDefaultFontWeight(Map<int, FontWeight> defaultFontWeight) {
-    MyTextStyle._defaultFontWeight = defaultFontWeight;
+    CustomizedTextStyle._defaultFontWeight = defaultFontWeight;
   }
 
-  static void changeDefaultTextFontWeight(
-      Map<MyTextType, int> defaultFontWeight) {
-    MyTextStyle._defaultTextFontWeight = defaultFontWeight;
+  static void changeDefaultTextFontWeight(Map<TextType, int> defaultFontWeight) {
+    CustomizedTextStyle._defaultTextFontWeight = defaultFontWeight;
   }
 
-  static void changeDefaultTextSize(Map<MyTextType, double> defaultTextSize) {
-    MyTextStyle._defaultTextSize = defaultTextSize;
+  static void changeDefaultTextSize(Map<TextType, double> defaultTextSize) {
+    CustomizedTextStyle._defaultTextSize = defaultTextSize;
   }
 
-  static void changeDefaultLetterSpacing(
-      Map<MyTextType, double> defaultLetterSpacing) {
-    MyTextStyle._defaultLetterSpacing = defaultLetterSpacing;
+  static void changeDefaultLetterSpacing(Map<TextType, double> defaultLetterSpacing) {
+    CustomizedTextStyle._defaultLetterSpacing = defaultLetterSpacing;
   }
 
-  static Map<MyTextType, double> get defaultTextSize => _defaultTextSize;
+  static Map<TextType, double> get defaultTextSize => _defaultTextSize;
 
-  static Map<MyTextType, double> get defaultLetterSpacing =>
-      _defaultLetterSpacing;
+  static Map<TextType, double> get defaultLetterSpacing => _defaultLetterSpacing;
 
-  static Map<MyTextType, int> get defaultTextFontWeight =>
-      _defaultTextFontWeight;
+  static Map<TextType, int> get defaultTextFontWeight => _defaultTextFontWeight;
 
   static Map<int, FontWeight> get defaultFontWeight => _defaultFontWeight;
 
@@ -528,57 +504,57 @@ class MyTextStyle {
     };
 
     _defaultTextSize = {
-      MyTextType.displayLarge: 57,
-      MyTextType.displayMedium: 45,
-      MyTextType.displaySmall: 36,
-      MyTextType.headlineLarge: 32,
-      MyTextType.headlineMedium: 28,
-      MyTextType.headlineSmall: 26,
-      MyTextType.titleLarge: 22,
-      MyTextType.titleMedium: 16,
-      MyTextType.titleSmall: 14,
-      MyTextType.labelLarge: 14,
-      MyTextType.labelMedium: 12,
-      MyTextType.labelSmall: 11,
-      MyTextType.bodyLarge: 16,
-      MyTextType.bodyMedium: 14,
-      MyTextType.bodySmall: 12,
+      TextType.displayLarge: 57,
+      TextType.displayMedium: 45,
+      TextType.displaySmall: 36,
+      TextType.headlineLarge: 32,
+      TextType.headlineMedium: 28,
+      TextType.headlineSmall: 26,
+      TextType.titleLarge: 22,
+      TextType.titleMedium: 16,
+      TextType.titleSmall: 14,
+      TextType.labelLarge: 14,
+      TextType.labelMedium: 12,
+      TextType.labelSmall: 11,
+      TextType.bodyLarge: 16,
+      TextType.bodyMedium: 14,
+      TextType.bodySmall: 12,
     };
 
     _defaultTextFontWeight = {
-      MyTextType.displayLarge: 500,
-      MyTextType.displayMedium: 500,
-      MyTextType.displaySmall: 500,
-      MyTextType.headlineLarge: 500,
-      MyTextType.headlineMedium: 500,
-      MyTextType.headlineSmall: 500,
-      MyTextType.titleLarge: 500,
-      MyTextType.titleMedium: 500,
-      MyTextType.titleSmall: 500,
-      MyTextType.labelLarge: 600,
-      MyTextType.labelMedium: 600,
-      MyTextType.labelSmall: 600,
-      MyTextType.bodyLarge: 500,
-      MyTextType.bodyMedium: 500,
-      MyTextType.bodySmall: 500,
+      TextType.displayLarge: 500,
+      TextType.displayMedium: 500,
+      TextType.displaySmall: 500,
+      TextType.headlineLarge: 500,
+      TextType.headlineMedium: 500,
+      TextType.headlineSmall: 500,
+      TextType.titleLarge: 500,
+      TextType.titleMedium: 500,
+      TextType.titleSmall: 500,
+      TextType.labelLarge: 600,
+      TextType.labelMedium: 600,
+      TextType.labelSmall: 600,
+      TextType.bodyLarge: 500,
+      TextType.bodyMedium: 500,
+      TextType.bodySmall: 500,
     };
 
     _defaultLetterSpacing = {
-      MyTextType.displayLarge: -0.25,
-      MyTextType.displayMedium: 0,
-      MyTextType.displaySmall: 0,
-      MyTextType.headlineLarge: -0.2,
-      MyTextType.headlineMedium: -0.15,
-      MyTextType.headlineSmall: 0,
-      MyTextType.titleLarge: 0,
-      MyTextType.titleMedium: 0.1,
-      MyTextType.titleSmall: 0.1,
-      MyTextType.labelLarge: 0.1,
-      MyTextType.labelMedium: 0.5,
-      MyTextType.labelSmall: 0.5,
-      MyTextType.bodyLarge: 0.5,
-      MyTextType.bodyMedium: 0.25,
-      MyTextType.bodySmall: 0.4,
+      TextType.displayLarge: -0.25,
+      TextType.displayMedium: 0,
+      TextType.displaySmall: 0,
+      TextType.headlineLarge: -0.2,
+      TextType.headlineMedium: -0.15,
+      TextType.headlineSmall: 0,
+      TextType.titleLarge: 0,
+      TextType.titleMedium: 0.1,
+      TextType.titleSmall: 0.1,
+      TextType.labelLarge: 0.1,
+      TextType.labelMedium: 0.5,
+      TextType.labelSmall: 0.5,
+      TextType.bodyLarge: 0.5,
+      TextType.bodyMedium: 0.25,
+      TextType.bodySmall: 0.4,
     };
   }
 }

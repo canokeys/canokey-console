@@ -1,9 +1,9 @@
 // ignore_for_file: annotate_overrides, overridden_fields
 
+import 'package:canokey_console/helper/widgets/customized_text_style.dart';
 import 'package:flutter/material.dart';
-import 'package:canokey_console/helper/widgets/my_text_style.dart';
 
-class MyText extends StatelessWidget {
+class CustomizedText extends StatelessWidget {
   //Key
 
   final Key? key;
@@ -18,7 +18,7 @@ class MyText extends StatelessWidget {
   final double? height;
   final double wordSpacing;
   final double? fontSize;
-  final MyTextType textType;
+  final TextType textType;
 
   //Text Style
   final TextAlign? textAlign;
@@ -33,7 +33,7 @@ class MyText extends StatelessWidget {
   final double? textScaleFactor;
   final TextWidthBasis? textWidthBasis;
 
-  MyText(this.text,
+  CustomizedText(this.text,
       {this.style,
       this.fontWeight = 500,
       this.muted = false,
@@ -44,7 +44,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.bodyMedium,
+      this.textType = TextType.bodyMedium,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -58,7 +58,7 @@ class MyText extends StatelessWidget {
       this.textScaleFactor,
       this.textWidthBasis});
 
-  MyText.displayLarge(this.text,
+  CustomizedText.displayLarge(this.text,
       {this.style,
       this.fontWeight,
       this.muted = false,
@@ -69,7 +69,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.displayLarge,
+      this.textType = TextType.displayLarge,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -83,7 +83,7 @@ class MyText extends StatelessWidget {
       this.textScaleFactor,
       this.textWidthBasis});
 
-  MyText.displayMedium(this.text,
+  CustomizedText.displayMedium(this.text,
       {this.style,
       this.fontWeight,
       this.muted = false,
@@ -94,7 +94,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.displayMedium,
+      this.textType = TextType.displayMedium,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -108,7 +108,7 @@ class MyText extends StatelessWidget {
       this.textScaleFactor,
       this.textWidthBasis});
 
-  MyText.displaySmall(this.text,
+  CustomizedText.displaySmall(this.text,
       {this.style,
       this.fontWeight,
       this.muted = false,
@@ -119,7 +119,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.displaySmall,
+      this.textType = TextType.displaySmall,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -133,7 +133,7 @@ class MyText extends StatelessWidget {
       this.textScaleFactor,
       this.textWidthBasis});
 
-  MyText.headlineLarge(this.text,
+  CustomizedText.headlineLarge(this.text,
       {this.style,
       this.fontWeight = 500,
       this.muted = false,
@@ -144,7 +144,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.headlineLarge,
+      this.textType = TextType.headlineLarge,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -158,7 +158,7 @@ class MyText extends StatelessWidget {
       this.textScaleFactor,
       this.textWidthBasis});
 
-  MyText.headlineMedium(this.text,
+  CustomizedText.headlineMedium(this.text,
       {this.style,
       this.fontWeight = 500,
       this.muted = false,
@@ -169,7 +169,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.headlineMedium,
+      this.textType = TextType.headlineMedium,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -183,7 +183,7 @@ class MyText extends StatelessWidget {
       this.textScaleFactor,
       this.textWidthBasis});
 
-  MyText.headlineSmall(this.text,
+  CustomizedText.headlineSmall(this.text,
       {this.style,
       this.fontWeight = 500,
       this.muted = false,
@@ -194,7 +194,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.headlineSmall,
+      this.textType = TextType.headlineSmall,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -208,7 +208,7 @@ class MyText extends StatelessWidget {
       this.textScaleFactor,
       this.textWidthBasis});
 
-  MyText.titleLarge(this.text,
+  CustomizedText.titleLarge(this.text,
       {this.style,
       this.fontWeight,
       this.muted = false,
@@ -219,7 +219,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.titleLarge,
+      this.textType = TextType.titleLarge,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -233,7 +233,7 @@ class MyText extends StatelessWidget {
       this.textScaleFactor,
       this.textWidthBasis});
 
-  MyText.titleMedium(this.text,
+  CustomizedText.titleMedium(this.text,
       {this.style,
       this.fontWeight,
       this.muted = false,
@@ -244,7 +244,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.titleMedium,
+      this.textType = TextType.titleMedium,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -258,7 +258,7 @@ class MyText extends StatelessWidget {
       this.textScaleFactor,
       this.textWidthBasis});
 
-  MyText.titleSmall(this.text,
+  CustomizedText.titleSmall(this.text,
       {this.style,
       this.fontWeight,
       this.muted = false,
@@ -269,7 +269,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.titleSmall,
+      this.textType = TextType.titleSmall,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -283,7 +283,7 @@ class MyText extends StatelessWidget {
       this.textScaleFactor,
       this.textWidthBasis});
 
-  MyText.labelLarge(this.text,
+  CustomizedText.labelLarge(this.text,
       {this.style,
       this.fontWeight,
       this.muted = false,
@@ -294,7 +294,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.labelLarge,
+      this.textType = TextType.labelLarge,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -308,7 +308,7 @@ class MyText extends StatelessWidget {
       this.textScaleFactor,
       this.textWidthBasis});
 
-  MyText.labelMedium(this.text,
+  CustomizedText.labelMedium(this.text,
       {this.style,
       this.fontWeight,
       this.muted = false,
@@ -319,7 +319,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.labelMedium,
+      this.textType = TextType.labelMedium,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -333,7 +333,7 @@ class MyText extends StatelessWidget {
       this.textScaleFactor,
       this.textWidthBasis});
 
-  MyText.labelSmall(this.text,
+  CustomizedText.labelSmall(this.text,
       {this.style,
       this.fontWeight,
       this.muted = false,
@@ -344,7 +344,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.labelSmall,
+      this.textType = TextType.labelSmall,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -358,7 +358,7 @@ class MyText extends StatelessWidget {
       this.textScaleFactor,
       this.textWidthBasis});
 
-  MyText.bodyLarge(this.text,
+  CustomizedText.bodyLarge(this.text,
       {this.style,
       this.fontWeight,
       this.muted = false,
@@ -369,7 +369,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.bodyLarge,
+      this.textType = TextType.bodyLarge,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -383,7 +383,7 @@ class MyText extends StatelessWidget {
       this.textScaleFactor,
       this.textWidthBasis});
 
-  MyText.bodyMedium(this.text,
+  CustomizedText.bodyMedium(this.text,
       {this.style,
       this.fontWeight,
       this.muted = false,
@@ -394,7 +394,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.bodyMedium,
+      this.textType = TextType.bodyMedium,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -408,7 +408,7 @@ class MyText extends StatelessWidget {
       this.textScaleFactor,
       this.textWidthBasis});
 
-  MyText.bodySmall(this.text,
+  CustomizedText.bodySmall(this.text,
       {this.style,
       this.fontWeight,
       this.muted = false,
@@ -419,7 +419,7 @@ class MyText extends StatelessWidget {
       this.height,
       this.wordSpacing = 0,
       this.fontSize,
-      this.textType = MyTextType.bodySmall,
+      this.textType = TextType.bodySmall,
       this.key,
       this.textAlign,
       this.maxLines,
@@ -438,21 +438,17 @@ class MyText extends StatelessWidget {
     return Text(
       text,
       style: style ??
-          MyTextStyle.getStyle(
+          CustomizedTextStyle.getStyle(
             textStyle: style,
             color: color,
-            fontWeight: fontWeight ??
-                MyTextStyle.defaultTextFontWeight[textType] ??
-                500,
+            fontWeight: fontWeight ?? CustomizedTextStyle.defaultTextFontWeight[textType] ?? 500,
             muted: muted,
-            letterSpacing: letterSpacing ??
-                MyTextStyle.defaultLetterSpacing[textType] ??
-                0.15,
+            letterSpacing: letterSpacing ?? CustomizedTextStyle.defaultLetterSpacing[textType] ?? 0.15,
             height: height,
             xMuted: xMuted,
             decoration: decoration,
             wordSpacing: wordSpacing,
-            fontSize: fontSize ?? MyTextStyle.defaultTextSize[textType],
+            fontSize: fontSize ?? CustomizedTextStyle.defaultTextSize[textType],
           ),
       textAlign: textAlign,
       maxLines: maxLines,

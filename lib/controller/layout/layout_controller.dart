@@ -1,8 +1,8 @@
-import 'package:canokey_console/controller/my_controller.dart';
+import 'package:canokey_console/controller/base_controller.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
 import 'package:flutter/material.dart';
 
-class LayoutController extends MyController {
+class LayoutController extends Controller {
   ThemeCustomizer themeCustomizer = ThemeCustomizer();
 
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();

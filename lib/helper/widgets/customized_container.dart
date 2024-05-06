@@ -1,9 +1,9 @@
 import 'package:canokey_console/helper/theme/app_theme.dart';
-import 'package:canokey_console/helper/widgets/my_constant.dart';
-import 'package:canokey_console/helper/widgets/my_spacing.dart';
+import 'package:canokey_console/helper/widgets/constant.dart';
+import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
 
-class MyContainer extends StatelessWidget {
+class CustomizedContainer extends StatelessWidget {
   final Widget? child;
   final BorderRadius? borderRadius;
   final double? borderRadiusAll, paddingAll, marginAll;
@@ -20,7 +20,7 @@ class MyContainer extends StatelessWidget {
   final Color? splashColor;
   final bool enableBorderRadius;
 
-  const MyContainer(
+  const CustomizedContainer(
       {Key? key,
       this.child,
       this.borderRadius,
@@ -43,7 +43,7 @@ class MyContainer extends StatelessWidget {
       this.borderColor})
       : super(key: key);
 
-  const MyContainer.transparent(
+  const CustomizedContainer.transparent(
       {Key? key,
       this.child,
       this.borderRadius,
@@ -66,7 +66,7 @@ class MyContainer extends StatelessWidget {
       this.borderColor})
       : super(key: key);
 
-  const MyContainer.none(
+  const CustomizedContainer.none(
       {Key? key,
       this.child,
       this.borderRadius,
@@ -89,7 +89,7 @@ class MyContainer extends StatelessWidget {
       this.borderColor})
       : super(key: key);
 
-  const MyContainer.bordered(
+  const CustomizedContainer.bordered(
       {Key? key,
       this.child,
       this.borderRadius,
@@ -112,7 +112,7 @@ class MyContainer extends StatelessWidget {
       this.borderColor})
       : super(key: key);
 
-  const MyContainer.roundBordered(
+  const CustomizedContainer.roundBordered(
       {Key? key,
       this.child,
       this.borderRadius,
@@ -135,7 +135,7 @@ class MyContainer extends StatelessWidget {
       this.borderColor})
       : super(key: key);
 
-  const MyContainer.rounded(
+  const CustomizedContainer.rounded(
       {Key? key,
       this.child,
       this.borderRadius,
@@ -164,33 +164,23 @@ class MyContainer extends StatelessWidget {
       width: width,
       height: height,
       alignment: alignment,
-      margin: margin ?? MySpacing.all(marginAll ?? 0),
+      margin: margin ?? Spacing.all(marginAll ?? 0),
       decoration: BoxDecoration(
           color: color ?? theme.cardTheme.color,
           shape: shape,
           borderRadius: enableBorderRadius
-              ? (shape == BoxShape.rectangle
-                  ? borderRadius ??
-                      BorderRadius.all(Radius.circular(borderRadiusAll ??
-                          MyConstant.constant.containerRadius))
-                  : null)
+              ? (shape == BoxShape.rectangle ? borderRadius ?? BorderRadius.all(Radius.circular(borderRadiusAll ?? WidgetConstant.constant.containerRadius)) : null)
               : null,
-          border: bordered
-              ? border ??
-                  Border.all(color: borderColor ?? theme.dividerColor, width: 1)
-              : null),
-      padding: padding ?? MySpacing.all(paddingAll ?? 16),
+          border: bordered ? border ?? Border.all(color: borderColor ?? theme.dividerColor, width: 1) : null),
+      padding: padding ?? Spacing.all(paddingAll ?? 16),
       clipBehavior: clipBehavior ?? Clip.none,
       child: child,
     );
 
     if (onTap != null) {
       return InkWell(
-        borderRadius: shape != BoxShape.circle
-            ? borderRadius ??
-                BorderRadius.all(Radius.circular(
-                    borderRadiusAll ?? MyConstant.constant.containerRadius))
-            : null,
+        borderRadius:
+            shape != BoxShape.circle ? borderRadius ?? BorderRadius.all(Radius.circular(borderRadiusAll ?? WidgetConstant.constant.containerRadius)) : null,
         onTap: onTap,
         splashColor: splashColor ?? Colors.transparent,
         highlightColor: splashColor ?? Colors.transparent,

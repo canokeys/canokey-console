@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
 
-abstract class MyController extends GetxController {
+abstract class Controller extends GetxController {
   @override
   void onInit() {
     super.onInit();

@@ -17,9 +17,7 @@ class AppNotifier extends ChangeNotifier {
   }
 
   void _changeTheme() {
-    AppTheme.themeType = ThemeCustomizer.instance.theme == ThemeMode.light
-        ? ThemeType.light
-        : ThemeType.dark;
+    AppTheme.themeType = ThemeCustomizer.instance.theme == ThemeMode.light ? ThemeType.light : ThemeType.dark;
     AppTheme.theme = AppTheme.getTheme();
   }
 }

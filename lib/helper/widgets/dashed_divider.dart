@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-class MyDashedDivider extends StatelessWidget {
+class DashedDivider extends StatelessWidget {
   final double height;
   final Color color;
   final double dashWidth;
   final double dashSpace;
 
-  const MyDashedDivider(
+  const DashedDivider(
       {this.height = 1,
       this.color = Colors.black,
       this.dashWidth = 10,

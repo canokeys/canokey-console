@@ -2,17 +2,16 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:canokey_console/helper/theme/admin_theme.dart';
-import 'package:canokey_console/helper/widgets/my.dart';
-import 'package:canokey_console/helper/widgets/my_constant.dart';
-import 'package:canokey_console/helper/widgets/my_text_style.dart';
+import 'package:canokey_console/helper/widgets/widgets.dart';
+import 'package:canokey_console/helper/widgets/constant.dart';
+import 'package:canokey_console/helper/widgets/customized_text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class MaterialRadius {
   double xs, small, medium, large;
 
-  MaterialRadius(
-      {this.xs = 2, this.small = 4, this.medium = 6, this.large = 8});
+  MaterialRadius({this.xs = 2, this.small = 4, this.medium = 6, this.large = 8});
 }
 
 class ColorGroup {
@@ -28,9 +27,9 @@ class AppStyle {
   }
 
   static void initMyStyle() {
-    MyTextStyle.resetFontStyles();
-    MyTextStyle.changeFontFamily(GoogleFonts.poppins);
-    My.setConstant(MyConstantData(
+    CustomizedTextStyle.resetFontStyles();
+    CustomizedTextStyle.changeFontFamily(GoogleFonts.poppins);
+    Widgets.setConstant(WidgetConstantData(
       containerRadius: AppStyle.containerRadius.medium,
       cardRadius: AppStyle.cardRadius.medium,
       buttonRadius: AppStyle.buttonRadius.medium,
@@ -41,19 +40,15 @@ class AppStyle {
     } catch (_) {
       isMobile = false;
     }
-    My.setFlexSpacing(isMobile ? 16 : 24);
+    Widgets.setFlexSpacing(isMobile ? 16 : 24);
   }
 
   /// -------------------------- Styles  -------------------------------------------- ///
 
-  static MaterialRadius buttonRadius =
-      MaterialRadius(small: 2, medium: 4, large: 8);
-  static MaterialRadius cardRadius =
-      MaterialRadius(xs: 2, small: 4, medium: 4, large: 8);
-  static MaterialRadius containerRadius =
-      MaterialRadius(xs: 2, small: 4, medium: 4, large: 8);
-  static MaterialRadius imageRadius =
-      MaterialRadius(xs: 2, small: 4, medium: 4, large: 8);
+  static MaterialRadius buttonRadius = MaterialRadius(small: 2, medium: 4, large: 8);
+  static MaterialRadius cardRadius = MaterialRadius(xs: 2, small: 4, medium: 4, large: 8);
+  static MaterialRadius containerRadius = MaterialRadius(xs: 2, small: 4, medium: 4, large: 8);
+  static MaterialRadius imageRadius = MaterialRadius(xs: 2, small: 4, medium: 4, large: 8);
 }
 
 class AppColors {
@@ -69,16 +64,13 @@ class AppColors {
   static ColorGroup orange = ColorGroup(Color(0xffFFCEC2), Color(0xffFF3B0A));
   static ColorGroup skyBlue = ColorGroup(Color(0xffC2F0FF), Color(0xff0099CC));
   static ColorGroup lavender = ColorGroup(Color(0xffEAE2F3), Color(0xff7748AD));
-  static ColorGroup queenPink =
-      ColorGroup(Color(0xffE8D9DC), Color(0xff804D57));
-  static ColorGroup blueViolet =
-      ColorGroup(Color(0xffC5C6E7), Color(0xff3B3E91));
+  static ColorGroup queenPink = ColorGroup(Color(0xffE8D9DC), Color(0xff804D57));
+  static ColorGroup blueViolet = ColorGroup(Color(0xffC5C6E7), Color(0xff3B3E91));
   static ColorGroup rosePink = ColorGroup(Color(0xffFCB1E0), Color(0xffEC0999));
 
   static ColorGroup rubinRed = ColorGroup(Color(0x98f6a8bd), Color(0xffd03760));
   static ColorGroup favorite = rubinRed;
-  static ColorGroup redOrange =
-      ColorGroup(Color(0xffFFAD99), Color(0xffF53100));
+  static ColorGroup redOrange = ColorGroup(Color(0xffFFAD99), Color(0xffF53100));
 
   static Color notificationSuccessBGColor = Color(0xff117E68);
   static Color notificationSuccessTextColor = Color(0xffffffff);
@@ -90,16 +82,7 @@ class AppColors {
 
   // static Color notificationErrorActionColor = Color(0xff006784);
 
-  static List<ColorGroup> list = [
-    redOrange,
-    violet,
-    blue,
-    green,
-    orange,
-    skyBlue,
-    lavender,
-    blueViolet
-  ];
+  static List<ColorGroup> list = [redOrange, violet, blue, green, orange, skyBlue, lavender, blueViolet];
 
   static ColorGroup get random => list[Random().nextInt(list.length)];
 
@@ -108,13 +91,7 @@ class AppColors {
   }
 
   static Color getColorByRating(int rating) {
-    var colors = {
-      1: Color(0xfff0323c),
-      2: Color(0xcdf0323c),
-      3: star,
-      4: Color(0xcd3cd278),
-      5: Color(0xff3cd278)
-    };
+    var colors = {1: Color(0xfff0323c), 2: Color(0xcdf0323c), 3: star, 4: Color(0xcd3cd278), 5: Color(0xff3cd278)};
 
     return colors[rating] ?? colors[1]!;
   }

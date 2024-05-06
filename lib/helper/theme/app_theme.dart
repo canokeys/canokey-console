@@ -1,5 +1,5 @@
 import 'package:canokey_console/helper/theme/theme_type.dart';
-import 'package:canokey_console/helper/widgets/my_text_style.dart';
+import 'package:canokey_console/helper/widgets/customized_text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -16,8 +16,8 @@ class AppTheme {
   }
 
   static initTextStyle() {
-    MyTextStyle.changeFontFamily(GoogleFonts.ibmPlexSans);
-    MyTextStyle.changeDefaultFontWeight({
+    CustomizedTextStyle.changeFontFamily(GoogleFonts.ibmPlexSans);
+    CustomizedTextStyle.changeDefaultFontWeight({
       100: FontWeight.w100,
       200: FontWeight.w200,
       300: FontWeight.w300,
@@ -29,22 +29,22 @@ class AppTheme {
       900: FontWeight.w800,
     });
 
-    MyTextStyle.changeDefaultTextFontWeight({
-      MyTextType.displayLarge: 500,
-      MyTextType.displayMedium: 500,
-      MyTextType.displaySmall: 500,
-      MyTextType.headlineLarge: 500,
-      MyTextType.headlineMedium: 500,
-      MyTextType.headlineSmall: 500,
-      MyTextType.titleLarge: 500,
-      MyTextType.titleMedium: 500,
-      MyTextType.titleSmall: 500,
-      MyTextType.labelLarge: 500,
-      MyTextType.labelMedium: 500,
-      MyTextType.labelSmall: 500,
-      MyTextType.bodyLarge: 500,
-      MyTextType.bodyMedium: 500,
-      MyTextType.bodySmall: 500,
+    CustomizedTextStyle.changeDefaultTextFontWeight({
+      TextType.displayLarge: 500,
+      TextType.displayMedium: 500,
+      TextType.displaySmall: 500,
+      TextType.headlineLarge: 500,
+      TextType.headlineMedium: 500,
+      TextType.headlineSmall: 500,
+      TextType.titleLarge: 500,
+      TextType.titleMedium: 500,
+      TextType.titleSmall: 500,
+      TextType.labelLarge: 500,
+      TextType.labelMedium: 500,
+      TextType.labelSmall: 500,
+      TextType.bodyLarge: 500,
+      TextType.bodyMedium: 500,
+      TextType.bodySmall: 500,
     });
   }
 
@@ -66,16 +66,13 @@ class AppTheme {
 
     /// AppBar Theme
     appBarTheme: AppBarTheme(
-        backgroundColor: Color(0xffffffff),
-        iconTheme: IconThemeData(color: Color(0xff495057)),
-        actionsIconTheme: IconThemeData(color: Color(0xff495057))),
+        backgroundColor: Color(0xffffffff), iconTheme: IconThemeData(color: Color(0xff495057)), actionsIconTheme: IconThemeData(color: Color(0xff495057))),
 
     /// Card Theme
     cardTheme: CardTheme(color: Color(0xffffffff)),
     cardColor: Color(0xffffffff),
 
-    textTheme: TextTheme(
-        titleLarge: GoogleFonts.aBeeZee(), bodyLarge: GoogleFonts.abel()),
+    textTheme: TextTheme(titleLarge: GoogleFonts.aBeeZee(), bodyLarge: GoogleFonts.abel()),
 
     /// Floating Action Theme
     floatingActionButtonTheme: FloatingActionButtonThemeData(
@@ -92,8 +89,7 @@ class AppTheme {
     dividerColor: Color(0xffe8e8e8),
 
     /// Bottom AppBar Theme
-    bottomAppBarTheme:
-        BottomAppBarTheme(color: Color(0xffeeeeee), elevation: 2),
+    bottomAppBarTheme: BottomAppBarTheme(color: Color(0xffeeeeee), elevation: 2),
 
     /// Tab bar Theme
     tabBarTheme: TabBarTheme(
@@ -165,10 +161,7 @@ class AppTheme {
     splashColor: Colors.white.withAlpha(100),
     indicatorColor: Color(0xffeeeeee),
     highlightColor: Color(0xffeeeeee),
-    colorScheme: ColorScheme.fromSeed(
-            seedColor: Color(0xff009678),
-            brightness: Brightness.light,
-            surfaceTint: Colors.transparent)
+    colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff009678), brightness: Brightness.light, surfaceTint: Colors.transparent)
         .copyWith(background: Color(0xffffffff))
         .copyWith(error: Color(0xfff0323c)),
   );
@@ -202,9 +195,7 @@ class AppTheme {
         borderRadius: BorderRadius.all(Radius.circular(4)),
         borderSide: BorderSide(width: 1, color: Colors.white70),
       ),
-      border: OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(4)),
-          borderSide: BorderSide(width: 1, color: Colors.white70)),
+      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(4)), borderSide: BorderSide(width: 1, color: Colors.white70)),
     ),
 
     /// Divider Color
@@ -222,8 +213,7 @@ class AppTheme {
         foregroundColor: Colors.white),
 
     /// Bottom AppBar Theme
-    bottomAppBarTheme:
-        BottomAppBarTheme(color: Color(0xff464c52), elevation: 2),
+    bottomAppBarTheme: BottomAppBarTheme(color: Color(0xff464c52), elevation: 2),
 
     /// Tab bar Theme
     tabBarTheme: TabBarTheme(
@@ -285,9 +275,7 @@ class AppTheme {
     disabledColor: Color(0xffa3a3a3),
     highlightColor: Colors.white.withAlpha(28),
     splashColor: Colors.white.withAlpha(56),
-    colorScheme: ColorScheme.fromSeed(
-            seedColor: Color(0xff009678), brightness: Brightness.dark)
-        .copyWith(background: Color(0xff161616))
-        .copyWith(error: Colors.orange),
+    colorScheme:
+        ColorScheme.fromSeed(seedColor: Color(0xff009678), brightness: Brightness.dark).copyWith(background: Color(0xff161616)).copyWith(error: Colors.orange),
   );
 }

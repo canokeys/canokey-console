@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-mixin MyNavigationMixin on GetxController {
+mixin NavigationMixin on GetxController {
   Future<T?>? push<T>(Widget widget) {
     return Get.to(widget);
     // Navigator.push(context, MaterialPageRoute(builder: (context) => widget));

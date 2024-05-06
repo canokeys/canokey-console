@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
-import 'package:canokey_console/helper/utils/my_shadow.dart';
-import 'package:canokey_console/helper/widgets/my_constant.dart';
-import 'package:canokey_console/helper/widgets/my_spacing.dart';
+import 'package:canokey_console/helper/utils/shadow.dart';
+import 'package:canokey_console/helper/widgets/constant.dart';
+import 'package:canokey_console/helper/widgets/spacing.dart';
+import 'package:flutter/material.dart';
 
-class MyCard extends StatelessWidget {
+class CustomizedCard extends StatelessWidget {
   final Widget child;
   final BorderRadius? borderRadius;
   final double? borderRadiusAll, paddingAll, marginAll;
@@ -15,11 +15,11 @@ class MyCard extends StatelessWidget {
   final Border? border;
   final Clip? clipBehavior;
   final BoxShape? boxShape;
-  final MyShadow? shadow;
+  final Shadow? shadow;
   final double? width, height;
   final Color? splashColor;
 
-  const MyCard(
+  const CustomizedCard(
       {Key? key,
       required this.child,
       this.borderRadius,
@@ -40,7 +40,7 @@ class MyCard extends StatelessWidget {
       this.height})
       : super(key: key);
 
-  const MyCard.bordered(
+  const CustomizedCard.bordered(
       {Key? key,
       required this.child,
       this.borderRadius,
@@ -61,7 +61,7 @@ class MyCard extends StatelessWidget {
       this.height})
       : super(key: key);
 
-  const MyCard.circular(
+  const CustomizedCard.circular(
       {Key? key,
       required this.child,
       this.borderRadius,
@@ -82,7 +82,7 @@ class MyCard extends StatelessWidget {
       this.height})
       : super(key: key);
 
-  const MyCard.none(
+  const CustomizedCard.none(
       {Key? key,
       required this.child,
       this.borderRadius,
@@ -105,40 +105,31 @@ class MyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    MyShadow myShadow = shadow ?? MyShadow();
+    Shadow myShadow = shadow ?? Shadow();
     return InkWell(
-      borderRadius: boxShape != BoxShape.circle
-          ? borderRadius ??
-              BorderRadius.all(Radius.circular(
-                  borderRadiusAll ?? MyConstant.constant.cardRadius))
-          : null,
+      borderRadius:
+          boxShape != BoxShape.circle ? borderRadius ?? BorderRadius.all(Radius.circular(borderRadiusAll ?? WidgetConstant.constant.cardRadius)) : null,
       splashColor: splashColor ?? Colors.transparent,
       highlightColor: splashColor ?? Colors.transparent,
       onTap: onTap,
       child: Container(
         width: width,
         height: height,
-        margin: margin ?? MySpacing.all(marginAll ?? 0),
+        margin: margin ?? Spacing.all(marginAll ?? 0),
         decoration: BoxDecoration(
             color: color ?? theme.cardTheme.color,
-            borderRadius: boxShape != BoxShape.circle
-                ? borderRadius ??
-                    BorderRadius.all(Radius.circular(
-                        borderRadiusAll ?? MyConstant.constant.cardRadius))
-                : null,
-            border: bordered
-                ? border ?? Border.all(color: theme.dividerColor, width: 1)
-                : null,
+            borderRadius:
+                boxShape != BoxShape.circle ? borderRadius ?? BorderRadius.all(Radius.circular(borderRadiusAll ?? WidgetConstant.constant.cardRadius)) : null,
+            border: bordered ? border ?? Border.all(color: theme.dividerColor, width: 1) : null,
             shape: boxShape ?? BoxShape.rectangle,
             boxShadow: [
               BoxShadow(
-                  color: myShadow.color ??
-                      theme.shadowColor.withAlpha(myShadow.alpha),
+                  color: myShadow.color ?? theme.shadowColor.withAlpha(myShadow.alpha),
                   spreadRadius: myShadow.spreadRadius,
                   blurRadius: myShadow.blurRadius,
                   offset: myShadow.offset!)
             ]),
-        padding: padding ?? MySpacing.all(paddingAll ?? 16),
+        padding: padding ?? Spacing.all(paddingAll ?? 16),
         clipBehavior: clipBehavior ?? Clip.none,
         child: child,
       ),

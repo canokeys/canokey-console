@@ -1,9 +1,9 @@
-import 'package:canokey_console/controller/my_controller.dart';
+import 'package:canokey_console/controller/base_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
-import 'package:canokey_console/helper/widgets/my_validators.dart';
+import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/models/webauthn.dart';
 import 'package:convert/convert.dart';
 import 'package:fido2/fido2.dart';
@@ -15,7 +15,7 @@ import 'package:platform_detector/platform_detector.dart';
 
 final log = Logger('Console:WebAuthn:Controller');
 
-class WebAuthnController extends MyController {
+class WebAuthnController extends Controller {
   late Ctap2 _ctap;
   String _pinCache = '';
   String _uid = '';
@@ -61,7 +61,7 @@ class WebAuthnController extends MyController {
           title: S.of(Get.context!).webauthnSetPinTitle,
           label: 'PIN',
           prompt: S.of(Get.context!).webauthnSetPinPrompt,
-          validators: [MyLengthValidator(min: 4, max: 63)],
+          validators: [LengthValidator(min: 4, max: 63)],
         );
         // On mobile platforms, we need to poll NFC again after showing the dialog
         if (isMobile()) {

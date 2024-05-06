@@ -1,9 +1,9 @@
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/widgets/my_field_validator.dart';
+import 'package:canokey_console/helper/widgets/field_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class MyFormValidator {
+class FormValidator {
   Map<String, dynamic> errors = {};
   Map<String, dynamic> remainingError = {};
   GlobalKey<FormState> formKey = GlobalKey();
@@ -15,7 +15,7 @@ class MyFormValidator {
 
   void addField<T>(String name,
       {bool required = false,
-      List<MyFieldValidatorRule<T>> validators = const [],
+      List<FieldValidatorRule<T>> validators = const [],
       String? label,
       TextEditingController? controller}) {
     _validators[name] = _createValidation<T>(name,
@@ -31,7 +31,7 @@ class MyFormValidator {
 
   MyFieldValidator<T> _createValidation<T>(String name,
       {bool required = false,
-      List<MyFieldValidatorRule<T>> validators = const [],
+      List<FieldValidatorRule<T>> validators = const [],
       String? label}) {
     return (T? value) {
       label ??= name.capitalize;
@@ -43,7 +43,7 @@ class MyFormValidator {
       if (required && (value == null || (value.toString().isEmpty))) {
         return S.of(Get.context!).oathRequired;
       }
-      for (MyFieldValidatorRule validator in validators) {
+      for (FieldValidatorRule validator in validators) {
         String? validationError =
             validator.validate(value, required, getData());
         if (validationError != null) {

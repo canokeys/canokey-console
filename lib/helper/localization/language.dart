@@ -8,8 +8,7 @@ class Language {
 
   static List<Language> languages = [
     Language(Locale('en'), "English"),
-    Language(
-        Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'), "简体中文"),
+    Language(Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'), "简体中文"),
   ];
 
   Language(this.locale, this.languageName);

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:base32/base32.dart';
-import 'package:canokey_console/controller/my_controller.dart';
+import 'package:canokey_console/controller/base_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/tlv.dart';
@@ -18,7 +18,7 @@ import 'package:timer_controller/timer_controller.dart';
 
 final log = Logger('Console:OATH:Controller');
 
-class OathController extends MyController {
+class OathController extends Controller {
   final Function(String issuer, String account, String secretHex, OathType type, OathAlgorithm algo, int digits, int initValue) showQrConfirmDialog;
   String _codeCache = '';
   String _uid = '';
@@ -277,8 +277,6 @@ class OathController extends MyController {
       return;
     }
     final counter = int.parse(query['counter'] ?? '0');
-
-    Navigator.pop(Get.context!);
     showQrConfirmDialog(issuer, account, secretHex, type, algo, digits, counter);
   }
 

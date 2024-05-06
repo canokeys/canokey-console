@@ -1,6 +1,8 @@
 PODS:
   - ccid (0.1.1):
     - FlutterMacOS
+  - device_info_plus (0.0.1):
+    - FlutterMacOS
   - flutter_webrtc (0.9.36):
     - FlutterMacOS
     - WebRTC-SDK (= 114.5735.09)
@@ -19,6 +21,7 @@ PODS:
 
 DEPENDENCIES:
   - ccid (from `Flutter/ephemeral/.symlinks/plugins/ccid/macos`)
+  - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
   - flutter_webrtc (from `Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - mobile_scanner (from `Flutter/ephemeral/.symlinks/plugins/mobile_scanner/macos`)
@@ -33,6 +36,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   ccid:
     :path: Flutter/ephemeral/.symlinks/plugins/ccid/macos
+  device_info_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
   flutter_webrtc:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos
   FlutterMacOS:
@@ -48,6 +53,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   ccid: 27d2241987cf780c752a5567dc07cceaa226fcde
+  device_info_plus: ce1b7762849d3ec103d0e0517299f2db7ad60720
   flutter_webrtc: e72bd998301fa4abde8ac5fdea3d6ca2dcab1fc0
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   mobile_scanner: a4a27e8b2f2366195782c0255e29ff75f38c94a9

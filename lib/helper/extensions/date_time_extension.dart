@@ -13,20 +13,7 @@ extension DateTimeExtension on DateTime {
   }
 
   String getMonthName({bool short = true}) {
-    String cMonth = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ][month - 1];
+    String cMonth = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][month - 1];
     return short ? cMonth.substring(0, 3) : cMonth;
   }
 }

@@ -1,11 +1,11 @@
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
-import 'package:canokey_console/helper/utils/my_shadow.dart';
+import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
-import 'package:canokey_console/helper/widgets/my_card.dart';
-import 'package:canokey_console/helper/widgets/my_container.dart';
-import 'package:canokey_console/helper/widgets/my_spacing.dart';
-import 'package:canokey_console/helper/widgets/my_text.dart';
+import 'package:canokey_console/helper/widgets/customized_card.dart';
+import 'package:canokey_console/helper/widgets/customized_container.dart';
+import 'package:canokey_console/helper/widgets/spacing.dart';
+import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/route_manager.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -54,9 +54,9 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
   @override
   Widget build(BuildContext context) {
     isCondensed = widget.isCondensed;
-    return MyCard(
+    return CustomizedCard(
       paddingAll: 0,
-      shadow: MyShadow(position: MyShadowPosition.centerRight, elevation: 0.2),
+      shadow: Shadow(position: ShadowPosition.centerRight, elevation: 0.2),
       child: AnimatedContainer(
         color: leftBarTheme.background,
         width: isCondensed ? 70 : 260,
@@ -65,7 +65,7 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (isMobile()) MySpacing.height(60),
+            if (isMobile()) Spacing.height(60),
             SizedBox(
               height: 70,
               child: Row(
@@ -75,12 +75,12 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
                   if (!widget.isCondensed)
                     Flexible(
                       fit: FlexFit.loose,
-                      child: MySpacing.width(16),
+                      child: Spacing.width(16),
                     ),
                   if (!widget.isCondensed)
                     Flexible(
                       fit: FlexFit.loose,
-                      child: MyText.labelLarge(
+                      child: CustomizedText.labelLarge(
                         "CanoKey",
                         style: GoogleFonts.raleway(fontSize: 24, fontWeight: FontWeight.w800, color: contentTheme.primary, letterSpacing: 1),
                         maxLines: 1,
@@ -150,10 +150,10 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
 
   Widget labelWidget(String label) {
     return isCondensed
-        ? MySpacing.empty()
+        ? Spacing.empty()
         : Container(
-            padding: MySpacing.xy(24, 8),
-            child: MyText.labelSmall(
+            padding: Spacing.xy(24, 8),
+            child: CustomizedText.labelSmall(
               label.toUpperCase(),
               color: leftBarTheme.labelColor,
               muted: true,
@@ -197,10 +197,10 @@ class _NavigationItemState extends State<NavigationItem> with UIMixin {
         onExit: (event) {
           setState(() => isHover = false);
         },
-        child: MyContainer.transparent(
-          margin: MySpacing.fromLTRB(16, 0, 16, 8),
+        child: CustomizedContainer.transparent(
+          margin: Spacing.fromLTRB(16, 0, 16, 8),
           color: isActive || isHover ? leftBarTheme.activeItemBackground : Colors.transparent,
-          padding: MySpacing.xy(8, 8),
+          padding: Spacing.xy(8, 8),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -208,11 +208,11 @@ class _NavigationItemState extends State<NavigationItem> with UIMixin {
                 Center(
                   child: Icon(widget.iconData, color: (isHover || isActive) ? leftBarTheme.activeItemColor : leftBarTheme.onBackground, size: 20),
                 ),
-              if (!widget.isCondensed) Flexible(fit: FlexFit.loose, child: MySpacing.width(16)),
+              if (!widget.isCondensed) Flexible(fit: FlexFit.loose, child: Spacing.width(16)),
               if (!widget.isCondensed)
                 Expanded(
                   flex: 3,
-                  child: MyText.labelLarge(widget.title,
+                  child: CustomizedText.labelLarge(widget.title,
                       overflow: TextOverflow.clip, maxLines: 1, color: isActive || isHover ? leftBarTheme.activeItemColor : leftBarTheme.onBackground),
                 )
             ],

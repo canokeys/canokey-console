@@ -4,11 +4,11 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
-import 'package:canokey_console/helper/widgets/my_button.dart';
-import 'package:canokey_console/helper/widgets/my_field_validator.dart';
-import 'package:canokey_console/helper/widgets/my_form_validator.dart';
-import 'package:canokey_console/helper/widgets/my_spacing.dart';
-import 'package:canokey_console/helper/widgets/my_text.dart';
+import 'package:canokey_console/helper/widgets/customized_button.dart';
+import 'package:canokey_console/helper/widgets/field_validator.dart';
+import 'package:canokey_console/helper/widgets/form_validator.dart';
+import 'package:canokey_console/helper/widgets/spacing.dart';
+import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
@@ -38,11 +38,11 @@ class Prompts {
 
     if (isIOS()) {
       MaterialBanner banner = MaterialBanner(
-        content: MyText.labelMedium(content, color: color),
-        padding: MySpacing.x(24),
+        content: CustomizedText.labelMedium(content, color: color),
+        padding: Spacing.x(24),
         backgroundColor: backgroundColor,
         overflowAlignment: OverflowBarAlignment.center,
-        actions: [MySpacing.empty()],
+        actions: [Spacing.empty()],
       );
       ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
       ScaffoldMessenger.of(Get.context!).showMaterialBanner(banner);
@@ -56,7 +56,7 @@ class Prompts {
         duration: Duration(seconds: 3),
         showCloseIcon: true,
         closeIconColor: color,
-        content: MyText.labelLarge(content, color: color),
+        content: CustomizedText.labelLarge(content, color: color),
         backgroundColor: backgroundColor,
       );
       ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
@@ -69,11 +69,11 @@ class Prompts {
     required String label,
     required String prompt,
     bool required = true,
-    List<MyFieldValidatorRule> validators = const [],
+    List<FieldValidatorRule> validators = const [],
   }) {
     RxBool showPassword = false.obs;
     Completer<String> c = new Completer<String>();
-    MyFormValidator validator = MyFormValidator();
+    FormValidator validator = FormValidator();
     validator.addField('pin', required: required, controller: TextEditingController(), validators: validators);
 
     onSubmit() {
@@ -92,18 +92,18 @@ class Prompts {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: MySpacing.all(16),
-                  child: MyText.labelLarge(title),
+                  padding: Spacing.all(16),
+                  child: CustomizedText.labelLarge(title),
                 ),
                 Divider(height: 0, thickness: 1),
                 Padding(
-                    padding: MySpacing.all(16),
+                    padding: Spacing.all(16),
                     child: Form(
                         key: validator.formKey,
                         child: Column(
                           children: [
-                            MyText.bodyMedium(prompt),
-                            MySpacing.height(16),
+                            CustomizedText.bodyMedium(prompt),
+                            Spacing.height(16),
                             Obx(() => TextFormField(
                                   autofocus: true,
                                   onFieldSubmitted: (_) => onSubmit(),
@@ -128,27 +128,27 @@ class Prompts {
                         ))),
                 Divider(height: 0, thickness: 1),
                 Padding(
-                  padding: MySpacing.all(16),
+                  padding: Spacing.all(16),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      MyButton.rounded(
+                      CustomizedButton.rounded(
                         onPressed: () {
                           Navigator.pop(Get.context!);
                           c.completeError(UserCanceledError());
                         },
                         elevation: 0,
-                        padding: MySpacing.xy(20, 16),
+                        padding: Spacing.xy(20, 16),
                         backgroundColor: ContentThemeColor.secondary.color,
-                        child: MyText.labelMedium(S.of(Get.context!).cancel, color: ContentThemeColor.secondary.onColor),
+                        child: CustomizedText.labelMedium(S.of(Get.context!).cancel, color: ContentThemeColor.secondary.onColor),
                       ),
-                      MySpacing.width(16),
-                      MyButton.rounded(
+                      Spacing.width(16),
+                      CustomizedButton.rounded(
                         onPressed: onSubmit,
                         elevation: 0,
-                        padding: MySpacing.xy(20, 16),
+                        padding: Spacing.xy(20, 16),
                         backgroundColor: ContentThemeColor.primary.color,
-                        child: MyText.labelMedium(S.of(Get.context!).confirm, color: ContentThemeColor.primary.onColor),
+                        child: CustomizedText.labelMedium(S.of(Get.context!).confirm, color: ContentThemeColor.primary.onColor),
                       ),
                     ],
                   ),

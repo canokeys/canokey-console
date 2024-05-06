@@ -22,15 +22,11 @@ enum ContentThemeColor {
   blue;
 
   Color get color {
-    return (AdminTheme.theme.contentTheme.getMappedIntoThemeColor[this]
-            ?['color']) ??
-        Colors.black;
+    return (AdminTheme.theme.contentTheme.getMappedIntoThemeColor[this]?['color']) ?? Colors.black;
   }
 
   Color get onColor {
-    return (AdminTheme.theme.contentTheme.getMappedIntoThemeColor[this]
-            ?['onColor']) ??
-        Colors.white;
+    return (AdminTheme.theme.contentTheme.getMappedIntoThemeColor[this]?['onColor']) ?? Colors.white;
   }
 }
 
@@ -77,9 +73,7 @@ class TopBarTheme {
 
   static final TopBarTheme lightTopBarTheme = TopBarTheme();
 
-  static final TopBarTheme darkTopBarTheme = TopBarTheme(
-      background: const Color(0xff2c3036),
-      onBackground: const Color(0xffdcdcdc));
+  static final TopBarTheme darkTopBarTheme = TopBarTheme(background: const Color(0xff2c3036), onBackground: const Color(0xffdcdcdc));
 }
 
 class ContentTheme {
@@ -105,10 +99,7 @@ class ContentTheme {
     var c = AdminTheme.theme.contentTheme;
     return {
       ContentThemeColor.primary: {'color': c.primary, 'onColor': c.onPrimary},
-      ContentThemeColor.secondary: {
-        'color': c.secondary,
-        'onColor': c.onSecondary
-      },
+      ContentThemeColor.secondary: {'color': c.secondary, 'onColor': c.onSecondary},
       ContentThemeColor.success: {'color': c.success, 'onColor': c.onSuccess},
       ContentThemeColor.info: {'color': c.info, 'onColor': c.onInfo},
       ContentThemeColor.warning: {'color': c.warning, 'onColor': c.onWarning},
@@ -194,25 +185,15 @@ class AdminTheme {
     required this.contentTheme,
   });
 
-  static AdminTheme theme = AdminTheme(
-      leftBarTheme: LeftBarTheme.lightLeftBarTheme,
-      topBarTheme: TopBarTheme.lightTopBarTheme,
-      contentTheme: ContentTheme.lightContentTheme);
+  static AdminTheme theme =
+      AdminTheme(leftBarTheme: LeftBarTheme.lightLeftBarTheme, topBarTheme: TopBarTheme.lightTopBarTheme, contentTheme: ContentTheme.lightContentTheme);
 
   static void setTheme() {
     theme = AdminTheme(
-        leftBarTheme: ThemeCustomizer.instance.theme == ThemeMode.dark
-            ? LeftBarTheme.darkLeftBarTheme
-            : LeftBarTheme.darkLeftBarTheme,
-        topBarTheme: ThemeCustomizer.instance.theme == ThemeMode.dark
-            ? TopBarTheme.darkTopBarTheme
-            : TopBarTheme.lightTopBarTheme,
-        contentTheme: ThemeCustomizer.instance.theme == ThemeMode.dark
-            ? ContentTheme.darkContentTheme
-            : ContentTheme.lightContentTheme);
+        leftBarTheme: ThemeCustomizer.instance.theme == ThemeMode.dark ? LeftBarTheme.darkLeftBarTheme : LeftBarTheme.darkLeftBarTheme,
+        topBarTheme: ThemeCustomizer.instance.theme == ThemeMode.dark ? TopBarTheme.darkTopBarTheme : TopBarTheme.lightTopBarTheme,
+        contentTheme: ThemeCustomizer.instance.theme == ThemeMode.dark ? ContentTheme.darkContentTheme : ContentTheme.lightContentTheme);
 
-    AppTheme.themeType = ThemeCustomizer.instance.theme == ThemeMode.light
-        ? ThemeType.light
-        : ThemeType.dark;
+    AppTheme.themeType = ThemeCustomizer.instance.theme == ThemeMode.light ? ThemeType.light : ThemeType.dark;
   }
 }
