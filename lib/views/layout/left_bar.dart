@@ -114,12 +114,12 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
                     isCondensed: isCondensed,
                     route: '/applets/pass',
                   ),
-                  // NavigationItem(
-                  //   iconData: LucideIcons.creditCard,
-                  //   title: "PIV",
-                  //   isCondensed: isCondensed,
-                  //   route: '/applets/piv',
-                  // ),
+                  NavigationItem(
+                    iconData: LucideIcons.creditCard,
+                    title: "PIV",
+                    isCondensed: isCondensed,
+                    route: '/applets/piv',
+                  ),
                   // NavigationItem(
                   //   iconData: LucideIcons.lock,
                   //   title: "OpenPGP",

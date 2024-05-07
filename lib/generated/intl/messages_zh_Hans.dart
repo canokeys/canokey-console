@@ -30,9 +30,9 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m4(retries) => "PIN 输入错误，剩余重试次数：${retries}";
 
-  static String m5(applet) => "该操作将抹除 ${applet} 的全部数据！";
+  static String m6(applet) => "该操作将抹除 ${applet} 的全部数据！";
 
-  static String m6(name) => "您正在删除${name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。";
+  static String m7(name) => "您正在删除${name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -156,6 +156,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "pinLength": MessageLookupByLibrary.simpleMessage("输入的 PIN 长度错误"),
         "pinRetries": m4,
         "pivChangePUK": MessageLookupByLibrary.simpleMessage("修改 PUK"),
+        "pivNewPUK": MessageLookupByLibrary.simpleMessage("新 PUK"),
+        "pivOldPUK": MessageLookupByLibrary.simpleMessage("旧 PUK"),
+        "pivPinManagement": MessageLookupByLibrary.simpleMessage("管理 PIN"),
         "pollCanceled": MessageLookupByLibrary.simpleMessage("您没有选择任何 CanoKey"),
         "pollCanoKey":
             MessageLookupByLibrary.simpleMessage("请点击右上角刷新按钮读取 CanoKey"),
@@ -185,7 +188,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsResetAll": MessageLookupByLibrary.simpleMessage("重置 CanoKey"),
         "settingsResetAllPrompt": MessageLookupByLibrary.simpleMessage(
             "即将抹除全部数据。当您确认后，CanoKey 将会反复闪烁，请在闪烁时触摸，直到提示成功。"),
-        "settingsResetApplet": m5,
+        "settingsResetApplet": m6,
         "settingsResetConditionNotSatisfying":
             MessageLookupByLibrary.simpleMessage("PIN 尚未锁定"),
         "settingsResetNDEF": MessageLookupByLibrary.simpleMessage("重置 NDEF"),
@@ -209,7 +212,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "warning": MessageLookupByLibrary.simpleMessage("警告"),
         "webauthnClientPinNotSupported":
             MessageLookupByLibrary.simpleMessage("该密钥不支持 WebAuthn PIN。"),
-        "webauthnDelete": m6,
+        "webauthnDelete": m7,
         "webauthnInputPinPrompt":
             MessageLookupByLibrary.simpleMessage("请输入您的 WebAuthn PIN。"),
         "webauthnInputPinTitle":

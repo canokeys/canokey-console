@@ -150,5 +150,9 @@
   "webauthnDelete": "您正在删除{name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。",
   "webauthnPinAuthBlocked": "PIN 被锁定，请重新插拔 CanoKey。",
   "webauthnPinBlocked": "PIN 被锁定，请重置 WebAuthn。",
-  "pivChangePUK": "修改 PUK"
+  "pivPinManagement": "管理 PIN",
+  "pivChangePUK": "修改 PUK",
+  "pivOldPUK": "旧 PUK",
+  "pivNewPUK": "新 PUK",
+  "pivChangePinPrompt": "新 PUK 的长度应当为 {min} - {max} 个字符。"
 }

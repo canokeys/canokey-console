@@ -33,10 +33,13 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m4(retries) => "Incorrect PIN. ${retries} retries left.";
 
-  static String m5(applet) =>
+  static String m5(min, max) =>
+      "New PUK should be at least ${min} characters long. The maximum length is ${max}.";
+
+  static String m6(applet) =>
       "This operation will RESET all data of ${applet}!";
 
-  static String m6(name) =>
+  static String m7(name) =>
       "This action will delete the account ${name} from your CanoKey. Make sure you have other ways to log in.";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -186,6 +189,11 @@ class MessageLookup extends MessageLookupByLibrary {
             "The provided PIN is too short or too long."),
         "pinRetries": m4,
         "pivChangePUK": MessageLookupByLibrary.simpleMessage("Change PUK"),
+        "pivChangePUKPrompt": m5,
+        "pivNewPUK": MessageLookupByLibrary.simpleMessage("New PUK"),
+        "pivOldPUK": MessageLookupByLibrary.simpleMessage("Old PUK"),
+        "pivPinManagement":
+            MessageLookupByLibrary.simpleMessage("PIN Management"),
         "pollCanceled":
             MessageLookupByLibrary.simpleMessage("No CanoKey is selected."),
         "pollCanoKey": MessageLookupByLibrary.simpleMessage(
@@ -223,7 +231,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Reset CanoKey"),
         "settingsResetAllPrompt": MessageLookupByLibrary.simpleMessage(
             "All data is about to be erased. When you confirm, the CanoKey will blink repeatedly. Touch while it is blinking until success."),
-        "settingsResetApplet": m5,
+        "settingsResetApplet": m6,
         "settingsResetConditionNotSatisfying":
             MessageLookupByLibrary.simpleMessage("PIN has not been locked yet"),
         "settingsResetNDEF": MessageLookupByLibrary.simpleMessage("Reset NDEF"),
@@ -250,7 +258,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "warning": MessageLookupByLibrary.simpleMessage("Warning"),
         "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
             "This key does not support WebAuthn PIN."),
-        "webauthnDelete": m6,
+        "webauthnDelete": m7,
         "webauthnInputPinPrompt": MessageLookupByLibrary.simpleMessage(
             "Please input your WebAuthn PIN."),
         "webauthnInputPinTitle":

@@ -150,5 +150,9 @@
   "webauthnDelete": "This action will delete the account {name} from your CanoKey. Make sure you have other ways to log in.",
   "webauthnPinAuthBlocked": "PIN authentication is blocked. Please reinsert you CanoKey to retry.",
   "webauthnPinBlocked": "PIN authentication is blocked. Please reset WebAuthn.",
-  "pivChangePUK": "Change PUK"
+  "pivPinManagement": "PIN Management",
+  "pivChangePUK": "Change PUK",
+  "pivOldPUK": "Old PUK",
+  "pivNewPUK": "New PUK",
+  "pivChangePUKPrompt": "New PUK should be at least {min} characters long. The maximum length is {max}."
 }

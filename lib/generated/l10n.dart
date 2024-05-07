@@ -1560,6 +1560,16 @@ class S {
     );
   }
 
+  /// `PIN Management`
+  String get pivPinManagement {
+    return Intl.message(
+      'PIN Management',
+      name: 'pivPinManagement',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Change PUK`
   String get pivChangePUK {
     return Intl.message(
@@ -1567,6 +1577,36 @@ class S {
       name: 'pivChangePUK',
       desc: '',
       args: [],
+    );
+  }
+
+  /// `Old PUK`
+  String get pivOldPUK {
+    return Intl.message(
+      'Old PUK',
+      name: 'pivOldPUK',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New PUK`
+  String get pivNewPUK {
+    return Intl.message(
+      'New PUK',
+      name: 'pivNewPUK',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New PUK should be at least {min} characters long. The maximum length is {max}.`
+  String pivChangePUKPrompt(Object min, Object max) {
+    return Intl.message(
+      'New PUK should be at least $min characters long. The maximum length is $max.',
+      name: 'pivChangePUKPrompt',
+      desc: '',
+      args: [min, max],
     );
   }
 }
