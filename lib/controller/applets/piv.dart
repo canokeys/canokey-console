@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:canokey_console/controller/base_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:convert/convert.dart';
+import 'package:dart_des/dart_des.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
@@ -54,6 +58,29 @@ class PivController extends Controller {
       } else {
         Prompts.promptPinFailureResult(resp);
       }
+    });
+  }
+
+  Future<bool> verifyManagementKey(String key) async {
+    final c = new Completer<bool>();
+    SmartCard.process(() async {
+      SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
+      String resp = await SmartCard.transceive('0087039B047C028100');
+      SmartCard.assertOK(resp);
+      String challenge = resp.substring(8, resp.length - 4);
+      DES3 des3 = DES3(key: hex.decode(key));
+      String auth = hex.encode(des3.encrypt(hex.decode(challenge))).substring(0, 16);
+      resp = await SmartCard.transceive('0087039B0C7C0A8208$auth');
+      c.complete(SmartCard.isOK(resp));
+    });
+    return c.future;
+  }
+
+  setManagementKey(String key) async {
+    SmartCard.process(() async {
+      SmartCard.assertOK(await SmartCard.transceive('00FFFFFF1B039B18$key'));
+      Navigator.pop(Get.context!);
+      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
     });
   }
 

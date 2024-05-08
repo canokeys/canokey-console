@@ -250,10 +250,10 @@ class S {
     );
   }
 
-  /// `Old PIN`
+  /// `Current PIN`
   String get oldPin {
     return Intl.message(
-      'Old PIN',
+      'Current PIN',
       name: 'oldPin',
       desc: '',
       args: [],
@@ -1580,10 +1580,10 @@ class S {
     );
   }
 
-  /// `Old PUK`
+  /// `Current PUK`
   String get pivOldPUK {
     return Intl.message(
-      'Old PUK',
+      'Current PUK',
       name: 'pivOldPUK',
       desc: '',
       args: [],
@@ -1607,6 +1607,96 @@ class S {
       name: 'pivChangePUKPrompt',
       desc: '',
       args: [min, max],
+    );
+  }
+
+  /// `Change Management Key`
+  String get pivChangeManagementKey {
+    return Intl.message(
+      'Change Management Key',
+      name: 'pivChangeManagementKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New Management Key should be 24 bytes long. Please save it in a safe place.`
+  String get pivChangeManagementKeyPrompt {
+    return Intl.message(
+      'New Management Key should be 24 bytes long. Please save it in a safe place.',
+      name: 'pivChangeManagementKeyPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Current Management Key`
+  String get pivOldManagementKey {
+    return Intl.message(
+      'Current Management Key',
+      name: 'pivOldManagementKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New Management Key`
+  String get pivNewManagementKey {
+    return Intl.message(
+      'New Management Key',
+      name: 'pivNewManagementKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use Default`
+  String get pivUseDefaultManagementKey {
+    return Intl.message(
+      'Use Default',
+      name: 'pivUseDefaultManagementKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Random`
+  String get pivRandomManagementKey {
+    return Intl.message(
+      'Random',
+      name: 'pivRandomManagementKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Management Key verification failed`
+  String get pivManagementKeyVerificationFailed {
+    return Intl.message(
+      'Management Key verification failed',
+      name: 'pivManagementKeyVerificationFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please input a valid hexadecimal string.`
+  String get validationHexString {
+    return Intl.message(
+      'Please input a valid hexadecimal string.',
+      name: 'validationHexString',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Need exact {length} characters`
+  String validationExactLength(Object length) {
+    return Intl.message(
+      'Need exact $length characters',
+      name: 'validationExactLength',
+      desc: '',
+      args: [length],
     );
   }
 }

@@ -25,7 +25,8 @@ dependencies:
   intl: ^0.18.1
   flutter_nfc_kit: ^3.4.2
   base32: ^2.1.1
-  cryptography: ^2.0.5
+  cryptography: ^2.7.0
+  cryptography_flutter: ^2.3.2
   convert: ^3.0.1
   logging: ^1.0.2
   percent_indicator: ^4.0.1
@@ -41,6 +42,7 @@ dependencies:
   fido2: ^0.0.4
   ccid: ^0.1.1
   device_info_plus: ^10.1.0
+  dart_des: ^1.0.2
 
 dev_dependencies:
   flutter_test:

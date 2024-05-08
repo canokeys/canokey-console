@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:canokey_console/controller/applets/piv.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
@@ -16,6 +18,7 @@ import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/views/layout/layout.dart';
+import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
@@ -143,6 +146,14 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                                   borderRadiusAll: AppStyle.buttonRadius.medium,
                                   child: CustomizedText.bodySmall(S.of(context).pivChangePUK, color: contentTheme.onPrimary),
                                 ),
+                                CustomizedButton(
+                                  onPressed: showChangeManagementKeyDialog,
+                                  elevation: 0,
+                                  padding: Spacing.xy(20, 16),
+                                  backgroundColor: contentTheme.primary,
+                                  borderRadiusAll: AppStyle.buttonRadius.medium,
+                                  child: CustomizedText.bodySmall(S.of(context).pivChangeManagementKey, color: contentTheme.onPrimary),
+                                ),
                               ],
                             ),
                           ),
@@ -173,100 +184,225 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     validator.addField('oldPin', required: true, controller: TextEditingController(), validators: validators);
     validator.addField('newPin', required: true, controller: TextEditingController(), validators: validators);
 
-    Get.dialog(
-        Dialog(
-          child: SizedBox(
-            width: 400,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: Spacing.all(16),
-                  child: CustomizedText.labelLarge(title),
-                ),
-                Divider(height: 0, thickness: 1),
-                Padding(
-                    padding: Spacing.all(16),
-                    child: Form(
-                        key: validator.formKey,
-                        child: Column(
-                          children: [
-                            CustomizedText.bodyMedium(prompt),
-                            Spacing.height(16),
-                            Obx(() => TextFormField(
-                                  autofocus: true,
-                                  onTap: () => SmartCard.eject(),
-                                  obscureText: !showOldPin.value,
-                                  controller: validator.getController('oldPin'),
-                                  validator: validator.getValidator('oldPin'),
-                                  decoration: InputDecoration(
-                                    labelText: oldValueLabel,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                                      borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onBackground.withAlpha(80)),
-                                    ),
-                                    floatingLabelBehavior: FloatingLabelBehavior.auto,
-                                    suffixIcon: IconButton(
-                                      onPressed: () => showOldPin.value = !showOldPin.value,
-                                      icon: Icon(showOldPin.value ? Icons.visibility_off_outlined : Icons.visibility_outlined),
-                                    ),
-                                  ),
-                                )),
-                            Spacing.height(16),
-                            Obx(() => TextFormField(
-                                  onTap: () => SmartCard.eject(),
-                                  obscureText: !showNewPin.value,
-                                  controller: validator.getController('newPin'),
-                                  validator: validator.getValidator('newPin'),
-                                  decoration: InputDecoration(
-                                    labelText: newValueLabel,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                                      borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onBackground.withAlpha(80)),
-                                    ),
-                                    floatingLabelBehavior: FloatingLabelBehavior.auto,
-                                    suffixIcon: IconButton(
-                                      onPressed: () => showNewPin.value = !showNewPin.value,
-                                      icon: Icon(showNewPin.value ? Icons.visibility_off_outlined : Icons.visibility_outlined),
-                                    ),
-                                  ),
-                                )),
-                          ],
-                        ))),
-                Divider(height: 0, thickness: 1),
-                Padding(
-                  padding: Spacing.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      CustomizedButton.rounded(
-                        onPressed: () {
-                          Navigator.pop(Get.context!);
-                        },
-                        elevation: 0,
-                        padding: Spacing.xy(20, 16),
-                        backgroundColor: ContentThemeColor.secondary.color,
-                        child: CustomizedText.labelMedium(S.of(Get.context!).cancel, color: ContentThemeColor.secondary.onColor),
-                      ),
-                      Spacing.width(16),
-                      CustomizedButton.rounded(
-                        onPressed: () {
-                          if (validator.validateForm()) {
-                            handler(validator.getController('oldPin')!.text, validator.getController('newPin')!.text);
-                          }
-                        },
-                        elevation: 0,
-                        padding: Spacing.xy(20, 16),
-                        backgroundColor: ContentThemeColor.primary.color,
-                        child: CustomizedText.labelMedium(S.of(Get.context!).confirm, color: ContentThemeColor.primary.onColor),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+    Get.dialog(Dialog(
+      child: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: Spacing.all(16),
+              child: CustomizedText.labelLarge(title),
             ),
-          ),
-        ));
+            Divider(height: 0, thickness: 1),
+            Padding(
+                padding: Spacing.all(16),
+                child: Form(
+                    key: validator.formKey,
+                    child: Column(
+                      children: [
+                        CustomizedText.bodyMedium(prompt),
+                        Spacing.height(16),
+                        Obx(() => TextFormField(
+                              autofocus: true,
+                              onTap: () => SmartCard.eject(),
+                              obscureText: !showOldPin.value,
+                              controller: validator.getController('oldPin'),
+                              validator: validator.getValidator('oldPin'),
+                              decoration: InputDecoration(
+                                labelText: oldValueLabel,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                                  borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onBackground.withAlpha(80)),
+                                ),
+                                floatingLabelBehavior: FloatingLabelBehavior.auto,
+                                suffixIcon: IconButton(
+                                  onPressed: () => showOldPin.value = !showOldPin.value,
+                                  icon: Icon(showOldPin.value ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                                ),
+                              ),
+                            )),
+                        Spacing.height(16),
+                        Obx(() => TextFormField(
+                              onTap: () => SmartCard.eject(),
+                              obscureText: !showNewPin.value,
+                              controller: validator.getController('newPin'),
+                              validator: validator.getValidator('newPin'),
+                              decoration: InputDecoration(
+                                labelText: newValueLabel,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                                  borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onBackground.withAlpha(80)),
+                                ),
+                                floatingLabelBehavior: FloatingLabelBehavior.auto,
+                                suffixIcon: IconButton(
+                                  onPressed: () => showNewPin.value = !showNewPin.value,
+                                  icon: Icon(showNewPin.value ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                                ),
+                              ),
+                            )),
+                      ],
+                    ))),
+            Divider(height: 0, thickness: 1),
+            Padding(
+              padding: Spacing.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CustomizedButton.rounded(
+                    onPressed: () {
+                      Navigator.pop(Get.context!);
+                    },
+                    elevation: 0,
+                    padding: Spacing.xy(20, 16),
+                    backgroundColor: ContentThemeColor.secondary.color,
+                    child: CustomizedText.labelMedium(S.of(Get.context!).cancel, color: ContentThemeColor.secondary.onColor),
+                  ),
+                  Spacing.width(16),
+                  CustomizedButton.rounded(
+                    onPressed: () {
+                      if (validator.validateForm()) {
+                        handler(validator.getController('oldPin')!.text, validator.getController('newPin')!.text);
+                      }
+                    },
+                    elevation: 0,
+                    padding: Spacing.xy(20, 16),
+                    backgroundColor: ContentThemeColor.primary.color,
+                    child: CustomizedText.labelMedium(S.of(Get.context!).confirm, color: ContentThemeColor.primary.onColor),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
+  }
+
+  showChangeManagementKeyDialog() {
+    FormValidator validator = FormValidator();
+    validator.addField('old', required: true, controller: TextEditingController(), validators: [LengthValidator(exact: 48), HexStringValidator()]);
+    validator.addField('new', required: true, controller: TextEditingController(), validators: [LengthValidator(exact: 48), HexStringValidator()]);
+
+    Get.dialog(Dialog(
+      child: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: Spacing.all(16),
+              child: CustomizedText.labelLarge(S.of(context).pivChangeManagementKey),
+            ),
+            Divider(height: 0, thickness: 1),
+            Padding(
+                padding: Spacing.all(16),
+                child: Form(
+                    key: validator.formKey,
+                    child: Column(children: [
+                      CustomizedText.bodyMedium(S.of(context).pivChangeManagementKeyPrompt),
+                      Spacing.height(16),
+                      Row(children: [
+                        SizedBox(
+                          width: 235,
+                          child: TextFormField(
+                            autofocus: true,
+                            onTap: () => SmartCard.eject(),
+                            controller: validator.getController('old'),
+                            validator: validator.getValidator('old'),
+                            decoration: InputDecoration(
+                              labelText: S.of(context).pivOldManagementKey,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(4)),
+                                borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onBackground.withAlpha(80)),
+                              ),
+                              floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            ),
+                          ),
+                        ),
+                        Spacing.width(16),
+                        CustomizedButton(
+                          onPressed: () {
+                            validator.getController('old')!.text = '010203040506070801020304050607080102030405060708';
+                          },
+                          elevation: 0,
+                          padding: Spacing.xy(20, 16),
+                          backgroundColor: ContentThemeColor.primary.color,
+                          child: CustomizedText.labelMedium(S.of(context).pivUseDefaultManagementKey, color: ContentThemeColor.primary.onColor),
+                        ),
+                      ]),
+                      Spacing.height(16),
+                      Row(children: [
+                        SizedBox(
+                          width: 235,
+                          child: TextFormField(
+                            onTap: () => SmartCard.eject(),
+                            controller: validator.getController('new'),
+                            validator: validator.getValidator('new'),
+                            decoration: InputDecoration(
+                              labelText: S.of(context).pivNewManagementKey,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(4)),
+                                borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onBackground.withAlpha(80)),
+                              ),
+                              floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            ),
+                          ),
+                        ),
+                        Spacing.width(16),
+                        CustomizedButton(
+                          onPressed: () {
+                            final random = Random.secure();
+                            final values = List<int>.generate(24, (i) => random.nextInt(256));
+                            validator.getController('new')!.text = hex.encode(values);
+                          },
+                          elevation: 0,
+                          padding: Spacing.xy(20, 16),
+                          backgroundColor: ContentThemeColor.primary.color,
+                          child: CustomizedText.labelMedium(S.of(context).pivRandomManagementKey, color: ContentThemeColor.primary.onColor),
+                        ),
+                      ])
+                    ]))),
+            Divider(height: 0, thickness: 1),
+            Padding(
+              padding: Spacing.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CustomizedButton.rounded(
+                    onPressed: () {
+                      Navigator.pop(Get.context!);
+                    },
+                    elevation: 0,
+                    padding: Spacing.xy(20, 16),
+                    backgroundColor: ContentThemeColor.secondary.color,
+                    child: CustomizedText.labelMedium(S.of(Get.context!).cancel, color: ContentThemeColor.secondary.onColor),
+                  ),
+                  Spacing.width(16),
+                  CustomizedButton.rounded(
+                    onPressed: () async {
+                      if (validator.validateForm()) {
+                        final oldKey = validator.getController('old')!.text;
+                        if (!await controller.verifyManagementKey(oldKey)) {
+                          Prompts.showPrompt(S.of(Get.context!).pivManagementKeyVerificationFailed, ContentThemeColor.danger);
+                          return;
+                        }
+                        controller.setManagementKey(validator.getController('new')!.text);
+                      }
+                    },
+                    elevation: 0,
+                    padding: Spacing.xy(20, 16),
+                    backgroundColor: ContentThemeColor.primary.color,
+                    child: CustomizedText.labelMedium(S.of(Get.context!).confirm, color: ContentThemeColor.primary.onColor),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
   }
 }

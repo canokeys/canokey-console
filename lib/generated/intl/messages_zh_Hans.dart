@@ -32,7 +32,9 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m6(applet) => "该操作将抹除 ${applet} 的全部数据！";
 
-  static String m7(name) => "您正在删除${name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。";
+  static String m7(length) => "需要 ${length} 个字符";
+
+  static String m8(name) => "您正在删除${name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -110,7 +112,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathTooLong": MessageLookupByLibrary.simpleMessage("长度超限"),
         "oathType": MessageLookupByLibrary.simpleMessage("类型"),
         "off": MessageLookupByLibrary.simpleMessage("关"),
-        "oldPin": MessageLookupByLibrary.simpleMessage("旧 PIN"),
+        "oldPin": MessageLookupByLibrary.simpleMessage("当前 PIN"),
         "on": MessageLookupByLibrary.simpleMessage("开"),
         "openpgpAuthentication": MessageLookupByLibrary.simpleMessage("认证"),
         "openpgpCardHolder": MessageLookupByLibrary.simpleMessage("持卡人"),
@@ -155,10 +157,21 @@ class MessageLookup extends MessageLookupByLibrary {
         "pinInvalidLength": MessageLookupByLibrary.simpleMessage("长度错误"),
         "pinLength": MessageLookupByLibrary.simpleMessage("输入的 PIN 长度错误"),
         "pinRetries": m4,
+        "pivChangeManagementKey":
+            MessageLookupByLibrary.simpleMessage("修改管理密钥"),
+        "pivChangeManagementKeyPrompt": MessageLookupByLibrary.simpleMessage(
+            "新管理密钥的长度应当为 24 字节。请妥善保管管理密钥，否则您将无法管理 PIV 应用。"),
         "pivChangePUK": MessageLookupByLibrary.simpleMessage("修改 PUK"),
+        "pivManagementKeyVerificationFailed":
+            MessageLookupByLibrary.simpleMessage("管理密钥验证失败"),
+        "pivNewManagementKey": MessageLookupByLibrary.simpleMessage("新密钥"),
         "pivNewPUK": MessageLookupByLibrary.simpleMessage("新 PUK"),
-        "pivOldPUK": MessageLookupByLibrary.simpleMessage("旧 PUK"),
+        "pivOldManagementKey": MessageLookupByLibrary.simpleMessage("当前密钥"),
+        "pivOldPUK": MessageLookupByLibrary.simpleMessage("当前 PUK"),
         "pivPinManagement": MessageLookupByLibrary.simpleMessage("管理 PIN"),
+        "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage("随机密钥"),
+        "pivUseDefaultManagementKey":
+            MessageLookupByLibrary.simpleMessage("使用默认密钥"),
         "pollCanceled": MessageLookupByLibrary.simpleMessage("您没有选择任何 CanoKey"),
         "pollCanoKey":
             MessageLookupByLibrary.simpleMessage("请点击右上角刷新按钮读取 CanoKey"),
@@ -209,10 +222,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("WebAuthn SM2"),
         "settingsWebUSB": MessageLookupByLibrary.simpleMessage("插入时 WebUSB 提示"),
         "successfullyChanged": MessageLookupByLibrary.simpleMessage("修改成功"),
+        "validationExactLength": m7,
+        "validationHexString":
+            MessageLookupByLibrary.simpleMessage("请输入十六进制字符串"),
         "warning": MessageLookupByLibrary.simpleMessage("警告"),
         "webauthnClientPinNotSupported":
             MessageLookupByLibrary.simpleMessage("该密钥不支持 WebAuthn PIN。"),
-        "webauthnDelete": m7,
+        "webauthnDelete": m8,
         "webauthnInputPinPrompt":
             MessageLookupByLibrary.simpleMessage("请输入您的 WebAuthn PIN。"),
         "webauthnInputPinTitle":

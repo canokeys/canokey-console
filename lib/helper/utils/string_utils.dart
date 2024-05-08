@@ -208,4 +208,8 @@ class StringUtils {
   static bool validateStringRange(String text, [int minLength = 8, int maxLength = 20]) {
     return text.length >= minLength && text.length <= maxLength;
   }
+
+  static bool isHex(String value) {
+    return RegExp(r'^[0-9a-fA-F]+$').hasMatch(value);
+  }
 }

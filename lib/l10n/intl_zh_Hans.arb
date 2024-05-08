@@ -19,7 +19,7 @@
   "pinLength": "输入的 PIN 长度错误",
   "seconds": "秒",
   "change": "修改",
-  "oldPin": "旧 PIN",
+  "oldPin": "当前 PIN",
   "newPin": "新 PIN",
   "actions": "操作",
   "cancel": "取消",
@@ -152,7 +152,16 @@
   "webauthnPinBlocked": "PIN 被锁定，请重置 WebAuthn。",
   "pivPinManagement": "管理 PIN",
   "pivChangePUK": "修改 PUK",
-  "pivOldPUK": "旧 PUK",
+  "pivOldPUK": "当前 PUK",
   "pivNewPUK": "新 PUK",
-  "pivChangePinPrompt": "新 PUK 的长度应当为 {min} - {max} 个字符。"
+  "pivChangePinPrompt": "新 PUK 的长度应当为 {min} - {max} 个字符。",
+  "pivChangeManagementKey": "修改管理密钥",
+  "pivChangeManagementKeyPrompt": "新管理密钥的长度应当为 24 字节。请妥善保管管理密钥，否则您将无法管理 PIV 应用。",
+  "pivOldManagementKey": "当前密钥",
+  "pivNewManagementKey": "新密钥",
+  "pivUseDefaultManagementKey": "使用默认密钥",
+  "pivRandomManagementKey": "随机密钥",
+  "pivManagementKeyVerificationFailed": "管理密钥验证失败",
+  "validationHexString": "请输入十六进制字符串",
+  "validationExactLength": "需要 {length} 个字符"
 }

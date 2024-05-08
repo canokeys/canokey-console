@@ -19,7 +19,7 @@
   "pinLength": "The provided PIN is too short or too long.",
   "seconds": "seconds",
   "change": "Change",
-  "oldPin": "Old PIN",
+  "oldPin": "Current PIN",
   "newPin": "New PIN",
   "actions": "Actions",
   "cancel": "Cancel",
@@ -152,7 +152,16 @@
   "webauthnPinBlocked": "PIN authentication is blocked. Please reset WebAuthn.",
   "pivPinManagement": "PIN Management",
   "pivChangePUK": "Change PUK",
-  "pivOldPUK": "Old PUK",
+  "pivOldPUK": "Current PUK",
   "pivNewPUK": "New PUK",
-  "pivChangePUKPrompt": "New PUK should be at least {min} characters long. The maximum length is {max}."
+  "pivChangePUKPrompt": "New PUK should be at least {min} characters long. The maximum length is {max}.",
+  "pivChangeManagementKey": "Change Management Key",
+  "pivChangeManagementKeyPrompt": "New Management Key should be 24 bytes long. Please save it in a safe place.",
+  "pivOldManagementKey": "Current Management Key",
+  "pivNewManagementKey": "New Management Key",
+  "pivUseDefaultManagementKey": "Use Default",
+  "pivRandomManagementKey": "Random",
+  "pivManagementKeyVerificationFailed": "Management Key verification failed",
+  "validationHexString": "Please input a valid hexadecimal string.",
+  "validationExactLength": "Need exact {length} characters"
 }
