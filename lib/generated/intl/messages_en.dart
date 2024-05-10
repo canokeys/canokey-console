@@ -196,6 +196,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Authentication"),
         "pivCardAuthentication":
             MessageLookupByLibrary.simpleMessage("Card Authentication"),
+        "pivCertificate": MessageLookupByLibrary.simpleMessage("Certificate"),
         "pivChangeManagementKey":
             MessageLookupByLibrary.simpleMessage("Change Management Key"),
         "pivChangeManagementKeyPrompt": MessageLookupByLibrary.simpleMessage(

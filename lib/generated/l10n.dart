@@ -1900,6 +1900,16 @@ class S {
     );
   }
 
+  /// `Certificate`
+  String get pivCertificate {
+    return Intl.message(
+      'Certificate',
+      name: 'pivCertificate',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Please input a valid hexadecimal string.`
   String get validationHexString {
     return Intl.message(

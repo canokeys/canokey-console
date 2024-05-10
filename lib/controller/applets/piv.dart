@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'dart:typed_data';
 
+import 'package:asn1lib/asn1lib.dart';
 import 'package:canokey_console/controller/base_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
-import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/piv.dart';
@@ -12,6 +13,7 @@ import 'package:dart_des/dart_des.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
+import 'package:x509/x509.dart';
 
 final log = Logger('Console:PIV:Controller');
 
@@ -31,7 +33,7 @@ class PivController extends Controller {
   Future<void> refreshData(String pin) async {
     await SmartCard.process(() async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
-      for (var slot in [0x80, 0x81, 0x9B, 0x9A, 0x9C, 0x9D, 0x9E]) {
+      for (var slot in [0x80, 0x81, 0x9B, 0x9A, 0x9C, 0x9D, 0x9E, 0x82, 0x83]) {
         String resp = await SmartCard.transceive('00F700${hex.encode([slot])}00');
         if (resp.toUpperCase() == '6A88') {
           continue;
@@ -39,6 +41,19 @@ class PivController extends Controller {
         SmartCard.assertOK(resp);
         List<int> metadata = hex.decode(SmartCard.dropSW(resp));
         SlotInfo slotInfo = SlotInfo.parse(slot, metadata);
+        if (_certDO.containsKey(slot)) {
+          resp = await _transceive('00CB3FFF055C035FC1${hex.encode([_certDO[slot]!])}00');
+          if (SmartCard.isOK(resp)) {
+            var bytes = hex.decode(resp.substring(16, resp.length - 4));
+            var p = ASN1Parser(bytes as Uint8List);
+            var o = p.nextObject();
+            if (o is! ASN1Sequence) {
+              throw FormatException('Expected SEQUENCE, got ${o.runtimeType}');
+            }
+            var cert = X509Certificate.fromAsn1(o);
+            slotInfo.cert = cert;
+          }
+        }
         slots[slot] = slotInfo;
       }
 
@@ -107,7 +122,27 @@ class PivController extends Controller {
     return pinHex;
   }
 
-  _parseSlotMetadata(String metadata) {
-    Map elements = TLV.parse(hex.decode(metadata));
+  Future<String> _transceive(String capdu) async {
+    String rapdu = '';
+    do {
+      if (rapdu.length >= 4) {
+        var remain = rapdu.substring(rapdu.length - 2);
+        if (remain != '') {
+          capdu = '00C00000$remain';
+          rapdu = rapdu.substring(0, rapdu.length - 4);
+        }
+      }
+      rapdu += await SmartCard.transceive(capdu);
+    } while (rapdu.substring(rapdu.length - 4, rapdu.length - 2) == '61');
+    return rapdu;
   }
+
+  final Map<int, int> _certDO = {
+    0x9A: 0x05,
+    0x9C: 0x0A,
+    0x9D: 0x0B,
+    0x9E: 0x01,
+    0x82: 0x0D,
+    0x83: 0x0E,
+  };
 }

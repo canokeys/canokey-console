@@ -1,4 +1,5 @@
 import 'package:canokey_console/helper/tlv.dart';
+import 'package:x509/src/x509_base.dart';
 
 enum AlgorithmType {
   pin(0xFF),
@@ -135,6 +136,7 @@ class SlotInfo {
   final bool defaultValue;
   final int retriesCount;
   final int remainingCount;
+  X509Certificate? cert;
 
   SlotInfo(this.number, this.algorithm, this.pinPolicy, this.touchPolicy, this.origin, this.public, this.defaultValue, this.retriesCount, this.remainingCount);
 

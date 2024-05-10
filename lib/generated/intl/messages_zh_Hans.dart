@@ -162,6 +162,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("认证（Authentication）"),
         "pivCardAuthentication":
             MessageLookupByLibrary.simpleMessage("卡认证（Card Authentication）"),
+        "pivCertificate": MessageLookupByLibrary.simpleMessage("证书"),
         "pivChangeManagementKey":
             MessageLookupByLibrary.simpleMessage("修改管理密钥"),
         "pivChangeManagementKeyPrompt": MessageLookupByLibrary.simpleMessage(

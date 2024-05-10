@@ -43,6 +43,8 @@ dependencies:
   ccid: ^0.1.1
   device_info_plus: ^10.1.0
   dart_des: ^1.0.2
+  x509: ^0.2.4+2
+  asn1lib: ^1.5.2
 
 dev_dependencies:
   flutter_test:

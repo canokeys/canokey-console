@@ -16,4 +16,8 @@ extension DateTimeExtension on DateTime {
     String cMonth = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][month - 1];
     return short ? cMonth.substring(0, 3) : cMonth;
   }
+
+  String toIsoDateString() {
+    return '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+  }
 }

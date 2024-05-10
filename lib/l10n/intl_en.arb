@@ -184,6 +184,7 @@
   "pivOrigin": "Origin",
   "pivOriginGenerated": "Generated",
   "pivOriginImported": "Imported",
+  "pivCertificate": "Certificate",
   "validationHexString": "Please input a valid hexadecimal string.",
   "validationExactLength": "Need exact {length} characters"
 }

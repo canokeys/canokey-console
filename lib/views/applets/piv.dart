@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:canokey_console/controller/applets/piv.dart';
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/extensions/date_time_extension.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_style.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
@@ -187,17 +188,17 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _buildInfo(S.of(context).pivAuthentication, '9A', controller.slots[0x9A], () {}),
+                                  _buildInfo(S.of(context).pivAuthentication, '9A', controller.slots[0x9A]),
                                   Spacing.height(16),
-                                  _buildInfo(S.of(context).pivSignature, '9C', controller.slots[0x9C], () {}),
+                                  _buildInfo(S.of(context).pivSignature, '9C', controller.slots[0x9C]),
                                   Spacing.height(16),
-                                  _buildInfo(S.of(context).pivKeyManagement, '9D', controller.slots[0x9D], () {}),
+                                  _buildInfo(S.of(context).pivKeyManagement, '9D', controller.slots[0x9D]),
                                   Spacing.height(16),
-                                  _buildInfo(S.of(context).pivCardAuthentication, '9E', controller.slots[0x9E], () {}),
+                                  _buildInfo(S.of(context).pivCardAuthentication, '9E', controller.slots[0x9E]),
                                   Spacing.height(16),
-                                  _buildInfo(S.of(context).pivRetired1, '82', controller.slots[0x82], () {}),
+                                  _buildInfo(S.of(context).pivRetired1, '82', controller.slots[0x82]),
                                   Spacing.height(16),
-                                  _buildInfo(S.of(context).pivRetired2, '83', controller.slots[0x83], () {}),
+                                  _buildInfo(S.of(context).pivRetired2, '83', controller.slots[0x83]),
                                 ],
                               )),
                         ],
@@ -449,9 +450,11 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     ));
   }
 
-  Widget _buildInfo(String title, String slotNumber, SlotInfo? slot, GestureTapCallback handler) {
+  Widget _buildInfo(String title, String slotNumber, SlotInfo? slot) {
     return InkWell(
-      onTap: handler,
+      onTap: () {
+        _showSlotDetailDialog(title, slotNumber, slot);
+      },
       child: Row(
         children: [
           CustomizedContainer(
@@ -468,9 +471,9 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                 CustomizedText.bodyMedium('$title - $slotNumber', fontSize: 16),
                 if (slot != null) ...[
                   InkWell(child: CustomizedText.bodySmall('${S.of(context).pivAlgorithm}: ${slot.algorithm.name.toUpperCase()}')),
-                  InkWell(child: CustomizedText.bodySmall('${S.of(context).pivPinPolicy}: ${_pinPolicy(slot.pinPolicy)}')),
-                  InkWell(child: CustomizedText.bodySmall('${S.of(context).pivTouchPolicy}: ${_touchPolicy(slot.touchPolicy)}')),
-                  InkWell(child: CustomizedText.bodySmall('${S.of(context).pivOrigin}: ${_origin(slot.origin)}')),
+                  InkWell(
+                      child: CustomizedText.bodySmall(
+                          '${S.of(context).pivCertificate}: ${slot.cert?.tbsCertificate.subject?.toString() ?? S.of(context).pivEmpty}')),
                 ] else ...[
                   CustomizedText.bodySmall(S.of(context).pivEmpty),
                 ],
@@ -482,7 +485,108 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
       ),
     );
   }
-  
+
+  _showSlotDetailDialog(String title, String slotNumber, SlotInfo? slot) {
+    Get.dialog(Dialog(
+      child: SizedBox(
+        width: 430,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: Spacing.all(16),
+              child: CustomizedText.labelLarge('$title - $slotNumber'),
+            ),
+            Divider(height: 0, thickness: 1),
+            if (slot != null && slot.cert != null) ...[
+              Padding(
+                  padding: Spacing.all(16),
+                  child: Form(
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          initialValue: slot.cert!.tbsCertificate.subject!.toString(),
+                          readOnly: true,
+                          decoration: InputDecoration(labelText: 'Subject', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
+                        ),
+                        Spacing.height(16),
+                        TextFormField(
+                          initialValue: slot.cert!.tbsCertificate.issuer!.toString(),
+                          readOnly: true,
+                          decoration: InputDecoration(labelText: 'Issuer', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
+                        ),
+                        Spacing.height(16),
+                        TextFormField(
+                          initialValue: slot.cert!.tbsCertificate.serialNumber!.toRadixString(16),
+                          readOnly: true,
+                          decoration: InputDecoration(labelText: 'Serial', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
+                        ),
+                        Spacing.height(16),
+                        TextFormField(
+                          initialValue: slot.cert!.tbsCertificate.validity!.notBefore.toIsoDateString(),
+                          readOnly: true,
+                          decoration: InputDecoration(labelText: 'Valid from', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
+                        ),
+                        Spacing.height(16),
+                        TextFormField(
+                          initialValue: slot.cert!.tbsCertificate.validity!.notAfter.toIsoDateString(),
+                          readOnly: true,
+                          decoration: InputDecoration(labelText: 'Valid to', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
+                        ),
+                        Spacing.height(16),
+                      ],
+                    ),
+                  )),
+              Divider(height: 0, thickness: 1)
+            ],
+            Padding(
+              padding: Spacing.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CustomizedButton.rounded(
+                    onPressed: () => Navigator.pop(context),
+                    elevation: 0,
+                    padding: Spacing.xy(20, 16),
+                    backgroundColor: contentTheme.primary,
+                    child: CustomizedText.labelMedium('Generate', color: contentTheme.onSecondary),
+                  ),
+                  Spacing.width(12),
+                  CustomizedButton.rounded(
+                    onPressed: () {},
+                    elevation: 0,
+                    padding: Spacing.xy(20, 16),
+                    backgroundColor: contentTheme.primary,
+                    child: CustomizedText.labelMedium('Import', color: contentTheme.onPrimary),
+                  ),
+                  if (slot != null) ...[
+                    Spacing.width(12),
+                    CustomizedButton.rounded(
+                      onPressed: () {},
+                      elevation: 0,
+                      padding: Spacing.xy(20, 16),
+                      backgroundColor: contentTheme.primary,
+                      child: CustomizedText.labelMedium('Export', color: contentTheme.onPrimary),
+                    ),
+                    Spacing.width(12),
+                    CustomizedButton.rounded(
+                      onPressed: () {},
+                      elevation: 0,
+                      padding: Spacing.xy(20, 16),
+                      backgroundColor: contentTheme.danger,
+                      child: CustomizedText.labelMedium('Delete', color: contentTheme.onDanger),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
+  }
+
   String _pinPolicy(PinPolicy policy) {
     switch (policy) {
       case PinPolicy.never:
