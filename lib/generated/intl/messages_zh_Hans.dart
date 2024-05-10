@@ -157,19 +157,45 @@ class MessageLookup extends MessageLookupByLibrary {
         "pinInvalidLength": MessageLookupByLibrary.simpleMessage("长度错误"),
         "pinLength": MessageLookupByLibrary.simpleMessage("输入的 PIN 长度错误"),
         "pinRetries": m4,
+        "pivAlgorithm": MessageLookupByLibrary.simpleMessage("当前密钥算法"),
+        "pivAuthentication":
+            MessageLookupByLibrary.simpleMessage("认证（Authentication）"),
+        "pivCardAuthentication":
+            MessageLookupByLibrary.simpleMessage("卡认证（Card Authentication）"),
         "pivChangeManagementKey":
             MessageLookupByLibrary.simpleMessage("修改管理密钥"),
         "pivChangeManagementKeyPrompt": MessageLookupByLibrary.simpleMessage(
             "新管理密钥的长度应当为 24 字节。请妥善保管管理密钥，否则您将无法管理 PIV 应用。"),
         "pivChangePUK": MessageLookupByLibrary.simpleMessage("修改 PUK"),
+        "pivEmpty": MessageLookupByLibrary.simpleMessage("空"),
+        "pivKeyManagement":
+            MessageLookupByLibrary.simpleMessage("密钥管理（Key Management）"),
         "pivManagementKeyVerificationFailed":
             MessageLookupByLibrary.simpleMessage("管理密钥验证失败"),
         "pivNewManagementKey": MessageLookupByLibrary.simpleMessage("新密钥"),
         "pivNewPUK": MessageLookupByLibrary.simpleMessage("新 PUK"),
         "pivOldManagementKey": MessageLookupByLibrary.simpleMessage("当前密钥"),
         "pivOldPUK": MessageLookupByLibrary.simpleMessage("当前 PUK"),
+        "pivOrigin": MessageLookupByLibrary.simpleMessage("来源"),
+        "pivOriginGenerated": MessageLookupByLibrary.simpleMessage("内部生成"),
+        "pivOriginImported": MessageLookupByLibrary.simpleMessage("外部导入"),
         "pivPinManagement": MessageLookupByLibrary.simpleMessage("管理 PIN"),
+        "pivPinPolicy": MessageLookupByLibrary.simpleMessage("PIN 策略"),
+        "pivPinPolicyAlways": MessageLookupByLibrary.simpleMessage("总是验证"),
+        "pivPinPolicyDefault": MessageLookupByLibrary.simpleMessage("默认"),
+        "pivPinPolicyNever": MessageLookupByLibrary.simpleMessage("从不验证"),
+        "pivPinPolicyOnce": MessageLookupByLibrary.simpleMessage("会话内验证一次"),
         "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage("随机密钥"),
+        "pivRetired1": MessageLookupByLibrary.simpleMessage("过期证书 1"),
+        "pivRetired2": MessageLookupByLibrary.simpleMessage("过期证书 2"),
+        "pivSignature":
+            MessageLookupByLibrary.simpleMessage("签名（Digital Signature）"),
+        "pivSlots": MessageLookupByLibrary.simpleMessage("证书槽"),
+        "pivTouchPolicy": MessageLookupByLibrary.simpleMessage("触摸策略"),
+        "pivTouchPolicyAlways": MessageLookupByLibrary.simpleMessage("总是验证"),
+        "pivTouchPolicyCached": MessageLookupByLibrary.simpleMessage("缓存 15 秒"),
+        "pivTouchPolicyDefault": MessageLookupByLibrary.simpleMessage("默认"),
+        "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("从不验证"),
         "pivUseDefaultManagementKey":
             MessageLookupByLibrary.simpleMessage("使用默认密钥"),
         "pollCanceled": MessageLookupByLibrary.simpleMessage("您没有选择任何 CanoKey"),

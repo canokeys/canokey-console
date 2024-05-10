@@ -1680,6 +1680,226 @@ class S {
     );
   }
 
+  /// `Slots`
+  String get pivSlots {
+    return Intl.message(
+      'Slots',
+      name: 'pivSlots',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Empty`
+  String get pivEmpty {
+    return Intl.message(
+      'Empty',
+      name: 'pivEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Authentication`
+  String get pivAuthentication {
+    return Intl.message(
+      'Authentication',
+      name: 'pivAuthentication',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Digital Signature`
+  String get pivSignature {
+    return Intl.message(
+      'Digital Signature',
+      name: 'pivSignature',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Key Management`
+  String get pivKeyManagement {
+    return Intl.message(
+      'Key Management',
+      name: 'pivKeyManagement',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Card Authentication`
+  String get pivCardAuthentication {
+    return Intl.message(
+      'Card Authentication',
+      name: 'pivCardAuthentication',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Retired 1`
+  String get pivRetired1 {
+    return Intl.message(
+      'Retired 1',
+      name: 'pivRetired1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Retired 2`
+  String get pivRetired2 {
+    return Intl.message(
+      'Retired 2',
+      name: 'pivRetired2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Current Algorithm`
+  String get pivAlgorithm {
+    return Intl.message(
+      'Current Algorithm',
+      name: 'pivAlgorithm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `PIN Policy`
+  String get pivPinPolicy {
+    return Intl.message(
+      'PIN Policy',
+      name: 'pivPinPolicy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Default`
+  String get pivPinPolicyDefault {
+    return Intl.message(
+      'Default',
+      name: 'pivPinPolicyDefault',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Never`
+  String get pivPinPolicyNever {
+    return Intl.message(
+      'Never',
+      name: 'pivPinPolicyNever',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Once`
+  String get pivPinPolicyOnce {
+    return Intl.message(
+      'Once',
+      name: 'pivPinPolicyOnce',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Always`
+  String get pivPinPolicyAlways {
+    return Intl.message(
+      'Always',
+      name: 'pivPinPolicyAlways',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Touch Policy`
+  String get pivTouchPolicy {
+    return Intl.message(
+      'Touch Policy',
+      name: 'pivTouchPolicy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Default`
+  String get pivTouchPolicyDefault {
+    return Intl.message(
+      'Default',
+      name: 'pivTouchPolicyDefault',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Never`
+  String get pivTouchPolicyNever {
+    return Intl.message(
+      'Never',
+      name: 'pivTouchPolicyNever',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Always`
+  String get pivTouchPolicyAlways {
+    return Intl.message(
+      'Always',
+      name: 'pivTouchPolicyAlways',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cached for 15 seconds`
+  String get pivTouchPolicyCached {
+    return Intl.message(
+      'Cached for 15 seconds',
+      name: 'pivTouchPolicyCached',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Origin`
+  String get pivOrigin {
+    return Intl.message(
+      'Origin',
+      name: 'pivOrigin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Generated`
+  String get pivOriginGenerated {
+    return Intl.message(
+      'Generated',
+      name: 'pivOriginGenerated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Imported`
+  String get pivOriginImported {
+    return Intl.message(
+      'Imported',
+      name: 'pivOriginImported',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Please input a valid hexadecimal string.`
   String get validationHexString {
     return Intl.message(

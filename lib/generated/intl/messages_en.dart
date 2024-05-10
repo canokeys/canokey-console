@@ -190,12 +190,21 @@ class MessageLookup extends MessageLookupByLibrary {
         "pinLength": MessageLookupByLibrary.simpleMessage(
             "The provided PIN is too short or too long."),
         "pinRetries": m4,
+        "pivAlgorithm":
+            MessageLookupByLibrary.simpleMessage("Current Algorithm"),
+        "pivAuthentication":
+            MessageLookupByLibrary.simpleMessage("Authentication"),
+        "pivCardAuthentication":
+            MessageLookupByLibrary.simpleMessage("Card Authentication"),
         "pivChangeManagementKey":
             MessageLookupByLibrary.simpleMessage("Change Management Key"),
         "pivChangeManagementKeyPrompt": MessageLookupByLibrary.simpleMessage(
             "New Management Key should be 24 bytes long. Please save it in a safe place."),
         "pivChangePUK": MessageLookupByLibrary.simpleMessage("Change PUK"),
         "pivChangePUKPrompt": m5,
+        "pivEmpty": MessageLookupByLibrary.simpleMessage("Empty"),
+        "pivKeyManagement":
+            MessageLookupByLibrary.simpleMessage("Key Management"),
         "pivManagementKeyVerificationFailed":
             MessageLookupByLibrary.simpleMessage(
                 "Management Key verification failed"),
@@ -205,10 +214,30 @@ class MessageLookup extends MessageLookupByLibrary {
         "pivOldManagementKey":
             MessageLookupByLibrary.simpleMessage("Current Management Key"),
         "pivOldPUK": MessageLookupByLibrary.simpleMessage("Current PUK"),
+        "pivOrigin": MessageLookupByLibrary.simpleMessage("Origin"),
+        "pivOriginGenerated": MessageLookupByLibrary.simpleMessage("Generated"),
+        "pivOriginImported": MessageLookupByLibrary.simpleMessage("Imported"),
         "pivPinManagement":
             MessageLookupByLibrary.simpleMessage("PIN Management"),
+        "pivPinPolicy": MessageLookupByLibrary.simpleMessage("PIN Policy"),
+        "pivPinPolicyAlways": MessageLookupByLibrary.simpleMessage("Always"),
+        "pivPinPolicyDefault": MessageLookupByLibrary.simpleMessage("Default"),
+        "pivPinPolicyNever": MessageLookupByLibrary.simpleMessage("Never"),
+        "pivPinPolicyOnce": MessageLookupByLibrary.simpleMessage("Once"),
         "pivRandomManagementKey":
             MessageLookupByLibrary.simpleMessage("Random"),
+        "pivRetired1": MessageLookupByLibrary.simpleMessage("Retired 1"),
+        "pivRetired2": MessageLookupByLibrary.simpleMessage("Retired 2"),
+        "pivSignature":
+            MessageLookupByLibrary.simpleMessage("Digital Signature"),
+        "pivSlots": MessageLookupByLibrary.simpleMessage("Slots"),
+        "pivTouchPolicy": MessageLookupByLibrary.simpleMessage("Touch Policy"),
+        "pivTouchPolicyAlways": MessageLookupByLibrary.simpleMessage("Always"),
+        "pivTouchPolicyCached":
+            MessageLookupByLibrary.simpleMessage("Cached for 15 seconds"),
+        "pivTouchPolicyDefault":
+            MessageLookupByLibrary.simpleMessage("Default"),
+        "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("Never"),
         "pivUseDefaultManagementKey":
             MessageLookupByLibrary.simpleMessage("Use Default"),
         "pollCanceled":

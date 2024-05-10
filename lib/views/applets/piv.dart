@@ -11,12 +11,14 @@ import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_card.dart';
+import 'package:canokey_console/helper/widgets/customized_container.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/field_validator.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
+import 'package:canokey_console/models/piv.dart';
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
@@ -49,6 +51,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
       topActions: InkWell(
         onTap: () {
           if (controller.polled) {
+            controller.refreshData('');
           } else {
             Prompts.showInputPinDialog(
               title: S.of(context).settingsInputPin,
@@ -114,7 +117,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                               children: [
                                 CustomizedButton(
                                   onPressed: () {
-                                    showChangePinDialog(
+                                    _showChangePinDialog(
                                       title: S.of(context).changePin,
                                       oldValueLabel: S.of(context).oldPin,
                                       newValueLabel: S.of(context).newPin,
@@ -131,7 +134,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                                 ),
                                 CustomizedButton(
                                   onPressed: () {
-                                    showChangePinDialog(
+                                    _showChangePinDialog(
                                       title: S.of(context).pivChangePUK,
                                       oldValueLabel: S.of(context).pivOldPUK,
                                       newValueLabel: S.of(context).pivNewPUK,
@@ -147,7 +150,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                                   child: CustomizedText.bodySmall(S.of(context).pivChangePUK, color: contentTheme.onPrimary),
                                 ),
                                 CustomizedButton(
-                                  onPressed: showChangeManagementKeyDialog,
+                                  onPressed: _showChangeManagementKeyDialog,
                                   elevation: 0,
                                   padding: Spacing.xy(20, 16),
                                   backgroundColor: contentTheme.primary,
@@ -157,6 +160,46 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                               ],
                             ),
                           ),
+                        ],
+                      ),
+                    ),
+                    Spacing.height(20),
+                    CustomizedCard(
+                      clipBehavior: Clip.antiAliasWithSaveLayer,
+                      shadow: Shadow(elevation: 0.5, position: ShadowPosition.bottom),
+                      paddingAll: 0,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Container(
+                            color: contentTheme.primary.withOpacity(0.08),
+                            padding: Spacing.xy(16, 12),
+                            child: Row(
+                              children: [
+                                Icon(LucideIcons.keyboard, color: contentTheme.primary, size: 16),
+                                Spacing.width(12),
+                                CustomizedText.titleMedium(S.of(context).pivSlots, fontWeight: 600, color: contentTheme.primary)
+                              ],
+                            ),
+                          ),
+                          Padding(
+                              padding: Spacing.xy(flexSpacing, 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildInfo(S.of(context).pivAuthentication, '9A', controller.slots[0x9A], () {}),
+                                  Spacing.height(16),
+                                  _buildInfo(S.of(context).pivSignature, '9C', controller.slots[0x9C], () {}),
+                                  Spacing.height(16),
+                                  _buildInfo(S.of(context).pivKeyManagement, '9D', controller.slots[0x9D], () {}),
+                                  Spacing.height(16),
+                                  _buildInfo(S.of(context).pivCardAuthentication, '9E', controller.slots[0x9E], () {}),
+                                  Spacing.height(16),
+                                  _buildInfo(S.of(context).pivRetired1, '82', controller.slots[0x82], () {}),
+                                  Spacing.height(16),
+                                  _buildInfo(S.of(context).pivRetired2, '83', controller.slots[0x83], () {}),
+                                ],
+                              )),
                         ],
                       ),
                     ),
@@ -170,7 +213,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     );
   }
 
-  showChangePinDialog({
+  _showChangePinDialog({
     required String title,
     required String oldValueLabel,
     required String newValueLabel,
@@ -181,8 +224,8 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     RxBool showOldPin = false.obs;
     RxBool showNewPin = false.obs;
     FormValidator validator = FormValidator();
-    validator.addField('oldPin', required: true, controller: TextEditingController(), validators: validators);
-    validator.addField('newPin', required: true, controller: TextEditingController(), validators: validators);
+    validator.addField('old', required: true, controller: TextEditingController(), validators: validators);
+    validator.addField('new', required: true, controller: TextEditingController(), validators: validators);
 
     Get.dialog(Dialog(
       child: SizedBox(
@@ -208,8 +251,8 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                               autofocus: true,
                               onTap: () => SmartCard.eject(),
                               obscureText: !showOldPin.value,
-                              controller: validator.getController('oldPin'),
-                              validator: validator.getValidator('oldPin'),
+                              controller: validator.getController('old'),
+                              validator: validator.getValidator('old'),
                               decoration: InputDecoration(
                                 labelText: oldValueLabel,
                                 border: OutlineInputBorder(
@@ -227,8 +270,8 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                         Obx(() => TextFormField(
                               onTap: () => SmartCard.eject(),
                               obscureText: !showNewPin.value,
-                              controller: validator.getController('newPin'),
-                              validator: validator.getValidator('newPin'),
+                              controller: validator.getController('new'),
+                              validator: validator.getValidator('new'),
                               decoration: InputDecoration(
                                 labelText: newValueLabel,
                                 border: OutlineInputBorder(
@@ -263,7 +306,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                   CustomizedButton.rounded(
                     onPressed: () {
                       if (validator.validateForm()) {
-                        handler(validator.getController('oldPin')!.text, validator.getController('newPin')!.text);
+                        handler(validator.getController('old')!.text, validator.getController('new')!.text);
                       }
                     },
                     elevation: 0,
@@ -280,7 +323,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     ));
   }
 
-  showChangeManagementKeyDialog() {
+  _showChangeManagementKeyDialog() {
     FormValidator validator = FormValidator();
     validator.addField('old', required: true, controller: TextEditingController(), validators: [LengthValidator(exact: 48), HexStringValidator()]);
     validator.addField('new', required: true, controller: TextEditingController(), validators: [LengthValidator(exact: 48), HexStringValidator()]);
@@ -404,5 +447,72 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
         ),
       ),
     ));
+  }
+
+  Widget _buildInfo(String title, String slotNumber, SlotInfo? slot, GestureTapCallback handler) {
+    return InkWell(
+      onTap: handler,
+      child: Row(
+        children: [
+          CustomizedContainer(
+            paddingAll: 4,
+            height: 32,
+            width: 32,
+            child: Icon(LucideIcons.fileLock, size: 20),
+          ),
+          Spacing.width(16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomizedText.bodyMedium('$title - $slotNumber', fontSize: 16),
+                if (slot != null) ...[
+                  InkWell(child: CustomizedText.bodySmall('${S.of(context).pivAlgorithm}: ${slot.algorithm.name.toUpperCase()}')),
+                  InkWell(child: CustomizedText.bodySmall('${S.of(context).pivPinPolicy}: ${_pinPolicy(slot.pinPolicy)}')),
+                  InkWell(child: CustomizedText.bodySmall('${S.of(context).pivTouchPolicy}: ${_touchPolicy(slot.touchPolicy)}')),
+                  InkWell(child: CustomizedText.bodySmall('${S.of(context).pivOrigin}: ${_origin(slot.origin)}')),
+                ] else ...[
+                  CustomizedText.bodySmall(S.of(context).pivEmpty),
+                ],
+              ],
+            ),
+          ),
+          Icon(Icons.arrow_forward_ios)
+        ],
+      ),
+    );
+  }
+  
+  String _pinPolicy(PinPolicy policy) {
+    switch (policy) {
+      case PinPolicy.never:
+        return S.of(context).pivPinPolicyNever;
+      case PinPolicy.once:
+        return S.of(context).pivPinPolicyOnce;
+      case PinPolicy.always:
+        return S.of(context).pivPinPolicyAlways;
+      default:
+        return S.of(context).pivPinPolicyDefault;
+    }
+  }
+
+  String _touchPolicy(TouchPolicy policy) {
+    switch (policy) {
+      case TouchPolicy.never:
+        return S.of(context).pivTouchPolicyNever;
+      case TouchPolicy.always:
+        return S.of(context).pivTouchPolicyAlways;
+      case TouchPolicy.cached:
+        return S.of(context).pivTouchPolicyCached;
+      default:
+        return S.of(context).pivTouchPolicyDefault;
+    }
+  }
+
+  String _origin(Origin origin) {
+    if (origin == Origin.generated) {
+      return S.of(context).pivOriginGenerated;
+    }
+    return S.of(context).pivOriginImported;
   }
 }

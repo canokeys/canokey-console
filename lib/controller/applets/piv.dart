@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:canokey_console/controller/base_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/models/piv.dart';
 import 'package:convert/convert.dart';
 import 'package:dart_des/dart_des.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +17,7 @@ final log = Logger('Console:PIV:Controller');
 
 class PivController extends Controller {
   bool polled = true;
+  Map<int, SlotInfo> slots = {};
 
   @override
   void onClose() {
@@ -26,8 +29,20 @@ class PivController extends Controller {
   }
 
   Future<void> refreshData(String pin) async {
-    SmartCard.process(() async {
-      SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));
+    await SmartCard.process(() async {
+      SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
+      for (var slot in [0x80, 0x81, 0x9B, 0x9A, 0x9C, 0x9D, 0x9E]) {
+        String resp = await SmartCard.transceive('00F700${hex.encode([slot])}00');
+        if (resp.toUpperCase() == '6A88') {
+          continue;
+        }
+        SmartCard.assertOK(resp);
+        List<int> metadata = hex.decode(SmartCard.dropSW(resp));
+        SlotInfo slotInfo = SlotInfo.parse(slot, metadata);
+        slots[slot] = slotInfo;
+      }
+
+      update();
     });
   }
 
@@ -90,5 +105,9 @@ class PivController extends Controller {
       pinHex = pinHex.padRight(16, 'F');
     }
     return pinHex;
+  }
+
+  _parseSlotMetadata(String metadata) {
+    Map elements = TLV.parse(hex.decode(metadata));
   }
 }
