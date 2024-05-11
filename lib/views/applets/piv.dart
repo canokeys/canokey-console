@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:canokey_console/controller/applets/piv.dart';
 import 'package:canokey_console/generated/l10n.dart';
@@ -22,10 +24,12 @@ import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/models/piv.dart';
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:convert/convert.dart';
+import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:pem/pem.dart';
 
 final log = Logger('Console:PIV:View');
 
@@ -550,7 +554,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium('Generate', color: contentTheme.onSecondary),
+                    child: CustomizedText.labelMedium(S.of(context).pivGenerate, color: contentTheme.onSecondary),
                   ),
                   Spacing.width(12),
                   CustomizedButton.rounded(
@@ -558,16 +562,56 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium('Import', color: contentTheme.onPrimary),
+                    child: CustomizedText.labelMedium(S.of(context).pivImport, color: contentTheme.onPrimary),
                   ),
                   if (slot != null) ...[
                     Spacing.width(12),
                     CustomizedButton.rounded(
-                      onPressed: () {},
+                      onPressed: () {
+                        // A dialog with two buttons: DER and PEM
+                        Get.dialog(Dialog(
+                            child: SizedBox(
+                                width: 300,
+                                child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Padding(padding: Spacing.all(16), child: CustomizedText.labelLarge(S.of(context).pivExportCertificate)),
+                                  Divider(height: 0, thickness: 1),
+                                  Padding(
+                                      padding: Spacing.all(16),
+                                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                        CustomizedButton.rounded(
+                                          onPressed: () async {
+                                            // Export DER
+                                            await FileSaver.instance.saveFile(name: 'certificate.der', bytes: slot.certBytes! as Uint8List);
+                                            if (mounted) {
+                                              Navigator.pop(context);
+                                            }
+                                          },
+                                          elevation: 0,
+                                          padding: Spacing.xy(20, 16),
+                                          backgroundColor: contentTheme.primary,
+                                          child: CustomizedText.labelMedium('DER', color: contentTheme.onPrimary),
+                                        ),
+                                        Spacing.width(12),
+                                        CustomizedButton.rounded(
+                                          onPressed: () async {
+                                            String pem = PemCodec(PemLabel.certificate).encode(slot.certBytes!);
+                                            await FileSaver.instance.saveFile(name: 'certificate.pem', bytes: utf8.encode(pem));
+                                            if (mounted) {
+                                              Navigator.pop(context);
+                                            }
+                                          },
+                                          elevation: 0,
+                                          padding: Spacing.xy(20, 16),
+                                          backgroundColor: contentTheme.primary,
+                                          child: CustomizedText.labelMedium('PEM', color: contentTheme.onPrimary),
+                                        )
+                                      ]))
+                                ]))));
+                      },
                       elevation: 0,
                       padding: Spacing.xy(20, 16),
                       backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium('Export', color: contentTheme.onPrimary),
+                      child: CustomizedText.labelMedium(S.of(context).pivExport, color: contentTheme.onPrimary),
                     ),
                     Spacing.width(12),
                     CustomizedButton.rounded(
@@ -575,7 +619,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                       elevation: 0,
                       padding: Spacing.xy(20, 16),
                       backgroundColor: contentTheme.danger,
-                      child: CustomizedText.labelMedium('Delete', color: contentTheme.onDanger),
+                      child: CustomizedText.labelMedium(S.of(context).pivDelete, color: contentTheme.onDanger),
                     ),
                   ],
                 ],

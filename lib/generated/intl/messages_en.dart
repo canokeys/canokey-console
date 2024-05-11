@@ -203,7 +203,13 @@ class MessageLookup extends MessageLookupByLibrary {
             "New Management Key should be 24 bytes long. Please save it in a safe place."),
         "pivChangePUK": MessageLookupByLibrary.simpleMessage("Change PUK"),
         "pivChangePUKPrompt": m5,
+        "pivDelete": MessageLookupByLibrary.simpleMessage("Delete"),
         "pivEmpty": MessageLookupByLibrary.simpleMessage("Empty"),
+        "pivExport": MessageLookupByLibrary.simpleMessage("Export"),
+        "pivExportCertificate":
+            MessageLookupByLibrary.simpleMessage("Export Certificate"),
+        "pivGenerate": MessageLookupByLibrary.simpleMessage("Generate"),
+        "pivImport": MessageLookupByLibrary.simpleMessage("Import"),
         "pivKeyManagement":
             MessageLookupByLibrary.simpleMessage("Key Management"),
         "pivManagementKeyVerificationFailed":

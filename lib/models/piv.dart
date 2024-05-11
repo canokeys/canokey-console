@@ -136,6 +136,7 @@ class SlotInfo {
   final bool defaultValue;
   final int retriesCount;
   final int remainingCount;
+  List<int>? certBytes;
   X509Certificate? cert;
 
   SlotInfo(this.number, this.algorithm, this.pinPolicy, this.touchPolicy, this.origin, this.public, this.defaultValue, this.retriesCount, this.remainingCount);

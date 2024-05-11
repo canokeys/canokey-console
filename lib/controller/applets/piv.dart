@@ -52,6 +52,7 @@ class PivController extends Controller {
             }
             var cert = X509Certificate.fromAsn1(o);
             slotInfo.cert = cert;
+            slotInfo.certBytes = bytes;
           }
         }
         slots[slot] = slotInfo;

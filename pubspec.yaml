@@ -45,6 +45,8 @@ dependencies:
   dart_des: ^1.0.2
   x509: ^0.2.4+2
   asn1lib: ^1.5.2
+  pem: ^2.0.5
+  file_saver: ^0.2.12
 
 dev_dependencies:
   flutter_test:

@@ -168,7 +168,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "pivChangeManagementKeyPrompt": MessageLookupByLibrary.simpleMessage(
             "新管理密钥的长度应当为 24 字节。请妥善保管管理密钥，否则您将无法管理 PIV 应用。"),
         "pivChangePUK": MessageLookupByLibrary.simpleMessage("修改 PUK"),
+        "pivDelete": MessageLookupByLibrary.simpleMessage("删除"),
         "pivEmpty": MessageLookupByLibrary.simpleMessage("空"),
+        "pivExport": MessageLookupByLibrary.simpleMessage("导出"),
+        "pivExportCertificate": MessageLookupByLibrary.simpleMessage("导出证书"),
+        "pivGenerate": MessageLookupByLibrary.simpleMessage("生成"),
+        "pivImport": MessageLookupByLibrary.simpleMessage("导入"),
         "pivKeyManagement":
             MessageLookupByLibrary.simpleMessage("密钥管理（Key Management）"),
         "pivManagementKeyVerificationFailed":

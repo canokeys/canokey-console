@@ -185,6 +185,11 @@
   "pivOriginGenerated": "内部生成",
   "pivOriginImported": "外部导入",
   "pivCertificate": "证书",
+  "pivImport": "导入",
+  "pivGenerate": "生成",
+  "pivExport": "导出",
+  "pivDelete": "删除",
+  "pivExportCertificate": "导出证书",
   "validationHexString": "请输入十六进制字符串",
   "validationExactLength": "需要 {length} 个字符"
 }

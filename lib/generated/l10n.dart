@@ -1910,6 +1910,56 @@ class S {
     );
   }
 
+  /// `Import`
+  String get pivImport {
+    return Intl.message(
+      'Import',
+      name: 'pivImport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Generate`
+  String get pivGenerate {
+    return Intl.message(
+      'Generate',
+      name: 'pivGenerate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Export`
+  String get pivExport {
+    return Intl.message(
+      'Export',
+      name: 'pivExport',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete`
+  String get pivDelete {
+    return Intl.message(
+      'Delete',
+      name: 'pivDelete',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Export Certificate`
+  String get pivExportCertificate {
+    return Intl.message(
+      'Export Certificate',
+      name: 'pivExportCertificate',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Please input a valid hexadecimal string.`
   String get validationHexString {
     return Intl.message(
