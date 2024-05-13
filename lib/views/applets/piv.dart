@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:basic_utils/basic_utils.dart';
 import 'package:canokey_console/controller/applets/piv.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/extensions/date_time_extension.dart';
@@ -24,6 +25,7 @@ import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/models/piv.dart';
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:convert/convert.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -477,7 +479,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                   InkWell(child: CustomizedText.bodySmall('${S.of(context).pivAlgorithm}: ${slot.algorithm.name.toUpperCase()}')),
                   InkWell(
                       child: CustomizedText.bodySmall(
-                          '${S.of(context).pivCertificate}: ${slot.cert?.tbsCertificate.subject?.toString() ?? S.of(context).pivEmpty}')),
+                          '${S.of(context).pivCertificate}: ${_displayDN(slot.cert!.tbsCertificate!.subject) ?? S.of(context).pivEmpty}')),
                 ] else ...[
                   CustomizedText.bodySmall(S.of(context).pivEmpty),
                 ],
@@ -493,7 +495,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
   _showSlotDetailDialog(String title, String slotNumber, SlotInfo? slot) {
     Get.dialog(Dialog(
       child: SizedBox(
-        width: 430,
+        width: slot == null ? 400 : max(430, MediaQuery.of(context).size.width * 0.6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -510,31 +512,38 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                     child: Column(
                       children: [
                         TextFormField(
-                          initialValue: slot.cert!.tbsCertificate.subject!.toString(),
+                          initialValue: _displayDN(slot.cert!.tbsCertificate!.subject),
                           readOnly: true,
                           decoration: InputDecoration(labelText: 'Subject', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
                         ),
                         Spacing.height(16),
                         TextFormField(
-                          initialValue: slot.cert!.tbsCertificate.issuer!.toString(),
+                          initialValue: _displayDN(slot.cert!.tbsCertificate!.issuer),
                           readOnly: true,
                           decoration: InputDecoration(labelText: 'Issuer', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
                         ),
                         Spacing.height(16),
                         TextFormField(
-                          initialValue: slot.cert!.tbsCertificate.serialNumber!.toRadixString(16),
+                          initialValue: slot.cert!.tbsCertificate!.serialNumber.toRadixString(16),
                           readOnly: true,
                           decoration: InputDecoration(labelText: 'Serial', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
                         ),
                         Spacing.height(16),
                         TextFormField(
-                          initialValue: slot.cert!.tbsCertificate.validity!.notBefore.toIsoDateString(),
+                          initialValue: slot.cert!.sha256Thumbprint,
+                          readOnly: true,
+                          decoration:
+                              InputDecoration(labelText: 'Fingerprint (SHA256)', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
+                        ),
+                        Spacing.height(16),
+                        TextFormField(
+                          initialValue: slot.cert!.tbsCertificate!.validity.notBefore.toIsoDateString(),
                           readOnly: true,
                           decoration: InputDecoration(labelText: 'Valid from', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
                         ),
                         Spacing.height(16),
                         TextFormField(
-                          initialValue: slot.cert!.tbsCertificate.validity!.notAfter.toIsoDateString(),
+                          initialValue: slot.cert!.tbsCertificate!.validity.notAfter.toIsoDateString(),
                           readOnly: true,
                           decoration: InputDecoration(labelText: 'Valid to', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
                         ),
@@ -550,7 +559,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CustomizedButton.rounded(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {},
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.primary,
@@ -558,7 +567,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                   ),
                   Spacing.width(12),
                   CustomizedButton.rounded(
-                    onPressed: () {},
+                    onPressed: _showImportDialog,
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.primary,
@@ -567,47 +576,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                   if (slot != null) ...[
                     Spacing.width(12),
                     CustomizedButton.rounded(
-                      onPressed: () {
-                        // A dialog with two buttons: DER and PEM
-                        Get.dialog(Dialog(
-                            child: SizedBox(
-                                width: 300,
-                                child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                  Padding(padding: Spacing.all(16), child: CustomizedText.labelLarge(S.of(context).pivExportCertificate)),
-                                  Divider(height: 0, thickness: 1),
-                                  Padding(
-                                      padding: Spacing.all(16),
-                                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                                        CustomizedButton.rounded(
-                                          onPressed: () async {
-                                            // Export DER
-                                            await FileSaver.instance.saveFile(name: 'certificate.der', bytes: slot.certBytes! as Uint8List);
-                                            if (mounted) {
-                                              Navigator.pop(context);
-                                            }
-                                          },
-                                          elevation: 0,
-                                          padding: Spacing.xy(20, 16),
-                                          backgroundColor: contentTheme.primary,
-                                          child: CustomizedText.labelMedium('DER', color: contentTheme.onPrimary),
-                                        ),
-                                        Spacing.width(12),
-                                        CustomizedButton.rounded(
-                                          onPressed: () async {
-                                            String pem = PemCodec(PemLabel.certificate).encode(slot.certBytes!);
-                                            await FileSaver.instance.saveFile(name: 'certificate.pem', bytes: utf8.encode(pem));
-                                            if (mounted) {
-                                              Navigator.pop(context);
-                                            }
-                                          },
-                                          elevation: 0,
-                                          padding: Spacing.xy(20, 16),
-                                          backgroundColor: contentTheme.primary,
-                                          child: CustomizedText.labelMedium('PEM', color: contentTheme.onPrimary),
-                                        )
-                                      ]))
-                                ]))));
-                      },
+                      onPressed: () => _showExportDialog(slot),
                       elevation: 0,
                       padding: Spacing.xy(20, 16),
                       backgroundColor: contentTheme.primary,
@@ -626,6 +595,180 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
               ),
             ),
           ],
+        ),
+      ),
+    ));
+  }
+
+  _showExportDialog(SlotInfo slot) {
+    Get.dialog(Dialog(
+        child: SizedBox(
+            width: 300,
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Padding(padding: Spacing.all(16), child: CustomizedText.labelLarge(S.of(context).pivExportCertificate)),
+              Divider(height: 0, thickness: 1),
+              Padding(
+                  padding: Spacing.all(16),
+                  child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    CustomizedButton.rounded(
+                      onPressed: () async {
+                        // Export DER
+                        await FileSaver.instance.saveFile(name: 'certificate.der', bytes: slot.certBytes! as Uint8List);
+                        Get.back();
+                      },
+                      elevation: 0,
+                      padding: Spacing.xy(20, 16),
+                      backgroundColor: contentTheme.primary,
+                      child: CustomizedText.labelMedium('DER', color: contentTheme.onPrimary),
+                    ),
+                    Spacing.width(12),
+                    CustomizedButton.rounded(
+                      onPressed: () async {
+                        String pem = PemCodec(PemLabel.certificate).encode(slot.certBytes!);
+                        await FileSaver.instance.saveFile(name: 'certificate.pem', bytes: utf8.encode(pem));
+                        Get.back();
+                      },
+                      elevation: 0,
+                      padding: Spacing.xy(20, 16),
+                      backgroundColor: contentTheme.primary,
+                      child: CustomizedText.labelMedium('PEM', color: contentTheme.onPrimary),
+                    )
+                  ]))
+            ]))));
+  }
+
+  _showImportDialog() {
+    Rx<int> step = 0.obs;
+    Rx<bool> hasCert = false.obs;
+    Rx<bool> hasKey = false.obs;
+    Rx<bool> selected = false.obs;
+    String? pinPolicy;
+
+    void nextStep() {
+      if (step < 2) {
+        setState(() => step.value++);
+      } else {
+        // TODO: Generate certificate
+        Get.back();
+      }
+    }
+
+    Get.dialog(Dialog(
+      child: Obx(
+        () => SizedBox(
+          width: 400,
+          child: Stepper(
+            currentStep: step.value,
+            onStepContinue: nextStep,
+            onStepCancel: () => Get.back(),
+            controlsBuilder: (BuildContext context, ControlsDetails details) {
+              return Row(
+                children: <Widget>[
+                  if (details.stepIndex > 0) ...{
+                    CustomizedButton.rounded(
+                      onPressed: details.onStepContinue,
+                      elevation: 0,
+                      backgroundColor: ContentThemeColor.primary.color,
+                      child: CustomizedText.labelMedium('Next', color: ContentThemeColor.primary.onColor),
+                    ),
+                    Spacing.width(12),
+                  },
+                  CustomizedButton.rounded(
+                    onPressed: details.onStepCancel,
+                    elevation: 0,
+                    backgroundColor: ContentThemeColor.secondary.color,
+                    child: CustomizedText.labelMedium('Cancel', color: ContentThemeColor.secondary.onColor),
+                  ),
+                ],
+              );
+            },
+            steps: [
+              Step(
+                title: Text('Select Your Certificate'),
+                content: InkWell(
+                  onTap: () async {
+                    final result = await FilePicker.platform.pickFiles();
+                    final file = result?.files.firstOrNull;
+                    if (file != null) {
+                      selected.value = true;
+                      final pem = utf8.decode(file.bytes!);
+                      pem.split('-----BEGIN ').forEach((element) {
+                        if (element.isNotEmpty) {
+                          final item = '-----BEGIN $element';
+                          if (item.startsWith(CryptoUtils.BEGIN_EC_PRIVATE_KEY)) {
+                            final ecPrivateKey = CryptoUtils.ecPrivateKeyFromPem(item);
+                            hasKey.value = true;
+                          } else if (item.startsWith(CryptoUtils.BEGIN_RSA_PRIVATE_KEY)) {
+                            final rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromPem(item);
+                            hasKey.value = true;
+                          } else if (item.startsWith(X509Utils.BEGIN_CERT)) {
+                            final cert = X509Utils.x509CertificateFromPem(item);
+                            hasCert.value = true;
+                          }
+                        }
+                      });
+                      if (hasKey.value && hasCert.value) {
+                        nextStep();
+                      }
+                    }
+                  },
+                  child: CustomizedContainer.bordered(
+                    child: Center(
+                      heightFactor: 1.2,
+                      child: Padding(
+                        padding: Spacing.all(8),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Icon(LucideIcons.uploadCloud, size: 24),
+                            CustomizedContainer(
+                              width: 340,
+                              alignment: Alignment.center,
+                              paddingAll: 0,
+                              child: CustomizedText.titleMedium(
+                                "Click to select a certificate",
+                                fontWeight: 600,
+                                muted: true,
+                                fontSize: 18,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            if (selected.value && !hasCert.value && !hasKey.value)
+                              CustomizedContainer(
+                                alignment: Alignment.center,
+                                child: CustomizedText.titleMedium(
+                                  "(Make sure the file contains a plaintext key and a certificate)",
+                                  muted: true,
+                                  fontWeight: 500,
+                                  fontSize: 12,
+                                  textAlign: TextAlign.center,
+                                  color: contentTheme.danger,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Step(
+                title: Text('PIN and Touch Policy'),
+                content: Column(
+                  children: [
+                    DropdownButtonFormField(
+                      value: pinPolicy,
+                      items: ['Default', 'Never', 'Once', 'Always'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                      onChanged: (value) => setState(() => pinPolicy = value),
+                      decoration: InputDecoration(labelText: 'PIN Policy'),
+                      dropdownColor: contentTheme.background,
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
       ),
     ));
@@ -662,5 +805,13 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
       return S.of(context).pivOriginGenerated;
     }
     return S.of(context).pivOriginImported;
+  }
+
+  String? _displayDN(Map<String, String?>? data) {
+    if (data == null) {
+      return null;
+    }
+    final dnMap = Map.fromEntries(X509Utils.DN.entries.map((e) => MapEntry(e.value, e.key)));
+    return data.keys.map((e) => '${dnMap[e]}=${data[e]}').join(', ');
   }
 }

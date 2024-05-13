@@ -1,6 +1,8 @@
 PODS:
   - ccid (0.1.1):
     - Flutter
+  - cryptography_flutter (0.2.0):
+    - Flutter
   - device_info_plus (0.0.1):
     - Flutter
   - DKImagePickerController/Core (4.3.8):
@@ -36,6 +38,8 @@ PODS:
     - SwiftyGif
   - file_picker (0.0.1):
     - DKImagePickerController/PhotoGallery
+    - Flutter
+  - file_saver (0.0.1):
     - Flutter
   - Flutter (1.0.0)
   - flutter_nfc_kit (2.0.0):
@@ -112,8 +116,10 @@ PODS:
 
 DEPENDENCIES:
   - ccid (from `.symlinks/plugins/ccid/ios`)
+  - cryptography_flutter (from `.symlinks/plugins/cryptography_flutter/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
+  - file_saver (from `.symlinks/plugins/file_saver/ios`)
   - Flutter (from `Flutter`)
   - flutter_nfc_kit (from `.symlinks/plugins/flutter_nfc_kit/ios`)
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
@@ -145,10 +151,14 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   ccid:
     :path: ".symlinks/plugins/ccid/ios"
+  cryptography_flutter:
+    :path: ".symlinks/plugins/cryptography_flutter/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   file_picker:
     :path: ".symlinks/plugins/file_picker/ios"
+  file_saver:
+    :path: ".symlinks/plugins/file_saver/ios"
   Flutter:
     :path: Flutter
   flutter_nfc_kit:
@@ -166,10 +176,12 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   ccid: f196fb7dc141fa1ee3497ee6e5486a483f1ef9d1
+  cryptography_flutter: 381bdacc984abcfbe3ca45ef7c76566ff061614c
   device_info_plus: 97af1d7e84681a90d0693e63169a5d50e0839a0d
   DKImagePickerController: a7836546cfdfe014171694f643a7d575bc8ace7f
   DKPhotoGallery: acbd8a3bab19cf6e5fe64a853fc07bfbd247a8f6
   file_picker: 09aa5ec1ab24135ccd7a1621c46c84134bfd6655
+  file_saver: 503e386464dbe118f630e17b4c2e1190fa0cf808
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_nfc_kit: 965c98c3fa68f5609f1cc89abb968fe1b8ffdbaa
   flutter_webrtc: 9bc044b0b5bcaabd0fb7d52c90421fb540f8c35e

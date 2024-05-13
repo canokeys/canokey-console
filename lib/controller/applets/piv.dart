@@ -1,7 +1,6 @@
 import 'dart:async';
-import 'dart:typed_data';
 
-import 'package:asn1lib/asn1lib.dart';
+import 'package:basic_utils/basic_utils.dart';
 import 'package:canokey_console/controller/base_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
@@ -13,7 +12,7 @@ import 'package:dart_des/dart_des.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
-import 'package:x509/x509.dart';
+import 'package:pem/pem.dart';
 
 final log = Logger('Console:PIV:Controller');
 
@@ -44,13 +43,8 @@ class PivController extends Controller {
         if (_certDO.containsKey(slot)) {
           resp = await _transceive('00CB3FFF055C035FC1${hex.encode([_certDO[slot]!])}00');
           if (SmartCard.isOK(resp)) {
-            var bytes = hex.decode(resp.substring(16, resp.length - 4));
-            var p = ASN1Parser(bytes as Uint8List);
-            var o = p.nextObject();
-            if (o is! ASN1Sequence) {
-              throw FormatException('Expected SEQUENCE, got ${o.runtimeType}');
-            }
-            var cert = X509Certificate.fromAsn1(o);
+            final bytes = hex.decode(resp.substring(16, resp.length - 4));
+            final cert = X509Utils.x509CertificateFromPem(PemCodec(PemLabel.certificate).encode(bytes));
             slotInfo.cert = cert;
             slotInfo.certBytes = bytes;
           }
