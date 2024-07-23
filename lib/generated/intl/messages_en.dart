@@ -246,7 +246,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Default"),
         "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("Never"),
         "pivUseDefaultManagementKey":
-            MessageLookupByLibrary.simpleMessage("Use Default"),
+            MessageLookupByLibrary.simpleMessage("Default"),
         "pollCanceled":
             MessageLookupByLibrary.simpleMessage("No CanoKey is selected."),
         "pollCanoKey": MessageLookupByLibrary.simpleMessage(

@@ -191,7 +191,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "pivPinPolicyDefault": MessageLookupByLibrary.simpleMessage("默认"),
         "pivPinPolicyNever": MessageLookupByLibrary.simpleMessage("从不验证"),
         "pivPinPolicyOnce": MessageLookupByLibrary.simpleMessage("会话内验证一次"),
-        "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage("随机密钥"),
+        "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage("随机值"),
         "pivRetired1": MessageLookupByLibrary.simpleMessage("过期证书 1"),
         "pivRetired2": MessageLookupByLibrary.simpleMessage("过期证书 2"),
         "pivSignature":
@@ -203,7 +203,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "pivTouchPolicyDefault": MessageLookupByLibrary.simpleMessage("默认"),
         "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("从不验证"),
         "pivUseDefaultManagementKey":
-            MessageLookupByLibrary.simpleMessage("使用默认密钥"),
+            MessageLookupByLibrary.simpleMessage("默认值"),
         "pollCanceled": MessageLookupByLibrary.simpleMessage("您没有选择任何 CanoKey"),
         "pollCanoKey":
             MessageLookupByLibrary.simpleMessage("请点击右上角刷新按钮读取 CanoKey"),

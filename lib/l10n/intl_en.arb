@@ -159,7 +159,7 @@
   "pivChangeManagementKeyPrompt": "New Management Key should be 24 bytes long. Please save it in a safe place.",
   "pivOldManagementKey": "Current Management Key",
   "pivNewManagementKey": "New Management Key",
-  "pivUseDefaultManagementKey": "Use Default",
+  "pivUseDefaultManagementKey": "Default",
   "pivRandomManagementKey": "Random",
   "pivManagementKeyVerificationFailed": "Management Key verification failed",
   "pivSlots": "Slots",

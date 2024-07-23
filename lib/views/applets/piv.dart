@@ -356,7 +356,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                       Spacing.height(16),
                       Row(children: [
                         SizedBox(
-                          width: 235,
+                          width: 200,
                           child: TextFormField(
                             autofocus: true,
                             onTap: () => SmartCard.eject(),
@@ -372,13 +372,13 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                             ),
                           ),
                         ),
-                        Spacing.width(16),
+                        Spacing.width(8),
                         CustomizedButton(
                           onPressed: () {
                             validator.getController('old')!.text = '010203040506070801020304050607080102030405060708';
                           },
                           elevation: 0,
-                          padding: Spacing.xy(20, 16),
+                          padding: Spacing.xy(8, 8),
                           backgroundColor: ContentThemeColor.primary.color,
                           child: CustomizedText.labelMedium(S.of(context).pivUseDefaultManagementKey, color: ContentThemeColor.primary.onColor),
                         ),
@@ -386,7 +386,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                       Spacing.height(16),
                       Row(children: [
                         SizedBox(
-                          width: 235,
+                          width: 200,
                           child: TextFormField(
                             onTap: () => SmartCard.eject(),
                             controller: validator.getController('new'),
@@ -401,7 +401,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                             ),
                           ),
                         ),
-                        Spacing.width(16),
+                        Spacing.width(8),
                         CustomizedButton(
                           onPressed: () {
                             final random = Random.secure();
@@ -409,7 +409,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                             validator.getController('new')!.text = hex.encode(values);
                           },
                           elevation: 0,
-                          padding: Spacing.xy(20, 16),
+                          padding: Spacing.xy(8, 8),
                           backgroundColor: ContentThemeColor.primary.color,
                           child: CustomizedText.labelMedium(S.of(context).pivRandomManagementKey, color: ContentThemeColor.primary.onColor),
                         ),

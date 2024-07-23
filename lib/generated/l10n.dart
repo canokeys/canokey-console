@@ -1650,10 +1650,10 @@ class S {
     );
   }
 
-  /// `Use Default`
+  /// `Default`
   String get pivUseDefaultManagementKey {
     return Intl.message(
-      'Use Default',
+      'Default',
       name: 'pivUseDefaultManagementKey',
       desc: '',
       args: [],
