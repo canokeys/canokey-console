@@ -46,6 +46,7 @@ dependencies:
   pem: ^2.0.5
   file_saver: ^0.2.12
   basic_utils: ^5.7.0
+  pointycastle: ^3.9.1
 
 dev_dependencies:
   flutter_test:

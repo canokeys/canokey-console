@@ -567,7 +567,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                   ),
                   Spacing.width(12),
                   CustomizedButton.rounded(
-                    onPressed: _showImportDialog,
+                    onPressed: () => _showImportDialog(slotNumber),
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.primary,
@@ -637,19 +637,51 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
             ]))));
   }
 
-  _showImportDialog() {
+  _showImportDialog(String slotNumber) {
     Rx<int> step = 0.obs;
     Rx<bool> hasCert = false.obs;
     Rx<bool> hasKey = false.obs;
     Rx<bool> selected = false.obs;
-    String? pinPolicy;
+    PinPolicy pinPolicy = PinPolicy.defaultPolicy;
+    TouchPolicy touchPolicy = TouchPolicy.defaultPolicy;
+    ECPrivateKey? ecPrivateKey;
+    RSAPrivateKey? rsaPrivateKey;
+    X509CertificateData? cert;
 
     void nextStep() {
-      if (step < 2) {
+      if (step.value < 2) {
         setState(() => step.value++);
       } else {
-        // TODO: Generate certificate
+        // We first import the private key
+        if (ecPrivateKey != null) {
+          String algoId = '';
+          switch (ecPrivateKey!.parameters!.domainName) {
+            case 'prime256v1':
+              algoId = '11';
+              break;
+            case 'secp384r1':
+              algoId = '14';
+              break;
+            case 'secp256k1':
+              algoId = '53';
+              break;
+          }
+          var key = ecPrivateKey!.d!.toRadixString(16);
+          var data =
+              '06${(key.length ~/ 2).toRadixString(16).padLeft(2, '0')}${key}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}';
+          var capdu = '00FE$algoId$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}$data';
+          print(capdu);
+        } else {
+          String algoId = '';
+        }
+      }
+    }
+
+    void prevStep() {
+      if (step.value == 0) {
         Get.back();
+      } else if (step.value > 0) {
+        setState(() => step.value--);
       }
     }
 
@@ -660,7 +692,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
           child: Stepper(
             currentStep: step.value,
             onStepContinue: nextStep,
-            onStepCancel: () => Get.back(),
+            onStepCancel: prevStep,
             controlsBuilder: (BuildContext context, ControlsDetails details) {
               return Row(
                 children: <Widget>[
@@ -669,7 +701,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                       onPressed: details.onStepContinue,
                       elevation: 0,
                       backgroundColor: ContentThemeColor.primary.color,
-                      child: CustomizedText.labelMedium('Next', color: ContentThemeColor.primary.onColor),
+                      child: CustomizedText.labelMedium(step.value == 2 ? 'Import' : 'Next', color: ContentThemeColor.primary.onColor),
                     ),
                     Spacing.width(12),
                   },
@@ -677,7 +709,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                     onPressed: details.onStepCancel,
                     elevation: 0,
                     backgroundColor: ContentThemeColor.secondary.color,
-                    child: CustomizedText.labelMedium('Cancel', color: ContentThemeColor.secondary.onColor),
+                    child: CustomizedText.labelMedium(step.value == 0 ? 'Cancel' : 'Back', color: ContentThemeColor.secondary.onColor),
                   ),
                 ],
               );
@@ -696,13 +728,13 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                         if (element.isNotEmpty) {
                           final item = '-----BEGIN $element';
                           if (item.startsWith(CryptoUtils.BEGIN_EC_PRIVATE_KEY)) {
-                            final ecPrivateKey = CryptoUtils.ecPrivateKeyFromPem(item);
+                            ecPrivateKey = CryptoUtils.ecPrivateKeyFromPem(item);
                             hasKey.value = true;
                           } else if (item.startsWith(CryptoUtils.BEGIN_RSA_PRIVATE_KEY)) {
-                            final rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromPem(item);
+                            rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromPemPkcs1(item);
                             hasKey.value = true;
                           } else if (item.startsWith(X509Utils.BEGIN_CERT)) {
-                            final cert = X509Utils.x509CertificateFromPem(item);
+                            cert = X509Utils.x509CertificateFromPem(item);
                             hasCert.value = true;
                           }
                         }
@@ -759,45 +791,36 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                   children: [
                     DropdownButtonFormField(
                       value: pinPolicy,
-                      items: ['Default', 'Never', 'Once', 'Always'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-                      onChanged: (value) => setState(() => pinPolicy = value),
+                      items: PinPolicy.values.map((e) => DropdownMenuItem(value: e, child: Text(e.toString()))).toList(),
+                      onChanged: (value) => setState(() => pinPolicy = value!),
                       decoration: InputDecoration(labelText: 'PIN Policy'),
+                      dropdownColor: contentTheme.background,
+                    ),
+                    DropdownButtonFormField(
+                      value: touchPolicy,
+                      items: TouchPolicy.values.map((e) => DropdownMenuItem(value: e, child: Text(e.toString()))).toList(),
+                      onChanged: (value) => setState(() => touchPolicy = value!),
+                      decoration: InputDecoration(labelText: 'Touch Policy'),
                       dropdownColor: contentTheme.background,
                     ),
                   ],
                 ),
-              )
+              ),
+              Step(
+                  title: Text('Review'),
+                  content: Column(
+                    children: [
+                      if (cert != null)
+                        CustomizedText.bodyMedium('${S.of(context).pivCertificate}: ${_displayDN(cert!.tbsCertificate!.subject) ?? S.of(context).pivEmpty}'),
+                      CustomizedText.bodyMedium('PIN Policy: $pinPolicy'),
+                      CustomizedText.bodyMedium('Touch Policy: $touchPolicy'),
+                    ],
+                  )),
             ],
           ),
         ),
       ),
     ));
-  }
-
-  String _pinPolicy(PinPolicy policy) {
-    switch (policy) {
-      case PinPolicy.never:
-        return S.of(context).pivPinPolicyNever;
-      case PinPolicy.once:
-        return S.of(context).pivPinPolicyOnce;
-      case PinPolicy.always:
-        return S.of(context).pivPinPolicyAlways;
-      default:
-        return S.of(context).pivPinPolicyDefault;
-    }
-  }
-
-  String _touchPolicy(TouchPolicy policy) {
-    switch (policy) {
-      case TouchPolicy.never:
-        return S.of(context).pivTouchPolicyNever;
-      case TouchPolicy.always:
-        return S.of(context).pivTouchPolicyAlways;
-      case TouchPolicy.cached:
-        return S.of(context).pivTouchPolicyCached;
-      default:
-        return S.of(context).pivTouchPolicyDefault;
-    }
   }
 
   String _origin(Origin origin) {

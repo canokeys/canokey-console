@@ -1,5 +1,7 @@
 import 'package:basic_utils/basic_utils.dart';
+import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/tlv.dart';
+import 'package:get/get.dart';
 
 enum AlgorithmType {
   pin(0xFF),
@@ -77,6 +79,20 @@ enum PinPolicy {
     }
   }
 
+  @override
+  String toString() {
+    switch (this) {
+      case PinPolicy.defaultPolicy:
+        return S.of(Get.context!).pivPinPolicyDefault;
+      case PinPolicy.never:
+        return S.of(Get.context!).pivPinPolicyNever;
+      case PinPolicy.once:
+        return S.of(Get.context!).pivPinPolicyOnce;
+      case PinPolicy.always:
+        return S.of(Get.context!).pivPinPolicyAlways;
+    }
+  }
+
   final int value;
 }
 
@@ -100,6 +116,20 @@ enum TouchPolicy {
         return TouchPolicy.cached;
       default:
         throw ArgumentError('Invalid touch policy value: $value');
+    }
+  }
+
+  @override
+  String toString() {
+    switch (this) {
+      case TouchPolicy.defaultPolicy:
+        return S.of(Get.context!).pivTouchPolicyDefault;
+      case TouchPolicy.never:
+        return S.of(Get.context!).pivTouchPolicyNever;
+      case TouchPolicy.always:
+        return S.of(Get.context!).pivTouchPolicyAlways;
+      case TouchPolicy.cached:
+        return S.of(Get.context!).pivTouchPolicyCached;
     }
   }
 
