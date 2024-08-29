@@ -5,18 +5,18 @@ import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_style.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
-import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
+import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_card.dart';
 import 'package:canokey_console/helper/widgets/customized_container.dart';
-import 'package:canokey_console/helper/widgets/form_validator.dart';
-import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
-import 'package:canokey_console/helper/widgets/validators.dart';
+import 'package:canokey_console/helper/widgets/form_validator.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
+import 'package:canokey_console/helper/widgets/spacing.dart';
+import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
@@ -364,14 +364,9 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                 _buildInfo(LucideIcons.languages, S.of(context).settingsLanguage, ThemeCustomizer.instance.currentLanguage.languageName, _showLanguageDialog),
                 Spacing.height(16),
                 _buildInfo(LucideIcons.home, S.of(context).settingsStartPage, _getPageName(LocalStorage.getStartPage() ?? '/'), _showStartUpDialog),
-                // MySpacing.height(16),
-                // _buildInfo(
-                //     LucideIcons.languages,
-                //     S.of(context).settingsLanguage,
-                //     'Dark',
-                //     () => ThemeCustomizer.setTheme(
-                //           ThemeCustomizer.instance.theme == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
-                //         )),
+                // Spacing.height(16),
+                // _buildInfo(LucideIcons.languages, S.of(context).settingsLanguage, 'Dark',
+                //     () => ThemeCustomizer.setTheme(ThemeCustomizer.instance.theme == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark)),
               ],
             ),
           ),
@@ -629,6 +624,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                   () => Column(
                     children: [
                       _buildStartPageItem(startPage, '/'),
+                      _buildStartPageItem(startPage, '/applets/webauthn'),
                       _buildStartPageItem(startPage, '/applets/oath'),
                       _buildStartPageItem(startPage, '/applets/pass'),
                     ],
