@@ -31,8 +31,8 @@ class _TopBarState extends State<TopBar> with SingleTickerProviderStateMixin, UI
           Row(
             children: [
               InkWell(
-                  splashColor: theme.colorScheme.onBackground,
-                  highlightColor: theme.colorScheme.onBackground,
+                  splashColor: theme.colorScheme.onSurface,
+                  highlightColor: theme.colorScheme.onSurface,
                   onTap: () {
                     ThemeCustomizer.toggleLeftBarCondensed();
                   },

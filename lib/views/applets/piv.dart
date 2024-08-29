@@ -36,7 +36,7 @@ import 'package:pem/pem.dart';
 final log = Logger('Console:PIV:View');
 
 class PivPage extends StatefulWidget {
-  const PivPage({Key? key}) : super(key: key);
+  const PivPage({super.key});
 
   @override
   State<PivPage> createState() => _PivPageState();
@@ -264,7 +264,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                                 labelText: oldValueLabel,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.all(Radius.circular(4)),
-                                  borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onBackground.withAlpha(80)),
+                                  borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onSurface.withAlpha(80)),
                                 ),
                                 floatingLabelBehavior: FloatingLabelBehavior.auto,
                                 suffixIcon: IconButton(
@@ -283,7 +283,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                                 labelText: newValueLabel,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.all(Radius.circular(4)),
-                                  borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onBackground.withAlpha(80)),
+                                  borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onSurface.withAlpha(80)),
                                 ),
                                 floatingLabelBehavior: FloatingLabelBehavior.auto,
                                 suffixIcon: IconButton(
@@ -366,7 +366,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                               labelText: S.of(context).pivOldManagementKey,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.all(Radius.circular(4)),
-                                borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onBackground.withAlpha(80)),
+                                borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onSurface.withAlpha(80)),
                               ),
                               floatingLabelBehavior: FloatingLabelBehavior.auto,
                             ),
@@ -395,7 +395,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                               labelText: S.of(context).pivNewManagementKey,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.all(Radius.circular(4)),
-                                borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onBackground.withAlpha(80)),
+                                borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onSurface.withAlpha(80)),
                               ),
                               floatingLabelBehavior: FloatingLabelBehavior.auto,
                             ),
@@ -670,9 +670,9 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
           var data =
               '06${(key.length ~/ 2).toRadixString(16).padLeft(2, '0')}${key}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}';
           var capdu = '00FE$algoId$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}$data';
-          print(capdu);
-        } else {
-          String algoId = '';
+          log.info(capdu);
+        } else if (rsaPrivateKey != null) {
+          // String algoId = '';
         }
       }
     }
@@ -823,12 +823,12 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     ));
   }
 
-  String _origin(Origin origin) {
-    if (origin == Origin.generated) {
-      return S.of(context).pivOriginGenerated;
-    }
-    return S.of(context).pivOriginImported;
-  }
+  // String _origin(Origin origin) {
+  //   if (origin == Origin.generated) {
+  //     return S.of(context).pivOriginGenerated;
+  //   }
+  //   return S.of(context).pivOriginImported;
+  // }
 
   String? _displayDN(Map<String, String?>? data) {
     if (data == null) {

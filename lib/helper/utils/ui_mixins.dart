@@ -18,7 +18,7 @@ mixin UIMixin {
 
   OutlineInputBorder get outlineInputBorder => OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(4)),
-        borderSide: BorderSide(width: 1, strokeAlign: 0, color: theme.colorScheme.onBackground.withAlpha(80)),
+        borderSide: BorderSide(width: 1, strokeAlign: 0, color: theme.colorScheme.onSurface.withAlpha(80)),
       );
 
   OutlineInputBorder focusedInputBorder = OutlineInputBorder(
@@ -42,12 +42,12 @@ mixin UIMixin {
     return InkWell(
       onTap: navigationMixin.goBack,
       child: Center(
-        child: Icon(Icons.chevron_left_rounded, size: 26, color: theme.colorScheme.onBackground),
+        child: Icon(Icons.chevron_left_rounded, size: 26, color: theme.colorScheme.onSurface),
       ),
     );
   }
 
   Widget getDashedDivider() {
-    return DashedDivider(dashWidth: 6, dashSpace: 4, color: theme.colorScheme.onBackground.withAlpha(64), height: 0.5);
+    return DashedDivider(dashWidth: 6, dashSpace: 4, color: theme.colorScheme.onSurface.withAlpha(64), height: 0.5);
   }
 }

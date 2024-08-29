@@ -21,7 +21,7 @@ class CustomizedContainer extends StatelessWidget {
   final bool enableBorderRadius;
 
   const CustomizedContainer(
-      {Key? key,
+      {super.key,
       this.child,
       this.borderRadius,
       this.padding,
@@ -40,11 +40,10 @@ class CustomizedContainer extends StatelessWidget {
       this.marginAll,
       this.margin,
       this.splashColor,
-      this.borderColor})
-      : super(key: key);
+      this.borderColor});
 
   const CustomizedContainer.transparent(
-      {Key? key,
+      {super.key,
       this.child,
       this.borderRadius,
       this.padding,
@@ -63,11 +62,10 @@ class CustomizedContainer extends StatelessWidget {
       this.marginAll,
       this.margin,
       this.splashColor,
-      this.borderColor})
-      : super(key: key);
+      this.borderColor});
 
   const CustomizedContainer.none(
-      {Key? key,
+      {super.key,
       this.child,
       this.borderRadius,
       this.padding,
@@ -86,11 +84,10 @@ class CustomizedContainer extends StatelessWidget {
       this.marginAll,
       this.margin,
       this.splashColor,
-      this.borderColor})
-      : super(key: key);
+      this.borderColor});
 
   const CustomizedContainer.bordered(
-      {Key? key,
+      {super.key,
       this.child,
       this.borderRadius,
       this.padding,
@@ -109,11 +106,10 @@ class CustomizedContainer extends StatelessWidget {
       this.marginAll,
       this.margin,
       this.splashColor,
-      this.borderColor})
-      : super(key: key);
+      this.borderColor});
 
   const CustomizedContainer.roundBordered(
-      {Key? key,
+      {super.key,
       this.child,
       this.borderRadius,
       this.padding,
@@ -132,11 +128,10 @@ class CustomizedContainer extends StatelessWidget {
       this.marginAll,
       this.margin,
       this.splashColor,
-      this.borderColor})
-      : super(key: key);
+      this.borderColor});
 
   const CustomizedContainer.rounded(
-      {Key? key,
+      {super.key,
       this.child,
       this.borderRadius,
       this.padding,
@@ -155,8 +150,7 @@ class CustomizedContainer extends StatelessWidget {
       this.marginAll,
       this.margin,
       this.splashColor,
-      this.borderColor})
-      : super(key: key);
+      this.borderColor});
 
   @override
   Widget build(BuildContext context) {

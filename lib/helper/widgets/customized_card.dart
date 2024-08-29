@@ -20,7 +20,7 @@ class CustomizedCard extends StatelessWidget {
   final Color? splashColor;
 
   const CustomizedCard(
-      {Key? key,
+      {super.key,
       required this.child,
       this.borderRadius,
       this.padding,
@@ -37,11 +37,10 @@ class CustomizedCard extends StatelessWidget {
       this.margin,
       this.splashColor,
       this.width,
-      this.height})
-      : super(key: key);
+      this.height});
 
   const CustomizedCard.bordered(
-      {Key? key,
+      {super.key,
       required this.child,
       this.borderRadius,
       this.padding,
@@ -58,11 +57,10 @@ class CustomizedCard extends StatelessWidget {
       this.margin,
       this.splashColor,
       this.width,
-      this.height})
-      : super(key: key);
+      this.height});
 
   const CustomizedCard.circular(
-      {Key? key,
+      {super.key,
       required this.child,
       this.borderRadius,
       this.padding,
@@ -79,11 +77,10 @@ class CustomizedCard extends StatelessWidget {
       this.margin,
       this.splashColor,
       this.width,
-      this.height})
-      : super(key: key);
+      this.height});
 
   const CustomizedCard.none(
-      {Key? key,
+      {super.key,
       required this.child,
       this.borderRadius,
       this.padding,
@@ -100,8 +97,7 @@ class CustomizedCard extends StatelessWidget {
       this.margin,
       this.splashColor,
       this.width,
-      this.height})
-      : super(key: key);
+      this.height});
 
   @override
   Widget build(BuildContext context) {

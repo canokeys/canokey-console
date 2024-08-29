@@ -30,7 +30,6 @@ class CustomizedText extends StatelessWidget {
   final StrutStyle? strutStyle;
   final TextDirection? textDirection;
   final TextHeightBehavior? textHeightBehavior;
-  final double? textScaleFactor;
   final TextWidthBasis? textWidthBasis;
 
   CustomizedText(this.text,
@@ -55,7 +54,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   CustomizedText.displayLarge(this.text,
@@ -80,7 +78,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   CustomizedText.displayMedium(this.text,
@@ -105,7 +102,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   CustomizedText.displaySmall(this.text,
@@ -130,7 +126,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   CustomizedText.headlineLarge(this.text,
@@ -155,7 +150,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   CustomizedText.headlineMedium(this.text,
@@ -180,7 +174,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   CustomizedText.headlineSmall(this.text,
@@ -205,7 +198,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   CustomizedText.titleLarge(this.text,
@@ -230,7 +222,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   CustomizedText.titleMedium(this.text,
@@ -255,7 +246,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   CustomizedText.titleSmall(this.text,
@@ -280,7 +270,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   CustomizedText.labelLarge(this.text,
@@ -305,7 +294,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   CustomizedText.labelMedium(this.text,
@@ -330,7 +318,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   CustomizedText.labelSmall(this.text,
@@ -355,7 +342,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   CustomizedText.bodyLarge(this.text,
@@ -380,7 +366,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   CustomizedText.bodyMedium(this.text,
@@ -405,7 +390,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   CustomizedText.bodySmall(this.text,
@@ -430,7 +414,6 @@ class CustomizedText extends StatelessWidget {
       this.strutStyle,
       this.textDirection,
       this.textHeightBehavior,
-      this.textScaleFactor,
       this.textWidthBasis});
 
   @override
@@ -459,9 +442,7 @@ class CustomizedText extends StatelessWidget {
       strutStyle: strutStyle,
       //TODO: =-===
       textDirection: textDirection,
-      // textDirection: textDirection ?? MyAppTheme.textDirection,
       textHeightBehavior: textHeightBehavior,
-      textScaleFactor: textScaleFactor,
       textWidthBasis: textWidthBasis,
       key: key,
     );

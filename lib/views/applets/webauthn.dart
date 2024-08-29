@@ -20,7 +20,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 final log = Logger('Console:WebAuthn:View');
 
 class WebAuthnPage extends StatefulWidget {
-  const WebAuthnPage({Key? key}) : super(key: key);
+  const WebAuthnPage({super.key});
 
   @override
   State<WebAuthnPage> createState() => _WebAuthnPageState();

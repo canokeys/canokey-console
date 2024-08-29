@@ -24,7 +24,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 final log = Logger('Console:Pass:View');
 
 class PassPage extends StatefulWidget {
-  const PassPage({Key? key}) : super(key: key);
+  const PassPage({super.key});
 
   @override
   State<PassPage> createState() => _PassPageState();

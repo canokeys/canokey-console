@@ -35,7 +35,7 @@ class LeftbarObserver {
 class LeftBar extends StatefulWidget {
   final bool isCondensed;
 
-  const LeftBar({Key? key, this.isCondensed = false}) : super(key: key);
+  const LeftBar({super.key, this.isCondensed = false});
 
   @override
   _LeftBarState createState() => _LeftBarState();
@@ -171,7 +171,7 @@ class NavigationItem extends StatefulWidget {
   final bool isCondensed;
   final String? route;
 
-  const NavigationItem({Key? key, this.iconData, required this.title, this.isCondensed = false, this.route}) : super(key: key);
+  const NavigationItem({super.key, this.iconData, required this.title, this.isCondensed = false, this.route});
 
   @override
   _NavigationItemState createState() => _NavigationItemState();

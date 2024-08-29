@@ -115,7 +115,7 @@ class Prompts {
                                     labelText: label,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.all(Radius.circular(4)),
-                                      borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onBackground.withAlpha(80)),
+                                      borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onSurface.withAlpha(80)),
                                     ),
                                     floatingLabelBehavior: FloatingLabelBehavior.auto,
                                     suffixIcon: IconButton(

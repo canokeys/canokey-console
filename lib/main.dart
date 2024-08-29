@@ -81,8 +81,8 @@ class MyApp extends StatelessWidget {
             initialRoute: LocalStorage.getStartPage() ?? '/',
             locale: ThemeCustomizer.instance.currentLanguage.locale,
             getPages: getPageRoute(),
-            builder: (_, child) {
-              NavigationService.registerContext(_);
+            builder: (ctx, child) {
+              NavigationService.registerContext(ctx);
               return child!;
             },
             localizationsDelegates: const [

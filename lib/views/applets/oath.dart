@@ -35,7 +35,7 @@ import 'package:zxing2/qrcode.dart' as zxing;
 final log = Logger('Console:OATH:View');
 
 class OathPage extends StatefulWidget {
-  const OathPage({Key? key}) : super(key: key);
+  const OathPage({super.key});
 
   @override
   State<OathPage> createState() => _OathPageState();

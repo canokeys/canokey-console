@@ -29,7 +29,7 @@ import 'package:platform_detector/platform_detector.dart';
 final log = Logger('Console:Settings:View');
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({Key? key}) : super(key: key);
+  const SettingsPage({super.key});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -294,15 +294,15 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                     ),
                   },
                   // Reset applets
-                  _buildResetButton(Applet.OATH, S.of(context).settingsResetOATH),
-                  _buildResetButton(Applet.PIV, S.of(context).settingsResetPIV),
-                  _buildResetButton(Applet.OpenPGP, S.of(context).settingsResetOpenPGP),
-                  _buildResetButton(Applet.NDEF, S.of(context).settingsResetNDEF),
+                  _buildResetButton(Applet.oath, S.of(context).settingsResetOATH),
+                  _buildResetButton(Applet.piv, S.of(context).settingsResetPIV),
+                  _buildResetButton(Applet.openpgp, S.of(context).settingsResetOpenPGP),
+                  _buildResetButton(Applet.ndef, S.of(context).settingsResetNDEF),
                   if (controller.key.getFunctionSet().contains(Func.resetWebAuthn)) ...{
-                    _buildResetButton(Applet.WebAuthn, S.of(context).settingsResetWebAuthn),
+                    _buildResetButton(Applet.webauthn, S.of(context).settingsResetWebAuthn),
                   },
                   if (controller.key.getFunctionSet().contains(Func.resetPass)) ...{
-                    _buildResetButton(Applet.PASS, S.of(context).settingsResetPass),
+                    _buildResetButton(Applet.pass, S.of(context).settingsResetPass),
                   },
                   if (controller.key.model == CanoKey.pigeon && !isMobile())
                     CustomizedButton(
@@ -585,9 +585,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                       ThemeCustomizer.instance.currentLanguage = language;
                       await LocalStorage.setLanguage(language);
                       Get.updateLocale(language.locale);
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                      }
+                      Navigator.pop(Get.context!);
                     },
                     elevation: 0,
                     padding: Spacing.xy(20, 16),

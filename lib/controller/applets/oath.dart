@@ -114,6 +114,7 @@ class OathController extends Controller {
 
       List<int> nameBytes = utf8.encode(name);
       String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}'; // name 0x71
+      // ignore: prefer_interpolation_to_compose_strings
       capduData += '73' + // tag
           (secretHex.length ~/ 2 + 2).toRadixString(16).padLeft(2, '0') + // length
           (type.value | algo.value).toRadixString(16).padLeft(2, '0') + // type & algo
