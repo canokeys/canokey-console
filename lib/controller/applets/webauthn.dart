@@ -52,8 +52,8 @@ class WebAuthnController extends Controller {
 
       // PIN is not set
       if (_ctap.info.options?['clientPin'] == false) {
-        // On mobile platforms, we need to finish NFC before showing the dialog
-        if (isMobile()) {
+        // When using NFC, we need to finish NFC before showing the dialog
+        if (SmartCard.useNfc()) {
           Prompts.stopPromptPolling();
           FlutterNfcKit.finish(closeWebUSB: false);
         }
@@ -63,8 +63,8 @@ class WebAuthnController extends Controller {
           prompt: S.of(Get.context!).webauthnSetPinPrompt,
           validators: [LengthValidator(min: 4, max: 63)],
         );
-        // On mobile platforms, we need to poll NFC again after showing the dialog
-        if (isMobile()) {
+        // When using NFC, we need to poll NFC again after showing the dialog
+        if (SmartCard.useNfc()) {
           Prompts.promptPolling();
           await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
           String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
@@ -78,8 +78,8 @@ class WebAuthnController extends Controller {
       assert(_ctap.info.options?['clientPin'] == true);
 
       if (_pinCache.isEmpty) {
-        // On mobile platforms, we need to finish NFC before showing the dialog
-        if (isMobile()) {
+        // When using NFC, we need to finish NFC before showing the dialog
+        if (SmartCard.useNfc()) {
           Prompts.stopPromptPolling();
           FlutterNfcKit.finish(closeWebUSB: false);
         }
@@ -88,8 +88,8 @@ class WebAuthnController extends Controller {
           label: 'PIN',
           prompt: S.of(Get.context!).webauthnInputPinPrompt,
         );
-        // On mobile platforms, we need to poll NFC again after showing the dialog
-        if (isMobile()) {
+        // When using NFC, we need to poll NFC again after showing the dialog
+        if (SmartCard.useNfc()) {
           Prompts.promptPolling();
           await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
           String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
