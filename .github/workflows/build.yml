@@ -19,7 +19,7 @@ jobs:
       uses: flutter-actions/setup-flutter@v2
       with:
         channel: stable
-        version: 3.19.6
+        version: 3.24.1
         cache: true
     - run: flutter pub get
 #    - run: dart format --output=none --set-exit-if-changed .
