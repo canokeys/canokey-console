@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
-import 'package:platform_detector/platform_detector.dart';
 
 final log = Logger('Console:WebAuthn:Controller');
 

@@ -142,7 +142,7 @@ class _PassPageState extends State<PassPage> with SingleTickerProviderStateMixin
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildInfo(LucideIcons.shieldCheck, S.of(context).passStatus, _slotStatus(controller.slotLong),
-                                    () => _showSlotConfigDialog(PassController.short, controller.slotShort)),
+                                    () => _showSlotConfigDialog(PassController.long, controller.slotLong)),
                               ],
                             ),
                           ),
