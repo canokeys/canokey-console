@@ -178,7 +178,11 @@ class Prompts {
 
   static stopPromptPolling() {
     if (isAndroidApp()) {
-      _snackbarController.close();
+      try {
+        _snackbarController.close();
+      } catch (e) {
+        // ignore: empty_catches
+      }
     }
   }
 }
