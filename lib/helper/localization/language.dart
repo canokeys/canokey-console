@@ -1,6 +1,8 @@
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/intl_standalone.dart' if (dart.library.html) 'package:intl/intl_browser.dart';
 
 class Language {
   final Locale locale;
@@ -13,8 +15,8 @@ class Language {
 
   Language(this.locale, this.languageName);
 
-  static Future<bool> init() async {
-    ThemeCustomizer.instance.currentLanguage = await getLanguage();
+  static bool init() {
+    ThemeCustomizer.instance.currentLanguage = getCurrentLanguage();
     return true;
   }
 
@@ -26,13 +28,24 @@ class Language {
     return languages.map((e) => e.locale.languageCode).toList();
   }
 
-  static Future<Language> getLanguage() async {
+  static Language getSystemLanguage() {
+    findSystemLocale();
+    if (Intl.systemLocale.startsWith('zh')) {
+      return languages[1]; // zh-Hans
+    } else {
+      return languages[0]; // en
+    }
+  }
+
+  static Language getCurrentLanguage() {
     Language? language;
     String? langCode = LocalStorage.getLanguage();
     if (langCode != null) {
       language = getLanguageFromCode(langCode);
+    } else {
+      language = getSystemLanguage();
     }
-    return language ?? languages.first;
+    return language;
   }
 
   static Language getLanguageFromCode(String code) {
