@@ -1,5 +1,5 @@
 name: canokey_console
-description: A new Flutter project.
+description: Manage your CanoKey via NFC or USB.
 publish_to: 'none'
 
 version: 1.0.0+1
