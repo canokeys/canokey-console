@@ -3,5 +3,4 @@
 .vscode
 build
 *.iml
-pubspec.lock
 .flutter-plugins*

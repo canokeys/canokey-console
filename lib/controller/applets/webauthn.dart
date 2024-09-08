@@ -117,14 +117,15 @@ class WebAuthnController extends Controller {
       webAuthnItems.clear();
       final cm = CredentialManagement(_ctap, cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(), pinToken);
       try {
-        final rp = await cm.enumerateRpsBegin();
-        for (var element in (await cm.enumerateCredentials(rp.rpIdHash))) {
-          webAuthnItems.add(WebAuthnItem(
-            rpId: rp.rp.id,
-            userName: element.user.name,
-            userDisplayName: element.user.displayName,
-            credentialId: element.credentialId,
-          ));
+        for (var rp in (await cm.enumerateRPs())) {
+          for (var element in (await cm.enumerateCredentials(rp.rpIdHash))) {
+            webAuthnItems.add(WebAuthnItem(
+              rpId: rp.rp.id,
+              userName: element.user.name,
+              userDisplayName: element.user.displayName,
+              credentialId: element.credentialId,
+            ));
+          }
         }
       } on CtapError catch (e) {
         if (e.status == CtapStatusCode.ctap2ErrNoCredentials) {
