@@ -43,8 +43,8 @@ class WebAuthnController extends Controller {
 
       _ctap = await Ctap2.create(CtapNfc());
 
-      // We do nothing if the device does not support clientPin
-      if (_ctap.info.options?['clientPin'] == null) {
+      // We do nothing if the device does not support credMgmt or clientPin
+      if (_ctap.info.options?['credMgmt'] != true || _ctap.info.options?['clientPin'] == null) {
         Prompts.showPrompt(S.of(Get.context!).webauthnClientPinNotSupported, ContentThemeColor.danger);
         return;
       }
