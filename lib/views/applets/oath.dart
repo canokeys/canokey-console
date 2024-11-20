@@ -447,7 +447,7 @@ class _OathPageState extends State<OathPage> with SingleTickerProviderStateMixin
 
     validator.addField('issuer', required: true, controller: TextEditingController());
     validator.addField('account', required: true, controller: TextEditingController());
-    validator.addField('secret', required: true, controller: TextEditingController(), validators: [LengthValidator(min: 8, max: 52)]);
+    validator.addField('secret', required: true, controller: TextEditingController(), validators: [LengthValidator(min: 8, max: 103)]);
     TextEditingController counterController = TextEditingController();
     counterController.text = '0';
     validator.addField('counter', required: true, controller: counterController, validators: [IntValidator(min: 0, max: 4294967295)]);
