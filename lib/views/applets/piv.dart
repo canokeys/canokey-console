@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
@@ -44,6 +45,7 @@ class PivPage extends StatefulWidget {
 
 class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, UIMixin {
   late PivController controller;
+  bool managementKeyVerified = false;
 
   @override
   void initState() {
@@ -330,6 +332,105 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     ));
   }
 
+  Future<bool> _showVerifyManagementKeyDialog() {
+    final c = new Completer<bool>();
+
+    FormValidator validator = FormValidator();
+    validator.addField('key', required: true, controller: TextEditingController(), validators: [LengthValidator(exact: 48), HexStringValidator()]);
+
+    Get.dialog(Dialog(
+      child: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: Spacing.all(16),
+              child: CustomizedText.labelLarge(S.of(context).pivChangeManagementKey),
+            ),
+            Divider(height: 0, thickness: 1),
+            Padding(
+                padding: Spacing.all(16),
+                child: Form(
+                    key: validator.formKey,
+                    child: Column(children: [
+                      CustomizedText.bodyMedium(S.of(context).pivChangeManagementKeyPrompt),
+                      Spacing.height(16),
+                      Row(children: [
+                        SizedBox(
+                          width: 200,
+                          child: TextFormField(
+                            autofocus: true,
+                            onTap: () => SmartCard.eject(),
+                            controller: validator.getController('key'),
+                            validator: validator.getValidator('key'),
+                            decoration: InputDecoration(
+                              labelText: S.of(context).pivOldManagementKey,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(4)),
+                                borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onSurface.withAlpha(80)),
+                              ),
+                              floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            ),
+                          ),
+                        ),
+                        Spacing.width(8),
+                        CustomizedButton(
+                          onPressed: () {
+                            validator.getController('key')!.text = '010203040506070801020304050607080102030405060708';
+                          },
+                          elevation: 0,
+                          padding: Spacing.xy(8, 8),
+                          backgroundColor: ContentThemeColor.primary.color,
+                          child: CustomizedText.labelMedium(S.of(context).pivUseDefaultManagementKey, color: ContentThemeColor.primary.onColor),
+                        ),
+                      ]),
+                    ]))),
+            Divider(height: 0, thickness: 1),
+            Padding(
+              padding: Spacing.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CustomizedButton.rounded(
+                    onPressed: () {
+                      Navigator.pop(Get.context!);
+                      c.complete(false);
+                    },
+                    elevation: 0,
+                    padding: Spacing.xy(20, 16),
+                    backgroundColor: ContentThemeColor.secondary.color,
+                    child: CustomizedText.labelMedium(S.of(Get.context!).cancel, color: ContentThemeColor.secondary.onColor),
+                  ),
+                  Spacing.width(16),
+                  CustomizedButton.rounded(
+                    onPressed: () async {
+                      if (validator.validateForm()) {
+                        final key = validator.getController('key')!.text;
+                        if (!await controller.verifyManagementKey(key)) {
+                          Prompts.showPrompt(S.of(Get.context!).pivManagementKeyVerificationFailed, ContentThemeColor.danger);
+                          return;
+                        }
+                        c.complete(true);
+                      }
+                    },
+                    elevation: 0,
+                    padding: Spacing.xy(20, 16),
+                    backgroundColor: ContentThemeColor.primary.color,
+                    child: CustomizedText.labelMedium(S.of(Get.context!).confirm, color: ContentThemeColor.primary.onColor),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
+
+    return c.future;
+  }
+
   _showChangeManagementKeyDialog() {
     FormValidator validator = FormValidator();
     validator.addField('old', required: true, controller: TextEditingController(), validators: [LengthValidator(exact: 48), HexStringValidator()]);
@@ -567,7 +668,15 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                   ),
                   Spacing.width(12),
                   CustomizedButton.rounded(
-                    onPressed: () => _showImportDialog(slotNumber),
+                    onPressed: () async {
+                      if (!managementKeyVerified) {
+                        if (!await _showVerifyManagementKeyDialog()) {
+                          return;
+                        }
+                      }
+                      Navigator.pop(Get.context!);
+                      _showImportDialog(slotNumber);
+                    },
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.primary,
@@ -642,38 +751,39 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     Rx<bool> hasCert = false.obs;
     Rx<bool> hasKey = false.obs;
     Rx<bool> selected = false.obs;
-    PinPolicy pinPolicy = PinPolicy.defaultPolicy;
-    TouchPolicy touchPolicy = TouchPolicy.defaultPolicy;
+    PinPolicy pinPolicy = slotNumber == '9C' ? PinPolicy.always : PinPolicy.once;
+    TouchPolicy touchPolicy = TouchPolicy.never;
     ECPrivateKey? ecPrivateKey;
     RSAPrivateKey? rsaPrivateKey;
     X509CertificateData? cert;
+    Uint8List? certBytes;
 
-    void nextStep() {
+    void nextStep() async {
       if (step.value < 2) {
         setState(() => step.value++);
       } else {
         // We first import the private key
         if (ecPrivateKey != null) {
-          String algoId = '';
-          switch (ecPrivateKey!.parameters!.domainName) {
-            case 'prime256v1':
-              algoId = '11';
-              break;
-            case 'secp384r1':
-              algoId = '14';
-              break;
-            case 'secp256k1':
-              algoId = '53';
-              break;
+          bool importSuccess = await controller.importEccKey(slotNumber, ecPrivateKey!, pinPolicy, touchPolicy);
+          if (!importSuccess) {
+            Prompts.showPrompt('Import Key Failed', ContentThemeColor.danger);
+            return;
           }
-          var key = ecPrivateKey!.d!.toRadixString(16);
-          var data =
-              '06${(key.length ~/ 2).toRadixString(16).padLeft(2, '0')}${key}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}';
-          var capdu = '00FE$algoId$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}$data';
-          log.info(capdu);
         } else if (rsaPrivateKey != null) {
           // String algoId = '';
         }
+
+        // We then import the certificate
+        if (cert != null) {
+          bool importSuccess = await controller.importCert(slotNumber, certBytes!);
+          if (!importSuccess) {
+            Prompts.showPrompt('Import Cert Failed', ContentThemeColor.danger);
+            return;
+          }
+        }
+
+        Prompts.showPrompt('Import Succeeded', ContentThemeColor.success);
+        Navigator.pop(Get.context!);
       }
     }
 
@@ -735,6 +845,9 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                             hasKey.value = true;
                           } else if (item.startsWith(X509Utils.BEGIN_CERT)) {
                             cert = X509Utils.x509CertificateFromPem(item);
+                            var content = item.substring(X509Utils.BEGIN_CERT.length).split('-----END ')[0];
+                            content = content.replaceAll('\n', '');
+                            certBytes = base64Decode(content);
                             hasCert.value = true;
                           }
                         }
@@ -791,14 +904,14 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                   children: [
                     DropdownButtonFormField(
                       value: pinPolicy,
-                      items: PinPolicy.values.map((e) => DropdownMenuItem(value: e, child: Text(e.toString()))).toList(),
+                      items: [PinPolicy.never, PinPolicy.once, PinPolicy.always].map((e) => DropdownMenuItem(value: e, child: Text(e.toString()))).toList(),
                       onChanged: (value) => setState(() => pinPolicy = value!),
                       decoration: InputDecoration(labelText: 'PIN Policy'),
                       dropdownColor: contentTheme.background,
                     ),
                     DropdownButtonFormField(
                       value: touchPolicy,
-                      items: TouchPolicy.values.map((e) => DropdownMenuItem(value: e, child: Text(e.toString()))).toList(),
+                      items: [TouchPolicy.never, TouchPolicy.cached, TouchPolicy.always].map((e) => DropdownMenuItem(value: e, child: Text(e.toString()))).toList(),
                       onChanged: (value) => setState(() => touchPolicy = value!),
                       decoration: InputDecoration(labelText: 'Touch Policy'),
                       dropdownColor: contentTheme.background,
