@@ -4,7 +4,9 @@ import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
+import 'package:platform_detector/platform_detector.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class StarterScreen extends StatefulWidget {
   const StarterScreen({super.key});
@@ -55,6 +57,18 @@ class _StarterScreenState extends State<StarterScreen> with SingleTickerProvider
                         Text(S.of(context).homeDirectlySelect, style: TextStyle(fontSize: 18.0)),
                       ],
                     ),
+                  if (isWeb()) ...[
+                    SizedBox(height: 20),
+                    TextButton(
+                      onPressed: () {
+                        launchUrl(Uri.parse('https://console-legacy.canokeys.org'));
+                      },
+                      child: Text(
+                        'Use Legacy Version',
+                        style: TextStyle(fontSize: 16.0, decoration: TextDecoration.underline),
+                      ),
+                    ),
+                  ],
                 ],
               );
             }));
