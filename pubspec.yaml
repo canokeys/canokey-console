@@ -45,7 +45,10 @@ dependencies:
   dart_des: ^1.0.2
   pem: ^2.0.5
   file_saver: ^0.2.13
-  basic_utils: ^5.7.0
+  basic_utils:
+    git:
+      url: https://github.com/dangfan/Dart-Basic-Utils.git
+      ref: 743c57a717a8425f9baf3f363f9359216dcb832e
   pointycastle: ^3.9.1
 
 dev_dependencies:

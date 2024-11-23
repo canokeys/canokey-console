@@ -135,6 +135,22 @@ class PivController extends Controller {
     return c.future;
   }
 
+  Future<bool> importEd25519Key(String slotNumber, Uint8List key, PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
+    final c = new Completer<bool>();
+    String rawKey = hex.encode(key);
+    var data = '06${key.length.toRadixString(16).padLeft(2, '0')}${rawKey}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';
+    
+    // Build the command APDU
+    // INS: 0xFE, P1: algorithm ID (0xE0 for Ed25519), P2: slot number
+    var capdu = '00FEE0$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}$data';
+    SmartCard.process(() async {
+      String resp = await SmartCard.transceive(capdu);
+      c.complete(SmartCard.isOK(resp));
+    });
+    
+    return c.future;
+  }
+
   Future<bool> importRsaKey(String slotNumber, RSAPrivateKey rsaPrivateKey, PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
     final c = new Completer<bool>();
     
@@ -177,8 +193,24 @@ class PivController extends Controller {
         'AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}' +  // Then pin policy TLV
         'AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';  // Finally touch policy TLV
     
-    int algoId = keyLength == 256 ? 0x07 : 0x06; // 0x07 for RSA2048, 0x06 for RSA1024
-
+    int algoId;
+    switch (keyLength) {
+      case 128:  // RSA1024
+        algoId = 0x06;
+        break;
+      case 256:  // RSA2048
+        algoId = 0x07;
+        break;
+      case 384:  // RSA3072
+        algoId = 0x05;
+        break;
+      case 512:  // RSA4096
+        algoId = 0x16;
+        break;
+      default:
+        throw Exception('Unsupported RSA key length: ${keyLength * 8} bits');
+    }
+    
     // Send the APDU command
     // INS: 0xFE, P1: algorithm ID, P2: slot number
     String capdu = '00FE${algoId.toRadixString(16).padLeft(2, '0')}$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(6, '0')}$data';

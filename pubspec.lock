@@ -36,10 +36,11 @@ packages:
   basic_utils:
     dependency: "direct main"
     description:
-      name: basic_utils
-      sha256: "2064b21d3c41ed7654bc82cc476fd65542e04d60059b74d5eed490a4da08fc6c"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: "743c57a717a8425f9baf3f363f9359216dcb832e"
+      resolved-ref: "743c57a717a8425f9baf3f363f9359216dcb832e"
+      url: "https://github.com/dangfan/Dart-Basic-Utils.git"
+    source: git
     version: "5.7.0"
   boolean_selector:
     dependency: transitive

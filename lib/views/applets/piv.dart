@@ -625,7 +625,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                         ),
                         Spacing.height(16),
                         TextFormField(
-                          initialValue: slot.cert!.tbsCertificate!.serialNumber.toRadixString(16),
+                          initialValue: slot.cert!.tbsCertificate!.serialNumber.toRadixString(16).toUpperCase(),
                           readOnly: true,
                           decoration: InputDecoration(labelText: 'Serial', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
                         ),
@@ -755,6 +755,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     TouchPolicy touchPolicy = TouchPolicy.never;
     ECPrivateKey? ecPrivateKey;
     RSAPrivateKey? rsaPrivateKey;
+    Uint8List? edPrivateKey;
     X509CertificateData? cert;
     Uint8List? certBytes;
 
@@ -771,6 +772,12 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
           }
         } else if (rsaPrivateKey != null) {
           bool importSuccess = await controller.importRsaKey(slotNumber, rsaPrivateKey!, pinPolicy, touchPolicy);
+          if (!importSuccess) {
+            Prompts.showPrompt('Import Key Failed', ContentThemeColor.danger);
+            return;
+          }
+        } else if (edPrivateKey != null) {
+          bool importSuccess = await controller.importEd25519Key(slotNumber, edPrivateKey!, pinPolicy, touchPolicy);
           if (!importSuccess) {
             Prompts.showPrompt('Import Key Failed', ContentThemeColor.danger);
             return;
@@ -797,6 +804,31 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
       } else if (step.value > 0) {
         setState(() => step.value--);
       }
+    }
+
+    void parsePem(Uint8List bytes) {
+      final pem = utf8.decode(bytes);
+      pem.split('-----BEGIN ').forEach((element) {
+        if (element.isNotEmpty) {
+          final item = '-----BEGIN $element';
+          if (item.startsWith(CryptoUtils.BEGIN_EC_PRIVATE_KEY)) {  // ECDSA
+            ecPrivateKey = CryptoUtils.ecPrivateKeyFromPem(item);
+            hasKey.value = true;
+          } else if (item.startsWith(CryptoUtils.BEGIN_RSA_PRIVATE_KEY)) { // RSA
+            rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromPemPkcs1(item);
+            hasKey.value = true;
+          } else if (item.startsWith(CryptoUtils.BEGIN_PRIVATE_KEY)) { // Ed25519
+            edPrivateKey = CryptoUtils.ed25519PrivateKeyFromPem(item);
+            hasKey.value = true;
+          } else if (item.startsWith(X509Utils.BEGIN_CERT)) { // Certificate
+            cert = X509Utils.x509CertificateFromPem(item);
+            var content = item.substring(X509Utils.BEGIN_CERT.length).split('-----END ')[0];
+            content = content.replaceAll('\n', '');
+            certBytes = base64Decode(content);
+            hasCert.value = true;
+          }
+        }
+      });
     }
 
     Get.dialog(Dialog(
@@ -837,25 +869,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                     final file = result?.files.firstOrNull;
                     if (file != null) {
                       selected.value = true;
-                      final pem = utf8.decode(file.bytes!);
-                      pem.split('-----BEGIN ').forEach((element) {
-                        if (element.isNotEmpty) {
-                          final item = '-----BEGIN $element';
-                          if (item.startsWith(CryptoUtils.BEGIN_EC_PRIVATE_KEY)) {
-                            ecPrivateKey = CryptoUtils.ecPrivateKeyFromPem(item);
-                            hasKey.value = true;
-                          } else if (item.startsWith(CryptoUtils.BEGIN_RSA_PRIVATE_KEY)) {
-                            rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromPemPkcs1(item);
-                            hasKey.value = true;
-                          } else if (item.startsWith(X509Utils.BEGIN_CERT)) {
-                            cert = X509Utils.x509CertificateFromPem(item);
-                            var content = item.substring(X509Utils.BEGIN_CERT.length).split('-----END ')[0];
-                            content = content.replaceAll('\n', '');
-                            certBytes = base64Decode(content);
-                            hasCert.value = true;
-                          }
-                        }
-                      });
+                      parsePem(file.bytes!);
                       if (hasKey.value && hasCert.value) {
                         nextStep();
                       }
