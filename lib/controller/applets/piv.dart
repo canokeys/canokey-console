@@ -135,6 +135,62 @@ class PivController extends Controller {
     return c.future;
   }
 
+  Future<bool> importRsaKey(String slotNumber, RSAPrivateKey rsaPrivateKey, PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
+    final c = new Completer<bool>();
+    
+    // Get p and q from the private key
+    BigInt p = rsaPrivateKey.p!;
+    BigInt q = rsaPrivateKey.q!;
+    BigInt d = rsaPrivateKey.exponent!;
+    
+    // Compute dp = d mod (p-1)
+    BigInt dp = d.remainder(p - BigInt.one);
+    
+    // Compute dq = d mod (q-1)
+    BigInt dq = d.remainder(q - BigInt.one);
+    
+    // Compute qinv = q^(-1) mod p
+    BigInt qinv = q.modInverse(p);
+    
+    // Convert parameters to fixed-length byte arrays
+    int keyLength = rsaPrivateKey.modulus!.bitLength ~/ 8;
+    int halfLength = keyLength ~/ 2;
+    
+    // Pad numbers to correct length
+    String pHex = p.toRadixString(16).padLeft(halfLength * 2, '0');
+    String qHex = q.toRadixString(16).padLeft(halfLength * 2, '0');
+    String dpHex = dp.toRadixString(16).padLeft(halfLength * 2, '0');
+    String dqHex = dq.toRadixString(16).padLeft(halfLength * 2, '0');
+    String qinvHex = qinv.toRadixString(16).padLeft(halfLength * 2, '0');
+    
+    // Build TLV for each component
+    // Tag: 0x01 for P, 0x02 for Q, 0x03 for dP, 0x04 for dQ, 0x05 for qInv
+    String pTlv = '0182${halfLength.toRadixString(16).padLeft(4, '0')}$pHex';
+    String qTlv = '0282${halfLength.toRadixString(16).padLeft(4, '0')}$qHex';
+    String dpTlv = '0382${halfLength.toRadixString(16).padLeft(4, '0')}$dpHex';
+    String dqTlv = '0482${halfLength.toRadixString(16).padLeft(4, '0')}$dqHex';
+    String qinvTlv = '0582${halfLength.toRadixString(16).padLeft(4, '0')}$qinvHex';
+    
+    // Build the data field for the APDU
+    String data = 
+        pTlv + qTlv + dpTlv + dqTlv + qinvTlv +  // Key elements TLVs first
+        'AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}' +  // Then pin policy TLV
+        'AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';  // Finally touch policy TLV
+    
+    int algoId = keyLength == 256 ? 0x07 : 0x06; // 0x07 for RSA2048, 0x06 for RSA1024
+
+    // Send the APDU command
+    // INS: 0xFE, P1: algorithm ID, P2: slot number
+    String capdu = '00FE${algoId.toRadixString(16).padLeft(2, '0')}$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(6, '0')}$data';
+    
+    SmartCard.process(() async {
+      String resp = await SmartCard.transceive(capdu);
+      c.complete(SmartCard.isOK(resp));
+    });
+    
+    return c.future;
+  }
+
   Uint8List buildPivCert(Uint8List cert) {
     // Create a builder for the cert tag (0x70)
     var certTlv = Uint8List(2 + 2 + cert.length);
@@ -190,7 +246,7 @@ class PivController extends Controller {
         String capdu = '${cla}DB3FFF$lc${data.substring(offset, offset + chunkLength)}';
         String resp = await SmartCard.transceive(capdu);
         if (SmartCard.isOK(resp)) {
-          c.complete(false);
+          c.complete(true);
           return c.future;
         }
         offset += chunkLength;

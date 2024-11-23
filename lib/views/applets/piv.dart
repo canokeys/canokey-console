@@ -770,7 +770,11 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
             return;
           }
         } else if (rsaPrivateKey != null) {
-          // String algoId = '';
+          bool importSuccess = await controller.importRsaKey(slotNumber, rsaPrivateKey!, pinPolicy, touchPolicy);
+          if (!importSuccess) {
+            Prompts.showPrompt('Import Key Failed', ContentThemeColor.danger);
+            return;
+          }
         }
 
         // We then import the certificate
