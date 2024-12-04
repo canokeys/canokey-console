@@ -20,7 +20,6 @@ import 'package:loader_overlay/loader_overlay.dart';
 import 'package:logging/logging.dart';
 import 'package:platform_detector/platform_detector.dart';
 import 'package:provider/provider.dart';
-import 'package:url_strategy/url_strategy.dart';
 
 final log = Logger('Console:main');
 
@@ -31,7 +30,6 @@ Future<void> main() async {
   });
 
   WidgetsFlutterBinding.ensureInitialized();
-  setPathUrlStrategy();
 
   await LocalStorage.init();
   AppStyle.init();

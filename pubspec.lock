@@ -907,14 +907,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.3"
-  url_strategy:
-    dependency: "direct main"
-    description:
-      name: url_strategy
-      sha256: "6eff69fa0900b731a23552b38b54389f399d247dbb0998f2cbdf25bef6790a7c"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.0"
   uuid:
     dependency: transitive
     description:

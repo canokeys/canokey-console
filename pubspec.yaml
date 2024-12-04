@@ -18,7 +18,6 @@ dependencies:
   provider: ^6.0.5
   google_fonts: ^6.2.1
   lucide_icons: ^0.257.0
-  url_strategy: ^0.3.0
   url_launcher: ^6.2.6
   file_picker: ^8.0.7
   font_awesome_flutter: ^10.7.0
