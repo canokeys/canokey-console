@@ -159,6 +159,7 @@
   "pivChangeManagementKeyPrompt": "New Management Key should be 24 bytes long. Please save it in a safe place.",
   "pivOldManagementKey": "Current Management Key",
   "pivNewManagementKey": "New Management Key",
+  "pivManagementKey": "Management Key",
   "pivUseDefaultManagementKey": "Default",
   "pivRandomManagementKey": "Random",
   "pivManagementKeyVerificationFailed": "Management Key verification failed",
@@ -190,6 +191,8 @@
   "pivExport": "Export",
   "pivDelete": "Delete",
   "pivExportCertificate": "Export Certificate",
+  "pivDeleteSlot": "This action will delete the slot {slot} from your CanoKey. Make sure you have other ways to authenticate.",
+  "pivVerifyManagementKey": "Verify Management Key",
   "validationHexString": "Please input a valid hexadecimal string.",
   "validationExactLength": "Need exact {length} characters"
 }

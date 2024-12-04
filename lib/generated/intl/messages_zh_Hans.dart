@@ -30,11 +30,13 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m4(retries) => "PIN 输入错误，剩余重试次数：${retries}";
 
-  static String m6(applet) => "该操作将抹除 ${applet} 的全部数据！";
+  static String m6(slot) => "此操作将从您的CanoKey中删除${slot}中的证书和密钥。请确保您有其他方式访问。";
 
-  static String m7(length) => "需要 ${length} 个字符";
+  static String m7(applet) => "该操作将抹除 ${applet} 的全部数据！";
 
-  static String m8(name) => "您正在删除${name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。";
+  static String m8(length) => "需要 ${length} 个字符";
+
+  static String m9(name) => "您正在删除${name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -169,6 +171,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "新管理密钥的长度应当为 24 字节。请妥善保管管理密钥，否则您将无法管理 PIV 应用。"),
         "pivChangePUK": MessageLookupByLibrary.simpleMessage("修改 PUK"),
         "pivDelete": MessageLookupByLibrary.simpleMessage("删除"),
+        "pivDeleteSlot": m6,
         "pivEmpty": MessageLookupByLibrary.simpleMessage("空"),
         "pivExport": MessageLookupByLibrary.simpleMessage("导出"),
         "pivExportCertificate": MessageLookupByLibrary.simpleMessage("导出证书"),
@@ -176,6 +179,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "pivImport": MessageLookupByLibrary.simpleMessage("导入"),
         "pivKeyManagement":
             MessageLookupByLibrary.simpleMessage("密钥管理（Key Management）"),
+        "pivManagementKey": MessageLookupByLibrary.simpleMessage("管理密钥"),
         "pivManagementKeyVerificationFailed":
             MessageLookupByLibrary.simpleMessage("管理密钥验证失败"),
         "pivNewManagementKey": MessageLookupByLibrary.simpleMessage("新密钥"),
@@ -204,6 +208,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("从不验证"),
         "pivUseDefaultManagementKey":
             MessageLookupByLibrary.simpleMessage("默认值"),
+        "pivVerifyManagementKey":
+            MessageLookupByLibrary.simpleMessage("验证管理密钥"),
         "pollCanceled": MessageLookupByLibrary.simpleMessage("您没有选择任何 CanoKey"),
         "pollCanoKey":
             MessageLookupByLibrary.simpleMessage("请点击右上角刷新按钮读取 CanoKey"),
@@ -233,7 +239,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsResetAll": MessageLookupByLibrary.simpleMessage("重置 CanoKey"),
         "settingsResetAllPrompt": MessageLookupByLibrary.simpleMessage(
             "即将抹除全部数据。当您确认后，CanoKey 将会反复闪烁，请在闪烁时触摸，直到提示成功。"),
-        "settingsResetApplet": m6,
+        "settingsResetApplet": m7,
         "settingsResetConditionNotSatisfying":
             MessageLookupByLibrary.simpleMessage("PIN 尚未锁定"),
         "settingsResetNDEF": MessageLookupByLibrary.simpleMessage("重置 NDEF"),
@@ -254,13 +260,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("WebAuthn SM2"),
         "settingsWebUSB": MessageLookupByLibrary.simpleMessage("插入时 WebUSB 提示"),
         "successfullyChanged": MessageLookupByLibrary.simpleMessage("修改成功"),
-        "validationExactLength": m7,
+        "validationExactLength": m8,
         "validationHexString":
             MessageLookupByLibrary.simpleMessage("请输入十六进制字符串"),
         "warning": MessageLookupByLibrary.simpleMessage("警告"),
         "webauthnClientPinNotSupported":
             MessageLookupByLibrary.simpleMessage("该密钥不支持 WebAuthn PIN。"),
-        "webauthnDelete": m8,
+        "webauthnDelete": m9,
         "webauthnInputPinPrompt":
             MessageLookupByLibrary.simpleMessage("请输入您的 WebAuthn PIN。"),
         "webauthnInputPinTitle":

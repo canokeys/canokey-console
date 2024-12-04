@@ -41,6 +41,8 @@ class CustomizedButton extends StatelessWidget {
 
   final Color? splashColor;
 
+  final WidgetStateProperty<Size>? minSize;
+
   final Widget child;
 
   CustomizedButton(
@@ -67,7 +69,8 @@ class CustomizedButton extends StatelessWidget {
       this.elevation = 4,
       this.shadowColor,
       this.tapTargetSize = MaterialTapTargetSize.padded,
-      this.splashColor});
+      this.splashColor,
+      this.minSize});
 
   CustomizedButton.rounded(
       {required this.onPressed,
@@ -93,7 +96,8 @@ class CustomizedButton extends StatelessWidget {
       this.elevation = 4,
       this.shadowColor,
       this.tapTargetSize = MaterialTapTargetSize.padded,
-      this.splashColor});
+      this.splashColor,
+      this.minSize});
 
   CustomizedButton.small(
       {required this.onPressed,
@@ -119,7 +123,8 @@ class CustomizedButton extends StatelessWidget {
       this.elevation = 4,
       this.shadowColor,
       this.tapTargetSize = MaterialTapTargetSize.padded,
-      this.splashColor});
+      this.splashColor,
+      this.minSize});
 
   CustomizedButton.medium(
       {required this.onPressed,
@@ -145,7 +150,8 @@ class CustomizedButton extends StatelessWidget {
       this.elevation = 4,
       this.shadowColor,
       this.tapTargetSize = MaterialTapTargetSize.padded,
-      this.splashColor});
+      this.splashColor,
+      this.minSize});
 
   CustomizedButton.text(
       {required this.onPressed,
@@ -171,7 +177,8 @@ class CustomizedButton extends StatelessWidget {
       this.elevation = 4,
       this.shadowColor,
       this.tapTargetSize = MaterialTapTargetSize.padded,
-      this.splashColor});
+      this.splashColor,
+      this.minSize});
 
   CustomizedButton.block(
       {required this.onPressed,
@@ -197,7 +204,8 @@ class CustomizedButton extends StatelessWidget {
       this.elevation = 4,
       this.shadowColor,
       this.tapTargetSize = MaterialTapTargetSize.padded,
-      this.splashColor});
+      this.splashColor,
+      this.minSize});
 
   CustomizedButton.outlined(
       {required this.onPressed,
@@ -223,7 +231,8 @@ class CustomizedButton extends StatelessWidget {
       this.elevation = 4,
       this.shadowColor,
       this.tapTargetSize = MaterialTapTargetSize.padded,
-      this.splashColor});
+      this.splashColor,
+      this.minSize});
 
   CustomizedButton.large(
       {required this.onPressed,
@@ -249,7 +258,8 @@ class CustomizedButton extends StatelessWidget {
       this.elevation = 4,
       this.shadowColor,
       this.tapTargetSize = MaterialTapTargetSize.padded,
-      this.splashColor});
+      this.splashColor,
+      this.minSize});
 
   @override
   Widget build(BuildContext context) {
@@ -309,7 +319,8 @@ class CustomizedButton extends StatelessWidget {
                   shape: WidgetStateProperty.all(shape ??
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(borderRadiusAll ?? WidgetConstant.constant.buttonRadius),
-                      ))),
+                      )),
+                  minimumSize: minSize),
           onPressed: onPressed,
           child: child);
     } else {

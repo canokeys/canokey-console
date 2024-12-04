@@ -30,6 +30,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 import 'package:logging/logging.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:pem/pem.dart';
@@ -45,7 +46,6 @@ class PivPage extends StatefulWidget {
 
 class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, UIMixin {
   late PivController controller;
-  bool managementKeyVerified = false;
 
   @override
   void initState() {
@@ -58,18 +58,10 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     return Layout(
       title: 'PIV',
       topActions: InkWell(
-        onTap: () {
-          if (controller.polled) {
-            controller.refreshData('');
-          } else {
-            Prompts.showInputPinDialog(
-              title: S.of(context).settingsInputPin,
-              label: "PIN",
-              prompt: S.of(context).passInputPinPrompt,
-            ).then((value) {
-              controller.refreshData(value);
-            }).onError((error, stackTrace) => null); // User canceled
-          }
+        onTap: () async {
+          Get.context!.loaderOverlay.show();
+          await controller.refreshData();
+          Get.context!.loaderOverlay.hide();
         },
         child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
       ),
@@ -77,18 +69,14 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
         init: controller,
         builder: (_) {
           if (!controller.polled) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Spacing.height(MediaQuery.of(context).size.height / 2 - 120),
-                Center(
-                    child: Padding(
-                  padding: Spacing.horizontal(36),
-                  child: CustomizedText.bodyMedium(S.of(context).pollCanoKey, fontSize: 24),
-                )),
-              ],
-            );
+            return Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.center, children: [
+              Spacing.height(MediaQuery.of(context).size.height / 2 - 120),
+              Center(
+                  child: Padding(
+                padding: Spacing.horizontal(36),
+                child: CustomizedText.bodyMedium(S.of(context).pollCanoKey, fontSize: 24),
+              ))
+            ]);
           }
 
           return Column(
@@ -303,9 +291,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   CustomizedButton.rounded(
-                    onPressed: () {
-                      Navigator.pop(Get.context!);
-                    },
+                    onPressed: () => Navigator.pop(Get.context!),
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: ContentThemeColor.secondary.color,
@@ -332,8 +318,8 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     ));
   }
 
-  Future<bool> _showVerifyManagementKeyDialog() {
-    final c = new Completer<bool>();
+  Future<String> showVerifyManagementKeyDialog() {
+    Completer<String> c = new Completer<String>();
 
     FormValidator validator = FormValidator();
     validator.addField('key', required: true, controller: TextEditingController(), validators: [LengthValidator(exact: 48), HexStringValidator()]);
@@ -345,28 +331,22 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(S.of(context).pivChangeManagementKey),
-            ),
+            Padding(padding: Spacing.all(16), child: CustomizedText.labelLarge(S.of(context).pivVerifyManagementKey)),
             Divider(height: 0, thickness: 1),
             Padding(
                 padding: Spacing.all(16),
                 child: Form(
                     key: validator.formKey,
                     child: Column(children: [
-                      CustomizedText.bodyMedium(S.of(context).pivChangeManagementKeyPrompt),
-                      Spacing.height(16),
                       Row(children: [
-                        SizedBox(
-                          width: 200,
+                        Expanded(
                           child: TextFormField(
                             autofocus: true,
                             onTap: () => SmartCard.eject(),
                             controller: validator.getController('key'),
                             validator: validator.getValidator('key'),
                             decoration: InputDecoration(
-                              labelText: S.of(context).pivOldManagementKey,
+                              labelText: S.of(context).pivManagementKey,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.all(Radius.circular(4)),
                                 borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onSurface.withAlpha(80)),
@@ -381,7 +361,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                             validator.getController('key')!.text = '010203040506070801020304050607080102030405060708';
                           },
                           elevation: 0,
-                          padding: Spacing.xy(8, 8),
+                          padding: Spacing.xy(8, 16),
                           backgroundColor: ContentThemeColor.primary.color,
                           child: CustomizedText.labelMedium(S.of(context).pivUseDefaultManagementKey, color: ContentThemeColor.primary.onColor),
                         ),
@@ -395,8 +375,8 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                 children: [
                   CustomizedButton.rounded(
                     onPressed: () {
+                      c.completeError(UserCanceledError());
                       Navigator.pop(Get.context!);
-                      c.complete(false);
                     },
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
@@ -408,11 +388,8 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                     onPressed: () async {
                       if (validator.validateForm()) {
                         final key = validator.getController('key')!.text;
-                        if (!await controller.verifyManagementKey(key)) {
-                          Prompts.showPrompt(S.of(Get.context!).pivManagementKeyVerificationFailed, ContentThemeColor.danger);
-                          return;
-                        }
-                        c.complete(true);
+                        c.complete(key);
+                        Navigator.pop(Get.context!);
                       }
                     },
                     elevation: 0,
@@ -456,8 +433,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                       CustomizedText.bodyMedium(S.of(context).pivChangeManagementKeyPrompt),
                       Spacing.height(16),
                       Row(children: [
-                        SizedBox(
-                          width: 200,
+                        Expanded(
                           child: TextFormField(
                             autofocus: true,
                             onTap: () => SmartCard.eject(),
@@ -479,15 +455,14 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                             validator.getController('old')!.text = '010203040506070801020304050607080102030405060708';
                           },
                           elevation: 0,
-                          padding: Spacing.xy(8, 8),
                           backgroundColor: ContentThemeColor.primary.color,
+                          minSize: WidgetStatePropertyAll(Size(92, 40)),
                           child: CustomizedText.labelMedium(S.of(context).pivUseDefaultManagementKey, color: ContentThemeColor.primary.onColor),
                         ),
                       ]),
                       Spacing.height(16),
                       Row(children: [
-                        SizedBox(
-                          width: 200,
+                        Expanded(
                           child: TextFormField(
                             onTap: () => SmartCard.eject(),
                             controller: validator.getController('new'),
@@ -510,8 +485,8 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                             validator.getController('new')!.text = hex.encode(values);
                           },
                           elevation: 0,
-                          padding: Spacing.xy(8, 8),
                           backgroundColor: ContentThemeColor.primary.color,
+                          minSize: WidgetStatePropertyAll(Size(92, 40)),
                           child: CustomizedText.labelMedium(S.of(context).pivRandomManagementKey, color: ContentThemeColor.primary.onColor),
                         ),
                       ])
@@ -669,11 +644,11 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                   Spacing.width(12),
                   CustomizedButton.rounded(
                     onPressed: () async {
-                      if (!managementKeyVerified) {
-                        if (!await _showVerifyManagementKeyDialog()) {
-                          return;
-                        }
-                      }
+                      // if (cachedManagementKey == null) {
+                      //   if (!await _showVerifyManagementKeyDialog()) {
+                      //     return;
+                      //   }
+                      // }
                       Navigator.pop(Get.context!);
                       _showImportDialog(slotNumber);
                     },
@@ -685,7 +660,10 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                   if (slot != null) ...[
                     Spacing.width(12),
                     CustomizedButton.rounded(
-                      onPressed: () => _showExportDialog(slot),
+                      onPressed: () {
+                        Navigator.pop(Get.context!);
+                        _showExportDialog(slot);
+                      },
                       elevation: 0,
                       padding: Spacing.xy(20, 16),
                       backgroundColor: contentTheme.primary,
@@ -693,7 +671,10 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                     ),
                     Spacing.width(12),
                     CustomizedButton.rounded(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pop(Get.context!);
+                        _showDeleteDialog(slotNumber);
+                      },
                       elevation: 0,
                       padding: Spacing.xy(20, 16),
                       backgroundColor: contentTheme.danger,
@@ -811,16 +792,20 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
       pem.split('-----BEGIN ').forEach((element) {
         if (element.isNotEmpty) {
           final item = '-----BEGIN $element';
-          if (item.startsWith(CryptoUtils.BEGIN_EC_PRIVATE_KEY)) {  // ECDSA
+          if (item.startsWith(CryptoUtils.BEGIN_EC_PRIVATE_KEY)) {
+            // ECDSA
             ecPrivateKey = CryptoUtils.ecPrivateKeyFromPem(item);
             hasKey.value = true;
-          } else if (item.startsWith(CryptoUtils.BEGIN_RSA_PRIVATE_KEY)) { // RSA
+          } else if (item.startsWith(CryptoUtils.BEGIN_RSA_PRIVATE_KEY)) {
+            // RSA
             rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromPemPkcs1(item);
             hasKey.value = true;
-          } else if (item.startsWith(CryptoUtils.BEGIN_PRIVATE_KEY)) { // Ed25519
+          } else if (item.startsWith(CryptoUtils.BEGIN_PRIVATE_KEY)) {
+            // Ed25519
             edPrivateKey = CryptoUtils.ed25519PrivateKeyFromPem(item);
             hasKey.value = true;
-          } else if (item.startsWith(X509Utils.BEGIN_CERT)) { // Certificate
+          } else if (item.startsWith(X509Utils.BEGIN_CERT)) {
+            // Certificate
             cert = X509Utils.x509CertificateFromPem(item);
             var content = item.substring(X509Utils.BEGIN_CERT.length).split('-----END ')[0];
             content = content.replaceAll('\n', '');
@@ -929,7 +914,9 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                     ),
                     DropdownButtonFormField(
                       value: touchPolicy,
-                      items: [TouchPolicy.never, TouchPolicy.cached, TouchPolicy.always].map((e) => DropdownMenuItem(value: e, child: Text(e.toString()))).toList(),
+                      items: [TouchPolicy.never, TouchPolicy.cached, TouchPolicy.always]
+                          .map((e) => DropdownMenuItem(value: e, child: Text(e.toString())))
+                          .toList(),
                       onChanged: (value) => setState(() => touchPolicy = value!),
                       decoration: InputDecoration(labelText: 'Touch Policy'),
                       dropdownColor: contentTheme.background,
@@ -949,6 +936,53 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                   )),
             ],
           ),
+        ),
+      ),
+    ));
+  }
+
+  _showDeleteDialog(String slotNumber) {
+    Get.dialog(Dialog(
+      child: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: Spacing.all(16),
+              child: CustomizedText.labelLarge(S.of(context).delete),
+            ),
+            Divider(height: 0, thickness: 1),
+            Padding(
+              padding: Spacing.all(16),
+              child: CustomizedText.labelLarge(S.of(context).pivDeleteSlot(slotNumber)),
+            ),
+            Divider(height: 0, thickness: 1),
+            Padding(
+              padding: Spacing.all(16),
+              child: Row(
+                children: [
+                  CustomizedButton.rounded(
+                    onPressed: () => Get.back(),
+                    elevation: 0,
+                    backgroundColor: contentTheme.secondary,
+                    child: CustomizedText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
+                  ),
+                  Spacing.width(12),
+                  CustomizedButton.rounded(
+                    onPressed: () async {
+                      await controller.delete(slotNumber);
+                      Get.back();
+                    },
+                    elevation: 0,
+                    backgroundColor: contentTheme.danger,
+                    child: CustomizedText.labelMedium(S.of(context).delete, color: contentTheme.onDanger),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     ));

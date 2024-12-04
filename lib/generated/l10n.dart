@@ -1650,6 +1650,16 @@ class S {
     );
   }
 
+  /// `Management Key`
+  String get pivManagementKey {
+    return Intl.message(
+      'Management Key',
+      name: 'pivManagementKey',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Default`
   String get pivUseDefaultManagementKey {
     return Intl.message(
@@ -1955,6 +1965,26 @@ class S {
     return Intl.message(
       'Export Certificate',
       name: 'pivExportCertificate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This action will delete the slot {slot} from your CanoKey. Make sure you have other ways to authenticate.`
+  String pivDeleteSlot(Object slot) {
+    return Intl.message(
+      'This action will delete the slot $slot from your CanoKey. Make sure you have other ways to authenticate.',
+      name: 'pivDeleteSlot',
+      desc: '',
+      args: [slot],
+    );
+  }
+
+  /// `Verify Management Key`
+  String get pivVerifyManagementKey {
+    return Intl.message(
+      'Verify Management Key',
+      name: 'pivVerifyManagementKey',
       desc: '',
       args: [],
     );

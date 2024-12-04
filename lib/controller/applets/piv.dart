@@ -31,7 +31,7 @@ class PivController extends Controller {
     } catch (e) {}
   }
 
-  Future<void> refreshData(String pin) async {
+  Future<void> refreshData() async {
     await SmartCard.process(() async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       for (var slot in [0x80, 0x81, 0x9B, 0x9A, 0x9C, 0x9D, 0x9E, 0x82, 0x83]) {
@@ -126,7 +126,8 @@ class PivController extends Controller {
         break;
     }
     var rawKey = key.d!.toRadixString(16);
-    var data = '06${(rawKey.length ~/ 2).toRadixString(16).padLeft(2, '0')}${rawKey}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';
+    var data =
+        '06${(rawKey.length ~/ 2).toRadixString(16).padLeft(2, '0')}${rawKey}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';
     var capdu = '00FE$algoId$slot${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}$data';
     SmartCard.process(() async {
       String resp = await SmartCard.transceive(capdu);
@@ -138,8 +139,9 @@ class PivController extends Controller {
   Future<bool> importEd25519Key(String slotNumber, Uint8List key, PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
     final c = new Completer<bool>();
     String rawKey = hex.encode(key);
-    var data = '06${key.length.toRadixString(16).padLeft(2, '0')}${rawKey}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';
-    
+    var data =
+        '06${key.length.toRadixString(16).padLeft(2, '0')}${rawKey}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';
+
     // Build the command APDU
     // INS: 0xFE, P1: algorithm ID (0xE0 for Ed25519), P2: slot number
     var capdu = '00FEE0$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}$data';
@@ -147,38 +149,38 @@ class PivController extends Controller {
       String resp = await SmartCard.transceive(capdu);
       c.complete(SmartCard.isOK(resp));
     });
-    
+
     return c.future;
   }
 
   Future<bool> importRsaKey(String slotNumber, RSAPrivateKey rsaPrivateKey, PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
     final c = new Completer<bool>();
-    
+
     // Get p and q from the private key
     BigInt p = rsaPrivateKey.p!;
     BigInt q = rsaPrivateKey.q!;
     BigInt d = rsaPrivateKey.exponent!;
-    
+
     // Compute dp = d mod (p-1)
     BigInt dp = d.remainder(p - BigInt.one);
-    
+
     // Compute dq = d mod (q-1)
     BigInt dq = d.remainder(q - BigInt.one);
-    
+
     // Compute qinv = q^(-1) mod p
     BigInt qinv = q.modInverse(p);
-    
+
     // Convert parameters to fixed-length byte arrays
     int keyLength = rsaPrivateKey.modulus!.bitLength ~/ 8;
     int halfLength = keyLength ~/ 2;
-    
+
     // Pad numbers to correct length
     String pHex = p.toRadixString(16).padLeft(halfLength * 2, '0');
     String qHex = q.toRadixString(16).padLeft(halfLength * 2, '0');
     String dpHex = dp.toRadixString(16).padLeft(halfLength * 2, '0');
     String dqHex = dq.toRadixString(16).padLeft(halfLength * 2, '0');
     String qinvHex = qinv.toRadixString(16).padLeft(halfLength * 2, '0');
-    
+
     // Build TLV for each component
     // Tag: 0x01 for P, 0x02 for Q, 0x03 for dP, 0x04 for dQ, 0x05 for qInv
     String pTlv = '0182${halfLength.toRadixString(16).padLeft(4, '0')}$pHex';
@@ -186,40 +188,38 @@ class PivController extends Controller {
     String dpTlv = '0382${halfLength.toRadixString(16).padLeft(4, '0')}$dpHex';
     String dqTlv = '0482${halfLength.toRadixString(16).padLeft(4, '0')}$dqHex';
     String qinvTlv = '0582${halfLength.toRadixString(16).padLeft(4, '0')}$qinvHex';
-    
+
     // Build the data field for the APDU
-    String data = 
-        pTlv + qTlv + dpTlv + dqTlv + qinvTlv +  // Key elements TLVs first
-        'AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}' +  // Then pin policy TLV
-        'AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';  // Finally touch policy TLV
-    
+    String data =
+        '$pTlv$qTlv$dpTlv$dqTlv${qinvTlv}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}'; // Finally touch policy TLV
+
     int algoId;
     switch (keyLength) {
-      case 128:  // RSA1024
+      case 128: // RSA1024
         algoId = 0x06;
         break;
-      case 256:  // RSA2048
+      case 256: // RSA2048
         algoId = 0x07;
         break;
-      case 384:  // RSA3072
+      case 384: // RSA3072
         algoId = 0x05;
         break;
-      case 512:  // RSA4096
+      case 512: // RSA4096
         algoId = 0x16;
         break;
       default:
         throw Exception('Unsupported RSA key length: ${keyLength * 8} bits');
     }
-    
+
     // Send the APDU command
     // INS: 0xFE, P1: algorithm ID, P2: slot number
     String capdu = '00FE${algoId.toRadixString(16).padLeft(2, '0')}$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(6, '0')}$data';
-    
+
     SmartCard.process(() async {
       String resp = await SmartCard.transceive(capdu);
       c.complete(SmartCard.isOK(resp));
     });
-    
+
     return c.future;
   }
 
@@ -245,19 +245,19 @@ class PivController extends Controller {
 
     // Calculate total length
     var totalLen = certTlv.length + compressedTlv.length + lrcTlv.length;
-    
+
     // Create the final buffer with compact tag (0x53)
     var result = Uint8List(2 + 2 + totalLen);
     result[0] = 0x53;
     result[1] = 0x82;
     result[2] = (totalLen >> 8) & 0xFF;
     result[3] = totalLen & 0xFF;
-    
+
     // Copy all TLVs into the result
     result.setRange(4, 4 + certTlv.length, certTlv);
     result.setRange(4 + certTlv.length, 4 + certTlv.length + compressedTlv.length, compressedTlv);
     result.setRange(4 + certTlv.length + compressedTlv.length, result.length, lrcTlv);
-    
+
     return result;
   }
 
@@ -284,8 +284,12 @@ class PivController extends Controller {
         offset += chunkLength;
       }
     }
-    c.complete(true);
+    c.complete(false);
     return c.future;
+  }
+
+  Future<bool> delete(String slot) async {
+    return importCert(slot, Uint8List(0));
   }
 
   String _padPin(String pin) {

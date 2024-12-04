@@ -36,12 +36,15 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m5(min, max) =>
       "New PUK should be at least ${min} characters long. The maximum length is ${max}.";
 
-  static String m6(applet) =>
+  static String m6(slot) =>
+      "This action will delete the slot ${slot} from your CanoKey. Make sure you have other ways to authenticate.";
+
+  static String m7(applet) =>
       "This operation will RESET all data of ${applet}!";
 
-  static String m7(length) => "Need exact ${length} characters";
+  static String m8(length) => "Need exact ${length} characters";
 
-  static String m8(name) =>
+  static String m9(name) =>
       "This action will delete the account ${name} from your CanoKey. Make sure you have other ways to log in.";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -204,6 +207,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "pivChangePUK": MessageLookupByLibrary.simpleMessage("Change PUK"),
         "pivChangePUKPrompt": m5,
         "pivDelete": MessageLookupByLibrary.simpleMessage("Delete"),
+        "pivDeleteSlot": m6,
         "pivEmpty": MessageLookupByLibrary.simpleMessage("Empty"),
         "pivExport": MessageLookupByLibrary.simpleMessage("Export"),
         "pivExportCertificate":
@@ -212,6 +216,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "pivImport": MessageLookupByLibrary.simpleMessage("Import"),
         "pivKeyManagement":
             MessageLookupByLibrary.simpleMessage("Key Management"),
+        "pivManagementKey":
+            MessageLookupByLibrary.simpleMessage("Management Key"),
         "pivManagementKeyVerificationFailed":
             MessageLookupByLibrary.simpleMessage(
                 "Management Key verification failed"),
@@ -247,6 +253,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("Never"),
         "pivUseDefaultManagementKey":
             MessageLookupByLibrary.simpleMessage("Default"),
+        "pivVerifyManagementKey":
+            MessageLookupByLibrary.simpleMessage("Verify Management Key"),
         "pollCanceled":
             MessageLookupByLibrary.simpleMessage("No CanoKey is selected."),
         "pollCanoKey": MessageLookupByLibrary.simpleMessage(
@@ -284,7 +292,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Reset CanoKey"),
         "settingsResetAllPrompt": MessageLookupByLibrary.simpleMessage(
             "All data is about to be erased. When you confirm, the CanoKey will blink repeatedly. Touch while it is blinking until success."),
-        "settingsResetApplet": m6,
+        "settingsResetApplet": m7,
         "settingsResetConditionNotSatisfying":
             MessageLookupByLibrary.simpleMessage("PIN has not been locked yet"),
         "settingsResetNDEF": MessageLookupByLibrary.simpleMessage("Reset NDEF"),
@@ -308,13 +316,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("WebUSB prompt when plug-in"),
         "successfullyChanged":
             MessageLookupByLibrary.simpleMessage("Successfully changed"),
-        "validationExactLength": m7,
+        "validationExactLength": m8,
         "validationHexString": MessageLookupByLibrary.simpleMessage(
             "Please input a valid hexadecimal string."),
         "warning": MessageLookupByLibrary.simpleMessage("Warning"),
         "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
             "This key does not support WebAuthn PIN."),
-        "webauthnDelete": m8,
+        "webauthnDelete": m9,
         "webauthnInputPinPrompt": MessageLookupByLibrary.simpleMessage(
             "Please input your WebAuthn PIN."),
         "webauthnInputPinTitle":
