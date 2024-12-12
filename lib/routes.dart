@@ -1,7 +1,7 @@
 import 'package:canokey_console/views/applets/oath/oath_page.dart';
 import 'package:canokey_console/views/applets/pass.dart';
 import 'package:canokey_console/views/applets/piv.dart';
-import 'package:canokey_console/views/applets/webauthn.dart';
+import 'package:canokey_console/views/applets/webauthn/webauthn_page.dart';
 import 'package:canokey_console/views/settings.dart';
 import 'package:canokey_console/views/starter_screen.dart';
 import 'package:get/get.dart';

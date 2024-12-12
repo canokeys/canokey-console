@@ -151,12 +151,25 @@ class WebAuthnController extends Controller {
       SmartCard.assertOK(resp);
 
       final cp = ClientPin(_ctap);
-      if (!await cp.changePin(_pinCache, newPin)) {
-        Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
-        return;
+      try {
+        await cp.changePin(_pinCache, newPin);
+        Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
+        _pinCache = newPin;
+      } catch (e) {
+        if (e is CtapError) {
+          if (e.status == CtapStatusCode.ctap2ErrPinInvalid) {
+            Prompts.showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+          } else if (e.status == CtapStatusCode.ctap2ErrPinAuthBlocked) {
+            Prompts.showPrompt(S.of(Get.context!).webauthnPinAuthBlocked, ContentThemeColor.danger);
+          } else if (e.status == CtapStatusCode.ctap2ErrPinBlocked) {
+            Prompts.showPrompt(S.of(Get.context!).webauthnPinBlocked, ContentThemeColor.danger);
+          } else {
+            Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
+          }
+        } else {
+          rethrow;
+        }
       }
-      Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
-      _pinCache = newPin;
     });
   }
 

@@ -9,27 +9,26 @@ import 'package:canokey_console/helper/widgets/customized_container.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/oath.dart';
+import 'package:canokey_console/views/applets/oath/widgets/delete_dialog.dart';
+import 'package:canokey_console/views/applets/oath/widgets/set_default_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:timer_controller/timer_controller.dart';
 
 class OathItemCard extends StatelessWidget with UIMixin {
+  final OathController controller;
   final String name;
   final OathItem item;
-  final OathController controller;
-  final Function(String) onDelete;
-  final Function(String) onSetDefault;
 
   OathItemCard({
     super.key,
+    required this.controller,
     required this.name,
     required this.item,
-    required this.controller,
-    required this.onDelete,
-    required this.onSetDefault,
   });
 
   @override
@@ -55,14 +54,20 @@ class OathItemCard extends StatelessWidget with UIMixin {
                       padding: Spacing.xy(16, 8),
                       height: 10,
                       child: CustomizedText.bodySmall(S.of(context).delete),
-                      onTap: () => onDelete(name),
+                      onTap: () => Get.dialog(DeleteDialog(
+                        name: name,
+                        onDelete: () => controller.delete(name),
+                      )),
                     ),
                     if (item.type == OathType.hotp)
                       PopupMenuItem(
                         padding: Spacing.xy(16, 8),
                         height: 10,
                         child: CustomizedText.bodySmall(S.of(context).oathSetDefault),
-                        onTap: () => onSetDefault(name),
+                        onTap: () => Get.dialog(SetDefaultDialog(
+                          name: name,
+                          onSetDefault: (slot, withEnter) => controller.setDefault(name, slot, withEnter),
+                        )),
                       ),
                   ],
                   child: const Icon(LucideIcons.moreHorizontal, size: 18),

@@ -8,13 +8,11 @@ import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/oath.dart';
 import 'package:canokey_console/views/applets/oath/widgets/add_account_dialog.dart';
-import 'package:canokey_console/views/applets/oath/widgets/delete_dialog.dart';
-import 'package:canokey_console/views/applets/oath/widgets/no_credential_screen.dart';
 import 'package:canokey_console/views/applets/oath/widgets/oath_item_card.dart';
-import 'package:canokey_console/views/applets/oath/widgets/oath_top_actions.dart';
 import 'package:canokey_console/views/applets/oath/widgets/qr_scanner_dialog.dart';
-import 'package:canokey_console/views/applets/oath/widgets/set_default_dialog.dart';
+import 'package:canokey_console/views/applets/oath/widgets/top_actions.dart';
 import 'package:canokey_console/views/layout/layout.dart';
+import 'package:canokey_console/widgets/no_credential_screen.dart';
 import 'package:canokey_console/widgets/poll_cano_key_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
@@ -94,20 +92,6 @@ class _OathPageState extends State<OathPage> with UIMixin {
     );
   }
 
-  void _showDeleteDialog(String name) {
-    Get.dialog(DeleteDialog(
-      name: name,
-      onDelete: () => controller.delete(name),
-    ));
-  }
-
-  void _showSetDefaultDialog(String name) {
-    Get.dialog(SetDefaultDialog(
-      name: name,
-      onSetDefault: (slot, withEnter) => controller.setDefault(name, slot, withEnter),
-    ));
-  }
-
   void _showQrConfirmDialog(String issuer, String account, String secret, OathType type, OathAlgorithm algo, int digits, int initValue) {
     Get.dialog(
       AddAccountDialog(
@@ -130,7 +114,7 @@ class _OathPageState extends State<OathPage> with UIMixin {
       title: 'TOTP / HOTP',
       topActions: GetBuilder(
         init: controller,
-        builder: (_) => OathTopActions(
+        builder: (_) => TopActions(
           controller: controller,
           onQrScan: _showQrScanner,
           onScreenCapture: _showScreenCapture,
@@ -172,8 +156,6 @@ class _OathPageState extends State<OathPage> with UIMixin {
                           name: name,
                           item: controller.oathMap[name]!,
                           controller: controller,
-                          onDelete: _showDeleteDialog,
-                          onSetDefault: _showSetDefaultDialog,
                         );
                       },
                     )

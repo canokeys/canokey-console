@@ -9,13 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:platform_detector/platform_detector.dart';
 
-class OathTopActions extends StatelessWidget with UIMixin {
+class TopActions extends StatelessWidget with UIMixin {
   final OathController controller;
   final VoidCallback onQrScan;
   final VoidCallback onScreenCapture;
   final VoidCallback onManualAdd;
 
-  OathTopActions({
+  TopActions({
     super.key,
     required this.controller,
     required this.onQrScan,
