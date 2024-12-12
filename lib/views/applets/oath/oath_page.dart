@@ -81,7 +81,7 @@ class _OathPageState extends State<OathPage> with UIMixin {
       final result = reader.decode(bitmap);
       controller.addUri(result.text);
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         Prompts.showPrompt(S.of(context).oathNoQr, ContentThemeColor.danger);
       }
     }

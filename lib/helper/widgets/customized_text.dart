@@ -440,7 +440,6 @@ class CustomizedText extends StatelessWidget {
       semanticsLabel: semanticsLabel,
       softWrap: softWrap,
       strutStyle: strutStyle,
-      //TODO: =-===
       textDirection: textDirection,
       textHeightBehavior: textHeightBehavior,
       textWidthBasis: textWidthBasis,

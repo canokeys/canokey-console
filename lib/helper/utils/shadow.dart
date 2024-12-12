@@ -48,14 +48,12 @@ class Shadow {
         case ShadowPosition.topRight:
           offset = Offset(elevation, -elevation);
           break;
-        //TODO: Shadow problem
         case ShadowPosition.centerLeft:
           offset = Offset(-elevation, elevation * 0.25);
           break;
         case ShadowPosition.center:
           offset = Offset(0, 0);
           break;
-        //TODO: Shadow problem
         case ShadowPosition.centerRight:
           offset = Offset(elevation, elevation * 0.25);
           break;
@@ -96,14 +94,12 @@ class Shadow {
         case ShadowPosition.topRight:
           offset = Offset(elevation, -elevation);
           break;
-        //TODO: Shadow problem
         case ShadowPosition.centerLeft:
           offset = Offset(-elevation, elevation * 0.25);
           break;
         case ShadowPosition.center:
           offset = Offset(0, 0);
           break;
-        //TODO: Shadow problem
         case ShadowPosition.centerRight:
           offset = Offset(elevation, elevation * 0.25);
           break;
