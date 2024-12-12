@@ -8,7 +8,10 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:get/get.dart';
+import 'package:logging/logging.dart';
 import 'package:platform_detector/platform_detector.dart';
+
+final log = Logger('SmartCard');
 
 class SmartCard {
   static Timer? _timer;
@@ -32,13 +35,11 @@ class SmartCard {
   }
 
   static bool useNfc() {
+    bool nfcMode = _card == null;
     if (isWeb()) {
-      return true;
+      nfcMode = false;
     }
-    if (isDesktop()) {
-      return false;
-    }
-    return _card == null;
+    return nfcMode;
   }
 
   static Future<void> eject() async {
@@ -52,7 +53,7 @@ class SmartCard {
   }
 
   static Future<void> process(Function f) async {
-    if (useNfc()) {
+    if (useNfc() || isWeb()) {
       bool isFirstCalled = !_polled;
       _polled = true;
 
@@ -87,7 +88,7 @@ class SmartCard {
   }
 
   static Future<String> transceive(String capdu) async {
-    if (useNfc()) {
+    if (useNfc() || isWeb()) {
       return await FlutterNfcKit.transceive(capdu);
     } else {
       if (_card == null) {

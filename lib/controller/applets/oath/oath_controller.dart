@@ -1,6 +1,5 @@
 import 'dart:convert';
-
-import 'package:base32/base32.dart';
+import 'package:canokey_console/controller/applets/oath/qr_scan_result.dart';
 import 'package:canokey_console/controller/base_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
@@ -19,16 +18,14 @@ import 'package:timer_controller/timer_controller.dart';
 final log = Logger('Console:OATH:Controller');
 
 class OathController extends Controller {
-  final Function(String issuer, String account, String secretHex, OathType type, OathAlgorithm algo, int digits, int initValue) showQrConfirmDialog;
+  final TimerController timerController = TimerController.seconds(30);
+  final Rxn<QrScanResult> qrScanResult = Rxn<QrScanResult>();
+
   String _codeCache = '';
   String _uid = '';
-
   Map<String, OathItem> oathMap = {};
   OathVersion version = OathVersion.v1;
   bool polled = false;
-  TimerController timerController = TimerController.seconds(30);
-
-  OathController(this.showQrConfirmDialog);
 
   @override
   void onInit() {
@@ -256,12 +253,7 @@ class OathController extends Controller {
     if (!query.containsKey('secret')) {
       return;
     }
-    late String secretHex;
-    try {
-      secretHex = base32.decodeAsHexString(query['secret']!.toUpperCase());
-    } catch (e) {
-      return;
-    }
+    final String secret = query['secret']!;
     final algorithm = query['algorithm'] ?? 'SHA1';
     if (algorithm != 'SHA1' && algorithm != 'SHA256' && algorithm != 'SHA512') {
       return;
@@ -278,7 +270,8 @@ class OathController extends Controller {
       return;
     }
     final counter = int.parse(query['counter'] ?? '0');
-    showQrConfirmDialog(issuer, account, secretHex, type, algo, digits, counter);
+
+    qrScanResult.value = QrScanResult(issuer: issuer, account: account, secret: secret, type: type, algo: algo, digits: digits, initValue: counter);
   }
 
   Future<bool> _selectAndVerifyCode() async {

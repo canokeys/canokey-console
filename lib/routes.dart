@@ -1,4 +1,4 @@
-import 'package:canokey_console/views/applets/oath.dart';
+import 'package:canokey_console/views/applets/oath/oath_page.dart';
 import 'package:canokey_console/views/applets/pass.dart';
 import 'package:canokey_console/views/applets/piv.dart';
 import 'package:canokey_console/views/applets/webauthn.dart';
@@ -19,11 +19,5 @@ getPageRoute() {
     GetPage(name: '/settings', page: () => const SettingsPage()),
   ];
 
-  return routes
-      .map((e) => GetPage(
-          name: e.name,
-          page: e.page,
-          middlewares: e.middlewares,
-          transition: Transition.noTransition))
-      .toList();
+  return routes.map((e) => GetPage(name: e.name, page: e.page, middlewares: e.middlewares, transition: Transition.noTransition)).toList();
 }

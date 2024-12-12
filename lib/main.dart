@@ -33,7 +33,7 @@ Future<void> main() async {
 
   await LocalStorage.init();
   AppStyle.init();
-  await Language.init();
+  Language.init();
 
   if (!isWeb()) {
     SmartCard.pollCcid();
@@ -60,7 +60,6 @@ class MyApp extends StatelessWidget {
     return Consumer<AppNotifier>(
       builder: (_, notifier, ___) {
         return GlobalLoaderOverlay(
-          useDefaultLoading: false,
           overlayWidgetBuilder: (_) {
             //ignored progress for the moment
             return Column(

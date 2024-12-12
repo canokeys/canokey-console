@@ -12,23 +12,23 @@ mixin UIMixin {
 
   ContentTheme get contentTheme => AdminTheme.theme.contentTheme;
 
-  VisualDensity get getCompactDensity => VisualDensity(horizontal: -4, vertical: -4);
+  VisualDensity get getCompactDensity => const VisualDensity(horizontal: -4, vertical: -4);
 
   // theme.colorScheme. get theme.colorScheme. => theme.theme.colorScheme.;
 
   OutlineInputBorder get outlineInputBorder => OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(4)),
+        borderRadius: const BorderRadius.all(const Radius.circular(4)),
         borderSide: BorderSide(width: 1, strokeAlign: 0, color: theme.colorScheme.onSurface.withAlpha(80)),
       );
 
-  OutlineInputBorder focusedInputBorder = OutlineInputBorder(
-    borderRadius: BorderRadius.all(Radius.circular(4)),
-    borderSide: BorderSide(width: 1, color: theme.colorScheme.primary),
-  );
+  OutlineInputBorder get focusedInputBorder => OutlineInputBorder(
+        borderRadius: const BorderRadius.all(const Radius.circular(4)),
+        borderSide: BorderSide(width: 1, color: theme.colorScheme.primary),
+      );
 
   OutlineInputBorder generateOutlineInputBorder({double radius = 4}) => OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(radius)),
-        borderSide: BorderSide(
+        borderSide: const BorderSide(
           color: Colors.transparent,
         ),
       );

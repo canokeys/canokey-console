@@ -38,24 +38,24 @@ class _TopBarState extends State<TopBar> with SingleTickerProviderStateMixin, UI
                   },
                   child: Icon(LucideIcons.menu, color: topBarTheme.onBackground)),
               Spacing.width(24),
-              SizedBox(
-                width: 200,
-                child: TextFormField(
-                  maxLines: 1,
-                  style: CustomizedTextStyle.bodyMedium(),
-                  decoration: InputDecoration(
-                      hintText: "search",
-                      hintStyle: CustomizedTextStyle.bodySmall(xMuted: true),
-                      border: outlineInputBorder,
-                      enabledBorder: outlineInputBorder,
-                      focusedBorder: focusedInputBorder,
-                      prefixIcon: const Align(alignment: Alignment.center, child: Icon(LucideIcons.search, size: 14)),
-                      prefixIconConstraints: const BoxConstraints(minWidth: 36, maxWidth: 36, minHeight: 32, maxHeight: 32),
-                      contentPadding: Spacing.xy(16, 12),
-                      isCollapsed: true,
-                      floatingLabelBehavior: FloatingLabelBehavior.never),
-                ),
-              ),
+              // SizedBox(
+              //   width: 200,
+              //   child: TextFormField(
+              //     maxLines: 1,
+              //     style: CustomizedTextStyle.bodyMedium(),
+              //     decoration: InputDecoration(
+              //         hintText: "search",
+              //         hintStyle: CustomizedTextStyle.bodySmall(xMuted: true),
+              //         border: outlineInputBorder,
+              //         enabledBorder: outlineInputBorder,
+              //         focusedBorder: focusedInputBorder,
+              //         prefixIcon: const Align(alignment: Alignment.center, child: Icon(LucideIcons.search, size: 14)),
+              //         prefixIconConstraints: const BoxConstraints(minWidth: 36, maxWidth: 36, minHeight: 32, maxHeight: 32),
+              //         contentPadding: Spacing.xy(16, 12),
+              //         isCollapsed: true,
+              //         floatingLabelBehavior: FloatingLabelBehavior.never),
+              //   ),
+              // ),
             ],
           ),
           Expanded(child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [widget.actions ?? Container()]))
