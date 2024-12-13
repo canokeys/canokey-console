@@ -169,8 +169,6 @@ class SettingsController extends Controller {
   }
 
   void changeSwitch(Func func, bool value) {
-    Navigator.pop(Get.context!);
-
     SmartCard.process(() async {
       if (!await selectAndVerifyPin()) {
         return;

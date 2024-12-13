@@ -3,15 +3,16 @@ import 'package:logging/logging.dart';
 final log = Logger('Console:CanoKey:Model');
 
 enum Applet {
-  openpgp(resetApdu: '00030000'),
-  piv(resetApdu: '00040000'),
-  webauthn(resetApdu: '00090000'),
-  oath(resetApdu: '00050000'),
-  ndef(resetApdu: '00070000'),
-  pass(resetApdu: '00130000');
+  openpgp(resetApdu: '00030000', name: 'OpenPGP'),
+  piv(resetApdu: '00040000', name: 'PIV'),
+  webauthn(resetApdu: '00090000', name: 'WebAuthn'),
+  oath(resetApdu: '00050000', name: 'TOTP / HOTP'),
+  ndef(resetApdu: '00070000', name: 'NDEF'),
+  pass(resetApdu: '00130000', name: 'Pass');
 
-  const Applet({required this.resetApdu});
+  const Applet({required this.resetApdu, required this.name});
   final String resetApdu;
+  final String name;
 }
 
 enum Func {
@@ -44,8 +45,7 @@ class WebAuthnSm2Config {
   final int curveId; // encoding as four bytes as big endian signed int
   final int algoId; // encoding as four bytes as big endian signed int
 
-  WebAuthnSm2Config(
-      {required this.enabled, required this.curveId, required this.algoId});
+  WebAuthnSm2Config({required this.enabled, required this.curveId, required this.algoId});
 }
 
 class CanoKey {
@@ -93,32 +93,11 @@ class CanoKey {
   static Set<Func> functionSet(FunctionSetVersion functionSetVersion) {
     switch (functionSetVersion) {
       case FunctionSetVersion.v1:
-        return {
-          Func.led,
-          Func.hotp,
-          Func.ndefReadonly,
-          Func.sigTouch,
-          Func.decTouch,
-          Func.autTouch,
-          Func.touchCacheTime
-        };
+        return {Func.led, Func.hotp, Func.ndefReadonly, Func.sigTouch, Func.decTouch, Func.autTouch, Func.touchCacheTime};
       case FunctionSetVersion.v2:
-        return {
-          Func.led,
-          Func.hotp,
-          Func.webusbLandingPage,
-          Func.ndefEnabled,
-          Func.ndefReadonly
-        };
+        return {Func.led, Func.hotp, Func.webusbLandingPage, Func.ndefEnabled, Func.ndefReadonly};
       case FunctionSetVersion.v3:
-        return {
-          Func.led,
-          Func.hotp,
-          Func.webusbLandingPage,
-          Func.ndefEnabled,
-          Func.ndefReadonly,
-          Func.keyboardWithReturn
-        };
+        return {Func.led, Func.hotp, Func.webusbLandingPage, Func.ndefEnabled, Func.ndefReadonly, Func.keyboardWithReturn};
       case FunctionSetVersion.v4:
         return {
           Func.led,
@@ -134,8 +113,7 @@ class CanoKey {
     }
   }
 
-  static FunctionSetVersion functionSetFromFirmwareVersion(
-      String firmwareVersion) {
+  static FunctionSetVersion functionSetFromFirmwareVersion(String firmwareVersion) {
     if (firmwareVersion.compareTo('1.5.') < 0) {
       log.info("Function Set: V1");
       return FunctionSetVersion.v1;
