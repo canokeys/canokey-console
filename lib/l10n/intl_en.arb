@@ -194,5 +194,6 @@
   "pivDeleteSlot": "This action will delete the slot {slot} from your CanoKey. Make sure you have other ways to authenticate.",
   "pivVerifyManagementKey": "Verify Management Key",
   "validationHexString": "Please input a valid hexadecimal string.",
-  "validationExactLength": "Need exact {length} characters"
+  "validationExactLength": "Need exact {length} characters",
+  "viewUserId": "View User ID"
 }

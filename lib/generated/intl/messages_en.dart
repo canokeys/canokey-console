@@ -319,6 +319,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "validationExactLength": m8,
         "validationHexString": MessageLookupByLibrary.simpleMessage(
             "Please input a valid hexadecimal string."),
+        "viewUserId": MessageLookupByLibrary.simpleMessage("View User ID"),
         "warning": MessageLookupByLibrary.simpleMessage("Warning"),
         "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
             "This key does not support WebAuthn PIN."),

@@ -69,9 +69,12 @@ class WebAuthnController extends Controller {
           String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
           SmartCard.assertOK(resp);
         }
+
+        // Set PIN and refresh by recreating Ctap2
         final cp = ClientPin(_ctap);
         await cp.setPin(_pinCache);
         Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
+        _ctap = await Ctap2.create(CtapNfc());
       }
 
       assert(_ctap.info.options?['clientPin'] == true);
@@ -123,6 +126,7 @@ class WebAuthnController extends Controller {
               rpId: rp.rp.id,
               userName: element.user.name,
               userDisplayName: element.user.displayName,
+              userId: element.user.id,
               credentialId: element.credentialId,
             ));
           }

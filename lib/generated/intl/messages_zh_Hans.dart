@@ -30,7 +30,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m4(retries) => "PIN 输入错误，剩余重试次数：${retries}";
 
-  static String m6(slot) => "此操作将从您的CanoKey中删除${slot}中的证书和密钥。请确保您有其他方式访问。";
+  static String m6(slot) => "此操作将从您的 CanoKey 中删除 ${slot} 中的证书和密钥。请确保您有其他方式访问。";
 
   static String m7(applet) => "该操作将抹除 ${applet} 的全部数据！";
 
@@ -263,6 +263,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "validationExactLength": m8,
         "validationHexString":
             MessageLookupByLibrary.simpleMessage("请输入十六进制字符串"),
+        "viewUserId": MessageLookupByLibrary.simpleMessage("查看用户 ID"),
         "warning": MessageLookupByLibrary.simpleMessage("警告"),
         "webauthnClientPinNotSupported":
             MessageLookupByLibrary.simpleMessage("该密钥不支持 WebAuthn PIN。"),

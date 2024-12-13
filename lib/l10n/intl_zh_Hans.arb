@@ -191,8 +191,9 @@
   "pivExport": "导出",
   "pivDelete": "删除",
   "pivExportCertificate": "导出证书",
-  "pivDeleteSlot": "此操作将从您的CanoKey中删除{slot}中的证书和密钥。请确保您有其他方式访问。",
+  "pivDeleteSlot": "此操作将从您的 CanoKey 中删除 {slot} 中的证书和密钥。请确保您有其他方式访问。",
   "pivVerifyManagementKey": "验证管理密钥",
   "validationHexString": "请输入十六进制字符串",
-  "validationExactLength": "需要 {length} 个字符"
+  "validationExactLength": "需要 {length} 个字符",
+  "viewUserId": "查看用户 ID"
 }

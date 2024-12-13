@@ -2009,6 +2009,16 @@ class S {
       args: [length],
     );
   }
+
+  /// `View User ID`
+  String get viewUserId {
+    return Intl.message(
+      'View User ID',
+      name: 'viewUserId',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
