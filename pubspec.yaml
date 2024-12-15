@@ -6,11 +6,11 @@ version: 1.0.1+6
 
 environment:
   sdk: '>=3.1.2 <4.0.0'
+  flutter: 3.24.5
 
 dependencies:
   flutter:
     sdk: flutter
-    version: 3.24.5
   flutter_localizations:
     sdk: flutter
   cupertino_icons: ^1.0.2

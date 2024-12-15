@@ -10,6 +10,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          flutter-version-file: pubspec.yaml
       - run: git clone https://github.com/canokeys/canokey-console
       - run: cd canokey-console && flutter pub get
       - run: cd canokey-console && flutter build web --web-renderer html
