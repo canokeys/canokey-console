@@ -40,6 +40,8 @@
   "copied": "Copied",
   "enabled": "Enabled",
   "noCredential": "No credential",
+  "noMatchingCredential": "No matching credential found",
+  "search": "Search",
   "iosAlertMessage": "Hold your iPhone near the CanoKey",
   "androidAlertTitle": "Touch your CanoKey",
   "androidAlertMessage": "Hold the CanoKey until finished",

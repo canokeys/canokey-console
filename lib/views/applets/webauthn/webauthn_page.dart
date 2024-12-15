@@ -1,5 +1,7 @@
 import 'package:canokey_console/controller/applets/webauthn.dart';
+import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
+import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/views/applets/webauthn/widgets/top_actions.dart';
@@ -22,6 +24,13 @@ class WebAuthnPage extends StatefulWidget {
 
 class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderStateMixin, UIMixin {
   final WebAuthnController controller = WebAuthnController();
+  final RxString searchText = ''.obs;
+
+  @override
+  void initState() {
+    super.initState();
+    Get.put(searchText, tag: 'webauthn_search');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,22 +55,32 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Spacing.height(20),
-                    GridView.builder(
-                      physics: ScrollPhysics(),
-                      shrinkWrap: true,
-                      scrollDirection: Axis.vertical,
-                      itemCount: controller.webAuthnItems.length,
-                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 500,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        mainAxisExtent: 120,
-                      ),
-                      itemBuilder: (context, index) => WebAuthnItemCard(
-                        item: controller.webAuthnItems[index],
-                        controller: controller,
-                      ),
-                    )
+                    Obx(() {
+                      final filteredItems = searchText.value.isEmpty
+                          ? controller.webAuthnItems
+                          : controller.webAuthnItems
+                              .where((item) =>
+                                  item.rpId.toLowerCase().contains(searchText.value.toLowerCase()) ||
+                                  item.userDisplayName.toLowerCase().contains(searchText.value.toLowerCase()))
+                              .toList();
+                      if (filteredItems.isEmpty) return Center(child: CustomizedText.bodyMedium(S.of(context).noMatchingCredential, fontSize: 24));
+                      return GridView.builder(
+                        physics: ScrollPhysics(),
+                        shrinkWrap: true,
+                        scrollDirection: Axis.vertical,
+                        itemCount: filteredItems.length,
+                        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 500,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          mainAxisExtent: 120,
+                        ),
+                        itemBuilder: (context, index) => WebAuthnItemCard(
+                          item: filteredItems[index],
+                          controller: controller,
+                        ),
+                      );
+                    })
                   ],
                 ),
               ),

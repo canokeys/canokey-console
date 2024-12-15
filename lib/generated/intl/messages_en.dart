@@ -88,6 +88,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "newPin": MessageLookupByLibrary.simpleMessage("New PIN"),
         "noCard": MessageLookupByLibrary.simpleMessage("CanoKey not found"),
         "noCredential": MessageLookupByLibrary.simpleMessage("No credential"),
+        "noMatchingCredential": MessageLookupByLibrary.simpleMessage(
+            "No matching credential found"),
         "notSupported": MessageLookupByLibrary.simpleMessage("Not supported"),
         "notSupportedInNFC":
             MessageLookupByLibrary.simpleMessage("Not supported in NFC mode"),
@@ -261,6 +263,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Please read your CanoKey by clicking the refresh button"),
         "reset": MessageLookupByLibrary.simpleMessage("Reset"),
         "save": MessageLookupByLibrary.simpleMessage("Save"),
+        "search": MessageLookupByLibrary.simpleMessage("Search"),
         "seconds": MessageLookupByLibrary.simpleMessage("seconds"),
         "settings": MessageLookupByLibrary.simpleMessage("Settings"),
         "settingsChangeLanguage":

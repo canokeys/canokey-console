@@ -73,6 +73,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "newPin": MessageLookupByLibrary.simpleMessage("新 PIN"),
         "noCard": MessageLookupByLibrary.simpleMessage("未找到 CanoKey"),
         "noCredential": MessageLookupByLibrary.simpleMessage("没有找到凭据"),
+        "noMatchingCredential":
+            MessageLookupByLibrary.simpleMessage("没有找到匹配的凭据"),
         "notSupported": MessageLookupByLibrary.simpleMessage("不支持该操作"),
         "notSupportedInNFC":
             MessageLookupByLibrary.simpleMessage("该操作不支持在 NFC 模式下执行"),
@@ -215,6 +217,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("请点击右上角刷新按钮读取 CanoKey"),
         "reset": MessageLookupByLibrary.simpleMessage("重置"),
         "save": MessageLookupByLibrary.simpleMessage("保存"),
+        "search": MessageLookupByLibrary.simpleMessage("搜索"),
         "seconds": MessageLookupByLibrary.simpleMessage("秒"),
         "settings": MessageLookupByLibrary.simpleMessage("设置"),
         "settingsChangeLanguage": MessageLookupByLibrary.simpleMessage("修改语言"),

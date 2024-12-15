@@ -460,6 +460,26 @@ class S {
     );
   }
 
+  /// `No matching credential found`
+  String get noMatchingCredential {
+    return Intl.message(
+      'No matching credential found',
+      name: 'noMatchingCredential',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search`
+  String get search {
+    return Intl.message(
+      'Search',
+      name: 'search',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Hold your iPhone near the CanoKey`
   String get iosAlertMessage {
     return Intl.message(
