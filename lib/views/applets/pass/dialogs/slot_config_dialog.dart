@@ -1,4 +1,3 @@
-import 'package:canokey_console/controller/applets/pass.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
@@ -14,24 +13,16 @@ import 'package:get/get.dart';
 class SlotConfigDialog extends StatelessWidget with UIMixin {
   final int index;
   final PassSlot slot;
-  final PassController controller;
+  final Function(int index, PassSlotType slotType, String password, bool withEnter) onSetSlot;
 
-  SlotConfigDialog({
-    super.key,
-    required this.index,
-    required this.slot,
-    required this.controller,
-  });
+  SlotConfigDialog({super.key, required this.index, required this.slot, required this.onSetSlot});
 
-  String _slotTypeName(PassSlotType type, BuildContext context) {
-    switch (type) {
-      case PassSlotType.none:
-        return S.of(context).passSlotOff;
-      case PassSlotType.oath:
-        return S.of(context).passSlotHotp;
-      case PassSlotType.static:
-        return S.of(context).passSlotStatic;
-    }
+  static Future<void> show({
+    required int index,
+    required PassSlot slot,
+    required Function(int index, PassSlotType slotType, String password, bool withEnter) onSetSlot,
+  }) {
+    return Get.dialog(SlotConfigDialog(index: index, slot: slot, onSetSlot: onSetSlot));
   }
 
   @override
@@ -134,7 +125,7 @@ class SlotConfigDialog extends StatelessWidget with UIMixin {
                       if (slotType.value == PassSlotType.static && !validator.validateForm()) {
                         return;
                       }
-                      controller.setSlot(index, slotType.value, validator.getController('password')!.text, withEnter.value);
+                      onSetSlot(index, slotType.value, validator.getController('password')!.text, withEnter.value);
                     },
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
@@ -150,11 +141,18 @@ class SlotConfigDialog extends StatelessWidget with UIMixin {
     );
   }
 
-  Widget _buildRadioOption(
-    PassSlotType type,
-    Rx<PassSlotType> slotType,
-    BuildContext context,
-  ) {
+  String _slotTypeName(PassSlotType type, BuildContext context) {
+    switch (type) {
+      case PassSlotType.none:
+        return S.of(context).passSlotOff;
+      case PassSlotType.oath:
+        return S.of(context).passSlotHotp;
+      case PassSlotType.static:
+        return S.of(context).passSlotStatic;
+    }
+  }
+
+  Widget _buildRadioOption(PassSlotType type, Rx<PassSlotType> slotType, BuildContext context) {
     return InkWell(
       child: Row(
         mainAxisSize: MainAxisSize.min,

@@ -1,4 +1,3 @@
-import 'package:canokey_console/controller/applets/settings.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
@@ -7,27 +6,29 @@ import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
+import 'package:canokey_console/models/canokey.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class Sm2ConfigDialog extends StatelessWidget with UIMixin {
-  final SettingsController controller;
+  final WebAuthnSm2Config config;
+  final Function(bool enabled, int curveId, int algoId) onConfirm;
 
-  const Sm2ConfigDialog({super.key, required this.controller});
+  const Sm2ConfigDialog({super.key, required this.config, required this.onConfirm});
 
-  static Future<void> show(SettingsController controller) {
-    return Get.dialog(Sm2ConfigDialog(controller: controller));
+  static Future<void> show({required WebAuthnSm2Config config, required Function(bool enabled, int curveId, int algoId) onConfirm}) {
+    return Get.dialog(Sm2ConfigDialog(config: config, onConfirm: onConfirm));
   }
 
   @override
   Widget build(BuildContext context) {
-    final enabled = controller.key.webAuthnSm2Config!.enabled.obs;
+    final enabled = config.enabled.obs;
 
     FormValidator validator = FormValidator();
     validator.addField('curveId', controller: TextEditingController(), validators: [IntValidator(min: -65536, max: 65535)]);
     validator.addField('algoId', controller: TextEditingController(), validators: [IntValidator(min: -65536, max: 65535)]);
-    validator.getController('curveId')!.text = controller.key.webAuthnSm2Config!.curveId.toString();
-    validator.getController('algoId')!.text = controller.key.webAuthnSm2Config!.algoId.toString();
+    validator.getController('curveId')!.text = config.curveId.toString();
+    validator.getController('algoId')!.text = config.algoId.toString();
 
     return Dialog(
       child: SizedBox(
@@ -102,8 +103,7 @@ class Sm2ConfigDialog extends StatelessWidget with UIMixin {
                   CustomizedButton.rounded(
                     onPressed: () {
                       if (validator.formKey.currentState!.validate()) {
-                        controller.changeWebAuthnSm2Config(
-                            enabled.value, int.parse(validator.getController('curveId')!.text), int.parse(validator.getController('algoId')!.text));
+                        onConfirm(enabled.value, int.parse(validator.getController('curveId')!.text), int.parse(validator.getController('algoId')!.text));
                       }
                     },
                     elevation: 0,

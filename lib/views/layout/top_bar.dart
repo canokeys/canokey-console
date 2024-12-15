@@ -3,9 +3,10 @@ import 'package:canokey_console/helper/theme/theme_customizer.dart';
 import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_card.dart';
-import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/customized_text_style.dart';
+import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class TopBar extends StatefulWidget {
@@ -31,31 +32,32 @@ class _TopBarState extends State<TopBar> with SingleTickerProviderStateMixin, UI
           Row(
             children: [
               InkWell(
-                  splashColor: theme.colorScheme.onSurface,
-                  highlightColor: theme.colorScheme.onSurface,
-                  onTap: () {
-                    ThemeCustomizer.toggleLeftBarCondensed();
-                  },
-                  child: Icon(LucideIcons.menu, color: topBarTheme.onBackground)),
-              Spacing.width(24),
-              // SizedBox(
-              //   width: 200,
-              //   child: TextFormField(
-              //     maxLines: 1,
-              //     style: CustomizedTextStyle.bodyMedium(),
-              //     decoration: InputDecoration(
-              //         hintText: "search",
-              //         hintStyle: CustomizedTextStyle.bodySmall(xMuted: true),
-              //         border: outlineInputBorder,
-              //         enabledBorder: outlineInputBorder,
-              //         focusedBorder: focusedInputBorder,
-              //         prefixIcon: const Align(alignment: Alignment.center, child: Icon(LucideIcons.search, size: 14)),
-              //         prefixIconConstraints: const BoxConstraints(minWidth: 36, maxWidth: 36, minHeight: 32, maxHeight: 32),
-              //         contentPadding: Spacing.xy(16, 12),
-              //         isCollapsed: true,
-              //         floatingLabelBehavior: FloatingLabelBehavior.never),
-              //   ),
-              // ),
+                splashColor: theme.colorScheme.onSurface,
+                highlightColor: theme.colorScheme.onSurface,
+                onTap: () => ThemeCustomizer.toggleLeftBarCondensed(),
+                child: Icon(LucideIcons.menu, color: topBarTheme.onBackground),
+              ),
+              if ([].contains(Get.currentRoute)) ...{
+                Spacing.width(24),
+                SizedBox(
+                  width: 200,
+                  child: TextFormField(
+                    maxLines: 1,
+                    style: CustomizedTextStyle.bodyMedium(),
+                    decoration: InputDecoration(
+                        hintText: "search",
+                        hintStyle: CustomizedTextStyle.bodySmall(xMuted: true),
+                        border: outlineInputBorder,
+                        enabledBorder: outlineInputBorder,
+                        focusedBorder: focusedInputBorder,
+                        prefixIcon: const Align(alignment: Alignment.center, child: Icon(LucideIcons.search, size: 14)),
+                        prefixIconConstraints: const BoxConstraints(minWidth: 36, maxWidth: 36, minHeight: 32, maxHeight: 32),
+                        contentPadding: Spacing.xy(16, 12),
+                        isCollapsed: true,
+                        floatingLabelBehavior: FloatingLabelBehavior.never),
+                  ),
+                )
+              }
             ],
           ),
           Expanded(child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [widget.actions ?? Container()]))

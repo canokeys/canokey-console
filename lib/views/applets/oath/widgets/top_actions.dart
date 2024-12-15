@@ -15,13 +15,7 @@ class TopActions extends StatelessWidget with UIMixin {
   final VoidCallback onScreenCapture;
   final VoidCallback onManualAdd;
 
-  TopActions({
-    super.key,
-    required this.controller,
-    required this.onQrScan,
-    required this.onScreenCapture,
-    required this.onManualAdd,
-  });
+  TopActions({super.key, required this.controller, required this.onQrScan, required this.onScreenCapture, required this.onManualAdd});
 
   @override
   Widget build(BuildContext context) {

@@ -6,15 +6,17 @@ import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class QrScannerDialog extends StatefulWidget {
   final Function(String) onQrCodeScanned;
 
-  const QrScannerDialog({
-    super.key,
-    required this.onQrCodeScanned,
-  });
+  const QrScannerDialog({super.key, required this.onQrCodeScanned});
+
+  static void show({required Function(String) onQrCodeScanned}) {
+    Get.dialog(QrScannerDialog(onQrCodeScanned: onQrCodeScanned));
+  }
 
   @override
   State<QrScannerDialog> createState() => _QrScannerDialogState();

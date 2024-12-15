@@ -6,10 +6,9 @@ import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
-import 'package:canokey_console/models/oath.dart';
-import 'package:canokey_console/views/applets/oath/widgets/add_account_dialog.dart';
+import 'package:canokey_console/views/applets/oath/dialogs/add_account_dialog.dart';
+import 'package:canokey_console/views/applets/oath/dialogs/qr_scanner_dialog.dart';
 import 'package:canokey_console/views/applets/oath/widgets/oath_item_card.dart';
-import 'package:canokey_console/views/applets/oath/widgets/qr_scanner_dialog.dart';
 import 'package:canokey_console/views/applets/oath/widgets/top_actions.dart';
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:canokey_console/widgets/no_credential_screen.dart';
@@ -41,7 +40,16 @@ class _OathPageState extends State<OathPage> with UIMixin {
       controller.qrScanResult,
       (QrScanResult? result) {
         if (result != null) {
-          _showQrConfirmDialog(result.issuer, result.account, result.secret, result.type, result.algo, result.digits, result.initValue);
+          AddAccountDialog.show(
+            controller.addAccount,
+            initialIssuer: result.issuer,
+            initialAccount: result.account,
+            initialSecret: result.secret,
+            initialCounter: result.initValue,
+            initialType: result.type,
+            initialAlgorithm: result.algo,
+            initialDigits: result.digits,
+          );
         }
       },
     );
@@ -51,12 +59,6 @@ class _OathPageState extends State<OathPage> with UIMixin {
   void dispose() {
     _qrScanWorker.dispose();
     super.dispose();
-  }
-
-  void _showQrScanner() {
-    Get.dialog(QrScannerDialog(
-      onQrCodeScanned: (value) => controller.addUri(value),
-    ));
   }
 
   void _showScreenCapture() async {
@@ -85,29 +87,6 @@ class _OathPageState extends State<OathPage> with UIMixin {
     }
   }
 
-  void _showAddAccountDialog() {
-    Get.dialog(
-      AddAccountDialog(controller: controller),
-      barrierDismissible: false,
-    );
-  }
-
-  void _showQrConfirmDialog(String issuer, String account, String secret, OathType type, OathAlgorithm algo, int digits, int initValue) {
-    Get.dialog(
-      AddAccountDialog(
-        controller: controller,
-        initialIssuer: issuer,
-        initialAccount: account,
-        initialSecret: secret,
-        initialCounter: initValue,
-        initialType: type,
-        initialAlgorithm: algo,
-        initialDigits: digits,
-      ),
-      barrierDismissible: false,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Layout(
@@ -116,9 +95,9 @@ class _OathPageState extends State<OathPage> with UIMixin {
         init: controller,
         builder: (_) => TopActions(
           controller: controller,
-          onQrScan: _showQrScanner,
+          onQrScan: () => QrScannerDialog.show(onQrCodeScanned: (value) => controller.addUri(value)),
           onScreenCapture: _showScreenCapture,
-          onManualAdd: _showAddAccountDialog,
+          onManualAdd: () => AddAccountDialog.show(controller.addAccount),
         ),
       ),
       child: GetBuilder(

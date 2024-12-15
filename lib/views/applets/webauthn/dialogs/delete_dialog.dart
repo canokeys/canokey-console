@@ -1,28 +1,27 @@
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
-import 'package:canokey_console/models/canokey.dart';
+import 'package:canokey_console/models/webauthn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ResetDialog extends StatelessWidget with UIMixin {
-  final Applet? applet;
-  final Function resetCanokey;
-  final Function(Applet applet) resetApplet;
+class WebAuthnDeleteDialog extends StatelessWidget {
+  final WebAuthnItem item;
+  final Function onDelete;
 
-  const ResetDialog({super.key, this.applet, required this.resetCanokey, required this.resetApplet});
+  const WebAuthnDeleteDialog({
+    super.key,
+    required this.item,
+    required this.onDelete,
+  });
 
-  static Future<void> show({Applet? applet, required Function resetCanokey, required Function(Applet applet) resetApplet}) {
-    return Get.dialog(ResetDialog(applet: applet, resetCanokey: resetCanokey, resetApplet: resetApplet));
+  static Future<void> show(WebAuthnItem item, Function onDelete) {
+    return Get.dialog(WebAuthnDeleteDialog(item: item, onDelete: onDelete));
   }
 
   @override
   Widget build(BuildContext context) {
-    final title = applet == null ? S.of(context).settingsResetAll : S.of(context).reset;
-    final prompt = applet == null ? S.of(context).settingsResetAllPrompt : S.of(context).settingsResetApplet(applet!.name);
-
     return Dialog(
       child: SizedBox(
         width: 400,
@@ -32,12 +31,12 @@ class ResetDialog extends StatelessWidget with UIMixin {
           children: [
             Padding(
               padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(title),
+              child: CustomizedText.labelLarge(S.of(context).delete),
             ),
             Divider(height: 0, thickness: 1),
             Padding(
               padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(prompt),
+              child: CustomizedText.labelLarge(S.of(context).webauthnDelete('${item.userDisplayName} (${item.userName})')),
             ),
             Divider(height: 0, thickness: 1),
             Padding(
@@ -49,16 +48,22 @@ class ResetDialog extends StatelessWidget with UIMixin {
                     onPressed: () => Navigator.pop(context),
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
-                    backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
+                    child: CustomizedText.labelMedium(
+                      S.of(context).cancel,
+                      color: Theme.of(context).colorScheme.onSecondary,
+                    ),
                   ),
                   Spacing.width(16),
                   CustomizedButton.rounded(
-                    onPressed: () => applet == null ? resetCanokey() : resetApplet(applet!),
+                    onPressed: () => onDelete(),
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
-                    backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(S.of(context).confirm, color: contentTheme.onPrimary),
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                    child: CustomizedText.labelMedium(
+                      S.of(context).delete,
+                      color: Theme.of(context).colorScheme.onError,
+                    ),
                   ),
                 ],
               ),

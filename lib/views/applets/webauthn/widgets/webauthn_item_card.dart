@@ -7,8 +7,8 @@ import 'package:canokey_console/helper/widgets/customized_container.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/webauthn.dart';
-import 'package:canokey_console/views/applets/webauthn/widgets/delete_dialog.dart';
-import 'package:canokey_console/views/applets/webauthn/widgets/view_user_id_dialog.dart';
+import 'package:canokey_console/views/applets/webauthn/dialogs/delete_dialog.dart';
+import 'package:canokey_console/views/applets/webauthn/dialogs/view_user_id_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -45,13 +45,13 @@ class WebAuthnItemCard extends StatelessWidget with UIMixin {
                       padding: Spacing.xy(16, 8),
                       height: 10,
                       child: CustomizedText.bodySmall(S.of(context).viewUserId),
-                      onTap: () => showWebAuthnViewUserIdDialog(context, item.userId),
+                      onTap: () => WebAuthnViewUserIdDialog.show(item.userId),
                     ),
                     PopupMenuItem(
                       padding: Spacing.xy(16, 8),
                       height: 10,
                       child: CustomizedText.bodySmall(S.of(context).delete),
-                      onTap: () => showWebAuthnDeleteDialog(context, item, () => controller.delete(item.credentialId)),
+                      onTap: () => WebAuthnDeleteDialog.show(item, () => controller.delete(item.credentialId)),
                     ),
                   ],
                   child: const Icon(LucideIcons.moreHorizontal, size: 18),

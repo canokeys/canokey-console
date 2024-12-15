@@ -1,14 +1,11 @@
 import 'package:canokey_console/controller/applets/settings.dart';
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/storage/local_storage.dart';
-import 'package:canokey_console/helper/theme/theme_customizer.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
-import 'package:canokey_console/views/applets/settings/dialogs/start_page_dialog.dart';
 import 'package:canokey_console/views/applets/settings/widgets/action_card.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_card.dart';
 import 'package:canokey_console/views/applets/settings/widgets/other_settings_card.dart';

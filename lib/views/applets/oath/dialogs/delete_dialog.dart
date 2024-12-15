@@ -4,16 +4,17 @@ import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class DeleteDialog extends StatelessWidget with UIMixin {
   final String name;
   final VoidCallback onDelete;
 
-  DeleteDialog({
-    super.key,
-    required this.name,
-    required this.onDelete,
-  });
+  DeleteDialog({super.key, required this.name, required this.onDelete});
+
+  static Future<void> show({required String name, required VoidCallback onDelete}) {
+    return Get.dialog(DeleteDialog(name: name, onDelete: onDelete));
+  }
 
   @override
   Widget build(BuildContext context) {

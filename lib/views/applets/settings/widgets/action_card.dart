@@ -24,7 +24,7 @@ class ActionCard extends StatelessWidget with UIMixin {
 
   Widget _buildResetButton(Applet applet, String resetText) {
     return CustomizedButton(
-      onPressed: () => ResetDialog.show(applet: applet, controller: controller),
+      onPressed: () => ResetDialog.show(applet: applet, resetCanokey: controller.resetCanokey, resetApplet: controller.resetApplet),
       elevation: 0,
       padding: Spacing.xy(20, 16),
       backgroundColor: contentTheme.danger,
@@ -79,7 +79,10 @@ class ActionCard extends StatelessWidget with UIMixin {
                   // WebAuthn SM2
                   if (controller.key.webAuthnSm2Config != null) ...{
                     CustomizedButton(
-                      onPressed: () => Sm2ConfigDialog.show(controller),
+                      onPressed: () => Sm2ConfigDialog.show(
+                        config: controller.key.webAuthnSm2Config!,
+                        onConfirm: (enabled, curveId, algoId) => controller.changeWebAuthnSm2Config(enabled, curveId, algoId),
+                      ),
                       elevation: 0,
                       padding: Spacing.xy(20, 16),
                       backgroundColor: contentTheme.primary,
@@ -105,7 +108,7 @@ class ActionCard extends StatelessWidget with UIMixin {
                     if (isMobile()) {
                       Prompts.showPrompt(S.of(context).notSupportedInNFC, ContentThemeColor.info);
                     } else {
-                      ResetDialog.show(controller: controller);
+                      ResetDialog.show(resetCanokey: controller.resetCanokey, resetApplet: controller.resetApplet);
                     }
                   },
                   elevation: 0,

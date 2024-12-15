@@ -6,7 +6,7 @@ import 'package:canokey_console/helper/widgets/customized_card.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/pass.dart';
-import 'package:canokey_console/views/applets/pass/widgets/slot_config_dialog.dart';
+import 'package:canokey_console/views/applets/pass/dialogs/slot_config_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -16,24 +16,7 @@ class SlotCard extends StatelessWidget with UIMixin {
   final int slotIndex;
   final PassController controller;
 
-  const SlotCard({
-    super.key,
-    required this.title,
-    required this.slot,
-    required this.slotIndex,
-    required this.controller,
-  });
-
-  String _slotStatus(PassSlot slot, BuildContext context) {
-    switch (slot.type) {
-      case PassSlotType.none:
-        return S.of(context).passSlotOff;
-      case PassSlotType.oath:
-        return '${S.of(context).passSlotHotp} (${slot.name})';
-      case PassSlotType.static:
-        return S.of(context).passSlotStatic;
-    }
-  }
+  const SlotCard({super.key, required this.title, required this.slot, required this.slotIndex, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +44,7 @@ class SlotCard extends StatelessWidget with UIMixin {
               LucideIcons.shieldCheck,
               S.of(context).passStatus,
               _slotStatus(slot, context),
-              () => _showSlotConfigDialog(context),
+              () => SlotConfigDialog.show(index: slotIndex, slot: slot, onSetSlot: controller.setSlot),
             ),
           ),
         ],
@@ -69,7 +52,7 @@ class SlotCard extends StatelessWidget with UIMixin {
     );
   }
 
-  Widget _buildInfo(IconData iconData, String title, String value, [GestureTapCallback? handler]) {
+  Widget _buildInfo(IconData iconData, String title, String value, GestureTapCallback handler) {
     return InkWell(
       onTap: handler,
       child: Row(
@@ -85,20 +68,20 @@ class SlotCard extends StatelessWidget with UIMixin {
               ],
             ),
           ),
-          if (handler != null) Icon(Icons.arrow_forward_ios)
+          Icon(Icons.arrow_forward_ios)
         ],
       ),
     );
   }
 
-  void _showSlotConfigDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => SlotConfigDialog(
-        index: slotIndex,
-        slot: slot,
-        controller: controller,
-      ),
-    );
+  String _slotStatus(PassSlot slot, BuildContext context) {
+    switch (slot.type) {
+      case PassSlotType.none:
+        return S.of(context).passSlotOff;
+      case PassSlotType.oath:
+        return '${S.of(context).passSlotHotp} (${slot.name})';
+      case PassSlotType.static:
+        return S.of(context).passSlotStatic;
+    }
   }
 }

@@ -16,11 +16,11 @@ class SetDefaultDialog extends StatelessWidget with UIMixin {
   final String name;
   final Function(int slot, bool withEnter) onSetDefault;
 
-  const SetDefaultDialog({
-    super.key,
-    required this.name,
-    required this.onSetDefault,
-  });
+  const SetDefaultDialog({super.key, required this.name, required this.onSetDefault});
+
+  static Future<void> show({required String name, required Function(int slot, bool withEnter) onSetDefault}) {
+    return Get.dialog(SetDefaultDialog(name: name, onSetDefault: onSetDefault));
+  }
 
   @override
   Widget build(BuildContext context) {

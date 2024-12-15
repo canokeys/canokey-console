@@ -11,10 +11,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 class TopActions extends StatelessWidget with UIMixin {
   final WebAuthnController controller;
 
-  const TopActions({
-    super.key,
-    required this.controller,
-  });
+  const TopActions({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
