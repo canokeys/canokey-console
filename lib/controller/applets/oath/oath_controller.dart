@@ -164,6 +164,7 @@ class OathController extends Controller {
         }
         SmartCard.assertOK(resp);
         _codeCache = newCode;
+        await _selectAndVerifyCode();
         Prompts.showPrompt(S.of(Get.context!).oathCodeChanged, ContentThemeColor.success);
       }
     });
