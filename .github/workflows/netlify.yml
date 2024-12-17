@@ -1,24 +1,57 @@
 name: Build and Deploy to Netlify
-on:
-  push:
-  pull_request:
+
+on: [push, pull_request]
+
+env:
+  CARGO_TERM_COLOR: always
+  FLUTTER_VERSION: 3.24.5
+
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - uses: actions/cache@v4
+      with:
+        key: web-spa-rust-${{ hashFiles('rust/Cargo.toml') }}
+        path: |
+          rust/target
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: nightly
+        components: rust-src
+        target: wasm32-unknown-unknown
+    - name: Setup Flutter SDK
+      uses: flutter-actions/setup-flutter@v3
+      with:
+        channel: stable
+        version: ${{ env.FLUTTER_VERSION }}
+        cache: true
+    - run: flutter pub get
+    - name: Build Rust Library
+      run: |
+        cargo install flutter_rust_bridge_codegen
+        flutter_rust_bridge_codegen build-web --release
+    - run: flutter build web --verbose --web-renderer html
+    - uses: actions/upload-artifact@v4
+      with:
+        name: web-spa
+        path: build/web/
+  deploy:
+    runs-on: ubuntu-24.04
+    needs: build
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - uses: actions/download-artifact@v4
         with:
-          channel: 'stable'
-          flutter-version-file: pubspec.yaml
-      - run: git clone https://github.com/canokeys/canokey-console
-      - run: cd canokey-console && flutter pub get
-      - run: cd canokey-console && flutter build web --web-renderer html
-
+          name: web-spa
+          path: /tmp/console-build
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v3.0
+        uses: nwtgck/actions-netlify@v3
         with:
-          publish-dir: ${{ github.workspace }}/canokey-console/build/web
+          publish-dir: /tmp/console-build
           production-branch: main
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: "Deploy from GitHub Actions"

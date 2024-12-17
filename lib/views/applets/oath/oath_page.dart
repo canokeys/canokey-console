@@ -1,3 +1,5 @@
+import 'package:canokey_console/src/rust/api/decode.dart';
+
 import 'package:canokey_console/controller/applets/oath/oath_controller.dart';
 import 'package:canokey_console/controller/applets/oath/qr_scan_result.dart';
 import 'package:canokey_console/generated/l10n.dart';
@@ -18,9 +20,7 @@ import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
 import 'package:get/get.dart';
-import 'package:image/image.dart' as img;
 import 'package:logging/logging.dart';
-import 'package:zxing2/qrcode.dart' as zxing;
 
 final log = Logger('Console:OATH:View');
 
@@ -144,18 +144,14 @@ class _OathPageState extends State<OathPage> with UIMixin {
     final track = stream.getVideoTracks().first;
     final buffer = await track.captureFrame();
     stream.getTracks().forEach((track) => track.stop());
-    final image = img.decodePng(buffer.asUint8List())!;
-    final source = zxing.RGBLuminanceSource(
-      image.width,
-      image.height,
-      image.convert(numChannels: 4).getBytes(order: img.ChannelOrder.abgr).buffer.asInt32List(),
-    );
-    final bitmap = zxing.BinaryBitmap(zxing.GlobalHistogramBinarizer(source));
-    final reader = zxing.QRCodeReader();
     try {
-      final result = reader.decode(bitmap);
-      controller.addUri(result.text);
+      log.info('Rust decodePngQrcode start');
+      final start = DateTime.now();
+      final result = decodePngQrcode(pngFile: buffer.asUint8List());
+      log.info('Rust decodePngQrcode took: ${DateTime.now().difference(start).inMilliseconds}ms');
+      controller.addUri(result);
     } catch (e) {
+      log.warning('Rust decodePngQrcode error: $e');
       if (mounted) {
         Prompts.showPrompt(S.of(context).oathNoQr, ContentThemeColor.danger);
       }

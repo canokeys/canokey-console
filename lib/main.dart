@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:canokey_console/src/rust/frb_generated.dart';
+
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/localization/language.dart';
 import 'package:canokey_console/helper/services/navigation_service.dart';
@@ -31,6 +33,7 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
+  await RustLib.init();
   await LocalStorage.init();
   AppStyle.init();
   Language.init();

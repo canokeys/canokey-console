@@ -1,7 +1,7 @@
 # CanoKey Console
 
-![Build Android App](https://github.com/canokeys/canokey-console/workflows/Build%20Android%20App/badge.svg)
-![Build Web App](https://github.com/canokeys/canokey-console/workflows/Build%20and%20Deploy%20to%20Netlify/badge.svg)
+![Build Android App](https://github.com/canokeys/canokey-console/actions/workflows/android.yml/badge.svg)
+![Build and Deploy to Netlify](https://github.com/canokeys/canokey-console/actions/workflows/netlify.yml/badge.svg)
 
 CanoKey Console is a cross-platform application that allows you to manage your CanoKey via NFC or USB connections. Built with Flutter, it provides a modern and intuitive interface for interacting with your CanoKey device.
 
@@ -30,6 +30,7 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 
 - Flutter SDK 3.24.5 or higher
 - Dart SDK 3.1.2 or higher
+- Rust **nightly** toolchain with `rust-src` component installed (`rustup component add rust-src`)
 
 ### Setup
 
@@ -41,11 +42,13 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 
 2. Install dependencies:
    ```bash
+   cargo install flutter_rust_bridge_codegen
    flutter pub get
    ```
 
 3. Run the application:
    ```bash
+   flutter_rust_bridge_codegen build-web --release # for web only, remove --release for debug Rust build (very slow when decoding qrcode!)
    flutter run
    ```
 
@@ -53,6 +56,7 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 
 ### Web
 ```bash
+flutter_rust_bridge_codegen build-web --release
 flutter build web
 ```
 
