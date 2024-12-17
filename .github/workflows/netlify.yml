@@ -8,11 +8,19 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
+    - uses: actions/cache@v4
+      with:
+        key: web-spa-${{ hashFiles('pubspec.yaml') }}-${{ hashFiles('rust/Cargo.toml') }}
+        path: |
+          ~/.cargo
+          ~/.pub-cache
+          rust/target
+          build/
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: nightly
@@ -25,17 +33,17 @@ jobs:
         version: ${{ env.FLUTTER_VERSION }}
         cache: true
     - run: flutter pub get
-    - name: Build Web SPA
+    - name: Build Rust Library
       run: |
         cargo install flutter_rust_bridge_codegen
         flutter_rust_bridge_codegen build-web --release
-        flutter build web --verbose --web-renderer html
+    - run: flutter build web --verbose --web-renderer html
     - uses: actions/upload-artifact@v4
       with:
         name: web-spa
         path: build/web/
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     steps:
       - uses: actions/checkout@v4

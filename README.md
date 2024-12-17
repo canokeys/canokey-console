@@ -30,7 +30,7 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 
 - Flutter SDK 3.24.5 or higher
 - Dart SDK 3.1.2 or higher
-- Rust stable toolchain (we use 1.83.0)
+- Rust **nightly** toolchain with `rust-src` component installed (`rustup component add rust-src`)
 
 ### Setup
 
