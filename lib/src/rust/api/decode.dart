@@ -6,5 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-String greet({required String name}) =>
-    RustLib.instance.api.crateApiSimpleGreet(name: name);
+// These functions are ignored because they are not marked as `pub`: `rgba_to_argb`
+
+String decodePngQrcode({required List<int> pngFile}) =>
+    RustLib.instance.api.crateApiDecodeDecodePngQrcode(pngFile: pngFile);
