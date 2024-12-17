@@ -4,6 +4,7 @@ import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
+import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/views/applets/settings/widgets/action_card.dart';
@@ -43,7 +44,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
           if (controller.polled) {
             controller.refreshData();
           } else {
-            Prompts.showInputPinDialog(
+            InputPinDialog.show(
               title: S.of(context).settingsInputPin,
               label: 'PIN',
               prompt: S.of(context).settingsInputPinPrompt,
