@@ -30,6 +30,7 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 
 - Flutter SDK 3.24.5 or higher
 - Dart SDK 3.1.2 or higher
+- Rust stable toolchain (we use 1.83.0)
 
 ### Setup
 
@@ -41,11 +42,13 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 
 2. Install dependencies:
    ```bash
+   cargo install flutter_rust_bridge_codegen
    flutter pub get
    ```
 
 3. Run the application:
    ```bash
+   flutter_rust_bridge_codegen build-web --release # for web only, remove --release for debug Rust build (very slow when decoding qrcode!)
    flutter run
    ```
 
@@ -53,6 +56,7 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 
 ### Web
 ```bash
+flutter_rust_bridge_codegen build-web --release
 flutter build web
 ```
 
