@@ -50,6 +50,9 @@ dependencies:
       url: https://github.com/dangfan/Dart-Basic-Utils.git
       ref: 743c57a717a8425f9baf3f363f9359216dcb832e
   pointycastle: ^3.9.1
+  rust_lib_canokey_console:
+    path: rust_builder
+  flutter_rust_bridge: 2.7.0
 
 dependency_overrides:
   js: ^0.6.7
