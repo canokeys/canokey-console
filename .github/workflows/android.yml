@@ -16,12 +16,10 @@ jobs:
         submodules: recursive
     - uses: actions/cache@v4
       with:
-        key: apk-${{ hashFiles('pubspec.yaml') }}-${{ hashFiles('rust/Cargo.toml') }}
+        key: apk-${{ hashFiles('rust/Cargo.toml') }}
         path: |
-          ~/.cargo
-          ~/.pub-cache
+          ~/.gradle
           rust/target
-          build/
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: nightly
