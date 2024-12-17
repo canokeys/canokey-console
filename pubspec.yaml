@@ -2,7 +2,7 @@ name: canokey_console
 description: Manage your CanoKey via NFC or USB.
 publish_to: 'none'
 
-version: 1.0.1+6
+version: 1.0.2+0
 
 environment:
   sdk: '>=3.1.2 <4.0.0'
@@ -13,48 +13,51 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  cupertino_icons: ^1.0.2
-  get: ^4.6.5
-  shared_preferences: ^2.2.1
-  provider: ^6.0.5
+  cupertino_icons: ^1.0.8
+  get: ^4.6.6
+  shared_preferences: ^2.3.3
+  provider: ^6.1.2
   google_fonts: ^6.2.1
   lucide_icons: ^0.257.0
-  url_launcher: ^6.2.6
-  file_picker: ^8.0.7
-  font_awesome_flutter: ^10.7.0
+  url_launcher: ^6.3.1
+  file_picker: 8.1.4
+  font_awesome_flutter: ^10.8.0
   intl: ^0.19.0
-  flutter_nfc_kit: ^3.4.2
-  base32: ^2.1.1
+  flutter_nfc_kit: ^3.5.2
+  base32: ^2.1.3
   cryptography: ^2.7.0
   cryptography_flutter: ^2.3.2
-  convert: ^3.0.1
-  logging: ^1.0.2
-  percent_indicator: ^4.0.1
+  convert: ^3.1.2
+  logging: ^1.3.0
+  percent_indicator: ^4.2.4
   timer_controller: ^1.0.0
   loader_overlay: ^4.0.3
-  flutter_spinkit: ^5.2.0
-  fixnum: ^1.1.0
+  flutter_spinkit: ^5.2.1
+  fixnum: ^1.1.1
   platform_detector: ^0.2.0
   mobile_scanner: ^6.0.2
   flutter_webrtc: ^0.12.3
   zxing2: ^0.2.3
-  image: ^4.1.7
+  image: ^4.4.0
   fido2: ^0.0.4
-  ccid: ^0.1.1
-  device_info_plus: ^11.1.1
+  ccid: ^0.1.4
+  device_info_plus: ^11.2.0
   dart_des: ^1.0.2
   pem: ^2.0.5
-  file_saver: ^0.2.13
+  file_saver: ^0.2.14
   basic_utils:
     git:
       url: https://github.com/dangfan/Dart-Basic-Utils.git
       ref: 743c57a717a8425f9baf3f363f9359216dcb832e
   pointycastle: ^3.9.1
 
+dependency_overrides:
+  js: ^0.6.7
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
