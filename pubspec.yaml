@@ -37,8 +37,6 @@ dependencies:
   platform_detector: ^0.2.0
   mobile_scanner: ^6.0.2
   flutter_webrtc: ^0.12.3
-  zxing2: ^0.2.3
-  image: ^4.4.0
   fido2: ^0.0.4
   ccid: ^0.1.4
   device_info_plus: ^11.2.0
