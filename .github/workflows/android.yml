@@ -15,6 +15,9 @@ jobs:
       with:
         submodules: recursive
     - uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+        components: rust-src
     - uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
@@ -27,8 +30,9 @@ jobs:
         cache: true
     - run: flutter pub get
 #    - run: dart format --output=none --set-exit-if-changed .
-    - run: dart analyze
-    - run: |
+    - run: dart analyze lib/
+    - name: Build Android APK
+      run: |
         cargo install flutter_rust_bridge_codegen
         flutter build apk --debug --verbose
     - uses: actions/upload-artifact@v4

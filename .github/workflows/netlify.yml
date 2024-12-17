@@ -14,6 +14,9 @@ jobs:
       with:
         submodules: recursive
     - uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+        components: rust-src
     - name: Setup Flutter SDK
       uses: flutter-actions/setup-flutter@v3
       with:
@@ -21,7 +24,8 @@ jobs:
         version: ${{ env.FLUTTER_VERSION }}
         cache: true
     - run: flutter pub get
-    - run: |
+    - name: Build Web SPA
+      run: |
         cargo install flutter_rust_bridge_codegen
         flutter_rust_bridge_codegen build-web --release
         flutter build web --verbose --web-renderer html
