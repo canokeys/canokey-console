@@ -5,15 +5,16 @@ import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
+import 'package:canokey_console/helper/widgets/no_credential_screen.dart';
+import 'package:canokey_console/helper/widgets/poll_cano_key_screen.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
+import 'package:canokey_console/helper/widgets/search_box.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/views/applets/oath/dialogs/add_account_dialog.dart';
 import 'package:canokey_console/views/applets/oath/dialogs/qr_scanner_dialog.dart';
 import 'package:canokey_console/views/applets/oath/widgets/oath_item_card.dart';
 import 'package:canokey_console/views/applets/oath/widgets/top_actions.dart';
 import 'package:canokey_console/views/layout/layout.dart';
-import 'package:canokey_console/widgets/no_credential_screen.dart';
-import 'package:canokey_console/widgets/poll_cano_key_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
 import 'package:get/get.dart';
@@ -94,7 +95,11 @@ class _OathPageState extends State<OathPage> with UIMixin {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Spacing.height(20),
+                    if (ScreenMedia.getTypeFromWidth(MediaQuery.of(context).size.width).isMobile) ...{
+                      Spacing.height(16),
+                      SearchBox(),
+                    },
+                    Spacing.height(16),
                     Obx(() {
                       final filteredMap = searchText.value.isEmpty
                           ? controller.oathMap

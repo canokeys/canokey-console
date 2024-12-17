@@ -2,13 +2,14 @@ import 'package:canokey_console/controller/applets/webauthn.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
+import 'package:canokey_console/helper/widgets/no_credential_screen.dart';
+import 'package:canokey_console/helper/widgets/poll_cano_key_screen.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
+import 'package:canokey_console/helper/widgets/search_box.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/views/applets/webauthn/widgets/top_actions.dart';
 import 'package:canokey_console/views/applets/webauthn/widgets/webauthn_item_card.dart';
 import 'package:canokey_console/views/layout/layout.dart';
-import 'package:canokey_console/widgets/no_credential_screen.dart';
-import 'package:canokey_console/widgets/poll_cano_key_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
@@ -54,7 +55,11 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Spacing.height(20),
+                    if (ScreenMedia.getTypeFromWidth(MediaQuery.of(context).size.width).isMobile) ...{
+                      Spacing.height(16),
+                      SearchBox(),
+                    },
+                    Spacing.height(16),
                     Obx(() {
                       final filteredItems = searchText.value.isEmpty
                           ? controller.webAuthnItems
