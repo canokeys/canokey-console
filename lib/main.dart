@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:canokey_console/src/rust/api/simple.dart';
 import 'package:canokey_console/src/rust/frb_generated.dart';
 
 import 'package:canokey_console/generated/l10n.dart';
