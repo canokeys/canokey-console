@@ -145,9 +145,13 @@ class _OathPageState extends State<OathPage> with UIMixin {
     final buffer = await track.captureFrame();
     stream.getTracks().forEach((track) => track.stop());
     try {
+      log.info('Rust decodePngQrcode start');
+      final start = DateTime.now();
       final result = decodePngQrcode(pngFile: buffer.asUint8List());
+      log.info('Rust decodePngQrcode took: ${DateTime.now().difference(start).inMilliseconds}ms');
       controller.addUri(result);
     } catch (e) {
+      log.warning('Rust decodePngQrcode error: $e');
       if (mounted) {
         Prompts.showPrompt(S.of(context).oathNoQr, ContentThemeColor.danger);
       }
