@@ -9,7 +9,7 @@ env:
 
 jobs:
   build-apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -17,6 +17,7 @@ jobs:
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: nightly
+        components: rust-src
     - uses: actions/setup-java@v4
       with:
         distribution: 'temurin'

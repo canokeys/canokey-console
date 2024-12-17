@@ -16,6 +16,7 @@ jobs:
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: nightly
+        components: rust-src
         target: wasm32-unknown-unknown
     - name: Setup Flutter SDK
       uses: flutter-actions/setup-flutter@v3
