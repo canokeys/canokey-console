@@ -40,7 +40,6 @@ dependencies:
   fido2: ^0.0.4
   ccid: ^0.1.4
   device_info_plus: ^11.2.0
-  pem: ^2.0.5
   file_saver: ^0.2.14
   basic_utils:
     git:
