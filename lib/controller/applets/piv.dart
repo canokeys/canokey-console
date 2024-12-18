@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:canokey_console/src/rust/api/crypto.dart';
+
 import 'package:basic_utils/basic_utils.dart';
 import 'package:canokey_console/controller/base_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
@@ -10,7 +12,6 @@ import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/piv.dart';
 import 'package:convert/convert.dart';
-import 'package:dart_des/dart_des.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
@@ -95,8 +96,10 @@ class PivController extends Controller {
       String resp = await SmartCard.transceive('0087039B047C028100');
       SmartCard.assertOK(resp);
       String challenge = resp.substring(8, resp.length - 4);
-      DES3 des3 = DES3(key: hex.decode(key));
-      String auth = hex.encode(des3.encrypt(hex.decode(challenge))).substring(0, 16);
+      // first 8 bytes of tdes_ede3(24Byte_key, challenge)
+      String auth = hex.encode(
+        tdesEde3Enc(key: hex.decode(key), data: hex.decode(challenge)).sublist(0, 8)
+        );
       resp = await SmartCard.transceive('0087039B0C7C0A8208$auth');
       c.complete(SmartCard.isOK(resp));
     });
