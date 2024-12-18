@@ -37,7 +37,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.7.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1334339319;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 350857423;
 
 // Section: executor
 
@@ -76,7 +76,7 @@ fn wire__crate__api__decode__decode_png_qrcode_impl(
         },
     )
 }
-fn wire__crate__api__decode__init_app_impl(
+fn wire__crate__api__init_app_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
@@ -100,7 +100,7 @@ fn wire__crate__api__decode__init_app_impl(
             deserializer.end();
             transform_result_sse::<_, ()>((move || {
                 let output_ok = Result::<_, ()>::Ok({
-                    crate::api::decode::init_app();
+                    crate::api::init_app();
                 })?;
                 Ok(output_ok)
             })())
@@ -307,7 +307,7 @@ fn pde_ffi_dispatcher_sync_impl(
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
         1 => wire__crate__api__decode__decode_png_qrcode_impl(ptr, rust_vec_len, data_len),
-        2 => wire__crate__api__decode__init_app_impl(ptr, rust_vec_len, data_len),
+        2 => wire__crate__api__init_app_impl(ptr, rust_vec_len, data_len),
         3 => wire__crate__api__crypto__parse_x509_cert_from_der_impl(ptr, rust_vec_len, data_len),
         4 => wire__crate__api__crypto__parse_x509_cert_from_pem_impl(ptr, rust_vec_len, data_len),
         5 => wire__crate__api__crypto__tdes_ede3_enc_impl(ptr, rust_vec_len, data_len),

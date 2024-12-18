@@ -58,7 +58,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 
   @override
   Future<void> executeRustInitializers() async {
-    api.crateApiDecodeInitApp();
+    api.crateApiInitApp();
   }
 
   @override
@@ -69,7 +69,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.7.0';
 
   @override
-  int get rustContentHash => -1334339319;
+  int get rustContentHash => 350857423;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -82,7 +82,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 abstract class RustLibApi extends BaseApi {
   String crateApiDecodeDecodePngQrcode({required List<int> pngFile});
 
-  void crateApiDecodeInitApp();
+  void crateApiInitApp();
 
   X509CertData crateApiCryptoParseX509CertFromDer({required List<int> der});
 
@@ -125,7 +125,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  void crateApiDecodeInitApp() {
+  void crateApiInitApp() {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
@@ -135,13 +135,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeSuccessData: sse_decode_unit,
         decodeErrorData: null,
       ),
-      constMeta: kCrateApiDecodeInitAppConstMeta,
+      constMeta: kCrateApiInitAppConstMeta,
       argValues: [],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiDecodeInitAppConstMeta => const TaskConstMeta(
+  TaskConstMeta get kCrateApiInitAppConstMeta => const TaskConstMeta(
         debugName: "init_app",
         argNames: [],
       );

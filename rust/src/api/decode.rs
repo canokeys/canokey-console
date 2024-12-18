@@ -48,7 +48,3 @@ pub fn decode_png_qrcode(png_file: Vec<u8>) -> String {
     text
 }
 
-#[flutter_rust_bridge::frb(init)]
-pub fn init_app() {
-    flutter_rust_bridge::setup_default_user_utils();
-}
