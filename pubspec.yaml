@@ -40,14 +40,12 @@ dependencies:
   fido2: ^0.0.4
   ccid: ^0.1.4
   device_info_plus: ^11.2.0
-  dart_des: ^1.0.2
   pem: ^2.0.5
   file_saver: ^0.2.14
   basic_utils:
     git:
       url: https://github.com/dangfan/Dart-Basic-Utils.git
       ref: 743c57a717a8425f9baf3f363f9359216dcb832e
-  pointycastle: ^3.9.1
   rust_lib_canokey_console:
     path: rust_builder
   flutter_rust_bridge: 2.7.0
