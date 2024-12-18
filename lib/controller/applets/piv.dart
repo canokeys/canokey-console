@@ -15,7 +15,6 @@ import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
-import 'package:pem/pem.dart';
 
 final log = Logger('Console:PIV:Controller');
 
@@ -47,7 +46,7 @@ class PivController extends Controller {
           resp = await _transceive('00CB3FFF055C035FC1${hex.encode([_certDO[slot]!])}00');
           if (SmartCard.isOK(resp)) {
             final bytes = hex.decode(resp.substring(16, resp.length - 4));
-            final cert = X509Utils.x509CertificateFromPem(PemCodec(PemLabel.certificate).encode(bytes));
+            final cert = parseX509CertFromDer(der: bytes);
             slotInfo.cert = cert;
             slotInfo.certBytes = bytes;
           }
