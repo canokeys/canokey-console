@@ -96,7 +96,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Container(
-                            color: contentTheme.primary.withOpacity(0.08),
+                            color: contentTheme.primary.withValues(alpha: 0.08),
                             padding: Spacing.xy(16, 12),
                             child: Row(
                               children: [
@@ -169,7 +169,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Container(
-                            color: contentTheme.primary.withOpacity(0.08),
+                            color: contentTheme.primary.withValues(alpha: 0.08),
                             padding: Spacing.xy(16, 12),
                             child: Row(
                               children: [

@@ -1,4 +1,3 @@
-import 'package:basic_utils/basic_utils.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/src/rust/api/crypto.dart';
