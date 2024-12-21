@@ -32,7 +32,7 @@ class PivController extends Controller {
   }
 
   Future<void> refreshData() async {
-    await SmartCard.process(() async {
+    await SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       for (var slot in [0x80, 0x81, 0x9B, 0x9A, 0x9C, 0x9D, 0x9E, 0x82, 0x83]) {
         String resp = await _transceive('00F700${hex.encode([slot])}00');
@@ -59,7 +59,7 @@ class PivController extends Controller {
   }
 
   changePin(String oldPin, String newPin) {
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       String oldPinHex = _padPin(oldPin);
       String newPinHex = _padPin(newPin);
@@ -74,7 +74,7 @@ class PivController extends Controller {
   }
 
   changePUK(String oldPin, String newPin) {
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       String oldPinHex = _padPin(oldPin);
       String newPinHex = _padPin(newPin);
@@ -90,7 +90,7 @@ class PivController extends Controller {
 
   Future<bool> verifyManagementKey(String key) {
     final c = new Completer<bool>();
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       String resp = await SmartCard.transceive('0087039B047C028100');
       SmartCard.assertOK(resp);
@@ -104,7 +104,7 @@ class PivController extends Controller {
   }
 
   setManagementKey(String key) async {
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00FFFFFF1B039B18$key'));
       Navigator.pop(Get.context!);
       Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
@@ -129,7 +129,7 @@ class PivController extends Controller {
     var data =
         '06${(rawKey.length ~/ 2).toRadixString(16).padLeft(2, '0')}${rawKey}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';
     var capdu = '00FE$algoId$slot${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}$data';
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       String resp = await SmartCard.transceive(capdu);
       c.complete(SmartCard.isOK(resp));
     });
@@ -145,7 +145,7 @@ class PivController extends Controller {
     // Build the command APDU
     // INS: 0xFE, P1: algorithm ID (0xE0 for Ed25519), P2: slot number
     var capdu = '00FEE0$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}$data';
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       String resp = await SmartCard.transceive(capdu);
       c.complete(SmartCard.isOK(resp));
     });
@@ -215,7 +215,7 @@ class PivController extends Controller {
     // INS: 0xFE, P1: algorithm ID, P2: slot number
     String capdu = '00FE${algoId.toRadixString(16).padLeft(2, '0')}$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(6, '0')}$data';
 
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       String resp = await SmartCard.transceive(capdu);
       c.complete(SmartCard.isOK(resp));
     });

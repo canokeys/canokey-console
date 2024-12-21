@@ -18,8 +18,9 @@ class InputPinDialog extends StatefulWidget {
   final String label;
   final String prompt;
   final bool required;
+  final bool showSaveOption;
   final List<FieldValidatorRule> validators;
-  final Completer<String> c;
+  final Completer<(String, bool)> c;
 
   const InputPinDialog({
     super.key,
@@ -27,20 +28,30 @@ class InputPinDialog extends StatefulWidget {
     required this.label,
     required this.prompt,
     required this.required,
+    required this.showSaveOption,
     required this.validators,
     required this.c,
   });
 
-  static Future<String> show({
+  static Future<(String, bool)> show({
     required String title,
     required String label,
     required String prompt,
     bool required = true,
+    bool showSaveOption = false,
     List<FieldValidatorRule> validators = const [],
   }) {
-    Completer<String> c = new Completer<String>();
+    Completer<(String, bool)> c = Completer<(String, bool)>();
     Get.dialog(
-      InputPinDialog(title: title, label: label, prompt: prompt, required: required, validators: validators, c: c),
+      InputPinDialog(
+        title: title,
+        label: label,
+        prompt: prompt,
+        required: required,
+        showSaveOption: showSaveOption,
+        validators: validators,
+        c: c,
+      ),
       barrierDismissible: false,
     );
     return c.future;
@@ -52,12 +63,20 @@ class InputPinDialog extends StatefulWidget {
 
 class _InputPinDialogState extends State<InputPinDialog> {
   final showPin = false.obs;
+  final savePin = false.obs;
   final _validator = FormValidator();
 
   @override
   void initState() {
     super.initState();
     _validator.addField('pin', required: widget.required, controller: TextEditingController(), validators: widget.validators);
+  }
+
+  void _onSubmit() {
+    if (_validator.validateForm()) {
+      Navigator.pop(Get.context!);
+      widget.c.complete((_validator.getController('pin')!.text, savePin.value));
+    }
   }
 
   @override
@@ -81,27 +100,41 @@ class _InputPinDialogState extends State<InputPinDialog> {
             Divider(height: 0, thickness: 1),
             Padding(
               padding: Spacing.all(16),
-              child: Form(
-                key: _validator.formKey,
-                child: Obx(() => TextFormField(
-                      autofocus: true,
-                      onTap: () => SmartCard.eject(),
-                      obscureText: !showPin.value,
-                      controller: _validator.getController('pin'),
-                      validator: _validator.getValidator('pin'),
-                      decoration: InputDecoration(
-                        labelText: widget.label,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                          borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onSurface.withAlpha(80)),
-                        ),
-                        floatingLabelBehavior: FloatingLabelBehavior.auto,
-                        suffixIcon: IconButton(
-                          icon: Icon(showPin.value ? Icons.visibility : Icons.visibility_off),
-                          onPressed: () => showPin.toggle(),
-                        ),
-                      ),
-                    )),
+              child: Column(
+                children: [
+                  Form(
+                    key: _validator.formKey,
+                    child: Obx(() => TextFormField(
+                          autofocus: true,
+                          onTap: () => SmartCard.eject(),
+                          obscureText: !showPin.value,
+                          controller: _validator.getController('pin'),
+                          validator: _validator.getValidator('pin'),
+                          onFieldSubmitted: (_) => _onSubmit(),
+                          decoration: InputDecoration(
+                            labelText: widget.label,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(4)),
+                              borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onSurface.withAlpha(80)),
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            suffixIcon: IconButton(
+                              icon: Icon(showPin.value ? Icons.visibility : Icons.visibility_off),
+                              onPressed: () => showPin.toggle(),
+                            ),
+                          ),
+                        )),
+                  ),
+                  if (widget.showSaveOption) ...[
+                    Obx(() => CheckboxListTile(
+                          value: savePin.value,
+                          onChanged: (value) => savePin.value = value!,
+                          title: CustomizedText.bodyMedium(S.of(context).savePinOnDevice),
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: EdgeInsets.zero,
+                        )),
+                  ],
+                ],
               ),
             ),
             Divider(height: 0, thickness: 1),
@@ -121,12 +154,7 @@ class _InputPinDialogState extends State<InputPinDialog> {
                   ),
                   Spacing.width(16),
                   CustomizedButton.rounded(
-                    onPressed: () {
-                      if (_validator.validateForm()) {
-                        Navigator.pop(Get.context!);
-                        widget.c.complete(_validator.getController('pin')!.text);
-                      }
-                    },
+                    onPressed: _onSubmit,
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: ContentThemeColor.primary.color,

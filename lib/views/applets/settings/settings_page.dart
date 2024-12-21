@@ -1,10 +1,7 @@
-import 'package:canokey_console/controller/applets/settings.dart';
+import 'package:canokey_console/controller/applets/settings_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/utils/prompts.dart';
-import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
-import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/views/applets/settings/widgets/action_card.dart';
@@ -27,49 +24,27 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderStateMixin, UIMixin {
-  late SettingsController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = Get.put(SettingsController());
-  }
+  final SettingsController _controller = SettingsController();
 
   @override
   Widget build(BuildContext context) {
     return Layout(
       title: S.of(context).settings,
       topActions: InkWell(
-        onTap: () {
-          if (controller.polled) {
-            controller.refreshData();
-          } else {
-            InputPinDialog.show(
-              title: S.of(context).settingsInputPin,
-              label: 'PIN',
-              prompt: S.of(context).settingsInputPinPrompt,
-            ).then((value) {
-              controller.pinCache = value;
-              SmartCard.process(() async {
-                await controller.selectAndVerifyPin(skipClear: true);
-                await controller.refreshData();
-              });
-            }).onError((error, stackTrace) => null); // User canceled
-          }
-        },
+        onTap: () => _controller.refreshData(),
         child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
       ),
       child: GetBuilder(
-        init: controller,
+        init: _controller,
         builder: (_) {
           List<Widget> widgets = [
             Spacing.height(20),
-            ActionCard(controller: controller),
+            ActionCard(controller: _controller),
             Spacing.height(20),
             OtherSettingsCard(),
           ];
 
-          if (!controller.polled) {
+          if (!_controller.polled) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -98,7 +73,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                   padding: Spacing.x(flexSpacing),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [Spacing.height(20), InfoCard(canokey: controller.key), Spacing.height(20), SettingsCard(controller: controller), ...widgets],
+                    children: [Spacing.height(20), InfoCard(canokey: _controller.key), Spacing.height(20), SettingsCard(controller: _controller), ...widgets],
                   ),
                 ),
               ],

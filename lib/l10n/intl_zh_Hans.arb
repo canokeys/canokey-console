@@ -197,5 +197,8 @@
   "pivVerifyManagementKey": "验证管理密钥",
   "validationHexString": "请输入十六进制字符串",
   "validationExactLength": "需要 {length} 个字符",
-  "viewUserId": "查看用户 ID"
+  "viewUserId": "查看用户 ID",
+  "savePinOnDevice": "在此设备上保存 PIN",
+  "settingsClearPinCache": "清除已保存的 PIN",
+  "settingsClearPinCachePrompt": "确定要清除此设备上所有已保存的 PIN 吗？"
 }

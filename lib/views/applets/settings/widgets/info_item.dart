@@ -35,16 +35,18 @@ class InfoItem extends StatelessWidget with UIMixin {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomizedText.bodyMedium(title, fontSize: 16, fontWeight: 600),
-                if (onTap == null) // Can be copied
-                  InkWell(
-                    child: CustomizedText.bodySmall(value),
-                    onTap: () {
-                      Clipboard.setData(ClipboardData(text: value));
-                      Prompts.showPrompt(S.of(context).copied, ContentThemeColor.success);
-                    },
-                  )
-                else
-                  CustomizedText.bodySmall(value),
+                if (value.isNotEmpty) ...{
+                  if (onTap == null) // Can be copied
+                    InkWell(
+                      child: CustomizedText.bodySmall(value),
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: value));
+                        Prompts.showPrompt(S.of(context).copied, ContentThemeColor.success);
+                      },
+                    )
+                  else
+                    CustomizedText.bodySmall(value)
+                }
               ],
             ),
           ),

@@ -9,6 +9,7 @@ import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/language_dialog.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/start_page_dialog.dart';
+import 'package:canokey_console/views/applets/settings/dialogs/clear_pin_cache_dialog.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -46,6 +47,8 @@ class OtherSettingsCard extends StatelessWidget with UIMixin {
                 InfoItem(iconData: LucideIcons.languages, title: S.of(context).settingsLanguage, value: languageName, onTap: LanguageDialog.show),
                 Spacing.height(16),
                 InfoItem(iconData: LucideIcons.home, title: S.of(context).settingsStartPage, value: startPage, onTap: StartPageDialog.show),
+                Spacing.height(16),
+                InfoItem(iconData: LucideIcons.pin, title: S.of(context).settingsClearPinCache, value: '', onTap: () => ClearPinCacheDialog.show()),
               ],
             ),
           ),

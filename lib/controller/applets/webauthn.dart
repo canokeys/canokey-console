@@ -32,7 +32,7 @@ class WebAuthnController extends Controller {
   }
 
   void refreshData() {
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       if (_uid != SmartCard.currentId) {
         _uid = SmartCard.currentId;
         _pinCache = '';
@@ -145,7 +145,7 @@ class WebAuthnController extends Controller {
   }
 
   changePin(String newPin) {
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       if (_uid != SmartCard.currentId) {
         refreshData();
         return;
@@ -178,7 +178,7 @@ class WebAuthnController extends Controller {
   }
 
   delete(PublicKeyCredentialDescriptor credentialId) {
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       if (_uid != SmartCard.currentId) {
         refreshData();
         return;

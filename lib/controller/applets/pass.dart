@@ -31,7 +31,7 @@ class PassController extends Controller {
   }
 
   Future<void> refreshData(String pin) async {
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));
 
       String resp = await SmartCard.transceive('0031000000');
@@ -58,7 +58,7 @@ class PassController extends Controller {
   }
 
   void setSlot(int index, PassSlotType type, String password, bool withEnter) {
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));
       if (!await _verifyPin(pinCache)) return;
       Navigator.pop(Get.context!);

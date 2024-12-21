@@ -58,7 +58,7 @@ class OathController extends Controller {
   }
 
   Future<void> refreshData() async {
-    await SmartCard.process(() async {
+    await SmartCard.process((String sn) async {
       if (!await _selectAndVerifyCode()) {
         return;
       }
@@ -105,7 +105,7 @@ class OathController extends Controller {
   }
 
   void addAccount(String name, String secretHex, OathType type, OathAlgorithm algo, int digits, bool requireTouch, int initValue) {
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       if (!await _selectAndVerifyCode()) {
         return;
       }
@@ -144,7 +144,7 @@ class OathController extends Controller {
   }
 
   void setCode(String newCode) {
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       String resp = await _transceive('00A4040007A0000005272101');
       SmartCard.assertOK(resp);
       if (resp == '9000') {
@@ -172,7 +172,7 @@ class OathController extends Controller {
 
   Future<String> calculate(String name, OathType type) async {
     late String code;
-    await SmartCard.process(() async {
+    await SmartCard.process((String sn) async {
       if (!await _selectAndVerifyCode()) {
         return;
       }
@@ -203,7 +203,7 @@ class OathController extends Controller {
   }
 
   void delete(String name) {
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       if (!await _selectAndVerifyCode()) {
         return;
       }
@@ -219,7 +219,7 @@ class OathController extends Controller {
   }
 
   void setDefault(String name, int slot, bool withEnter) {
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       if (!await _selectAndVerifyCode()) {
         return;
       }
@@ -234,7 +234,7 @@ class OathController extends Controller {
   }
 
   void setDefaultLegacy(String name) {
-    SmartCard.process(() async {
+    SmartCard.process((String sn) async {
       if (!await _selectAndVerifyCode()) {
         return;
       }

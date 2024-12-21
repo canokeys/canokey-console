@@ -106,6 +106,7 @@ class Sm2ConfigDialog extends StatelessWidget with UIMixin {
                   CustomizedButton.rounded(
                     onPressed: () {
                       if (validator.formKey.currentState!.validate()) {
+                        Navigator.pop(context);
                         onConfirm(enabled.value, int.parse(validator.getController('curveId')!.text), int.parse(validator.getController('algoId')!.text));
                       }
                     },

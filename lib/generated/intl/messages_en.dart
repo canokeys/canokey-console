@@ -263,12 +263,18 @@ class MessageLookup extends MessageLookupByLibrary {
             "Please read your CanoKey by clicking the refresh button"),
         "reset": MessageLookupByLibrary.simpleMessage("Reset"),
         "save": MessageLookupByLibrary.simpleMessage("Save"),
+        "savePinOnDevice":
+            MessageLookupByLibrary.simpleMessage("Save the PIN on this device"),
         "search": MessageLookupByLibrary.simpleMessage("Search"),
         "seconds": MessageLookupByLibrary.simpleMessage("seconds"),
         "settings": MessageLookupByLibrary.simpleMessage("Settings"),
         "settingsChangeLanguage":
             MessageLookupByLibrary.simpleMessage("Change Language"),
         "settingsChipId": MessageLookupByLibrary.simpleMessage("Chip ID"),
+        "settingsClearPinCache":
+            MessageLookupByLibrary.simpleMessage("Clear Saved PINs"),
+        "settingsClearPinCachePrompt": MessageLookupByLibrary.simpleMessage(
+            "Are you sure you want to clear all saved PINs from this device?"),
         "settingsFirmwareVersion":
             MessageLookupByLibrary.simpleMessage("Firmware Version"),
         "settingsFixNFC": MessageLookupByLibrary.simpleMessage("Fix NFC"),
