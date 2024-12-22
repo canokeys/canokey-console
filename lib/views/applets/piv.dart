@@ -4,7 +4,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:basic_utils/basic_utils.dart';
-import 'package:canokey_console/controller/applets/piv.dart';
+import 'package:canokey_console/controller/applets/piv_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/extensions/date_time_extension.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';

@@ -1,5 +1,6 @@
 import 'package:canokey_console/controller/applets/settings_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
@@ -30,10 +31,12 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return Layout(
       title: S.of(context).settings,
-      topActions: InkWell(
-        onTap: () => _controller.refreshData(),
-        child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
-      ),
+      topActions: !SmartCard.isUsbConnected()
+          ? InkWell(
+              onTap: () => _controller.refreshData(),
+              child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
+            )
+          : null,
       child: GetBuilder(
         init: _controller,
         builder: (_) {
