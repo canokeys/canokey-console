@@ -1,4 +1,4 @@
-import 'package:canokey_console/controller/base_controller.dart';
+import 'package:canokey_console/controller/applets/admin_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
@@ -12,14 +12,20 @@ import 'package:logging/logging.dart';
 
 final log = Logger('Console:Pass:Controller');
 
-class PassController extends Controller {
-  PassSlot get slotShort => slots[0];
-
-  PassSlot get slotLong => slots[1];
-
+class PassController extends AdminController {
   late List<PassSlot> slots;
+  PassSlot get slotShort => slots[0];
+  PassSlot get slotLong => slots[1];
   bool polled = false;
-  String pinCache = '';
+
+  @override
+  void onReady() {
+    super.onReady();
+    // If connected in USB, refresh the data
+    if (SmartCard.isUsbConnected()) {
+      refreshData();
+    }
+  }
 
   @override
   void onClose() {
@@ -30,20 +36,24 @@ class PassController extends Controller {
     } catch (e) {}
   }
 
-  Future<void> refreshData(String pin) async {
+  Future<void> refreshData() async {
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));
 
+      // read firmware version
       String resp = await SmartCard.transceive('0031000000');
       SmartCard.assertOK(resp);
       String firmwareVersion = String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
+
       FunctionSetVersion functionSetVersion = CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
       if (!CanoKey.functionSet(functionSetVersion).contains(Func.pass)) {
-        Prompts.showPrompt('Not supported', ContentThemeColor.danger);
+        Prompts.showPrompt(S.current.passNotSupported, ContentThemeColor.danger);
         return;
       }
-      if (!await _verifyPin(pin)) return;
-      pinCache = pin;
+
+      if (!await authenticate(sn)) {
+        return;
+      }
 
       // read pass configurations
       resp = await SmartCard.transceive('0043000000');
@@ -59,8 +69,9 @@ class PassController extends Controller {
 
   void setSlot(int index, PassSlotType type, String password, bool withEnter) {
     SmartCard.process((String sn) async {
-      SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));
-      if (!await _verifyPin(pinCache)) return;
+      if (!await authenticate(sn)) {
+        return;
+      }
       Navigator.pop(Get.context!);
 
       String capduData = '';
@@ -74,16 +85,9 @@ class PassController extends Controller {
       }
       await SmartCard.transceive('0044${index == short ? '01' : '02'}00${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
       Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
-      refreshData(pinCache);
-      update();
-    });
-  }
 
-  Future<bool> _verifyPin(String pin) async {
-    String resp = await SmartCard.transceive('00200000${pin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(pin.codeUnits)}');
-    if (SmartCard.isOK(resp)) return true;
-    Prompts.promptPinFailureResult(resp);
-    return false;
+      refreshData();
+    });
   }
 
   static int short = 1;

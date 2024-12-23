@@ -15,7 +15,11 @@ final log = Logger('SmartCard');
 
 class SmartCard {
   static String _currentSN = '';
+
   static CcidCard? _card;
+
+  static bool isWebUSBConnected = false;
+
   static String currentId = '';
 
   static String dropSW(String rapdu) {
@@ -75,7 +79,13 @@ class SmartCard {
         final resp = await SmartCard.transceive('0032000000');
         SmartCard.assertOK(resp);
         final sn = SmartCard.dropSW(resp).toUpperCase();
-        log.info('NFC Polled. SN: $sn');
+        _currentSN = sn;
+        if (isWeb()) {
+          isWebUSBConnected = true;
+          log.info('CanoKey (WebUSB) Polled. SN: $sn');
+        } else {
+          log.info('CanoKey (NFC) Polled. SN: $sn');
+        }
         await f(sn);
       } on PlatformException catch (e) {
         if (e.message == 'NotFoundError: No device selected.') {
@@ -112,13 +122,19 @@ class SmartCard {
     }
   }
 
+  static void onWebUSBDisconnected() {
+    log.info('CanoKey (WebUSB) removed: $_currentSN');
+    isWebUSBConnected = false;
+    _currentSN = '';
+  }
+
   static void pollCcid() {
     Timer.periodic(const Duration(seconds: 1), (timer) async {
       List<String> readers = await Ccid().listReaders();
       final name = readers.firstWhereOrNull((name) => name.toLowerCase().contains("canokey"));
       if (name != null) {
         if (_card == null) {
-          log.info('New CanoKey detected: $name');
+          log.info('New CanoKey (USB) detected: $name');
           try {
             _card = await Ccid().connect(name);
             var resp = await _card!.transceive('00A4040005F000000000');
@@ -126,15 +142,15 @@ class SmartCard {
             resp = await _card!.transceive('0032000000');
             assertOK(resp!);
             _currentSN = SmartCard.dropSW(resp).toUpperCase();
-            log.info('Successfully connected to CanoKey. SN: $_currentSN');
+            log.info('Successfully connected to CanoKey (USB). SN: $_currentSN');
           } catch (e) {
-            log.severe('Failed to connect to CanoKey: $e');
+            log.severe('Failed to connect to CanoKey (USB): $e');
             _card = null;
             _currentSN = '';
           }
         }
       } else if (_currentSN != '') {
-        log.info('CanoKey removed: $_currentSN');
+        log.info('CanoKey (USB) removed: $_currentSN');
         _card = null;
         _currentSN = '';
       }

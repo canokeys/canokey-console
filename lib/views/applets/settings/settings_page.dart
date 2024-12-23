@@ -1,6 +1,5 @@
 import 'package:canokey_console/controller/applets/settings_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
@@ -14,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:platform_detector/platform_detector.dart';
 
 final log = Logger('Console:Settings:View');
 
@@ -31,7 +31,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return Layout(
       title: S.of(context).settings,
-      topActions: !SmartCard.isUsbConnected()
+      topActions: !isDesktop()
           ? InkWell(
               onTap: () => _controller.refreshData(),
               child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),

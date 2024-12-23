@@ -174,6 +174,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "other": MessageLookupByLibrary.simpleMessage("Other"),
         "passInputPinPrompt": MessageLookupByLibrary.simpleMessage(
             "Please input your Setting PIN. The default value is 123456."),
+        "passNotSupported": MessageLookupByLibrary.simpleMessage(
+            "Your CanoKey does not support Pass."),
         "passSlotConfigPrompt": MessageLookupByLibrary.simpleMessage(
             "Please select a slot type to configure. If you want to use HOTP, set it in the HOTP applet."),
         "passSlotConfigTitle":

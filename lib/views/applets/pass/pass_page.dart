@@ -1,6 +1,5 @@
-import 'package:canokey_console/controller/applets/pass.dart';
+import 'package:canokey_console/controller/applets/pass_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
@@ -11,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:platform_detector/platform_detector.dart';
 
 final log = Logger('Console:Pass:View');
 
@@ -22,38 +22,22 @@ class PassPage extends StatefulWidget {
 }
 
 class _PassPageState extends State<PassPage> with UIMixin {
-  late PassController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = Get.put(PassController());
-  }
+  final PassController _controller = PassController();
 
   @override
   Widget build(BuildContext context) {
     return Layout(
       title: 'Pass',
-      topActions: InkWell(
-        onTap: () {
-          if (controller.polled) {
-            controller.refreshData(controller.pinCache);
-          } else {
-            Prompts.showInputPinDialog(
-              title: S.of(context).settingsInputPin,
-              label: 'PIN',
-              prompt: S.of(context).passInputPinPrompt,
-            ).then((value) {
-              controller.refreshData(value);
-            }).onError((error, stackTrace) => null); // User canceled
-          }
-        },
-        child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
-      ),
+      topActions: !isDesktop()
+          ? InkWell(
+              onTap: () => _controller.refreshData(),
+              child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
+            )
+          : null,
       child: GetBuilder(
-        init: controller,
+        init: _controller,
         builder: (_) {
-          if (!controller.polled) {
+          if (!_controller.polled) {
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -77,9 +61,9 @@ class _PassPageState extends State<PassPage> with UIMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Spacing.height(20),
-                    SlotCard(title: S.of(context).passSlotShort, slot: controller.slotShort, slotIndex: PassController.short, controller: controller),
+                    SlotCard(title: S.of(context).passSlotShort, slot: _controller.slotShort, slotIndex: PassController.short, controller: _controller),
                     Spacing.height(20),
-                    SlotCard(title: S.of(context).passSlotLong, slot: controller.slotLong, slotIndex: PassController.long, controller: controller),
+                    SlotCard(title: S.of(context).passSlotLong, slot: _controller.slotLong, slotIndex: PassController.long, controller: _controller),
                   ],
                 ),
               ),

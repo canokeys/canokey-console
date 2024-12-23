@@ -2069,6 +2069,16 @@ class S {
       args: [],
     );
   }
+
+  /// `Your CanoKey does not support Pass.`
+  String get passNotSupported {
+    return Intl.message(
+      'Your CanoKey does not support Pass.',
+      name: 'passNotSupported',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

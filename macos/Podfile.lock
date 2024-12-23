@@ -1,5 +1,6 @@
 PODS:
-  - ccid (0.1.1):
+  - ccid (0.1.6):
+    - Flutter
     - FlutterMacOS
   - cryptography_flutter (0.2.0):
     - FlutterMacOS
@@ -26,7 +27,7 @@ PODS:
   - WebRTC-SDK (125.6422.06)
 
 DEPENDENCIES:
-  - ccid (from `Flutter/ephemeral/.symlinks/plugins/ccid/macos`)
+  - ccid (from `Flutter/ephemeral/.symlinks/plugins/ccid/darwin`)
   - cryptography_flutter (from `Flutter/ephemeral/.symlinks/plugins/cryptography_flutter/macos`)
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
   - file_saver (from `Flutter/ephemeral/.symlinks/plugins/file_saver/macos`)
@@ -44,7 +45,7 @@ SPEC REPOS:
 
 EXTERNAL SOURCES:
   ccid:
-    :path: Flutter/ephemeral/.symlinks/plugins/ccid/macos
+    :path: Flutter/ephemeral/.symlinks/plugins/ccid/darwin
   cryptography_flutter:
     :path: Flutter/ephemeral/.symlinks/plugins/cryptography_flutter/macos
   device_info_plus:
@@ -67,7 +68,7 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
 
 SPEC CHECKSUMS:
-  ccid: 27d2241987cf780c752a5567dc07cceaa226fcde
+  ccid: 0a9700ba10fcda9dd32cd13827d579c987b86981
   cryptography_flutter: c9fa581b52e6fe19475432b6f44489c387f61e19
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
   file_saver: 44e6fbf666677faf097302460e214e977fdd977b

@@ -146,6 +146,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "other": MessageLookupByLibrary.simpleMessage("其他"),
         "passInputPinPrompt": MessageLookupByLibrary.simpleMessage(
             "请输入您的管理员（设置应用） PIN（默认值为 123456）。"),
+        "passNotSupported":
+            MessageLookupByLibrary.simpleMessage("您的 CanoKey 不支持 Pass 功能。"),
         "passSlotConfigPrompt": MessageLookupByLibrary.simpleMessage(
             "请配置该密码槽。如需配置HOTP，请前往HOTP应用配置。"),
         "passSlotConfigTitle": MessageLookupByLibrary.simpleMessage("配置"),

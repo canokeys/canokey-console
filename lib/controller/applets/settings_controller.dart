@@ -1,10 +1,10 @@
-import 'package:canokey_console/controller/base_controller.dart';
+import 'dart:async';
+
+import 'package:canokey_console/controller/applets/admin_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
-import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:convert/convert.dart';
 import 'package:fixnum/fixnum.dart';
@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:logging/logging.dart';
+import 'package:platform_detector/platform_detector.dart';
 
 final log = Logger('Console:Settings:Controller');
 
@@ -22,18 +23,32 @@ final log = Logger('Console:Settings:Controller');
 /// re-prompting the user for PIN.
 /// If the user allows to save the PIN, the cache is also saved in the local storage, which
 /// is identified by the sn.
-class SettingsController extends Controller {
-  final Map<String, String> _localPinCache = {};
-
+class SettingsController extends AdminController {
+  late Timer _usbPollTimer;
   late CanoKey key;
   bool polled = false;
 
   @override
   void onReady() {
     super.onReady();
-    // If connected in USB, refresh the data
-    if (SmartCard.isUsbConnected()) {
-      refreshData();
+    if (isWeb()) {
+      try {
+        refreshData();
+        // ignore: empty_catches
+      } catch (e) {}
+    }
+    if (isDesktop()) {
+      if (SmartCard.isUsbConnected()) {
+        refreshData();
+      }
+      _usbPollTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (!polled && SmartCard.isUsbConnected()) {
+          refreshData();
+        } else if (!SmartCard.isUsbConnected()) {
+          polled = false;
+          update();
+        }
+      });
     }
   }
 
@@ -42,13 +57,14 @@ class SettingsController extends Controller {
     try {
       ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
       ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
+      _usbPollTimer.cancel();
       // ignore: empty_catches
     } catch (e) {}
   }
 
   Future<void> refreshData() async {
     await SmartCard.process((String sn) async {
-      if (!await _authenticate(sn)) {
+      if (!await authenticate(sn)) {
         return;
       }
 
@@ -149,7 +165,7 @@ class SettingsController extends Controller {
 
   void changeSwitch(Func func, bool value) {
     SmartCard.process((String sn) async {
-      if (!await _authenticate(sn)) {
+      if (!await authenticate(sn)) {
         return;
       }
 
@@ -161,17 +177,14 @@ class SettingsController extends Controller {
 
   void changePin(String newPin) {
     SmartCard.process((String sn) async {
-      if (!await _authenticate(sn)) {
+      if (!await authenticate(sn)) {
         return;
       }
 
       SmartCard.assertOK(await SmartCard.transceive('00210000${newPin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(newPin.codeUnits)}'));
       Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
 
-      _localPinCache[sn] = newPin;
-      if (LocalStorage.getPinCache(sn, _tag) != null) {
-        await LocalStorage.setPinCache(sn, _tag, newPin);
-      }
+      updatePinCache(sn, newPin);
     });
   }
 
@@ -179,7 +192,7 @@ class SettingsController extends Controller {
     Navigator.pop(Get.context!);
 
     SmartCard.process((String sn) async {
-      if (!await _authenticate(sn)) {
+      if (!await authenticate(sn)) {
         return;
       }
 
@@ -210,7 +223,7 @@ class SettingsController extends Controller {
   void changeWebAuthnSm2Config(bool enabled, int curveId, int algoId) {
     String cmdData = (enabled ? '01' : '00') + hex.encode(Int32(curveId).toBytes().reversed.toList()) + hex.encode(Int32(algoId).toBytes().reversed.toList());
     SmartCard.process((String sn) async {
-      if (!await _authenticate(sn)) {
+      if (!await authenticate(sn)) {
         return;
       }
 
@@ -218,64 +231,6 @@ class SettingsController extends Controller {
       Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
       await refreshData();
     });
-  }
-
-  /// Returns true if pin is verified
-  Future<bool> _selectAndVerifyPin(String pin) async {
-    String resp = await SmartCard.transceive('00A4040005F000000000');
-    SmartCard.assertOK(resp);
-    resp = await SmartCard.transceive('00200000${pin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(pin.codeUnits)}');
-    if (SmartCard.isOK(resp)) {
-      return true;
-    } else {
-      Prompts.promptPinFailureResult(resp);
-      return false;
-    }
-  }
-
-  /// Returns true if CanoKey is authenticated.
-  ///
-  /// We first try to use the local cache. If not cached, try LocalStorage.
-  /// Finally, prompt the user for PIN.
-  Future<bool> _authenticate(String sn) async {
-    // Try local cache first
-    if (_localPinCache.containsKey(sn)) {
-      if (await _selectAndVerifyPin(_localPinCache[sn]!)) {
-        return true;
-      }
-      _localPinCache.remove(sn);
-    }
-
-    // Try LocalStorage
-    String? pinToTry = LocalStorage.getPinCache(sn, _tag);
-    if (pinToTry != null) {
-      if (await _selectAndVerifyPin(pinToTry)) {
-        _localPinCache[sn] = pinToTry;
-        return true;
-      } else {
-        await LocalStorage.setPinCache(sn, _tag, null);
-      }
-    }
-
-    // Finally, prompt user
-    try {
-      final result = await InputPinDialog.show(
-        title: S.of(Get.context!).settingsInputPin,
-        label: 'PIN',
-        prompt: S.of(Get.context!).settingsInputPinPrompt,
-        showSaveOption: true,
-      );
-      if (await _selectAndVerifyPin(result.$1)) {
-        _localPinCache[sn] = result.$1;
-        if (result.$2) {
-          await LocalStorage.setPinCache(sn, _tag, result.$1);
-        }
-        return true;
-      }
-    } on UserCanceledError catch (_) {
-      // user canceled
-    }
-    return false;
   }
 
   final Map _changeSwitchAPDUs = {
@@ -290,6 +245,4 @@ class SettingsController extends Controller {
     Func.autTouch: {true: '00090201', false: '00090200'},
     Func.nfcSwitch: {true: '00140101', false: '00140100'},
   };
-
-  final String _tag = 'SETTINGS';
 }

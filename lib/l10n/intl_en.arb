@@ -200,5 +200,6 @@
   "viewUserId": "View User ID",
   "savePinOnDevice": "Save the PIN on this device",
   "settingsClearPinCache": "Clear Saved PINs",
-  "settingsClearPinCachePrompt": "Are you sure you want to clear all saved PINs from this device?"
+  "settingsClearPinCachePrompt": "Are you sure you want to clear all saved PINs from this device?",
+  "passNotSupported": "Your CanoKey does not support Pass."
 }
