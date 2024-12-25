@@ -24,8 +24,8 @@ class WebAuthnPage extends StatefulWidget {
 }
 
 class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderStateMixin, UIMixin {
-  final WebAuthnController controller = WebAuthnController();
-  final RxString searchText = ''.obs;
+  final controller = Get.put(WebAuthnController());
+  final searchText = ''.obs;
 
   @override
   void initState() {

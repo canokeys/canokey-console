@@ -22,13 +22,7 @@ class PassPage extends StatefulWidget {
 }
 
 class _PassPageState extends State<PassPage> with UIMixin {
-  late PassController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = Get.put(PassController());
-  }
+  final controller = Get.put(PassController());
 
   @override
   Widget build(BuildContext context) {

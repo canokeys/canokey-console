@@ -32,8 +32,9 @@ class OathPage extends StatefulWidget {
 }
 
 class _OathPageState extends State<OathPage> with UIMixin {
-  final OathController controller = OathController();
-  final RxString searchText = ''.obs;
+  final controller = Get.put(OathController());
+  final searchText = ''.obs;
+
   late final Worker _qrScanWorker;
 
   @override

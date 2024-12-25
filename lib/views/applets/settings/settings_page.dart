@@ -26,13 +26,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderStateMixin, UIMixin {
-  late SettingsController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = Get.put(SettingsController());
-  }
+  final controller = Get.put(SettingsController());
 
   @override
   Widget build(BuildContext context) {
