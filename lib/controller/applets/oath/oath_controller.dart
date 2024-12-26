@@ -426,22 +426,29 @@ class OathController extends Controller {
   }
 
   Future<String> _transceive(String capdu) async {
-    String rapdu = '';
-    do {
-      if (rapdu.length >= 4) {
-        var remain = rapdu.substring(rapdu.length - 2);
-        if (remain != '') {
-          if (version == OathVersion.legacy) {
-            capdu = '00060000$remain';
-          } else {
-            capdu = '00A50000$remain';
-          }
-          rapdu = rapdu.substring(0, rapdu.length - 4);
+    bool isListCommand = (version == OathVersion.legacy && capdu.startsWith('000500')) || (version != OathVersion.legacy && capdu.startsWith('00A400'));
+    if (!isListCommand) {
+      return await SmartCard.transceive(capdu);
+    }
+
+    // Handle list command
+    String rapdu = await SmartCard.transceive(capdu);
+    String result = '';
+
+    while (true) {
+      String sw = rapdu.substring(rapdu.length - 4);
+      result += SmartCard.dropSW(rapdu);
+
+      if (sw.startsWith('61') || sw == '9000') {
+        String getResponseCommand = version == OathVersion.legacy ? '00060000FF' : '00A50000FF';
+        rapdu = await SmartCard.transceive(getResponseCommand);
+        if (rapdu.endsWith('6985')) {
+          return '${result}9000';
         }
+      } else {
+        return result + sw;
       }
-      rapdu += await SmartCard.transceive(capdu);
-    } while (rapdu.substring(rapdu.length - 4, rapdu.length - 2) == '61');
-    return rapdu;
+    }
   }
 
   _startTimer() {
