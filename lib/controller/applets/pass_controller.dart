@@ -11,12 +11,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('Console:Pass:Controller');
-
 class PassController extends PollingController with AdminApplet {
   late List<PassSlot> slots;
   PassSlot get slotShort => slots[0];
   PassSlot get slotLong => slots[1];
+
+  @override
+  Logger get log => Logger('Console:Pass:Controller');
 
   @override
   Future<void> refreshData() async {

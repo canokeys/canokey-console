@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:canokey_console/controller/applets/oath/qr_scan_result.dart';
-import 'package:canokey_console/controller/base/base_controller.dart';
+import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
@@ -18,21 +18,19 @@ import 'package:logging/logging.dart';
 import 'package:platform_detector/platform_detector.dart';
 import 'package:timer_controller/timer_controller.dart';
 
-final log = Logger('Console:OATH:Controller');
-
-class OathController extends Controller {
+class OathController extends PollingController {
+  final timerController = TimerController.seconds(30);
+  final qrScanResult = Rxn<QrScanResult>();
   final Map<String, String> _localCodeCache = {};
-
-  final TimerController timerController = TimerController.seconds(30);
-  final Rxn<QrScanResult> qrScanResult = Rxn<QrScanResult>();
-
-  Map<String, OathItem> oathMap = {};
+  final Map<String, OathItem> oathMap = {};
   OathVersion version = OathVersion.v1;
-  bool polled = false;
 
   @override
-  void onInit() {
-    super.onInit();
+  Logger get log => Logger('Console:OATH:Controller');
+
+  @override
+  void onReady() {
+    super.onReady();
     timerController.addListener(() {
       if (timerController.value.remaining == 0) {
         // set codes to empty for TOTP with touch required
@@ -50,15 +48,6 @@ class OathController extends Controller {
   }
 
   @override
-  void onClose() {
-    timerController.reset();
-    try {
-      ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
-      ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
-      // ignore: empty_catches
-    } catch (e) {}
-  }
-
   Future<void> refreshData() async {
     await SmartCard.process((String sn) async {
       if (!await _authenticate(sn)) {

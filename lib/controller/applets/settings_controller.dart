@@ -14,10 +14,11 @@ import 'package:get/get.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('Console:Settings:Controller');
-
 class SettingsController extends PollingController with AdminApplet {
   late CanoKey key;
+
+  @override
+  Logger get log => Logger('Console:Settings:Controller');
 
   @override
   Future<void> refreshData() async {

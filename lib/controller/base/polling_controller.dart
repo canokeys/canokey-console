@@ -8,12 +8,11 @@ import 'package:logging/logging.dart';
 import 'package:platform_detector/platform_detector.dart';
 
 abstract class PollingController extends Controller {
-  late Logger log;
-
   Timer? _usbPollTimer, _webPollTimer;
   bool polled = false;
 
   Future<void> refreshData();
+  Logger get log;
 
   @override
   void onReady() async {
