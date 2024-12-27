@@ -1,4 +1,5 @@
-import 'package:canokey_console/controller/applets/admin_controller.dart';
+import 'package:canokey_console/controller/base/admin_controller.dart';
+import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
@@ -12,30 +13,12 @@ import 'package:logging/logging.dart';
 
 final log = Logger('Console:Pass:Controller');
 
-class PassController extends AdminController {
+class PassController extends PollingController with AdminApplet {
   late List<PassSlot> slots;
   PassSlot get slotShort => slots[0];
   PassSlot get slotLong => slots[1];
-  bool polled = false;
 
   @override
-  void onReady() {
-    super.onReady();
-    // If connected in USB, refresh the data
-    if (SmartCard.isUsbConnected()) {
-      refreshData();
-    }
-  }
-
-  @override
-  void onClose() {
-    try {
-      ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
-      ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
-      // ignore: empty_catches
-    } catch (e) {}
-  }
-
   Future<void> refreshData() async {
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));

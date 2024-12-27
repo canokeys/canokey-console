@@ -1,4 +1,3 @@
-import 'package:canokey_console/controller/base_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
@@ -7,7 +6,12 @@ import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:convert/convert.dart';
 import 'package:get/get.dart';
 
-class AdminController extends Controller {
+/// PIN cache policy:
+/// A local cache (in this controller) is maintained for each sn, which is used for avoiding
+/// re-prompting the user for PIN.
+/// If the user allows to save the PIN, the cache is also saved in the local storage, which
+/// is identified by the sn.
+mixin AdminApplet {
   final Map<String, String> _localPinCache = {};
   final String _tag = 'ADMIN';
 

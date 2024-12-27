@@ -43,7 +43,7 @@ class ActionCard extends StatelessWidget with UIMixin {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            color: contentTheme.primary.withValues(alpha: 0.08),
+            color: contentTheme.primary.withOpacity(0.08),
             padding: Spacing.xy(16, 12),
             child: Row(
               children: [

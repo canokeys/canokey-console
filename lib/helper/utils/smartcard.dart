@@ -16,7 +16,7 @@ final log = Logger('SmartCard');
 class SmartCard {
   static String _currentSN = '';
 
-  static CcidCard? _card;
+  static CcidCard? _ccidCard;
 
   static bool isWebUSBConnected = false;
 
@@ -37,7 +37,7 @@ class SmartCard {
   }
 
   static bool useNfc() {
-    bool nfcMode = _card == null;
+    bool nfcMode = _ccidCard == null;
     if (isWeb()) {
       nfcMode = false;
     }
@@ -45,7 +45,7 @@ class SmartCard {
   }
 
   static bool isUsbConnected() {
-    return _card != null;
+    return _ccidCard != null;
   }
 
   static Future<void> eject() async {
@@ -53,7 +53,7 @@ class SmartCard {
       var deviceInfo = DeviceInfoPlugin();
       var iosInfo = await deviceInfo.iosInfo;
       if (iosInfo.model.toLowerCase().contains("iphone")) {
-        await _card?.transceive("FFEEFFEE");
+        await _ccidCard?.transceive("FFEEFFEE");
       }
     }
   }
@@ -88,6 +88,9 @@ class SmartCard {
         }
         await f(sn);
       } on PlatformException catch (e) {
+        if (e.message?.contains('SecurityError') == true) {
+          rethrow;
+        }
         if (e.message == 'NotFoundError: No device selected.') {
           Prompts.showPrompt(S.of(Get.context!).pollCanceled, ContentThemeColor.danger);
         } else if (e.message == 'NetworkError: A transfer error has occurred.') {
@@ -100,6 +103,9 @@ class SmartCard {
       } finally {
         Prompts.stopPromptPolling();
         FlutterNfcKit.finish(closeWebUSB: false);
+        if (!isWeb()) {
+          _currentSN = '';
+        }
       }
     }
   }
@@ -108,12 +114,12 @@ class SmartCard {
     if (useNfc() || isWeb()) {
       return await FlutterNfcKit.transceive(capdu);
     } else {
-      if (_card == null) {
+      if (_ccidCard == null) {
         Prompts.showPrompt(S.of(Get.context!).noCard, ContentThemeColor.danger);
         throw Exception('Card is not connected');
       }
       log.config('C-APDU: $capdu');
-      final rapdu = await _card!.transceive(capdu);
+      final rapdu = await _ccidCard!.transceive(capdu);
       if (rapdu == null) {
         throw Exception('Transceive failed');
       }
@@ -133,25 +139,25 @@ class SmartCard {
       List<String> readers = await Ccid().listReaders();
       final name = readers.firstWhereOrNull((name) => name.toLowerCase().contains("canokey"));
       if (name != null) {
-        if (_card == null) {
+        if (_ccidCard == null) {
           log.info('New CanoKey (USB) detected: $name');
           try {
-            _card = await Ccid().connect(name);
-            var resp = await _card!.transceive('00A4040005F000000000');
+            _ccidCard = await Ccid().connect(name);
+            var resp = await _ccidCard!.transceive('00A4040005F000000000');
             assertOK(resp!);
-            resp = await _card!.transceive('0032000000');
+            resp = await _ccidCard!.transceive('0032000000');
             assertOK(resp!);
             _currentSN = SmartCard.dropSW(resp).toUpperCase();
             log.info('Successfully connected to CanoKey (USB). SN: $_currentSN');
           } catch (e) {
             log.severe('Failed to connect to CanoKey (USB): $e');
-            _card = null;
+            _ccidCard = null;
             _currentSN = '';
           }
         }
       } else if (_currentSN != '') {
         log.info('CanoKey (USB) removed: $_currentSN');
-        _card = null;
+        _ccidCard = null;
         _currentSN = '';
       }
     });

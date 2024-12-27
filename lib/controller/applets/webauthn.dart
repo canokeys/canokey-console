@@ -1,4 +1,4 @@
-import 'package:canokey_console/controller/base_controller.dart';
+import 'package:canokey_console/controller/base/base_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';

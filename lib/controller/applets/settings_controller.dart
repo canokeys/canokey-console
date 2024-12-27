@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:canokey_console/controller/applets/admin_controller.dart';
+import 'package:canokey_console/controller/base/admin_controller.dart';
+import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
@@ -12,56 +13,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:logging/logging.dart';
-import 'package:platform_detector/platform_detector.dart';
 
 final log = Logger('Console:Settings:Controller');
 
-/// Controller for the settings applet
-///
-/// PIN cache policy:
-/// A local cache (in this controller) is maintained for each sn, which is used for avoiding
-/// re-prompting the user for PIN.
-/// If the user allows to save the PIN, the cache is also saved in the local storage, which
-/// is identified by the sn.
-class SettingsController extends AdminController {
-  late Timer _usbPollTimer;
+class SettingsController extends PollingController with AdminApplet {
   late CanoKey key;
-  bool polled = false;
 
   @override
-  void onReady() {
-    super.onReady();
-    if (isWeb()) {
-      try {
-        refreshData();
-        // ignore: empty_catches
-      } catch (e) {}
-    }
-    if (isDesktop()) {
-      if (SmartCard.isUsbConnected()) {
-        refreshData();
-      }
-      _usbPollTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (!polled && SmartCard.isUsbConnected()) {
-          refreshData();
-        } else if (!SmartCard.isUsbConnected()) {
-          polled = false;
-          update();
-        }
-      });
-    }
-  }
-
-  @override
-  void onClose() {
-    try {
-      ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
-      ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
-      _usbPollTimer.cancel();
-      // ignore: empty_catches
-    } catch (e) {}
-  }
-
   Future<void> refreshData() async {
     await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
