@@ -174,6 +174,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "other": MessageLookupByLibrary.simpleMessage("Other"),
         "passInputPinPrompt": MessageLookupByLibrary.simpleMessage(
             "Please input your Setting PIN. The default value is 123456."),
+        "passNotSupported": MessageLookupByLibrary.simpleMessage(
+            "Your CanoKey does not support Pass."),
         "passSlotConfigPrompt": MessageLookupByLibrary.simpleMessage(
             "Please select a slot type to configure. If you want to use HOTP, set it in the HOTP applet."),
         "passSlotConfigTitle":
@@ -263,12 +265,18 @@ class MessageLookup extends MessageLookupByLibrary {
             "Please read your CanoKey by clicking the refresh button"),
         "reset": MessageLookupByLibrary.simpleMessage("Reset"),
         "save": MessageLookupByLibrary.simpleMessage("Save"),
+        "savePinOnDevice":
+            MessageLookupByLibrary.simpleMessage("Save the PIN on this device"),
         "search": MessageLookupByLibrary.simpleMessage("Search"),
         "seconds": MessageLookupByLibrary.simpleMessage("seconds"),
         "settings": MessageLookupByLibrary.simpleMessage("Settings"),
         "settingsChangeLanguage":
             MessageLookupByLibrary.simpleMessage("Change Language"),
         "settingsChipId": MessageLookupByLibrary.simpleMessage("Chip ID"),
+        "settingsClearPinCache":
+            MessageLookupByLibrary.simpleMessage("Clear Saved PINs"),
+        "settingsClearPinCachePrompt": MessageLookupByLibrary.simpleMessage(
+            "Are you sure you want to clear all saved PINs from this device?"),
         "settingsFirmwareVersion":
             MessageLookupByLibrary.simpleMessage("Firmware Version"),
         "settingsFixNFC": MessageLookupByLibrary.simpleMessage("Fix NFC"),

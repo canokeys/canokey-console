@@ -2039,6 +2039,46 @@ class S {
       args: [],
     );
   }
+
+  /// `Save the PIN on this device`
+  String get savePinOnDevice {
+    return Intl.message(
+      'Save the PIN on this device',
+      name: 'savePinOnDevice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Clear Saved PINs`
+  String get settingsClearPinCache {
+    return Intl.message(
+      'Clear Saved PINs',
+      name: 'settingsClearPinCache',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Are you sure you want to clear all saved PINs from this device?`
+  String get settingsClearPinCachePrompt {
+    return Intl.message(
+      'Are you sure you want to clear all saved PINs from this device?',
+      name: 'settingsClearPinCachePrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your CanoKey does not support Pass.`
+  String get passNotSupported {
+    return Intl.message(
+      'Your CanoKey does not support Pass.',
+      name: 'passNotSupported',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

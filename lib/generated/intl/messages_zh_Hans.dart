@@ -146,6 +146,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "other": MessageLookupByLibrary.simpleMessage("其他"),
         "passInputPinPrompt": MessageLookupByLibrary.simpleMessage(
             "请输入您的管理员（设置应用） PIN（默认值为 123456）。"),
+        "passNotSupported":
+            MessageLookupByLibrary.simpleMessage("您的 CanoKey 不支持 Pass 功能。"),
         "passSlotConfigPrompt": MessageLookupByLibrary.simpleMessage(
             "请配置该密码槽。如需配置HOTP，请前往HOTP应用配置。"),
         "passSlotConfigTitle": MessageLookupByLibrary.simpleMessage("配置"),
@@ -217,11 +219,16 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("请点击右上角刷新按钮读取 CanoKey"),
         "reset": MessageLookupByLibrary.simpleMessage("重置"),
         "save": MessageLookupByLibrary.simpleMessage("保存"),
+        "savePinOnDevice": MessageLookupByLibrary.simpleMessage("在此设备上保存 PIN"),
         "search": MessageLookupByLibrary.simpleMessage("搜索"),
         "seconds": MessageLookupByLibrary.simpleMessage("秒"),
         "settings": MessageLookupByLibrary.simpleMessage("设置"),
         "settingsChangeLanguage": MessageLookupByLibrary.simpleMessage("修改语言"),
         "settingsChipId": MessageLookupByLibrary.simpleMessage("芯片 ID"),
+        "settingsClearPinCache":
+            MessageLookupByLibrary.simpleMessage("清除已保存的 PIN"),
+        "settingsClearPinCachePrompt":
+            MessageLookupByLibrary.simpleMessage("确定要清除此设备上所有已保存的 PIN 吗？"),
         "settingsFirmwareVersion": MessageLookupByLibrary.simpleMessage("固件版本"),
         "settingsFixNFC": MessageLookupByLibrary.simpleMessage("修复 NFC"),
         "settingsFixNFCSuccess":

@@ -17,7 +17,10 @@ class Sm2ConfigDialog extends StatelessWidget with UIMixin {
   const Sm2ConfigDialog({super.key, required this.config, required this.onConfirm});
 
   static Future<void> show({required WebAuthnSm2Config config, required Function(bool enabled, int curveId, int algoId) onConfirm}) {
-    return Get.dialog(Sm2ConfigDialog(config: config, onConfirm: onConfirm));
+    return Get.dialog(
+      Sm2ConfigDialog(config: config, onConfirm: onConfirm),
+      barrierDismissible: false,
+    );
   }
 
   @override
@@ -103,6 +106,7 @@ class Sm2ConfigDialog extends StatelessWidget with UIMixin {
                   CustomizedButton.rounded(
                     onPressed: () {
                       if (validator.formKey.currentState!.validate()) {
+                        Navigator.pop(context);
                         onConfirm(enabled.value, int.parse(validator.getController('curveId')!.text), int.parse(validator.getController('algoId')!.text));
                       }
                     },

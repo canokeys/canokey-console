@@ -14,10 +14,12 @@ import 'package:platform_detector/platform_detector.dart';
 final log = Logger('SmartCard');
 
 class SmartCard {
-  static Timer? _timer;
-  static String? _lastConnectedName;
-  static CcidCard? _card;
-  static bool _polled = false;
+  static String _currentSN = '';
+
+  static CcidCard? _ccidCard;
+
+  static bool isWebUSBConnected = false;
+
   static String currentId = '';
 
   static String dropSW(String rapdu) {
@@ -35,36 +37,56 @@ class SmartCard {
   }
 
   static bool useNfc() {
-    bool nfcMode = _card == null;
+    bool nfcMode = _ccidCard == null;
     if (isWeb()) {
       nfcMode = false;
     }
     return nfcMode;
   }
 
+  static bool isUsbConnected() {
+    return _ccidCard != null;
+  }
+
   static Future<void> eject() async {
     if (isIOSApp() && !useNfc()) {
-      var deviceInfo = DeviceInfoPlugin();
-      var iosInfo = await deviceInfo.iosInfo;
-      if (iosInfo.model.toLowerCase().contains("iphone")) {
-        await _card?.transceive("FFEEFFEE");
-      }
+      await _ccidCard?.transceive("FFEEFFEE");
     }
   }
 
-  static Future<void> process(Function f) async {
-    if (useNfc() || isWeb()) {
-      bool isFirstCalled = !_polled;
-      _polled = true;
-
+  /// Process a smart card transaction.
+  ///
+  /// When this method is called, if a CanoKey is connected using USB,
+  /// we can directly send the APDU command to the card, and we do nothing.
+  /// If there is no CanoKey connected via USB, then we need to use
+  /// FlutterNfcKit to communicate with the card.
+  ///
+  /// WebUSB and NFC require polling before communicating with the card.
+  /// For Android, we need a customized prompt to indicate to the user
+  /// that the card is being read. After polling, we maintain the SN.
+  static Future<void> process(Function(String sn) f) async {
+    if (isUsbConnected()) {
+      await f(_currentSN);
+    } else {
       try {
         Prompts.promptPolling();
-        if (isFirstCalled) {
-          final tag = await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
-          currentId = tag.id;
+        await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
+        assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
+        final resp = await SmartCard.transceive('0032000000');
+        SmartCard.assertOK(resp);
+        final sn = SmartCard.dropSW(resp).toUpperCase();
+        _currentSN = sn;
+        if (isWeb()) {
+          isWebUSBConnected = true;
+          log.info('CanoKey (WebUSB) Polled. SN: $sn');
+        } else {
+          log.info('CanoKey (NFC) Polled. SN: $sn');
         }
-        await f();
+        await f(sn);
       } on PlatformException catch (e) {
+        if (e.message?.contains('SecurityError') == true) {
+          rethrow;
+        }
         if (e.message == 'NotFoundError: No device selected.') {
           Prompts.showPrompt(S.of(Get.context!).pollCanceled, ContentThemeColor.danger);
         } else if (e.message == 'NetworkError: A transfer error has occurred.') {
@@ -76,14 +98,11 @@ class SmartCard {
         }
       } finally {
         Prompts.stopPromptPolling();
-        if (isFirstCalled) {
-          FlutterNfcKit.finish(closeWebUSB: false);
-          _polled = false;
-          currentId = '';
+        FlutterNfcKit.finish(closeWebUSB: false);
+        if (!isWeb()) {
+          _currentSN = '';
         }
       }
-    } else {
-      await f();
     }
   }
 
@@ -91,32 +110,51 @@ class SmartCard {
     if (useNfc() || isWeb()) {
       return await FlutterNfcKit.transceive(capdu);
     } else {
-      if (_card == null) {
+      if (_ccidCard == null) {
         Prompts.showPrompt(S.of(Get.context!).noCard, ContentThemeColor.danger);
         throw Exception('Card is not connected');
       }
-      final rapdu = await _card!.transceive(capdu);
+      log.config('C-APDU: $capdu');
+      final rapdu = await _ccidCard!.transceive(capdu);
       if (rapdu == null) {
         throw Exception('Transceive failed');
       }
+      log.config('R-APDU: $rapdu');
       return rapdu;
     }
   }
 
+  static void onWebUSBDisconnected() {
+    log.info('CanoKey (WebUSB) removed: $_currentSN');
+    isWebUSBConnected = false;
+    _currentSN = '';
+  }
+
   static void pollCcid() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+    Timer.periodic(const Duration(seconds: 1), (timer) async {
       List<String> readers = await Ccid().listReaders();
       final name = readers.firstWhereOrNull((name) => name.toLowerCase().contains("canokey"));
       if (name != null) {
-        if (_lastConnectedName != name) {
-          _timer?.cancel();
-          _card = await Ccid().connect(name);
-          _lastConnectedName = name;
-          pollCcid();
+        if (_ccidCard == null) {
+          log.info('New CanoKey (USB) detected: $name');
+          try {
+            _ccidCard = await Ccid().connect(name);
+            var resp = await _ccidCard!.transceive('00A4040005F000000000');
+            assertOK(resp!);
+            resp = await _ccidCard!.transceive('0032000000');
+            assertOK(resp!);
+            _currentSN = SmartCard.dropSW(resp).toUpperCase();
+            log.info('Successfully connected to CanoKey (USB). SN: $_currentSN');
+          } catch (e) {
+            log.severe('Failed to connect to CanoKey (USB): $e');
+            _ccidCard = null;
+            _currentSN = '';
+          }
         }
-      } else {
-        _card = null;
-        _lastConnectedName = null;
+      } else if (_currentSN != '') {
+        log.info('CanoKey (USB) removed: $_currentSN');
+        _ccidCard = null;
+        _currentSN = '';
       }
     });
   }

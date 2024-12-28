@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_text_style.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
@@ -21,6 +22,7 @@ class SearchBox extends StatelessWidget with UIMixin {
           Get.find<RxString>(tag: 'webauthn_search').value = value;
         }
       },
+      onTap: SmartCard.eject,
       decoration: InputDecoration(
         hintText: S.of(context).search,
         hintStyle: CustomizedTextStyle.bodySmall(xMuted: true),

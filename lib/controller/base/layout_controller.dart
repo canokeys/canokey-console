@@ -1,4 +1,4 @@
-import 'package:canokey_console/controller/base_controller.dart';
+import 'package:canokey_console/controller/base/base_controller.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
 import 'package:flutter/material.dart';
 
