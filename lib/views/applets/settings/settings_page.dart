@@ -45,6 +45,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
             ActionCard(controller: _controller),
             Spacing.height(20),
             OtherSettingsCard(),
+            Spacing.height(20),
           ];
 
           if (!_controller.polled) {

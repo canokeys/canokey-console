@@ -15,7 +15,7 @@ import 'package:canokey_console/views/layout/layout.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_nfc_kit/webusb_interop.dart';
+import 'package:canokey_console/helper/webusb_dummy.dart' if (dart.library.html) 'package:flutter_nfc_kit/webusb_interop.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:loader_overlay/loader_overlay.dart';

@@ -48,7 +48,13 @@ class OathController extends PollingController {
   }
 
   @override
-  Future<void> refreshData() async {
+  void onClose() {
+    timerController.dispose();
+    super.onClose();
+  }
+
+  @override
+  Future<void> doRefreshData() async {
     await SmartCard.process((String sn) async {
       if (!await _authenticate(sn)) {
         return;

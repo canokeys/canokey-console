@@ -21,7 +21,7 @@ class SettingsController extends PollingController with AdminApplet {
   Logger get log => Logger('Console:Settings:Controller');
 
   @override
-  Future<void> refreshData() async {
+  Future<void> doRefreshData() async {
     await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
         return;

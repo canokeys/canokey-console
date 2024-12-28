@@ -50,11 +50,7 @@ class SmartCard {
 
   static Future<void> eject() async {
     if (isIOSApp() && !useNfc()) {
-      var deviceInfo = DeviceInfoPlugin();
-      var iosInfo = await deviceInfo.iosInfo;
-      if (iosInfo.model.toLowerCase().contains("iphone")) {
-        await _ccidCard?.transceive("FFEEFFEE");
-      }
+      await _ccidCard?.transceive("FFEEFFEE");
     }
   }
 

@@ -10,8 +10,9 @@ import 'package:platform_detector/platform_detector.dart';
 abstract class PollingController extends Controller {
   Timer? _usbPollTimer, _webPollTimer;
   bool polled = false;
+  bool _wasNfcConnection = false;
 
-  Future<void> refreshData();
+  Future<void> doRefreshData();
   Logger get log;
 
   @override
@@ -59,9 +60,10 @@ abstract class PollingController extends Controller {
         }
       }
       _usbPollTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (!polled && SmartCard.isUsbConnected()) {
+        if ((!polled || _wasNfcConnection) && SmartCard.isUsbConnected()) {
           refreshData();
-        } else if (!SmartCard.isUsbConnected()) {
+        } else if (!SmartCard.isUsbConnected() && !_wasNfcConnection) {
+          // Only update polled state if previous connection was not NFC
           polled = false;
           update();
         }
@@ -78,5 +80,10 @@ abstract class PollingController extends Controller {
       _webPollTimer?.cancel();
       // ignore: empty_catches
     } catch (e) {}
+  }
+
+  Future<void> refreshData() async {
+    _wasNfcConnection = SmartCard.useNfc();
+    await doRefreshData();
   }
 }

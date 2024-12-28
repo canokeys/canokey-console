@@ -12,7 +12,7 @@ import 'package:get/get.dart';
 import 'package:logging/logging.dart';
 
 class PassController extends PollingController with AdminApplet {
-  late List<PassSlot> slots;
+  List<PassSlot> slots = [PassSlot.empty(), PassSlot.empty()];
   PassSlot get slotShort => slots[0];
   PassSlot get slotLong => slots[1];
 
@@ -20,7 +20,7 @@ class PassController extends PollingController with AdminApplet {
   Logger get log => Logger('Console:Pass:Controller');
 
   @override
-  Future<void> refreshData() async {
+  Future<void> doRefreshData() async {
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));
 

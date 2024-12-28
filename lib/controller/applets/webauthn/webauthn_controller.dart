@@ -23,7 +23,7 @@ class WebAuthnController extends PollingController {
   Logger get log => Logger('Console:WebAuthn:Controller');
 
   @override
-  Future<void> refreshData() async {
+  Future<void> doRefreshData() async {
     SmartCard.process((String sn) async {
       String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
       SmartCard.assertOK(resp);
