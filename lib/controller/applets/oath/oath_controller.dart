@@ -10,8 +10,8 @@ import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:canokey_console/models/oath.dart';
+import 'package:canokey_console/src/rust/api/crypto.dart';
 import 'package:convert/convert.dart';
-import 'package:cryptography/cryptography.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
@@ -156,12 +156,9 @@ class OathController extends PollingController {
           // clear code
           resp = await _transceive('00030000027300');
         } else {
-          final hmacSha1 = Hmac(Sha1());
-          final pbkdf2 = Pbkdf2(macAlgorithm: hmacSha1, iterations: 1000, bits: 128);
-          final key = await pbkdf2.deriveKey(secretKey: SecretKey(utf8.encode(newCode)), nonce: info[0x71]);
-          final keyString = hex.encode(await key.extractBytes());
-          final mac = await hmacSha1.calculateMac(List.of([0, 0, 0, 0]), secretKey: key);
-          resp = await _transceive('000300002F731101${keyString}7404000000007514${hex.encode(mac.bytes)}');
+          final key = pbkdf2HmacSha1(password: newCode, salt: info[0x71], iterations: 1000, keyLen: 16);
+          final mac = hmacSha1(key: key, data: List.of([0, 0, 0, 0]));
+          resp = await _transceive('000300002F731101${hex.encode(key)}7404000000007514${hex.encode(mac)}');
         }
 
         _localCodeCache[sn] = newCode;
@@ -281,11 +278,9 @@ class OathController extends PollingController {
   }
 
   Future<bool> _verifyCode(String code, List<int> nonce, List<int> challenge) async {
-    final hmacSha1 = Hmac(Sha1());
-    final pbkdf2 = Pbkdf2(macAlgorithm: hmacSha1, iterations: 1000, bits: 128);
-    final key = await pbkdf2.deriveKey(secretKey: SecretKey(utf8.encode(code)), nonce: nonce);
-    final mac = await hmacSha1.calculateMac(challenge, secretKey: key);
-    String resp = await _transceive('00A300001C7514${hex.encode(mac.bytes)}740400000000');
+    final key = pbkdf2HmacSha1(password: code, salt: nonce, iterations: 1000, keyLen: 16);
+    final mac = hmacSha1(key: key, data: challenge);
+    String resp = await _transceive('00A300001C7514${hex.encode(mac)}740400000000');
     if (resp == '6a80') {
       Prompts.showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
       return false;

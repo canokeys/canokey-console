@@ -1,4 +1,7 @@
 use des::cipher::{BlockEncrypt, KeyInit};
+use pbkdf2::hmac::{Hmac, Mac};
+use pbkdf2::pbkdf2_hmac;
+use sha1::Sha1;
 use x509_parser::pem::parse_x509_pem;
 use x509_parser::prelude::X509Certificate;
 
@@ -24,7 +27,11 @@ pub fn tdes_ede3_enc(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
 }
 
 fn gen_x590_meta(cert: X509Certificate<'_>) -> X509CertData {
-    let pk = cert.tbs_certificate.subject_pki.parsed().expect("cannot parse public key from X.509");
+    let pk = cert
+        .tbs_certificate
+        .subject_pki
+        .parsed()
+        .expect("cannot parse public key from X.509");
     X509CertData {
         bytes: cert.as_ref().to_vec(),
         subject: cert.subject().to_string(),
@@ -34,18 +41,45 @@ fn gen_x590_meta(cert: X509Certificate<'_>) -> X509CertData {
         serial_number: format!("{:X}", cert.tbs_certificate.serial),
         signature_algorithm: cert.tbs_certificate.signature.algorithm.to_string(),
         signature_value: cert.signature_value.data.to_vec(),
-        public_key_algorithm: cert.tbs_certificate.subject_pki.algorithm.oid().to_id_string(),
+        public_key_algorithm: cert
+            .tbs_certificate
+            .subject_pki
+            .algorithm
+            .oid()
+            .to_id_string(),
         public_key_size: pk.key_size(),
     }
 }
 
 pub fn parse_x509_cert_from_pem(pem: String) -> X509CertData {
-    let pem = parse_x509_pem(pem.as_bytes()).expect("Parsing PEM failed").1;
+    let pem = parse_x509_pem(pem.as_bytes())
+        .expect("Parsing PEM failed")
+        .1;
     let cert = pem.parse_x509().expect("X.509: decoding DER failed");
     gen_x590_meta(cert)
 }
 
 pub fn parse_x509_cert_from_der(der: Vec<u8>) -> X509CertData {
-    let cert = x509_parser::parse_x509_certificate(der.as_slice()).expect("X.509: decoding DER failed").1;
+    let cert = x509_parser::parse_x509_certificate(der.as_slice())
+        .expect("X.509: decoding DER failed")
+        .1;
     gen_x590_meta(cert)
+}
+
+pub fn pbkdf2_hmac_sha1(password: String, salt: Vec<u8>, iterations: u32, key_len: u32) -> Vec<u8> {
+    let mut key = vec![0u8; key_len as usize];
+    pbkdf2_hmac::<Sha1>(
+        password.as_bytes(),
+        salt.as_slice(),
+        iterations,
+        key.as_mut_slice(),
+    );
+    key
+}
+
+pub fn hmac_sha1(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
+    type HmacSha1 = Hmac<Sha1>;
+    let mut mac = <HmacSha1 as Mac>::new_from_slice(key.as_slice()).unwrap();
+    mac.update(data.as_slice());
+    mac.finalize().into_bytes().to_vec()
 }
