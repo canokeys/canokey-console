@@ -3,10 +3,11 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:canokey_console/src/rust/api/crypto.dart';
+
 import 'package:basic_utils/basic_utils.dart';
 import 'package:canokey_console/controller/applets/piv/piv_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/extensions/date_time_extension.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_style.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
@@ -33,7 +34,6 @@ import 'package:get/get.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:logging/logging.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:pem/pem.dart';
 
 final log = Logger('Console:PIV:View');
 
@@ -555,7 +555,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                   InkWell(child: CustomizedText.bodySmall('${S.of(context).pivAlgorithm}: ${slot.algorithm.name.toUpperCase()}')),
                   InkWell(
                       child: CustomizedText.bodySmall(
-                          '${S.of(context).pivCertificate}: ${_displayDN(slot.cert!.tbsCertificate!.subject) ?? S.of(context).pivEmpty}')),
+                          '${S.of(context).pivCertificate}: ${slot.cert!.subject != "" ? slot.cert!.subject : S.of(context).pivEmpty}')),
                 ] else ...[
                   CustomizedText.bodySmall(S.of(context).pivEmpty),
                 ],
@@ -588,38 +588,44 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                     child: Column(
                       children: [
                         TextFormField(
-                          initialValue: _displayDN(slot.cert!.tbsCertificate!.subject),
+                          initialValue: slot.cert!.subject,
                           readOnly: true,
                           decoration: InputDecoration(labelText: 'Subject', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
                         ),
                         Spacing.height(16),
                         TextFormField(
-                          initialValue: _displayDN(slot.cert!.tbsCertificate!.issuer),
+                          initialValue: slot.cert!.issuer,
                           readOnly: true,
                           decoration: InputDecoration(labelText: 'Issuer', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
                         ),
                         Spacing.height(16),
                         TextFormField(
-                          initialValue: slot.cert!.tbsCertificate!.serialNumber.toRadixString(16).toUpperCase(),
+                          initialValue: slot.cert!.serialNumber,
                           readOnly: true,
                           decoration: InputDecoration(labelText: 'Serial', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
                         ),
                         Spacing.height(16),
                         TextFormField(
-                          initialValue: slot.cert!.sha256Thumbprint,
+                          initialValue: slot.cert!.signatureAlgorithm,
                           readOnly: true,
-                          decoration:
-                              InputDecoration(labelText: 'Fingerprint (SHA256)', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
+                          decoration: InputDecoration(
+                              labelText: 'Fingerprint Algorithm', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
                         ),
                         Spacing.height(16),
                         TextFormField(
-                          initialValue: slot.cert!.tbsCertificate!.validity.notBefore.toIsoDateString(),
+                          initialValue: hex.encode(slot.cert!.signatureValue),
+                          readOnly: true,
+                          decoration: InputDecoration(labelText: 'Fingerprint', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
+                        ),
+                        Spacing.height(16),
+                        TextFormField(
+                          initialValue: slot.cert!.notBefore,
                           readOnly: true,
                           decoration: InputDecoration(labelText: 'Valid from', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
                         ),
                         Spacing.height(16),
                         TextFormField(
-                          initialValue: slot.cert!.tbsCertificate!.validity.notAfter.toIsoDateString(),
+                          initialValue: slot.cert!.notAfter,
                           readOnly: true,
                           decoration: InputDecoration(labelText: 'Valid to', border: outlineInputBorder, floatingLabelBehavior: FloatingLabelBehavior.auto),
                         ),
@@ -714,7 +720,8 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                     Spacing.width(12),
                     CustomizedButton.rounded(
                       onPressed: () async {
-                        String pem = PemCodec(PemLabel.certificate).encode(slot.certBytes!);
+                        final encodedDer = StringUtils.chunk(base64.encode(slot.certBytes!), 64).join("\n");
+                        String pem = '${X509Utils.BEGIN_CERT}\n$encodedDer\n${X509Utils.END_CERT}';
                         await FileSaver.instance.saveFile(name: 'certificate.pem', bytes: utf8.encode(pem));
                         Get.back();
                       },
@@ -737,7 +744,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     ECPrivateKey? ecPrivateKey;
     RSAPrivateKey? rsaPrivateKey;
     Uint8List? edPrivateKey;
-    X509CertificateData? cert;
+    X509CertData? cert;
     Uint8List? certBytes;
 
     void nextStep() async {
@@ -806,10 +813,8 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
             hasKey.value = true;
           } else if (item.startsWith(X509Utils.BEGIN_CERT)) {
             // Certificate
-            cert = X509Utils.x509CertificateFromPem(item);
-            var content = item.substring(X509Utils.BEGIN_CERT.length).split('-----END ')[0];
-            content = content.replaceAll('\n', '');
-            certBytes = base64Decode(content);
+            cert = parseX509CertFromPem(pem: element);
+            certBytes = cert!.bytes;
             hasCert.value = true;
           }
         }
@@ -929,7 +934,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                   content: Column(
                     children: [
                       if (cert != null)
-                        CustomizedText.bodyMedium('${S.of(context).pivCertificate}: ${_displayDN(cert!.tbsCertificate!.subject) ?? S.of(context).pivEmpty}'),
+                        CustomizedText.bodyMedium('${S.of(context).pivCertificate}: ${cert!.subject != "" ? cert!.subject : S.of(context).pivEmpty}'),
                       CustomizedText.bodyMedium('PIN Policy: $pinPolicy'),
                       CustomizedText.bodyMedium('Touch Policy: $touchPolicy'),
                     ],
@@ -995,11 +1000,11 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
   //   return S.of(context).pivOriginImported;
   // }
 
-  String? _displayDN(Map<String, String?>? data) {
-    if (data == null) {
-      return null;
-    }
-    final dnMap = Map.fromEntries(X509Utils.DN.entries.map((e) => MapEntry(e.value, e.key)));
-    return data.keys.map((e) => '${dnMap[e]}=${data[e]}').join(', ');
-  }
+  // String? _displayDN(Map<String, String?>? data) {
+  //   if (data == null) {
+  //     return null;
+  //   }
+  //   final dnMap = Map.fromEntries(X509Utils.DN.entries.map((e) => MapEntry(e.value, e.key)));
+  //   return data.keys.map((e) => '${dnMap[e]}=${data[e]}').join(', ');
+  // }
 }
