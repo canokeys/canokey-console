@@ -79,8 +79,7 @@ pub fn pbkdf2_hmac_sha1(password: String, salt: Vec<u8>, iterations: u32, key_le
 
 pub fn hmac_sha1(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
     type HmacSha1 = Hmac<Sha1>;
-    let mut mac =
-        <HmacSha1 as Mac>::new_from_slice(key.as_slice()).expect("HMAC can take key of any size");
+    let mut mac = <HmacSha1 as Mac>::new_from_slice(key.as_slice()).unwrap();
     mac.update(data.as_slice());
     mac.finalize().into_bytes().to_vec()
 }
