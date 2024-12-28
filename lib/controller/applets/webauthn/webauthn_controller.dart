@@ -1,8 +1,10 @@
-import 'package:canokey_console/controller/base/base_controller.dart';
+import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/models/webauthn.dart';
 import 'package:convert/convert.dart';
@@ -12,32 +14,17 @@ import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:get/get.dart';
 import 'package:logging/logging.dart';
 
-final log = Logger('Console:WebAuthn:Controller');
-
-class WebAuthnController extends Controller {
+class WebAuthnController extends PollingController {
   late Ctap2 _ctap;
-  String _pinCache = '';
-  String _uid = '';
-
-  bool polled = false;
-  List<WebAuthnItem> webAuthnItems = [];
+  final Map<String, String> _localPinCache = {};
+  final List<WebAuthnItem> webAuthnItems = [];
 
   @override
-  void onClose() {
-    try {
-      ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
-      ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
-      // ignore: empty_catches
-    } catch (e) {}
-  }
+  Logger get log => Logger('Console:WebAuthn:Controller');
 
-  void refreshData() {
+  @override
+  Future<void> refreshData() async {
     SmartCard.process((String sn) async {
-      if (_uid != SmartCard.currentId) {
-        _uid = SmartCard.currentId;
-        _pinCache = '';
-      }
-
       String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
       SmartCard.assertOK(resp);
 
@@ -56,12 +43,17 @@ class WebAuthnController extends Controller {
           Prompts.stopPromptPolling();
           FlutterNfcKit.finish(closeWebUSB: false);
         }
-        _pinCache = await Prompts.showInputPinDialog(
-          title: S.of(Get.context!).webauthnSetPinTitle,
-          label: 'PIN',
-          prompt: S.of(Get.context!).webauthnSetPinPrompt,
-          validators: [LengthValidator(min: 4, max: 63)],
-        );
+        (String, bool) result;
+        try {
+          result = await InputPinDialog.show(
+            title: S.of(Get.context!).webauthnSetPinTitle,
+            label: 'PIN',
+            prompt: S.of(Get.context!).webauthnSetPinPrompt,
+            validators: [LengthValidator(min: 4, max: 63)],
+          );
+        } on UserCanceledError catch (_) {
+          return;
+        }
         // When using NFC, we need to poll NFC again after showing the dialog
         if (SmartCard.useNfc()) {
           Prompts.promptPolling();
@@ -72,24 +64,36 @@ class WebAuthnController extends Controller {
 
         // Set PIN and refresh by recreating Ctap2
         final cp = ClientPin(_ctap);
-        await cp.setPin(_pinCache);
+        await cp.setPin(result.$1);
+        await _setPinCache(sn, result.$1, result.$2);
         Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
         _ctap = await Ctap2.create(CtapNfc());
       }
 
       assert(_ctap.info.options?['clientPin'] == true);
 
-      if (_pinCache.isEmpty) {
+      String? pinToTry = _loadPin(sn);
+      if (pinToTry == null) {
         // When using NFC, we need to finish NFC before showing the dialog
         if (SmartCard.useNfc()) {
           Prompts.stopPromptPolling();
           FlutterNfcKit.finish(closeWebUSB: false);
         }
-        _pinCache = await Prompts.showInputPinDialog(
-          title: S.of(Get.context!).webauthnInputPinTitle,
-          label: 'PIN',
-          prompt: S.of(Get.context!).webauthnInputPinPrompt,
-        );
+        try {
+          final result = await InputPinDialog.show(
+            title: S.of(Get.context!).webauthnInputPinTitle,
+            label: 'PIN',
+            prompt: S.of(Get.context!).webauthnInputPinPrompt,
+            showSaveOption: true,
+          );
+          _localPinCache[sn] = result.$1;
+          if (result.$2) {
+            LocalStorage.setPinCache(sn, _tag, result.$1);
+          }
+          pinToTry = result.$1;
+        } on UserCanceledError catch (_) {
+          return;
+        }
         // When using NFC, we need to poll NFC again after showing the dialog
         if (SmartCard.useNfc()) {
           Prompts.promptPolling();
@@ -102,9 +106,9 @@ class WebAuthnController extends Controller {
       final cp = ClientPin(_ctap);
       late final List<int> pinToken;
       try {
-        pinToken = await cp.getPinToken(_pinCache, permissions: [ClientPinPermission.credentialManagement]);
+        pinToken = await cp.getPinToken(pinToTry, permissions: [ClientPinPermission.credentialManagement]);
       } on CtapError catch (e) {
-        _pinCache = '';
+        await _clearPinCache(sn);
         if (e.status == CtapStatusCode.ctap2ErrPinInvalid) {
           Prompts.showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
         } else if (e.status == CtapStatusCode.ctap2ErrPinAuthBlocked) {
@@ -146,8 +150,10 @@ class WebAuthnController extends Controller {
 
   changePin(String newPin) {
     SmartCard.process((String sn) async {
-      if (_uid != SmartCard.currentId) {
-        refreshData();
+      String? pinToTry = _loadPin(sn);
+      if (pinToTry == null) {
+        await refreshData();
+        changePin(newPin);
         return;
       }
 
@@ -156,9 +162,9 @@ class WebAuthnController extends Controller {
 
       final cp = ClientPin(_ctap);
       try {
-        await cp.changePin(_pinCache, newPin);
+        await cp.changePin(pinToTry, newPin);
+        await _setPinCache(sn, newPin, LocalStorage.getPinCache(sn, _tag) != null);
         Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
-        _pinCache = newPin;
       } catch (e) {
         if (e is CtapError) {
           if (e.status == CtapStatusCode.ctap2ErrPinInvalid) {
@@ -179,8 +185,10 @@ class WebAuthnController extends Controller {
 
   delete(PublicKeyCredentialDescriptor credentialId) {
     SmartCard.process((String sn) async {
-      if (_uid != SmartCard.currentId) {
-        refreshData();
+      String? pinToTry = _loadPin(sn);
+      if (pinToTry == null) {
+        await refreshData();
+        delete(credentialId);
         return;
       }
 
@@ -188,7 +196,7 @@ class WebAuthnController extends Controller {
       SmartCard.assertOK(resp);
 
       final cp = ClientPin(_ctap);
-      final pinToken = await cp.getPinToken(_pinCache, permissions: [ClientPinPermission.credentialManagement]);
+      final pinToken = await cp.getPinToken(pinToTry, permissions: [ClientPinPermission.credentialManagement]);
       final cm = CredentialManagement(_ctap, cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(), pinToken);
       await cm.deleteCredential(credentialId);
 
@@ -198,6 +206,36 @@ class WebAuthnController extends Controller {
       update();
     });
   }
+
+  String? _loadPin(String sn) {
+    // Try local cache first
+    if (_localPinCache.containsKey(sn)) {
+      return _localPinCache[sn]!;
+    }
+
+    // Try local storage
+    final pin = LocalStorage.getPinCache(sn, _tag);
+    if (pin != null) {
+      _localPinCache[sn] = pin;
+      return pin;
+    }
+
+    return null;
+  }
+
+  Future<void> _setPinCache(String sn, String pin, bool cachedInLocalStorage) async {
+    _localPinCache[sn] = pin;
+    if (cachedInLocalStorage) {
+      await LocalStorage.setPinCache(sn, _tag, pin);
+    }
+  }
+
+  Future<void> _clearPinCache(String sn) async {
+    _localPinCache.remove(sn);
+    await LocalStorage.setPinCache(sn, _tag, null);
+  }
+
+  final String _tag = 'webauthn';
 }
 
 class CtapNfc extends CtapDevice {

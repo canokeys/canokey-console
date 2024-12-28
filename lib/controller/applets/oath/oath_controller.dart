@@ -19,8 +19,8 @@ import 'package:platform_detector/platform_detector.dart';
 import 'package:timer_controller/timer_controller.dart';
 
 class OathController extends PollingController {
-  final timerController = TimerController.seconds(30);
-  final qrScanResult = Rxn<QrScanResult>();
+  final TimerController timerController = TimerController.seconds(30);
+  final Rxn<QrScanResult> qrScanResult = Rxn<QrScanResult>();
   final Map<String, String> _localCodeCache = {};
   final Map<String, OathItem> oathMap = {};
   OathVersion version = OathVersion.v1;
