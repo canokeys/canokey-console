@@ -32,8 +32,9 @@ class OathPage extends StatefulWidget {
 }
 
 class _OathPageState extends State<OathPage> with UIMixin {
-  final controller = Get.put(OathController());
-  final searchText = ''.obs;
+  final OathController controller = Get.put(OathController());
+  final RxString searchText = ''.obs;
+  final GlobalKey<FormState> _searchFormKey = GlobalKey<FormState>();
 
   late final Worker _qrScanWorker;
 
@@ -98,7 +99,7 @@ class _OathPageState extends State<OathPage> with UIMixin {
                   children: [
                     if (ScreenMedia.getTypeFromWidth(MediaQuery.of(context).size.width).isMobile) ...{
                       Spacing.height(16),
-                      SearchBox(),
+                      SearchBox(formKey: _searchFormKey),
                     },
                     Spacing.height(16),
                     Obx(() {

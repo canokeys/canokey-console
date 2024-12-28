@@ -24,8 +24,9 @@ class WebAuthnPage extends StatefulWidget {
 }
 
 class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderStateMixin, UIMixin {
-  final controller = Get.put(WebAuthnController());
-  final searchText = ''.obs;
+  final WebAuthnController controller = Get.put(WebAuthnController());
+  final RxString searchText = ''.obs;
+  final GlobalKey<FormState> _searchFormKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -57,7 +58,7 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                   children: [
                     if (ScreenMedia.getTypeFromWidth(MediaQuery.of(context).size.width).isMobile) ...{
                       Spacing.height(16),
-                      SearchBox(),
+                      SearchBox(formKey: _searchFormKey),
                     },
                     Spacing.height(16),
                     Obx(() {

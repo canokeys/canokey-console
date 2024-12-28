@@ -107,7 +107,7 @@ class Prompts {
                             Obx(() => TextFormField(
                                   autofocus: true,
                                   onFieldSubmitted: (_) => onSubmit(),
-                                  onTap: () => SmartCard.eject(),
+                                  onTap: SmartCard.eject,
                                   obscureText: !showPassword.value,
                                   controller: validator.getController('pin'),
                                   validator: validator.getValidator('pin'),

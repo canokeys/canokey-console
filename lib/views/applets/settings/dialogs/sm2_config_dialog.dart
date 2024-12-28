@@ -67,7 +67,7 @@ class Sm2ConfigDialog extends StatelessWidget with UIMixin {
                         Spacing.height(16),
                         TextFormField(
                           autofocus: true,
-                          onTap: () => SmartCard.eject(),
+                          onTap: SmartCard.eject,
                           controller: validator.getController('curveId'),
                           validator: validator.getValidator('curveId'),
                           decoration: InputDecoration(
@@ -78,7 +78,7 @@ class Sm2ConfigDialog extends StatelessWidget with UIMixin {
                         ),
                         Spacing.height(16),
                         TextFormField(
-                          onTap: () => SmartCard.eject(),
+                          onTap: SmartCard.eject,
                           controller: validator.getController('algoId'),
                           validator: validator.getValidator('algoId'),
                           decoration: InputDecoration(

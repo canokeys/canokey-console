@@ -85,7 +85,7 @@ class _ChangePinDialogState extends State<ChangePinDialog> {
                       children: [
                         TextFormField(
                           autofocus: true,
-                          onTap: () => SmartCard.eject(),
+                          onTap: SmartCard.eject,
                           obscureText: !showOldPin.value,
                           controller: _validator.getController('old'),
                           validator: _validator.getValidator('old'),
@@ -101,7 +101,7 @@ class _ChangePinDialogState extends State<ChangePinDialog> {
                         Spacing.height(16),
                         TextFormField(
                           autofocus: true,
-                          onTap: () => SmartCard.eject(),
+                          onTap: SmartCard.eject,
                           obscureText: !showNewPin.value,
                           controller: _validator.getController('new'),
                           validator: _validator.getValidator('new'),

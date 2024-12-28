@@ -106,7 +106,7 @@ class _InputPinDialogState extends State<InputPinDialog> {
                     key: _validator.formKey,
                     child: Obx(() => TextFormField(
                           autofocus: true,
-                          onTap: () => SmartCard.eject(),
+                          onTap: SmartCard.eject,
                           obscureText: !showPin.value,
                           controller: _validator.getController('pin'),
                           validator: _validator.getValidator('pin'),

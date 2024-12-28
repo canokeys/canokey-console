@@ -57,7 +57,7 @@ class ManagementKeyDialog extends StatelessWidget with UIMixin {
                       Expanded(
                         child: TextFormField(
                           autofocus: true,
-                          onTap: () => SmartCard.eject(),
+                          onTap: SmartCard.eject,
                           controller: validator.getController('old'),
                           validator: validator.getValidator('old'),
                           decoration: InputDecoration(
@@ -83,7 +83,7 @@ class ManagementKeyDialog extends StatelessWidget with UIMixin {
                     Row(children: [
                       Expanded(
                         child: TextFormField(
-                          onTap: () => SmartCard.eject(),
+                          onTap: SmartCard.eject,
                           controller: validator.getController('new'),
                           validator: validator.getValidator('new'),
                           decoration: InputDecoration(

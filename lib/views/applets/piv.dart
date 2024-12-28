@@ -246,7 +246,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                         Spacing.height(16),
                         Obx(() => TextFormField(
                               autofocus: true,
-                              onTap: () => SmartCard.eject(),
+                              onTap: SmartCard.eject,
                               obscureText: !showOldPin.value,
                               controller: validator.getController('old'),
                               validator: validator.getValidator('old'),
@@ -265,7 +265,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                             )),
                         Spacing.height(16),
                         Obx(() => TextFormField(
-                              onTap: () => SmartCard.eject(),
+                              onTap: SmartCard.eject,
                               obscureText: !showNewPin.value,
                               controller: validator.getController('new'),
                               validator: validator.getValidator('new'),
@@ -342,7 +342,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                         Expanded(
                           child: TextFormField(
                             autofocus: true,
-                            onTap: () => SmartCard.eject(),
+                            onTap: SmartCard.eject,
                             controller: validator.getController('key'),
                             validator: validator.getValidator('key'),
                             decoration: InputDecoration(
@@ -436,7 +436,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                         Expanded(
                           child: TextFormField(
                             autofocus: true,
-                            onTap: () => SmartCard.eject(),
+                            onTap: SmartCard.eject,
                             controller: validator.getController('old'),
                             validator: validator.getValidator('old'),
                             decoration: InputDecoration(
@@ -464,7 +464,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                       Row(children: [
                         Expanded(
                           child: TextFormField(
-                            onTap: () => SmartCard.eject(),
+                            onTap: SmartCard.eject,
                             controller: validator.getController('new'),
                             validator: validator.getValidator('new'),
                             decoration: InputDecoration(

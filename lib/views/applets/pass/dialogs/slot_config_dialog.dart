@@ -72,7 +72,7 @@ class SlotConfigDialog extends StatelessWidget with UIMixin {
                           if (slotType.value == PassSlotType.static) ...[
                             Spacing.height(16),
                             TextFormField(
-                              onTap: () => SmartCard.eject(),
+                              onTap: SmartCard.eject,
                               obscureText: !showPassword.value,
                               controller: validator.getController('password'),
                               validator: validator.getValidator('password'),

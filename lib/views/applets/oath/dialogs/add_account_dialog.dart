@@ -159,7 +159,7 @@ class AddAccountDialog extends StatelessWidget with UIMixin {
     bool autofocus = false,
   }) {
     return TextFormField(
-      onTap: () => SmartCard.eject(),
+      onTap: SmartCard.eject,
       autofocus: autofocus,
       controller: validator.getController(fieldName),
       validator: validator.getValidator(fieldName),
