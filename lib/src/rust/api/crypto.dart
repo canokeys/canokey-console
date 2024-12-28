@@ -17,6 +17,17 @@ X509CertData parseX509CertFromPem({required String pem}) =>
 X509CertData parseX509CertFromDer({required List<int> der}) =>
     RustLib.instance.api.crateApiCryptoParseX509CertFromDer(der: der);
 
+Uint8List pbkdf2HmacSha1(
+        {required String password,
+        required List<int> salt,
+        required int iterations,
+        required int keyLen}) =>
+    RustLib.instance.api.crateApiCryptoPbkdf2HmacSha1(
+        password: password, salt: salt, iterations: iterations, keyLen: keyLen);
+
+Uint8List hmacSha1({required List<int> key, required List<int> data}) =>
+    RustLib.instance.api.crateApiCryptoHmacSha1(key: key, data: data);
+
 class X509CertData {
   final Uint8List bytes;
   final String subject;

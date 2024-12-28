@@ -6,7 +6,6 @@ import FlutterMacOS
 import Foundation
 
 import ccid
-import cryptography_flutter
 import device_info_plus
 import file_saver
 import flutter_webrtc
@@ -17,7 +16,6 @@ import url_launcher_macos
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   CcidPlugin.register(with: registry.registrar(forPlugin: "CcidPlugin"))
-  CryptographyFlutterPlugin.register(with: registry.registrar(forPlugin: "CryptographyFlutterPlugin"))
   DeviceInfoPlusMacosPlugin.register(with: registry.registrar(forPlugin: "DeviceInfoPlusMacosPlugin"))
   FileSaverPlugin.register(with: registry.registrar(forPlugin: "FileSaverPlugin"))
   FlutterWebRTCPlugin.register(with: registry.registrar(forPlugin: "FlutterWebRTCPlugin"))
