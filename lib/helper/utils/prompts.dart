@@ -162,27 +162,23 @@ class Prompts {
     return c.future;
   }
 
-  static promptPolling() {
-    if (isAndroidApp()) {
-      _snackbarController = Get.snackbar(
-        S.of(Get.context!).androidAlertTitle,
-        S.of(Get.context!).androidAlertMessage,
-        icon: SpinKitHourGlass(color: Colors.tealAccent, size: 32.0),
-        duration: const Duration(seconds: 99),
-        backgroundColor: Colors.grey.withOpacity(0.8),
-        snackPosition: SnackPosition.BOTTOM,
-        maxWidth: 400,
-      );
-    }
+  static promptAndroidPolling() {
+    _snackbarController = Get.snackbar(
+      S.of(Get.context!).androidAlertTitle,
+      S.of(Get.context!).androidAlertMessage,
+      icon: SpinKitHourGlass(color: Colors.tealAccent, size: 32.0),
+      duration: const Duration(seconds: 99),
+      backgroundColor: Colors.grey.withOpacity(0.8),
+      snackPosition: SnackPosition.BOTTOM,
+      maxWidth: 400,
+    );
   }
 
-  static stopPromptPolling() {
-    if (isAndroidApp()) {
-      try {
-        _snackbarController.close();
-      } catch (e) {
-        // ignore: empty_catches
-      }
+  static stopPromptAndroidPolling() {
+    try {
+      _snackbarController.close();
+    } catch (e) {
+      // ignore: empty_catches
     }
   }
 }

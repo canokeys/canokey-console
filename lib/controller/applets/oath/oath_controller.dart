@@ -40,7 +40,7 @@ class OathController extends PollingController {
           }
         }
         update();
-        if (!SmartCard.useNfc()) {
+        if (SmartCard.connectionType != ConnectionType.nfc) {
           refreshData();
         }
       }

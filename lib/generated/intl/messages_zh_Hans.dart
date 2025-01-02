@@ -46,6 +46,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "androidAlertMessage":
             MessageLookupByLibrary.simpleMessage("请紧贴手机直到读取结束"),
         "androidAlertTitle": MessageLookupByLibrary.simpleMessage("读取 CanoKey"),
+        "androidPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
+            "请用手机背面触碰您的 CanoKey 或将其插入 USB 接口"),
         "appletLocked": MessageLookupByLibrary.simpleMessage("该应用已被锁定"),
         "applets": MessageLookupByLibrary.simpleMessage("应用"),
         "browserNotSupported": MessageLookupByLibrary.simpleMessage("不支持该浏览器"),
@@ -59,6 +61,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "copied": MessageLookupByLibrary.simpleMessage("已复制"),
         "delete": MessageLookupByLibrary.simpleMessage("删除"),
         "deleted": MessageLookupByLibrary.simpleMessage("删除成功"),
+        "desktopPollCanoKeyPrompt":
+            MessageLookupByLibrary.simpleMessage("请将您的 CanoKey 插入 USB 接口"),
         "enabled": MessageLookupByLibrary.simpleMessage("启用"),
         "home": MessageLookupByLibrary.simpleMessage("首页"),
         "homeDirectlySelect": MessageLookupByLibrary.simpleMessage("请选择应用"),
@@ -68,6 +72,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "homeSelect": MessageLookupByLibrary.simpleMessage("选择应用"),
         "iosAlertMessage":
             MessageLookupByLibrary.simpleMessage("使用 iPhone 顶部读取 CanoKey"),
+        "iosPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
+            "请点击刷新按钮并点击您的 CanoKey 或将其插入 USB 接口"),
         "networkError":
             MessageLookupByLibrary.simpleMessage("CanoKey 繁忙，请重新插拔并稍后再试"),
         "newPin": MessageLookupByLibrary.simpleMessage("新 PIN"),
@@ -275,6 +281,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("请输入十六进制字符串"),
         "viewUserId": MessageLookupByLibrary.simpleMessage("查看用户 ID"),
         "warning": MessageLookupByLibrary.simpleMessage("警告"),
+        "webPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
+            "请将您的 CanoKey 插入 USB 接口并点击刷新按钮"),
         "webauthnClientPinNotSupported":
             MessageLookupByLibrary.simpleMessage("该密钥不支持 WebAuthn PIN。"),
         "webauthnDelete": m9,

@@ -39,8 +39,8 @@ class WebAuthnController extends PollingController {
       // PIN is not set
       if (_ctap.info.options?['clientPin'] == false) {
         // When using NFC, we need to finish NFC before showing the dialog
-        if (SmartCard.useNfc()) {
-          Prompts.stopPromptPolling();
+        if (SmartCard.connectionType == ConnectionType.nfc) {
+          Prompts.stopPromptAndroidPolling();
           FlutterNfcKit.finish(closeWebUSB: false);
         }
         (String, bool) result;
@@ -55,8 +55,8 @@ class WebAuthnController extends PollingController {
           return;
         }
         // When using NFC, we need to poll NFC again after showing the dialog
-        if (SmartCard.useNfc()) {
-          Prompts.promptPolling();
+        if (SmartCard.connectionType == ConnectionType.nfc) {
+          Prompts.promptAndroidPolling();
           await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
           String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
           SmartCard.assertOK(resp);
@@ -75,8 +75,8 @@ class WebAuthnController extends PollingController {
       String? pinToTry = _loadPin(sn);
       if (pinToTry == null) {
         // When using NFC, we need to finish NFC before showing the dialog
-        if (SmartCard.useNfc()) {
-          Prompts.stopPromptPolling();
+        if (SmartCard.connectionType == ConnectionType.nfc) {
+          Prompts.stopPromptAndroidPolling();
           FlutterNfcKit.finish(closeWebUSB: false);
         }
         try {
@@ -95,8 +95,8 @@ class WebAuthnController extends PollingController {
           return;
         }
         // When using NFC, we need to poll NFC again after showing the dialog
-        if (SmartCard.useNfc()) {
-          Prompts.promptPolling();
+        if (SmartCard.connectionType == ConnectionType.nfc) {
+          Prompts.promptAndroidPolling();
           await FlutterNfcKit.poll(iosAlertMessage: S.of(Get.context!).iosAlertMessage);
           String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
           SmartCard.assertOK(resp);

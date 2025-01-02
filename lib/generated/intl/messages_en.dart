@@ -56,6 +56,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Hold the CanoKey until finished"),
         "androidAlertTitle":
             MessageLookupByLibrary.simpleMessage("Touch your CanoKey"),
+        "androidPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
+            "Tap your CanoKey or insert it into the USB port"),
         "appletLocked": MessageLookupByLibrary.simpleMessage(
             "This applet has been locked."),
         "applets": MessageLookupByLibrary.simpleMessage("Applets"),
@@ -72,6 +74,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "copied": MessageLookupByLibrary.simpleMessage("Copied"),
         "delete": MessageLookupByLibrary.simpleMessage("Delete"),
         "deleted": MessageLookupByLibrary.simpleMessage("Successfully deleted"),
+        "desktopPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
+            "Insert your CanoKey into the USB port"),
         "enabled": MessageLookupByLibrary.simpleMessage("Enabled"),
         "home": MessageLookupByLibrary.simpleMessage("Home"),
         "homeDirectlySelect":
@@ -83,6 +87,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("to select an applet"),
         "iosAlertMessage": MessageLookupByLibrary.simpleMessage(
             "Hold your iPhone near the CanoKey"),
+        "iosPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
+            "Tap the refresh button and tap your CanoKey or insert it into the USB port"),
         "networkError": MessageLookupByLibrary.simpleMessage(
             "CanoKey is busy. Replug it, wait for a moment, and retry."),
         "newPin": MessageLookupByLibrary.simpleMessage("New PIN"),
@@ -332,6 +338,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Please input a valid hexadecimal string."),
         "viewUserId": MessageLookupByLibrary.simpleMessage("View User ID"),
         "warning": MessageLookupByLibrary.simpleMessage("Warning"),
+        "webPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
+            "Insert your CanoKey into the USB port and click the refresh button"),
         "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
             "This key does not support WebAuthn PIN."),
         "webauthnDelete": m9,

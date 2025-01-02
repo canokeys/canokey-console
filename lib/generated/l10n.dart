@@ -170,6 +170,46 @@ class S {
     );
   }
 
+  /// `Tap your CanoKey or insert it into the USB port`
+  String get androidPollCanoKeyPrompt {
+    return Intl.message(
+      'Tap your CanoKey or insert it into the USB port',
+      name: 'androidPollCanoKeyPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Insert your CanoKey into the USB port`
+  String get desktopPollCanoKeyPrompt {
+    return Intl.message(
+      'Insert your CanoKey into the USB port',
+      name: 'desktopPollCanoKeyPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tap the refresh button and tap your CanoKey or insert it into the USB port`
+  String get iosPollCanoKeyPrompt {
+    return Intl.message(
+      'Tap the refresh button and tap your CanoKey or insert it into the USB port',
+      name: 'iosPollCanoKeyPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Insert your CanoKey into the USB port and click the refresh button`
+  String get webPollCanoKeyPrompt {
+    return Intl.message(
+      'Insert your CanoKey into the USB port and click the refresh button',
+      name: 'webPollCanoKeyPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `No CanoKey is selected.`
   String get pollCanceled {
     return Intl.message(
