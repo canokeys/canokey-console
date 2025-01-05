@@ -6,6 +6,7 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/tlv.dart';
+import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
@@ -13,8 +14,9 @@ import 'package:canokey_console/models/oath.dart';
 import 'package:canokey_console/src/rust/api/crypto.dart';
 import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:logging/logging.dart';
+import 'package:logger/logger.dart';
 import 'package:platform_detector/platform_detector.dart';
 import 'package:timer_controller/timer_controller.dart';
 
@@ -26,7 +28,7 @@ class OathController extends PollingController {
   OathVersion version = OathVersion.v1;
 
   @override
-  Logger get log => Logger('Console:OATH:Controller');
+  Logger get log => Logging.logger('OATH:Controller');
 
   @override
   void onReady() {
@@ -277,10 +279,19 @@ class OathController extends PollingController {
     qrScanResult.value = QrScanResult(issuer: issuer, account: account, secret: secret, type: type, algo: algo, digits: digits, initValue: counter);
   }
 
-  Future<bool> _verifyCode(String code, List<int> nonce, List<int> challenge) async {
+  Future<bool> _verifyCode(String code) async {
+    String resp = await _transceive('00A4040007A0000005272101');
+    SmartCard.assertOK(resp);
+    Map info = TLV.parse(hex.decode(SmartCard.dropSW(resp)));
+    if (!info.containsKey(0x74)) {
+      // no code set
+      return true;
+    }
+    List<int> nonce = info[0x71];
+    List<int> challenge = info[0x74];
     final key = pbkdf2HmacSha1(password: code, salt: nonce, iterations: 1000, keyLen: 16);
     final mac = hmacSha1(key: key, data: challenge);
-    String resp = await _transceive('00A300001C7514${hex.encode(mac)}740400000000');
+    resp = await _transceive('00A300001C7514${hex.encode(mac)}740400000000');
     if (resp == '6a80') {
       Prompts.showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
       return false;
@@ -294,31 +305,27 @@ class OathController extends PollingController {
   /// We first try to use the local cache. If not cached, try LocalStorage.
   /// Finally, prompt the user for code.
   Future<bool> _authenticate(String sn) async {
-    late List<int> nonce, challenge;
     // First check if authentication is required
     String resp = await _transceive('00A4040007A0000005272101');
     SmartCard.assertOK(resp);
     if (resp == '9000') {
       version = OathVersion.legacy; // no code support
       return true;
-    } else {
-      Map info = TLV.parse(hex.decode(SmartCard.dropSW(resp)));
-      if (hex.encode(info[0x79]) == '050505') {
-        version = OathVersion.v1;
-      } else if (hex.encode(info[0x79]) == '060000') {
-        version = OathVersion.v2;
-      }
-      if (!info.containsKey(0x74)) {
-        // no code set
-        return true;
-      }
-      nonce = info[0x71];
-      challenge = info[0x74];
+    }
+    Map info = TLV.parse(hex.decode(SmartCard.dropSW(resp)));
+    if (hex.encode(info[0x79]) == '050505') {
+      version = OathVersion.v1;
+    } else if (hex.encode(info[0x79]) == '060000') {
+      version = OathVersion.v2;
+    }
+    if (!info.containsKey(0x74)) {
+      // no code set
+      return true;
     }
 
     // Try local cache first
     if (_localCodeCache.containsKey(sn)) {
-      if (await _verifyCode(_localCodeCache[sn]!, nonce, challenge)) {
+      if (await _verifyCode(_localCodeCache[sn]!)) {
         return true;
       }
       _localCodeCache.remove(sn);
@@ -327,7 +334,7 @@ class OathController extends PollingController {
     // Try LocalStorage
     String? codeToTry = LocalStorage.getPinCache(sn, _tag);
     if (codeToTry != null) {
-      if (await _verifyCode(codeToTry, nonce, challenge)) {
+      if (await _verifyCode(codeToTry)) {
         _localCodeCache[sn] = codeToTry;
         return true;
       } else {
@@ -336,25 +343,63 @@ class OathController extends PollingController {
     }
 
     // Finally, prompt user
-    try {
-      final result = await InputPinDialog.show(
-        title: S.of(Get.context!).oathInputCode,
-        label: S.of(Get.context!).oathCode,
-        prompt: S.of(Get.context!).oathInputCodePrompt,
-        showSaveOption: true,
-      );
-      if (await _verifyCode(result.$1, nonce, challenge)) {
-        _localCodeCache[sn] = result.$1;
-        if (result.$2) {
-          await LocalStorage.setPinCache(sn, _tag, result.$1);
-        }
-        return true;
-      }
-    } on UserCanceledError catch (_) {
-      // user canceled
+    // When using NFC, we need to finish NFC before showing the dialog
+    if (SmartCard.connectionType == ConnectionType.nfc) {
+      SmartCard.stopPollingNfc(withInput: true);
     }
+    final stream = InputPinDialog.show(
+      title: S.of(Get.context!).oathInputCode,
+      label: S.of(Get.context!).oathCode,
+      prompt: S.of(Get.context!).oathInputCodePrompt,
+      showSaveOption: true,
+    );
+    try {
+      await for (final result in stream) {
+        // When using NFC, we need to poll NFC again
+        if (SmartCard.connectionType == ConnectionType.nfc) {
+          SmartCard.nfcState = NfcState.pollWithInput;
+          if (!await SmartCard.startPollingNfcOrWebUsb()) {
+            // timeout
+            continue;
+          }
+        }
 
-    return false;
+        bool verified = false;
+        try {
+          verified = await _verifyCode(result.$1);
+        } on PlatformException catch (e) {
+          if (SmartCard.connectionType == ConnectionType.nfc) {
+            SmartCard.stopPollingNfc();
+          }
+          log.e('_verifyCode failed', error: e);
+          if (e.code == '500') {
+            Prompts.showPrompt(e.message!, ContentThemeColor.danger);
+            continue;
+          }
+          rethrow;
+        }
+        if (verified) {
+          log.t('code verified');
+          _localCodeCache[sn] = result.$1;
+          if (result.$2) {
+            await LocalStorage.setPinCache(sn, _tag, result.$1);
+          }
+          // PIN verified, close the dialog
+          Navigator.pop(Get.context!);
+          // Since PIN has been cached, if error happens, we don't need to re-prompt
+          SmartCard.nfcState = NfcState.processWithoutInput;
+          return true;
+        }
+      }
+
+      log.w('should not be reached');
+      return false;
+    } on UserCanceledError catch (_) {
+      if (SmartCard.connectionType == ConnectionType.nfc) {
+        SmartCard.nfcState = NfcState.idle;
+      }
+      return false;
+    }
   }
 
   List<OathItem> _parse(List<int> data) {

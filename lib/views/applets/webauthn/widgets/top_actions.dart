@@ -7,6 +7,7 @@ import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:platform_detector/platform_detector.dart';
 
 class TopActions extends StatelessWidget with UIMixin {
   final WebAuthnController controller;
@@ -18,12 +19,15 @@ class TopActions extends StatelessWidget with UIMixin {
     return GetBuilder(
       init: controller,
       builder: (_) {
-        List<Widget> widgets = [
-          InkWell(
+        List<Widget> widgets = [];
+
+        if (isWeb() || isIOSApp()) {
+          widgets.add(InkWell(
             onTap: controller.refreshData,
             child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
-          )
-        ];
+          ));
+        }
+
         if (controller.polled) {
           widgets.insertAll(0, [
             InkWell(

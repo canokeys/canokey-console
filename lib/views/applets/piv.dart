@@ -32,10 +32,7 @@ import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loader_overlay/loader_overlay.dart';
-import 'package:logging/logging.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-
-final log = Logger('Console:PIV:View');
 
 class PivPage extends StatefulWidget {
   const PivPage({super.key});

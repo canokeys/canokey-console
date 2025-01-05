@@ -3,13 +3,11 @@ import 'dart:async';
 import 'package:canokey_console/controller/base/base_controller.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:get/get.dart';
-import 'package:logging/logging.dart';
+import 'package:logger/logger.dart';
 import 'package:platform_detector/platform_detector.dart';
 
 abstract class PollingController extends Controller {
-  StreamSubscription<NFCTag>? _nfcListener;
   Timer? _usbPollTimer, _webPollTimer;
   bool polled = false;
   bool _wasNfcConnection = false;
@@ -26,7 +24,7 @@ abstract class PollingController extends Controller {
       try {
         await refreshData();
       } catch (e) {
-        log.warning('Failed to read card on web platform', e);
+        log.w('Failed to read card on web platform', error: e);
       }
       _webPollTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (SmartCard.connectionType == ConnectionType.none) {
@@ -41,7 +39,7 @@ abstract class PollingController extends Controller {
         try {
           await refreshData();
         } catch (e) {
-          log.warning('Failed to read card on desktop platform', e);
+          log.w('Failed to read card on desktop platform', error: e);
         }
       }
       _usbPollTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -61,25 +59,27 @@ abstract class PollingController extends Controller {
         try {
           await refreshData();
         } catch (e) {
-          log.warning('Failed to read card on mobile platform', e);
+          log.w('Failed to read card on mobile platform', error: e);
         }
+      }
+      if (isAndroidApp()) {
+        SmartCard.refreshHandler = refreshData;
       }
       _usbPollTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if ((!polled || _wasNfcConnection) && SmartCard.connectionType == ConnectionType.ccid) {
           refreshData();
           polled = true; // We need to set polled to true here because PIN may be required in refreshData
-        } else if (!_wasNfcConnection && SmartCard.connectionType == ConnectionType.none) {
-          // Only update polled state if previous connection was not NFC
+        } else if (SmartCard.connectionType == ConnectionType.none) {
           polled = false;
           update();
         }
-        if (isAndroidApp() && SmartCard.connectionType == ConnectionType.none) {
-          if (_nfcListener == null) {
-            log.info('Starting TagStream.');
-            _nfcListener = FlutterNfcKit.tagStream.listen((tag) {
-              log.info('TagStream: ${tag.id}.');
-              refreshData();
-            });
+        if (isAndroidApp()) {
+          if (SmartCard.connectionType == ConnectionType.ccid) {
+            log.t('USB connected. Set nfcState to mute.');
+            SmartCard.nfcState = NfcState.mute;
+          } else if (SmartCard.nfcState == NfcState.mute) {
+            log.t('USB disconnected. Set nfcState to idle.');
+            SmartCard.nfcState = NfcState.idle;
           }
         }
       });
@@ -98,7 +98,8 @@ abstract class PollingController extends Controller {
   }
 
   Future<void> refreshData() async {
-    _wasNfcConnection = true;
     await doRefreshData();
+    _wasNfcConnection = SmartCard.connectionType == ConnectionType.nfc;
+    log.t("wasNfcConnection = $_wasNfcConnection");
   }
 }

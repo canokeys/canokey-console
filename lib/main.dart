@@ -19,18 +19,10 @@ import 'package:canokey_console/helper/webusb_dummy.dart' if (dart.library.html)
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:loader_overlay/loader_overlay.dart';
-import 'package:logging/logging.dart';
 import 'package:platform_detector/platform_detector.dart';
 import 'package:provider/provider.dart';
 
-final log = Logger('Console:main');
-
 Future<void> main() async {
-  Logger.root.level = Level.ALL; // defaults to Level.INFO
-  Logger.root.onRecord.listen((record) {
-    debugPrint('${record.level.name}: ${record.time}: ${record.message}');
-  });
-
   WidgetsFlutterBinding.ensureInitialized();
 
   await RustLib.init();
@@ -40,11 +32,13 @@ Future<void> main() async {
 
   if (!isWeb()) {
     SmartCard.pollCcid();
+    if (isAndroidApp()) {
+      SmartCard.startNfcHandler();
+    }
   } else {
     final deviceInfo = DeviceInfoPlugin();
     final info = await deviceInfo.webBrowserInfo;
     if (info.browserName != BrowserName.chrome && info.browserName != BrowserName.edge) {
-      log.severe('Browser not supported');
       Layout.notSupported = true;
     }
     WebUSB.onDisconnect = SmartCard.onWebUSBDisconnected;

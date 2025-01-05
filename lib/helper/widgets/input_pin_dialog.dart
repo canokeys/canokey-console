@@ -20,7 +20,7 @@ class InputPinDialog extends StatefulWidget {
   final bool required;
   final bool showSaveOption;
   final List<FieldValidatorRule> validators;
-  final Completer<(String, bool)> c;
+  final StreamController<(String, bool)> streamController;
 
   const InputPinDialog({
     super.key,
@@ -30,10 +30,10 @@ class InputPinDialog extends StatefulWidget {
     required this.required,
     required this.showSaveOption,
     required this.validators,
-    required this.c,
+    required this.streamController,
   });
 
-  static Future<(String, bool)> show({
+  static Stream<(String, bool)> show({
     required String title,
     required String label,
     required String prompt,
@@ -41,7 +41,7 @@ class InputPinDialog extends StatefulWidget {
     bool showSaveOption = false,
     List<FieldValidatorRule> validators = const [],
   }) {
-    Completer<(String, bool)> c = Completer<(String, bool)>();
+    final streamController = StreamController<(String, bool)>();
     Get.dialog(
       InputPinDialog(
         title: title,
@@ -50,11 +50,11 @@ class InputPinDialog extends StatefulWidget {
         required: required,
         showSaveOption: showSaveOption,
         validators: validators,
-        c: c,
+        streamController: streamController,
       ),
       barrierDismissible: false,
     );
-    return c.future;
+    return streamController.stream;
   }
 
   @override
@@ -72,10 +72,15 @@ class _InputPinDialogState extends State<InputPinDialog> {
     _validator.addField('pin', required: widget.required, controller: TextEditingController(), validators: widget.validators);
   }
 
+  @override
+  void dispose() {
+    widget.streamController.close();
+    super.dispose();
+  }
+
   void _onSubmit() {
     if (_validator.validateForm()) {
-      Navigator.pop(Get.context!);
-      widget.c.complete((_validator.getController('pin')!.text, savePin.value));
+      widget.streamController.add((_validator.getController('pin')!.text, savePin.value));
     }
   }
 
@@ -106,6 +111,7 @@ class _InputPinDialogState extends State<InputPinDialog> {
                     key: _validator.formKey,
                     child: Obx(() => TextFormField(
                           autofocus: true,
+                          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                           onTap: SmartCard.eject,
                           obscureText: !showPin.value,
                           controller: _validator.getController('pin'),
@@ -145,7 +151,7 @@ class _InputPinDialogState extends State<InputPinDialog> {
                   CustomizedButton.rounded(
                     onPressed: () {
                       Navigator.pop(Get.context!);
-                      widget.c.completeError(UserCanceledError());
+                      widget.streamController.addError(UserCanceledError());
                     },
                     elevation: 0,
                     padding: Spacing.xy(20, 16),

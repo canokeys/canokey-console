@@ -19,12 +19,14 @@ class TopActions extends StatelessWidget with UIMixin {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> widgets = [
-      InkWell(
+    List<Widget> widgets = [];
+
+    if (isWeb() || isIOSApp()) {
+      widgets.add(InkWell(
         onTap: controller.refreshData,
         child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
-      )
-    ];
+      ));
+    }
 
     if (controller.polled) {
       widgets.insertAll(0, [

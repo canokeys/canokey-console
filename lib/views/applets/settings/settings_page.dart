@@ -12,11 +12,8 @@ import 'package:canokey_console/views/applets/settings/widgets/settings_card.dar
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:logging/logging.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:platform_detector/platform_detector.dart';
-
-final log = Logger('Console:Settings:View');
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});

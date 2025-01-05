@@ -13,9 +13,6 @@ import 'package:canokey_console/src/rust/api/crypto.dart';
 import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:logging/logging.dart';
-
-final log = Logger('Console:PIV:Controller');
 
 class PivController extends Controller {
   bool polled = true;

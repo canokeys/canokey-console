@@ -12,9 +12,6 @@ import 'package:canokey_console/views/applets/webauthn/widgets/webauthn_item_car
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:logging/logging.dart';
-
-final log = Logger('Console:WebAuthn:View');
 
 class WebAuthnPage extends StatefulWidget {
   const WebAuthnPage({super.key});
@@ -37,7 +34,7 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Layout(
-      title: "WebAuthn",
+      title: 'WebAuthn',
       topActions: TopActions(controller: controller),
       child: GetBuilder(
         init: controller,

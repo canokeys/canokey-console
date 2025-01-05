@@ -1,8 +1,8 @@
 import 'package:canokey_console/helper/localization/language.dart';
-import 'package:logging/logging.dart';
+import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-final log = Logger('Console:helper:storage');
+final log = Logging.logger('Console:helper:storage');
 
 class LocalStorage {
   static const String _languageKey = 'lang_code';
@@ -50,7 +50,7 @@ class LocalStorage {
 
   static Future<void> clearPinCache() async {
     final keys = preferences.getKeys().where((key) => key.startsWith('pin:'));
-    log.info('Clearing pin cache: $keys');
+    log.i('Clearing pin cache: $keys');
     await Future.wait(keys.map((key) => preferences.remove(key)));
   }
 }

@@ -1,7 +1,8 @@
-import 'package:canokey_console/controller/base/admin_controller.dart';
+import 'package:canokey_console/controller/base/admin.dart';
 import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
@@ -9,7 +10,7 @@ import 'package:canokey_console/models/pass.dart';
 import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:logging/logging.dart';
+import 'package:logger/logger.dart';
 
 class PassController extends PollingController with AdminApplet {
   List<PassSlot> slots = [PassSlot.empty(), PassSlot.empty()];
@@ -17,7 +18,7 @@ class PassController extends PollingController with AdminApplet {
   PassSlot get slotLong => slots[1];
 
   @override
-  Logger get log => Logger('Console:Pass:Controller');
+  Logger get log => Logging.logger('Pass:Controller');
 
   @override
   Future<void> doRefreshData() async {
@@ -64,7 +65,7 @@ class PassController extends PollingController with AdminApplet {
       } else if (type == PassSlotType.static) {
         capduData = '02${password.length.toRadixString(16).padLeft(2, '0')}${hex.encode(password.codeUnits)}${withEnter ? '01' : '00'}';
       } else {
-        log.warning('unsupported slot type');
+        log.w('unsupported slot type');
         return;
       }
       await SmartCard.transceive('0044${index == short ? '01' : '02'}00${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
