@@ -9,10 +9,12 @@ import 'package:canokey_console/helper/theme/app_style.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/utils/rust_license.dart';
 import 'package:canokey_console/routes.dart';
 import 'package:canokey_console/src/rust/frb_generated.dart';
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:canokey_console/helper/webusb_dummy.dart' if (dart.library.html) 'package:flutter_nfc_kit/webusb_interop.dart';
@@ -29,6 +31,7 @@ Future<void> main() async {
   await LocalStorage.init();
   AppStyle.init();
   Language.init();
+  LicenseRegistry.addLicense(() => parseRustLicenses());
 
   if (!isWeb()) {
     SmartCard.pollCcid();
