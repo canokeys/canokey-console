@@ -85,13 +85,16 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                 InfoItem(iconData: LucideIcons.info, title: S.of(context).about, value: '', onTap: () => showAboutDialog(
                   context: context,
                   applicationName: S.of(context).homeScreenTitle,
-                  applicationVersion: '${_packageInfo.version} / build ${_packageInfo.buildNumber}',
-                  applicationIcon: Image.asset('assets/images/logo/logo_icon_dark.png', width: 50, height: 50),
+                  applicationVersion: '${_packageInfo.version} / build ${_packageInfo.buildNumber}'.trim(),
+                  applicationIcon: Image.asset('assets/images/logo/logo_icon_dark.png', width: 75, height: 75),
+                  applicationLegalese: '© 2025 canokeys.org',
                   children: [
                     Padding(
                       padding: Spacing.y(8),
-                      child: CustomizedText.bodySmall('CanoKey Console is a web console for CanoKey, an open-source security key.'), // TODO: i18n
+                      child: CustomizedText.bodyMedium('CanoKey Console is a web console for CanoKey, an open-source security key.'), // TODO: i18n
                     ),
+                    Spacing.height(8),
+                    CustomizedText.bodySmall('Summer Xu is the author of NFC interaction sounds.'), // TODO: i18n
                   ],
                 ))
               ],
