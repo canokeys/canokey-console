@@ -22,11 +22,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m0(min, max) => "新 PIN 的长度应当为 ${min} - ${max} 个字符。";
 
-  static String m1(name) => "您正在删除${name}，删除该项目后无法恢复！请确认相关服务的二步验证已经关闭。";
+  static String m1(name) => "您正在删除 ${name}，删除该项目后无法恢复！请确认相关服务的二步验证已经关闭。";
 
-  static String m2(name) => "您要将${name}设为触摸时的输出吗？小心，该操作将会覆盖原有的触摸输出。";
+  static String m2(name) => "您要将 ${name} 设为触摸时的输出吗？请注意，该操作将会覆盖原有的触摸输出。";
 
-  static String m3(keyType) => "修改${keyType}密钥的触摸设置";
+  static String m3(keyType) => "修改 ${keyType} 密钥的触摸设置";
 
   static String m4(retries) => "PIN 输入错误，剩余重试次数：${retries}";
 
@@ -36,15 +36,13 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m8(length) => "需要 ${length} 个字符";
 
-  static String m9(name) => "您正在删除${name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。";
+  static String m9(name) => "您正在删除 ${name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "about": MessageLookupByLibrary.simpleMessage("关于"),
         "actions": MessageLookupByLibrary.simpleMessage("操作"),
         "add": MessageLookupByLibrary.simpleMessage("增加"),
-        "androidAlertMessage":
-            MessageLookupByLibrary.simpleMessage("请紧贴手机直到读取结束"),
         "androidAlertTitle": MessageLookupByLibrary.simpleMessage("读取 CanoKey"),
         "androidPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
             "请用手机背面触碰您的 CanoKey 或将其插入 USB 接口"),
@@ -70,6 +68,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "homeScreenTitle":
             MessageLookupByLibrary.simpleMessage("CanoKey Console"),
         "homeSelect": MessageLookupByLibrary.simpleMessage("选择应用"),
+        "interrupted":
+            MessageLookupByLibrary.simpleMessage("通讯中断。尝试紧贴 CanoKey 直到读取结束。"),
         "iosAlertMessage":
             MessageLookupByLibrary.simpleMessage("使用 iPhone 顶部读取 CanoKey"),
         "iosPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
@@ -223,6 +223,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "pollCanceled": MessageLookupByLibrary.simpleMessage("您没有选择任何 CanoKey"),
         "pollCanoKey":
             MessageLookupByLibrary.simpleMessage("请点击右上角刷新按钮读取 CanoKey"),
+        "readingAlertMessage":
+            MessageLookupByLibrary.simpleMessage("请紧贴 CanoKey 直到读取结束"),
         "reset": MessageLookupByLibrary.simpleMessage("重置"),
         "save": MessageLookupByLibrary.simpleMessage("保存"),
         "savePinOnDevice": MessageLookupByLibrary.simpleMessage("在此设备上保存 PIN"),

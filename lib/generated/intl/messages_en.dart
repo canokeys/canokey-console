@@ -52,8 +52,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "about": MessageLookupByLibrary.simpleMessage("About"),
         "actions": MessageLookupByLibrary.simpleMessage("Actions"),
         "add": MessageLookupByLibrary.simpleMessage("Add"),
-        "androidAlertMessage": MessageLookupByLibrary.simpleMessage(
-            "Hold the CanoKey until finished"),
         "androidAlertTitle":
             MessageLookupByLibrary.simpleMessage("Touch your CanoKey"),
         "androidPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
@@ -85,6 +83,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("CanoKey Console"),
         "homeSelect":
             MessageLookupByLibrary.simpleMessage("to select an applet"),
+        "interrupted": MessageLookupByLibrary.simpleMessage(
+            "Communication interrupted. Try to hold the CanoKey until finished."),
         "iosAlertMessage": MessageLookupByLibrary.simpleMessage(
             "Hold your iPhone near the CanoKey"),
         "iosPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
@@ -269,6 +269,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("No CanoKey is selected."),
         "pollCanoKey": MessageLookupByLibrary.simpleMessage(
             "Please read your CanoKey by clicking the refresh button"),
+        "readingAlertMessage": MessageLookupByLibrary.simpleMessage(
+            "Hold the CanoKey until finished"),
         "reset": MessageLookupByLibrary.simpleMessage("Reset"),
         "save": MessageLookupByLibrary.simpleMessage("Save"),
         "savePinOnDevice":

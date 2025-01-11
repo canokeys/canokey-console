@@ -1,5 +1,5 @@
 {
-  "@@locale": "zh-CN",
+  "@@locale": "zh_Hans",
   "applets": "应用",
   "settings": "设置",
   "other": "其他",
@@ -66,7 +66,8 @@
   "search": "搜索",
   "iosAlertMessage": "使用 iPhone 顶部读取 CanoKey",
   "androidAlertTitle": "读取 CanoKey",
-  "androidAlertMessage": "请紧贴手机直到读取结束",
+  "readingAlertMessage": "请紧贴 CanoKey 直到读取结束",
+  "interrupted": "通讯中断。尝试紧贴 CanoKey 直到读取结束。",
   "noCard": "未找到 CanoKey",
   "browserNotSupported": "不支持该浏览器",
   "notSupported": "不支持该操作",

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
@@ -50,21 +51,33 @@ enum NfcState {
   mute, // When USB is connected, NFC should be muted and not be polled
   refresh,
   idle,
-  pollWithoutInput,
+  // pollWithoutInput,
   processWithoutInput,
   input,
-  pollWithInput,
+  // pollWithInput,
   processWithInput,
 }
 
 typedef RefreshCallback = Future<void> Function();
 
 class SmartCard {
+  static final AudioPlayer _player = AudioPlayer();
+
   static String _currentSN = '';
+
   static CcidCard? _ccidCard;
+
   static late Completer<bool> _androidNfcCompleter;
+
   static Timer? _androidNfcTimer;
-  static NfcState nfcState = NfcState.mute;
+
+  static NfcState _nfcState = NfcState.mute;
+  static NfcState get nfcState => _nfcState;
+  static set nfcState(NfcState value) {
+    _nfcState = value;
+    log.t('nfcState = $_nfcState');
+  }
+
   static RefreshCallback? refreshHandler;
 
   static ConnectionType connectionType = ConnectionType.none;
@@ -94,49 +107,62 @@ class SmartCard {
     }
   }
 
-  static startNfcHandler() {
-    FlutterNfcKit.tagStream.listen((tag) async {
-      log.t('[tagStream] NFC tag polled: ${tag.id}');
-      switch (nfcState) {
-        case NfcState.mute:
-        case NfcState.input:
-          log.t("[tagStream] Current state: $nfcState. Do nothing.");
+  static startNfcHandler() async {
+    while (true) {
+      try {
+        final tag = await FlutterNfcKit.poll(
+          timeout: const Duration(seconds: 10),
+          androidCheckNDEF: false,
+          readIso14443B: false,
+          readIso15693: false,
+          androidPlatformSound: false,
+        );
+        log.t('[nfcHandler] NFC tag polled: ${tag.id}');
+        switch (nfcState) {
+          case NfcState.mute:
+          case NfcState.input:
+            log.t("[nfcHandler] Current state: $nfcState. Do nothing.");
 
-        case NfcState.idle:
-          log.t("[tagStream] Current state: idle. Next state: refresh.");
-          nfcState = NfcState.refresh;
-          if (refreshHandler != null) {
-            await refreshHandler!();
-          }
+          case NfcState.idle:
+            log.t("[nfcHandler] Current state: $nfcState. Next state: refresh.");
+            await _player.play(AssetSource('audio/poll.ogg'), mode: PlayerMode.lowLatency);
+            Prompts.promptAndroidPolling();
+            nfcState = NfcState.refresh;
+            if (refreshHandler != null) {
+              refreshHandler!(); // Do not wait for refreshHandler to complete
+            }
 
-        case NfcState.pollWithoutInput:
-        case NfcState.pollWithInput:
-          if (nfcState == NfcState.pollWithoutInput) {
-            log.t("[tagStream] Current state: pollWithoutInput. Next state: processWithoutInput.");
-            nfcState = NfcState.processWithoutInput;
-          } else {
-            log.t("[tagStream] Current state: pollWithInput. Next state: processWithInput.");
-            nfcState = NfcState.processWithInput;
-          }
-          _androidNfcTimer?.cancel();
-          try {
+          case NfcState.refresh:
+            log.e("[nfcHandler] Current state: $nfcState. No tag should be polled. Next state: idle.");
+            nfcState = NfcState.idle;
+
+          case NfcState.processWithoutInput:
+          case NfcState.processWithInput:
+            log.t("[nfcHandler] Current state: $nfcState. Continue to process.");
+            _androidNfcTimer?.cancel();
             _androidNfcCompleter.complete(true);
-          } on StateError catch (e) {
-            log.w("[tagStream] Timed out. Shoule be handled in pollNfcOrWebUsb.", error: e);
+            await _player.play(AssetSource('audio/poll.ogg'), mode: PlayerMode.lowLatency);
+        }
+      } on PlatformException catch (e) {
+        if (e.code == '408') {
+          if (nfcState == NfcState.idle || nfcState == NfcState.mute || nfcState == NfcState.input) {
+            log.t('[nfcHandler] Current state: $nfcState. Polling timeout. Ignored.');
+          } else {
+            log.e('[nfcHandler] Current state: $nfcState. Polling timeout.', error: e);
           }
-
-        case NfcState.refresh:
-        case NfcState.processWithoutInput:
-        case NfcState.processWithInput:
-          log.t("[tagStream] Current state: $nfcState. No tag should be polled. Next state: idle.");
-          nfcState = NfcState.idle;
+        } else {
+          rethrow;
+        }
+      } catch (e) {
+        log.e('[nfcHandler] Current state: $nfcState. Error polling NFC tag.', error: e);
       }
-    });
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
   }
 
-  static Future<bool> startPollingNfcOrWebUsb() async {
+  static Future<bool> pollNfcOrWebUsb() async {
     if (connectionType == ConnectionType.ccid) {
-      log.e("[startPollingNfcOrWebUsb] Current connection type: CCID. No need to poll.");
+      // No need to poll
       return true;
     }
     if (isAndroidApp()) {
@@ -144,26 +170,21 @@ class SmartCard {
         case NfcState.mute:
         case NfcState.idle:
         case NfcState.input:
-        case NfcState.processWithoutInput: // TODO:why?
-        case NfcState.processWithInput: // TODO: why?
           log.e("[startPollingNfcOrWebUsb] Tag should not be polled in $nfcState state.");
           return false;
 
-        case NfcState.pollWithoutInput:
-        case NfcState.pollWithInput:
-          log.t("[startPollingNfcOrWebUsb] Current state: ${nfcState.name}. Start polling.");
-          _androidNfcCompleter = Completer<bool>();
+        case NfcState.processWithoutInput:
+        case NfcState.processWithInput:
+          log.t("[startPollingNfcOrWebUsb] Current state: $nfcState. Start polling.");
           Prompts.promptAndroidPolling();
+          _androidNfcCompleter = Completer<bool>();
           _androidNfcTimer = Timer(const Duration(seconds: 10), () {
-            Prompts.stopPromptAndroidPolling();
-            // TODO: i18n
-            Prompts.showPrompt('Timeout', ContentThemeColor.warning);
             _androidNfcCompleter.complete(false);
-            if (nfcState == NfcState.pollWithoutInput) {
-              log.t("[startPollingNfcOrWebUsb] Current state: pollWithoutInput. Timeout. Next state: idle.");
+            if (nfcState == NfcState.processWithoutInput) {
+              log.t("[startPollingNfcOrWebUsb] Current state: $nfcState. Timeout. Next state: idle.");
               nfcState = NfcState.idle;
             } else {
-              log.t("[startPollingNfcOrWebUsb] Current state: pollWithInput. Timeout. Next state: input.");
+              log.t("[startPollingNfcOrWebUsb] Current state: $nfcState. Timeout. Next state: input.");
               nfcState = NfcState.input;
             }
           });
@@ -180,34 +201,41 @@ class SmartCard {
   }
 
   static Future<void> stopPollingNfc({withInput = false}) async {
+    if (connectionType == ConnectionType.ccid) {
+      return;
+    }
     if (isAndroidApp()) {
       Prompts.stopPromptAndroidPolling();
       switch (nfcState) {
-        case NfcState.idle:
+        case NfcState.mute:
         case NfcState.input:
+          log.e("[stopPollingNfc] Current state: $nfcState. Tag should not be polled.");
+
+        case NfcState.idle:
           log.t("[stopPollingNfc] Current state: $nfcState. Do nothing.");
 
         case NfcState.processWithoutInput:
-        case NfcState.processWithInput:
           log.t("[stopPollingNfc] Current state: $nfcState. Next state: idle.");
           nfcState = NfcState.idle;
+          await _player.play(AssetSource('audio/finish.ogg'), mode: PlayerMode.lowLatency);
 
-        case NfcState.mute:
-        case NfcState.pollWithoutInput:
-        case NfcState.pollWithInput:
-          log.t("[stopPollingNfc] Tag should not be polled in $nfcState state.");
+        case NfcState.processWithInput:
+          log.t("[stopPollingNfc] Current state: $nfcState. Next state: input.");
+          nfcState = NfcState.input;
 
         case NfcState.refresh:
           if (withInput) {
-            log.t("[stopPollingNfc] Current state: refresh. Next state: input.");
+            // CHECKED CASE
+            log.t("[stopPollingNfc] Current state: $nfcState. Next state: input.");
             nfcState = NfcState.input;
           } else {
-            log.t("[stopPollingNfc] Current state: refresh. Next state: idle.");
+            log.t("[stopPollingNfc] Current state: $nfcState. Next state: idle.");
             nfcState = NfcState.idle;
+            await _player.play(AssetSource('audio/finish.ogg'), mode: PlayerMode.lowLatency);
           }
       }
     } else {
-      await FlutterNfcKit.finish(closeWebUSB: false);
+      await FlutterNfcKit.finish();
     }
   }
 
@@ -216,13 +244,13 @@ class SmartCard {
       await f(_currentSN);
     } else {
       if (nfcState == NfcState.idle) {
-        nfcState = NfcState.pollWithoutInput;
+        nfcState = NfcState.processWithoutInput;
       }
-      if (!await startPollingNfcOrWebUsb()) {
+      if (!await pollNfcOrWebUsb()) {
         return;
       }
       try {
-        assertOK(await FlutterNfcKit.transceive('00A4040005F000000000'));
+        assertOK(await SmartCard.transceive('00A4040005F000000000'));
         final resp = await SmartCard.transceive('0032000000');
         SmartCard.assertOK(resp);
         final sn = SmartCard.dropSW(resp).toUpperCase();
@@ -250,6 +278,7 @@ class SmartCard {
           Prompts.showPrompt(e.message ?? 'Unknown error', ContentThemeColor.danger);
         }
         if (isAndroidApp()) {
+          await _player.play(AssetSource('audio/error.ogg'), mode: PlayerMode.lowLatency);
           switch (nfcState) {
             case NfcState.refresh:
               log.t("[process] Current state: refresh. Communication error. Next state: idle.");
@@ -266,8 +295,6 @@ class SmartCard {
             case NfcState.mute:
             case NfcState.idle:
             case NfcState.input:
-            case NfcState.pollWithoutInput:
-            case NfcState.pollWithInput:
               break;
           }
         }
@@ -302,7 +329,7 @@ class SmartCard {
       final name = readers.firstWhereOrNull((name) => name.toLowerCase().contains("canokey"));
       if (name != null) {
         if (_ccidCard == null) {
-          log.i('[pollCcid] New CanoKey (USB) detected: $name');
+          log.i('New CanoKey (USB) detected: $name');
           try {
             _ccidCard = await Ccid().connect(name);
             var resp = await _ccidCard!.transceive('00A4040005F000000000');
@@ -311,15 +338,15 @@ class SmartCard {
             assertOK(resp!);
             _currentSN = SmartCard.dropSW(resp).toUpperCase();
             connectionType = ConnectionType.ccid;
-            log.i('[pollCcid] Successfully connected to CanoKey (USB). SN: $_currentSN. Connection Type updated to CCID.');
+            log.i('Successfully connected to CanoKey (USB). SN: $_currentSN. Connection Type updated to CCID.');
           } catch (e) {
-            log.e('[pollCcid] Failed to connect to CanoKey (USB)', error: e);
+            log.e('Failed to connect to CanoKey (USB)', error: e);
             _ccidCard = null;
             _currentSN = '';
           }
         }
       } else if (connectionType == ConnectionType.ccid && _currentSN != '') {
-        log.i('[pollCcid] CanoKey (USB) removed: $_currentSN. Connection Type updated to None.');
+        log.i('CanoKey (USB) removed: $_currentSN. Connection Type updated to None.');
         _ccidCard = null;
         _currentSN = '';
         connectionType = ConnectionType.none;
@@ -328,7 +355,7 @@ class SmartCard {
   }
 
   static void onWebUSBDisconnected() {
-    log.i('[onWebUSBDisconnected] CanoKey (WebUSB) removed: $_currentSN. Connection Type updated to None.');
+    log.i('CanoKey (WebUSB) removed: $_currentSN. Connection Type updated to None.');
     _currentSN = '';
     connectionType = ConnectionType.none;
   }

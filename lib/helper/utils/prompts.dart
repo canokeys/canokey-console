@@ -17,6 +17,21 @@ import 'package:platform_detector/platform_detector.dart';
 class Prompts {
   static late SnackbarController _snackbarController;
 
+  static String getPinFailureResult(String resp) {
+    if (resp == '6983') {
+      return S.of(Get.context!).appletLocked;
+    } else if (resp == '6982') {
+      return S.of(Get.context!).pinIncorrect;
+    } else if (resp.toUpperCase().startsWith('63C')) {
+      String retries = resp[resp.length - 1];
+      return S.of(Get.context!).pinRetries(retries);
+    } else if (resp == '6700') {
+      return S.of(Get.context!).pinLength;
+    } else {
+      return 'Unknown response';
+    }
+  }
+
   static void promptPinFailureResult(String resp) {
     if (resp == '6983') {
       showPrompt(S.of(Get.context!).appletLocked, ContentThemeColor.danger);
@@ -32,7 +47,7 @@ class Prompts {
     }
   }
 
-  static void showPrompt(String content, ContentThemeColor selectedColor) {
+  static void showPrompt(String content, ContentThemeColor selectedColor, {String level = 'E'}) {
     Color backgroundColor = selectedColor.color;
     Color color = selectedColor.onColor;
 
@@ -50,17 +65,26 @@ class Prompts {
         ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
       });
     } else {
-      SnackBar snackBar = SnackBar(
-        behavior: SnackBarBehavior.floating,
-        width: 300,
-        duration: Duration(seconds: 3),
-        showCloseIcon: true,
-        closeIconColor: color,
-        content: CustomizedText.labelLarge(content, color: color),
-        backgroundColor: backgroundColor,
-      );
-      ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
-      ScaffoldMessenger.of(Get.context!).showSnackBar(snackBar);
+      try {
+        Get.find<RxString>(tag: 'dialog_error').value = content;
+        Get.find<RxString>(tag: 'dialog_error_level').value = level;
+        Timer(Duration(seconds: 3), () {
+          Get.find<RxString>(tag: 'dialog_error').value = '';
+        });
+      } catch (e) {
+        log.d('Failed to find a dialog', error: e);
+        SnackBar snackBar = SnackBar(
+          behavior: SnackBarBehavior.floating,
+          width: 300,
+          duration: Duration(seconds: 3),
+          showCloseIcon: true,
+          closeIconColor: color,
+          content: CustomizedText.labelLarge(content, color: color),
+          backgroundColor: backgroundColor,
+        );
+        ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
+        ScaffoldMessenger.of(Get.context!).showSnackBar(snackBar);
+      }
     }
   }
 
@@ -163,18 +187,28 @@ class Prompts {
   }
 
   static promptAndroidPolling() {
-    _snackbarController = Get.snackbar(
-      S.of(Get.context!).androidAlertTitle,
-      S.of(Get.context!).androidAlertMessage,
-      icon: SpinKitHourGlass(color: Colors.tealAccent, size: 32.0),
-      duration: const Duration(seconds: 99),
-      backgroundColor: Colors.grey.withOpacity(0.8),
-      snackPosition: SnackPosition.BOTTOM,
-      maxWidth: 400,
-    );
+    try {
+      Get.find<RxBool>(tag: 'dialog_polling').value = true;
+    } catch (e) {
+      log.d('Failed to find a dialog', error: e);
+      _snackbarController = Get.snackbar(
+        S.of(Get.context!).androidAlertTitle,
+        S.of(Get.context!).readingAlertMessage,
+        icon: SpinKitHourGlass(color: Colors.tealAccent, size: 32.0),
+        duration: const Duration(seconds: 99),
+        backgroundColor: Colors.grey.withOpacity(0.8),
+        snackPosition: SnackPosition.BOTTOM,
+        maxWidth: 400,
+      );
+    }
   }
 
   static stopPromptAndroidPolling() {
+    try {
+      Get.find<RxBool>(tag: 'dialog_polling').value = false;
+    } catch (e) {
+      log.d('Failed to find a dialog', error: e);
+    }
     try {
       _snackbarController.close();
     } catch (e) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
@@ -180,106 +182,88 @@ class WebAuthnController extends PollingController {
 
     // Finally, prompt user
     // When using NFC, we need to finish NFC before showing the dialog
-    if (SmartCard.connectionType == ConnectionType.nfc) {
-      SmartCard.stopPollingNfc(withInput: true);
-    }
-    final stream = InputPinDialog.show(
+    SmartCard.stopPollingNfc(withInput: true);
+    final completer = Completer<List<int>?>();
+    InputPinDialog.showWithCallback(
       title: S.of(Get.context!).webauthnInputPinTitle,
       label: 'PIN',
       prompt: S.of(Get.context!).webauthnInputPinPrompt,
       validators: [LengthValidator(min: 4, max: 63)],
       showSaveOption: true,
-    );
-    try {
-      await for (final result in stream) {
+      onSubmit: (pin, savePin) async {
         // When using NFC, we need to poll NFC again
-        if (SmartCard.connectionType == ConnectionType.nfc) {
-          SmartCard.nfcState = NfcState.pollWithInput;
-          if (!await SmartCard.startPollingNfcOrWebUsb()) {
-            // timeout
-            continue;
-          }
+        SmartCard.nfcState = NfcState.processWithInput;
+        if (!await SmartCard.pollNfcOrWebUsb()) {
+          Prompts.stopPromptAndroidPolling();
+          Prompts.showPrompt(S.of(Get.context!).noCard, ContentThemeColor.warning, level: 'W');
+          return; // timeout, do not close the dialog
         }
-
+        Prompts.stopPromptAndroidPolling();
         List<int>? pinToken;
         try {
-          pinToken = await _doGetPinToken(result.$1);
+          pinToken = await _doGetPinToken(pin);
         } on PlatformException catch (e) {
-          if (SmartCard.connectionType == ConnectionType.nfc) {
-            SmartCard.stopPollingNfc();
-          }
-          log.e('_verifyCode failed', error: e);
+          SmartCard.stopPollingNfc(withInput: true);
+          log.e('_doGetPinToken failed', error: e);
           if (e.code == '500') {
-            Prompts.showPrompt(e.message!, ContentThemeColor.danger);
-            continue;
+            Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger, level: 'E');
           }
-          rethrow;
         }
         if (pinToken != null) {
-          log.t('pin verified');
-          _localPinCache[sn] = result.$1;
-          if (result.$2) {
-            await LocalStorage.setPinCache(sn, _tag, result.$1);
+          log.t('PIN verified');
+          _localPinCache[sn] = pin;
+          if (savePin) {
+            await LocalStorage.setPinCache(sn, _tag, pin);
           }
-          // PIN verified, close the dialog
-          Navigator.pop(Get.context!);
+          completer.complete(pinToken);
           // Since PIN has been cached, if error happens, we don't need to re-prompt
           SmartCard.nfcState = NfcState.processWithoutInput;
-
-          return pinToken;
+          // Close the dialog
+          Navigator.pop(Get.context!);
         }
-      }
-
-      log.w('should not be reached');
-      return null;
-    } on UserCanceledError catch (_) {
-      if (SmartCard.connectionType == ConnectionType.nfc) {
+      },
+      onCancel: () async {
         SmartCard.nfcState = NfcState.idle;
-      }
-      return null;
-    }
+        completer.complete(null);
+      },
+    );
+    return await completer.future;
   }
 
   Future<bool> _setPin(String sn) async {
     // When using NFC, we need to stop polling before showing the dialog
-    if (SmartCard.connectionType == ConnectionType.nfc) {
-      SmartCard.stopPollingNfc(withInput: true);
-    }
-    final stream = InputPinDialog.show(
+    SmartCard.stopPollingNfc(withInput: true);
+    final completer = Completer<bool>();
+    InputPinDialog.showWithCallback(
       title: S.of(Get.context!).webauthnSetPinTitle,
       label: 'PIN',
       prompt: S.of(Get.context!).webauthnSetPinPrompt,
       validators: [LengthValidator(min: 4, max: 63)],
-    );
-    try {
-      await for (final result in stream) {
+      showSaveOption: true,
+      onSubmit: (pin, savePin) async {
         // When using NFC, we need to poll NFC again
-        if (SmartCard.connectionType == ConnectionType.nfc) {
-          SmartCard.nfcState = NfcState.pollWithInput;
-          if (!await SmartCard.startPollingNfcOrWebUsb()) {
-            // timeout
-            continue;
-          }
+        SmartCard.nfcState = NfcState.processWithInput;
+        if (!await SmartCard.pollNfcOrWebUsb()) {
+          Prompts.stopPromptAndroidPolling();
+          Prompts.showPrompt(S.of(Get.context!).noCard, ContentThemeColor.warning, level: 'W');
+          return; // timeout, do not close the dialog
         }
+        Prompts.stopPromptAndroidPolling();
         try {
           // Set PIN and refresh by recreating Ctap2
           String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
           SmartCard.assertOK(resp);
           final cp = ClientPin(_ctap);
-          await cp.setPin(result.$1);
+          await cp.setPin(pin);
           log.i('setPin success');
         } on PlatformException catch (e) {
-          if (SmartCard.connectionType == ConnectionType.nfc) {
-            SmartCard.stopPollingNfc();
-          }
-          log.e('setPin error', error: e);
+          SmartCard.stopPollingNfc(withInput: true);
+          log.e('setPin failed', error: e);
           if (e.code == '500') {
-            Prompts.showPrompt(e.message!, ContentThemeColor.danger);
-            continue;
+            Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger, level: 'E');
           }
-          rethrow;
         }
-        await _setPinCache(sn, result.$1, result.$2);
+        await _setPinCache(sn, pin, savePin);
 
         // PIN set, close the dialog and prompt the user
         Navigator.pop(Get.context!);
@@ -288,18 +272,13 @@ class WebAuthnController extends PollingController {
         SmartCard.nfcState = NfcState.processWithoutInput;
         // Update _ctap
         _ctap = await Ctap2.create(CtapTransimtter());
-
-        return true;
-      }
-
-      log.w('should not be reached');
-      return false;
-    } on UserCanceledError catch (_) {
-      if (SmartCard.connectionType == ConnectionType.nfc) {
+      },
+      onCancel: () async {
         SmartCard.nfcState = NfcState.idle;
-      }
-      return false;
-    }
+        completer.complete(false);
+      },
+    );
+    return await completer.future;
   }
 
   Future<List<int>?> _doGetPinToken(String pin) async {

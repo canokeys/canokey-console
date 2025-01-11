@@ -64,6 +64,7 @@ abstract class PollingController extends Controller {
       }
       if (isAndroidApp()) {
         SmartCard.refreshHandler = refreshData;
+        SmartCard.nfcState = NfcState.idle;
       }
       _usbPollTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if ((!polled || _wasNfcConnection) && SmartCard.connectionType == ConnectionType.ccid) {

@@ -541,10 +541,20 @@ class S {
   }
 
   /// `Hold the CanoKey until finished`
-  String get androidAlertMessage {
+  String get readingAlertMessage {
     return Intl.message(
       'Hold the CanoKey until finished',
-      name: 'androidAlertMessage',
+      name: 'readingAlertMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Communication interrupted. Try to hold the CanoKey until finished.`
+  String get interrupted {
+    return Intl.message(
+      'Communication interrupted. Try to hold the CanoKey until finished.',
+      name: 'interrupted',
       desc: '',
       args: [],
     );

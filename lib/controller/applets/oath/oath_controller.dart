@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:canokey_console/controller/applets/oath/qr_scan_result.dart';
@@ -344,62 +345,50 @@ class OathController extends PollingController {
 
     // Finally, prompt user
     // When using NFC, we need to finish NFC before showing the dialog
-    if (SmartCard.connectionType == ConnectionType.nfc) {
-      SmartCard.stopPollingNfc(withInput: true);
-    }
-    final stream = InputPinDialog.show(
+    SmartCard.stopPollingNfc(withInput: true);
+    final completer = Completer<bool>();
+    InputPinDialog.showWithCallback(
       title: S.of(Get.context!).oathInputCode,
       label: S.of(Get.context!).oathCode,
       prompt: S.of(Get.context!).oathInputCodePrompt,
       showSaveOption: true,
-    );
-    try {
-      await for (final result in stream) {
+      onSubmit: (code, saveCode) async {
         // When using NFC, we need to poll NFC again
-        if (SmartCard.connectionType == ConnectionType.nfc) {
-          SmartCard.nfcState = NfcState.pollWithInput;
-          if (!await SmartCard.startPollingNfcOrWebUsb()) {
-            // timeout
-            continue;
-          }
+        SmartCard.nfcState = NfcState.processWithInput;
+        if (!await SmartCard.pollNfcOrWebUsb()) {
+          Prompts.stopPromptAndroidPolling();
+          Prompts.showPrompt(S.of(Get.context!).noCard, ContentThemeColor.warning, level: 'W');
         }
-
+        Prompts.stopPromptAndroidPolling();
         bool verified = false;
         try {
-          verified = await _verifyCode(result.$1);
+          verified = await _verifyCode(code);
         } on PlatformException catch (e) {
-          if (SmartCard.connectionType == ConnectionType.nfc) {
-            SmartCard.stopPollingNfc();
-          }
+          SmartCard.stopPollingNfc(withInput: true);
           log.e('_verifyCode failed', error: e);
           if (e.code == '500') {
-            Prompts.showPrompt(e.message!, ContentThemeColor.danger);
-            continue;
+            Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger, level: 'E');
           }
-          rethrow;
         }
         if (verified) {
-          log.t('code verified');
-          _localCodeCache[sn] = result.$1;
-          if (result.$2) {
-            await LocalStorage.setPinCache(sn, _tag, result.$1);
+          log.t('PIN verified');
+          _localCodeCache[sn] = code;
+          if (saveCode) {
+            await LocalStorage.setPinCache(sn, _tag, code);
           }
-          // PIN verified, close the dialog
-          Navigator.pop(Get.context!);
+          completer.complete(true);
           // Since PIN has been cached, if error happens, we don't need to re-prompt
           SmartCard.nfcState = NfcState.processWithoutInput;
-          return true;
+          // Close the dialog
+          Navigator.pop(Get.context!);
         }
-      }
-
-      log.w('should not be reached');
-      return false;
-    } on UserCanceledError catch (_) {
-      if (SmartCard.connectionType == ConnectionType.nfc) {
+      },
+      onCancel: () async {
         SmartCard.nfcState = NfcState.idle;
-      }
-      return false;
-    }
+        completer.complete(false);
+      },
+    );
+    return await completer.future;
   }
 
   List<OathItem> _parse(List<int> data) {

@@ -5,6 +5,7 @@ import 'package:logger/logger.dart';
 class Logging {
   static Logger logger(String tag) {
     return Logger(printer: SimplePrinter(tag));
+    // return Logger(printer: PrettyPrinter());
   }
 }
 
