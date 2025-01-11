@@ -13,14 +13,46 @@ import 'package:canokey_console/views/applets/settings/dialogs/clear_pin_cache_d
 import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
-class OtherSettingsCard extends StatelessWidget with UIMixin {
+
+class OtherSettingsCard extends StatefulWidget {
   const OtherSettingsCard({super.key});
+
+  @override
+  State<OtherSettingsCard> createState() => _OtherSettingsCardState();
+}
+
+
+class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
+
+  PackageInfo _packageInfo = PackageInfo(
+    appName: 'Unknown',
+    packageName: 'Unknown',
+    version: 'Unknown',
+    buildNumber: 'Unknown',
+    buildSignature: 'Unknown',
+    installerStore: 'Unknown',
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _initPackageInfo();
+  }
+
+  Future<void> _initPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      _packageInfo = info;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final languageName = ThemeCustomizer.instance.currentLanguage.languageName;
     final startPage = StartPageDialog.pageName(context, LocalStorage.getStartPage() ?? '/');
+
     return CustomizedCard(
       clipBehavior: Clip.antiAliasWithSaveLayer,
       shadow: Shadow(elevation: 0.5, position: ShadowPosition.bottom),
@@ -49,6 +81,19 @@ class OtherSettingsCard extends StatelessWidget with UIMixin {
                 InfoItem(iconData: LucideIcons.home, title: S.of(context).settingsStartPage, value: startPage, onTap: StartPageDialog.show),
                 Spacing.height(16),
                 InfoItem(iconData: LucideIcons.pin, title: S.of(context).settingsClearPinCache, value: '', onTap: () => ClearPinCacheDialog.show()),
+                Spacing.height(16),
+                InfoItem(iconData: LucideIcons.info, title: S.of(context).about, value: '', onTap: () => showAboutDialog(
+                  context: context,
+                  applicationName: S.of(context).homeScreenTitle,
+                  applicationVersion: '${_packageInfo.version} / build ${_packageInfo.buildNumber}',
+                  applicationIcon: Image.asset('assets/images/logo/logo_icon_dark.png', width: 50, height: 50),
+                  children: [
+                    Padding(
+                      padding: Spacing.y(8),
+                      child: CustomizedText.bodySmall('CanoKey Console is a web console for CanoKey, an open-source security key.'), // TODO: i18n
+                    ),
+                  ],
+                ))
               ],
             ),
           ),
