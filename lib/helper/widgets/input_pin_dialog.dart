@@ -35,7 +35,7 @@ class InputPinDialog extends StatefulWidget {
     required this.onCancel,
   });
 
-  static showWithCallback({
+  static show({
     required String title,
     required String label,
     required String prompt,

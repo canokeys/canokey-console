@@ -347,7 +347,7 @@ class OathController extends PollingController {
     // When using NFC, we need to finish NFC before showing the dialog
     SmartCard.stopPollingNfc(withInput: true);
     final completer = Completer<bool>();
-    InputPinDialog.showWithCallback(
+    InputPinDialog.show(
       title: S.of(Get.context!).oathInputCode,
       label: S.of(Get.context!).oathCode,
       prompt: S.of(Get.context!).oathInputCodePrompt,

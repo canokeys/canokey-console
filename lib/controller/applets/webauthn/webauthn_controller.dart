@@ -144,7 +144,6 @@ class WebAuthnController extends PollingController {
     _ctap = await Ctap2.create(CtapTransimtter());
 
     // We do nothing if the device does not support credMgmt or clientPin
-    // TODO: prompt user
     if (_ctap.info.options?['credMgmt'] != true || _ctap.info.options?['clientPin'] == null) {
       Prompts.showPrompt(S.of(Get.context!).webauthnClientPinNotSupported, ContentThemeColor.danger);
       return null;
@@ -184,7 +183,7 @@ class WebAuthnController extends PollingController {
     // When using NFC, we need to finish NFC before showing the dialog
     SmartCard.stopPollingNfc(withInput: true);
     final completer = Completer<List<int>?>();
-    InputPinDialog.showWithCallback(
+    InputPinDialog.show(
       title: S.of(Get.context!).webauthnInputPinTitle,
       label: 'PIN',
       prompt: S.of(Get.context!).webauthnInputPinPrompt,
@@ -234,7 +233,7 @@ class WebAuthnController extends PollingController {
     // When using NFC, we need to stop polling before showing the dialog
     SmartCard.stopPollingNfc(withInput: true);
     final completer = Completer<bool>();
-    InputPinDialog.showWithCallback(
+    InputPinDialog.show(
       title: S.of(Get.context!).webauthnSetPinTitle,
       label: 'PIN',
       prompt: S.of(Get.context!).webauthnSetPinPrompt,
