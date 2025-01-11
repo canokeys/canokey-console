@@ -20,33 +20,31 @@ enum ConnectionType { none, ccid, nfc, webusb }
 /// In order to handle correctly, the following states need to be introduced:
 /// - refresh: read CanoKey information for the first time on the page
 /// - idle: waiting for CanoKey to be tapped on the page
-/// - poll_wo_input: card search triggered by the user
-/// - process_wo_input: perform card reading operation
+/// - process_without_input: perform card reading operation
 /// - input: waiting for user input
-/// - poll_w_input: card search triggered by the user
-/// - process_w_input: perform card reading operation.
+/// - process_with_input: perform card reading operation.
 ///
-///                                         finish/error
-///                          ┌──────────────────────────────────────────┐
-///                          │                                          │
-/// ┌───────┐finish/error┌───▼──┐ UI event  ┌─────────────┐     ┌───────┴────────┐
-/// │       ├────────────►      ├───────────►             │ tap │                │
-/// │refresh│            │ idle │           │poll_wo_input├─────►process_wo_input┼──┐
-/// │       ◄────────────┤      ◄───────────┤             │     │                │  │
-/// └───┬───┘     tap    └▲─▲───┘  timeout  └─────────────┘     └────────────────┘  │
-///     │                 │ │                 finish                                │
-///     │                 │ └─────────────────────────────────────────────┐         │
-///     │                 │             error / input required            │         │
-///     │          cancel │ ┌───────────────────────────────────────────┐ │         │
-///     │                 │ │                                           │ │         │
-///     │                ┌┴─▼──┐  confirm   ┌────────────┐      ┌───────┴─┴──────┐  │
-///     │                │     ├────────────►            │ tap  │                │  │
-///     └────────────────►input│            │poll_w_input├──────►process_w_input │  │
-///      input required  │     ◄────────────┤            │      │                │  │
-///                      └──▲──┘  timeout   └────────────┘      └────────────────┘  │
-///                         │                                                       │
-///                         └───────────────────────────────────────────────────────┘
-///                                            input required
+///                                   finish/error
+///                          ┌──────────────────────────┐
+///                          │                          │
+/// ┌───────┐finish/error┌───▼──┐ UI event  ┌───────────┴─────────┐
+/// │       ├────────────►      ├───────────►                     │
+/// │refresh│            │ idle │           │process_without_input├──┐
+/// │       ◄────────────┤      ◄───────────┤                     │  │
+/// └───┬───┘     tap    └▲─▲───┘  timeout  └─────────────────────┘  │
+///     │                 │ │              finish                    │
+///     │                 │ └───────────────────────────────┐        │
+///     │                 │ error / input required          │        │
+///     │          cancel │ ┌───────────────────┐           │        │
+///     │                 │ │                   │           │        │
+///     │                ┌┴─▼──┐  confirm   ┌───┴───────────┴──┐     │
+///     │                │     ├────────────►                  │     │
+///     └────────────────►input│            │process_with_input│     │
+///      input required  │     ◄────────────┤                  │     │
+///                      └──▲──┘  timeout   └──────────────────┘     │
+///                         │                                        │
+///                         └────────────────────────────────────────┘
+///                                     input required
 enum NfcState {
   mute, // When USB is connected, NFC should be muted and not be polled
   refresh,
@@ -125,7 +123,7 @@ class SmartCard {
 
           case NfcState.idle:
             log.t("[nfcHandler] Current state: $nfcState. Next state: refresh.");
-            await _player.play(AssetSource('audio/poll.ogg'), mode: PlayerMode.lowLatency);
+            await _player.play(AssetSource('audio/poll.aac'), mode: PlayerMode.lowLatency);
             Prompts.promptAndroidPolling();
             nfcState = NfcState.refresh;
             if (refreshHandler != null) {
@@ -141,7 +139,7 @@ class SmartCard {
             log.t("[nfcHandler] Current state: $nfcState. Continue to process.");
             _androidNfcTimer?.cancel();
             _androidNfcCompleter.complete(true);
-            await _player.play(AssetSource('audio/poll.ogg'), mode: PlayerMode.lowLatency);
+            await _player.play(AssetSource('audio/poll.aac'), mode: PlayerMode.lowLatency);
         }
       } on PlatformException catch (e) {
         if (e.code == '408') {
@@ -217,7 +215,7 @@ class SmartCard {
         case NfcState.processWithoutInput:
           log.t("[stopPollingNfc] Current state: $nfcState. Next state: idle.");
           nfcState = NfcState.idle;
-          await _player.play(AssetSource('audio/finish.ogg'), mode: PlayerMode.lowLatency);
+          await _player.play(AssetSource('audio/finish.aac'), mode: PlayerMode.lowLatency);
 
         case NfcState.processWithInput:
           log.t("[stopPollingNfc] Current state: $nfcState. Next state: input.");
@@ -231,7 +229,7 @@ class SmartCard {
           } else {
             log.t("[stopPollingNfc] Current state: $nfcState. Next state: idle.");
             nfcState = NfcState.idle;
-            await _player.play(AssetSource('audio/finish.ogg'), mode: PlayerMode.lowLatency);
+            await _player.play(AssetSource('audio/finish.aac'), mode: PlayerMode.lowLatency);
           }
       }
     } else {
@@ -278,7 +276,7 @@ class SmartCard {
           Prompts.showPrompt(e.message ?? 'Unknown error', ContentThemeColor.danger);
         }
         if (isAndroidApp()) {
-          await _player.play(AssetSource('audio/error.ogg'), mode: PlayerMode.lowLatency);
+          await _player.play(AssetSource('audio/error.aac'), mode: PlayerMode.lowLatency);
           switch (nfcState) {
             case NfcState.refresh:
               log.t("[process] Current state: refresh. Communication error. Next state: idle.");
