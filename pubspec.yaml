@@ -47,6 +47,7 @@ dependencies:
   flutter_rust_bridge: 2.7.0
   logger: ^2.5.0
   audioplayers: ^6.1.0
+  package_info_plus: ^8.1.2
 
 dependency_overrides:
   dart_webrtc: ^1.4.10
