@@ -42,7 +42,7 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 
 2. Install dependencies:
    ```bash
-   cargo install flutter_rust_bridge_codegen
+   cargo install flutter_rust_bridge_codegen cargo-bundle-licenses
    flutter pub get
    ```
 
@@ -54,23 +54,33 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 
 ## Building
 
+If you change any Rust dependencies (`Cargo.lock`), please run:
+
+```bash
+cd rust && cargo bundle-licenses -f json | jq '.third_party_libraries | del(.[].licenses)' > THIRD_PARTY_LICENSES.json
+```
+
 ### Web
+
 ```bash
 flutter_rust_bridge_codegen build-web --release
 flutter build web
 ```
 
 ### Android
+
 ```bash
 flutter build apk
 ```
 
 ### iOS
+
 ```bash
 flutter build ios
 ```
 
 ### Desktop
+
 ```bash
 flutter build windows
 flutter build macos

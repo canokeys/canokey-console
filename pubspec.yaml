@@ -62,6 +62,7 @@ flutter:
   assets:
     - assets/images/logo/
     - assets/audio/
+    - rust/THIRD_PARTY_LICENSES.json
 
 flutter_intl:
   enabled: true
