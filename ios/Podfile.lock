@@ -1,9 +1,9 @@
 PODS:
-  - ccid (0.1.5):
+  - audioplayers_darwin (0.0.1):
+    - Flutter
+  - ccid (0.1.6):
     - Flutter
     - FlutterMacOS
-  - cryptography_flutter (0.2.0):
-    - Flutter
   - device_info_plus (0.0.1):
     - Flutter
   - DKImagePickerController/Core (4.3.9):
@@ -96,6 +96,8 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
+  - package_info_plus (0.4.5):
+    - Flutter
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -114,8 +116,8 @@ PODS:
   - WebRTC-SDK (125.6422.06)
 
 DEPENDENCIES:
+  - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/ios`)
   - ccid (from `.symlinks/plugins/ccid/darwin`)
-  - cryptography_flutter (from `.symlinks/plugins/cryptography_flutter/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - file_saver (from `.symlinks/plugins/file_saver/ios`)
@@ -123,6 +125,7 @@ DEPENDENCIES:
   - flutter_nfc_kit (from `.symlinks/plugins/flutter_nfc_kit/ios`)
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
   - mobile_scanner (from `.symlinks/plugins/mobile_scanner/ios`)
+  - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - rust_lib_canokey_console (from `.symlinks/plugins/rust_lib_canokey_console/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -148,10 +151,10 @@ SPEC REPOS:
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
+  audioplayers_darwin:
+    :path: ".symlinks/plugins/audioplayers_darwin/ios"
   ccid:
     :path: ".symlinks/plugins/ccid/darwin"
-  cryptography_flutter:
-    :path: ".symlinks/plugins/cryptography_flutter/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   file_picker:
@@ -166,6 +169,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_webrtc/ios"
   mobile_scanner:
     :path: ".symlinks/plugins/mobile_scanner/ios"
+  package_info_plus:
+    :path: ".symlinks/plugins/package_info_plus/ios"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   rust_lib_canokey_console:
@@ -176,8 +181,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
-  ccid: 177607aa71ea9e050991c400623687b03fc2883f
-  cryptography_flutter: 70166b3780db39960caf51fd90fe308bec22d3f1
+  audioplayers_darwin: ccf9c770ee768abb07e26d90af093f7bab1c12ab
+  ccid: 26de24ce905eb9214e63420630287431ed8ffbab
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
@@ -197,6 +202,7 @@ SPEC CHECKSUMS:
   MLKitVision: 45e79d68845a2de77e2dd4d7f07947f0ed157b0e
   mobile_scanner: af8f71879eaba2bbcb4d86c6a462c3c0e7f23036
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
+  package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   rust_lib_canokey_console: 518e9996761d9fed2cd1d6f8f330170acd007d69
