@@ -61,6 +61,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "appletLocked": MessageLookupByLibrary.simpleMessage(
             "This applet has been locked."),
         "applets": MessageLookupByLibrary.simpleMessage("Applets"),
+        "beforeSourceLink": MessageLookupByLibrary.simpleMessage(
+            "Source code available on GitHub: "),
         "browserNotSupported": MessageLookupByLibrary.simpleMessage(
             "Your browser does not support WebUSB"),
         "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),

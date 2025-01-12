@@ -11,7 +11,7 @@ Stream<LicenseEntry> parseRustLicenses() async* {
     final version = library['package_version'] as String;
     final repo = library['repository'] as String;
     final license = library['license'] ?? 'Unknown';
-    yield LicenseEntryWithLineBreaks(['$name [Rust]'], '''Crate: $name
+    yield LicenseEntryWithLineBreaks(['[Rust Crates]'], '''Crate: $name
 
 Version: $version
 

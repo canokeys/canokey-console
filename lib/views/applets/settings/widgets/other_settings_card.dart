@@ -11,9 +11,11 @@ import 'package:canokey_console/views/applets/settings/dialogs/language_dialog.d
 import 'package:canokey_console/views/applets/settings/dialogs/start_page_dialog.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/clear_pin_cache_dialog.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class OtherSettingsCard extends StatefulWidget {
   const OtherSettingsCard({super.key});
@@ -94,7 +96,23 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                               padding: Spacing.y(8),
                               child: CustomizedText.bodyMedium(S.of(context).appDescription),
                             ),
-                            Spacing.height(8),
+                            RichText(text: TextSpan(
+                              children: [
+                                TextSpan(text: S.of(context).beforeSourceLink, style: TextStyle()),
+                                TextSpan(
+                                  text: 'canokeys/canokey-console',
+                                  style: TextStyle(color: contentTheme.primary, decoration: TextDecoration.underline),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () async {
+                                      const repoUrl = 'https://github.com/canokeys/canokey-console';
+                                      if (await canLaunchUrlString(repoUrl)) {
+                                        await launchUrlString(repoUrl, mode: LaunchMode.externalApplication);
+                                      }
+                                    }
+                                  ),
+                              ]
+                            )),
+                            Spacing.height(12),
                             CustomizedText.bodySmall(S.of(context).soundCredit),
                           ],
                         ))

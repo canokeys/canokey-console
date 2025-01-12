@@ -50,6 +50,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "CanoKey Console 是 CanoKey 开源安全密钥的管理工具。"),
         "appletLocked": MessageLookupByLibrary.simpleMessage("该应用已被锁定"),
         "applets": MessageLookupByLibrary.simpleMessage("应用"),
+        "beforeSourceLink":
+            MessageLookupByLibrary.simpleMessage("可在 GitHub 获得源代码："),
         "browserNotSupported": MessageLookupByLibrary.simpleMessage("不支持该浏览器"),
         "cancel": MessageLookupByLibrary.simpleMessage("取消"),
         "change": MessageLookupByLibrary.simpleMessage("修改"),

@@ -285,5 +285,6 @@
   "settingsClearPinCachePrompt": "确定要清除此设备上所有已保存的 PIN 吗？",
   "passNotSupported": "您的 CanoKey 不支持 Pass 功能。",
   "appDescription": "CanoKey Console 是 CanoKey 开源安全密钥的管理工具。",
-  "soundCredit": "NFC 交互音效由 Summer Xu 制作。"
+  "soundCredit": "NFC 交互音效由 Summer Xu 制作。",
+  "beforeSourceLink": "可在 GitHub 获得源代码："
 }

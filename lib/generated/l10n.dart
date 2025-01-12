@@ -2149,6 +2149,16 @@ class S {
       args: [],
     );
   }
+
+  /// `Source code available on GitHub: `
+  String get beforeSourceLink {
+    return Intl.message(
+      'Source code available on GitHub: ',
+      name: 'beforeSourceLink',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
