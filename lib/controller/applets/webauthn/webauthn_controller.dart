@@ -97,25 +97,23 @@ class WebAuthnController extends PollingController {
     });
   }
 
-  delete(PublicKeyCredentialDescriptor credentialId) async {
+  Future<void> delete(PublicKeyCredentialDescriptor credentialId) async {
     await SmartCard.process((String sn) async {
       String? pinToTry = _loadPin(sn);
       if (pinToTry == null) {
-        await refreshData();
-        delete(credentialId);
+        Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
         return;
       }
 
-      String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
-      SmartCard.assertOK(resp);
-
+      SmartCard.assertOK(await SmartCard.transceive('00A4040008A0000006472F0001'));
       final cp = ClientPin(_ctap);
       final pinToken = await cp.getPinToken(pinToTry, permissions: [ClientPinPermission.credentialManagement]);
       final cm = CredentialManagement(_ctap, cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(), pinToken);
       await cm.deleteCredential(credentialId);
+      log.i('Successfully deleted credential');
 
       Navigator.pop(Get.context!);
-      Prompts.showPrompt(S.of(Get.context!).delete, ContentThemeColor.success);
+      Prompts.showPrompt(S.of(Get.context!).delete, ContentThemeColor.success, forceSnackBar: true);
       webAuthnItems.removeWhere((element) => element.credentialId == credentialId);
       update();
     });
@@ -138,17 +136,6 @@ class WebAuthnController extends PollingController {
   }
 
   Future<List<int>?> _getPinToken(String sn) async {
-    // try {
-    //   String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
-    //   SmartCard.assertOK(resp);
-    //   _ctap = await Ctap2.create(CtapTransimtter());
-    // } on PlatformException catch (e) {
-    //   if (e.code == '500') {
-    //     Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger);
-    //     return null;
-    //   }
-    //   rethrow;
-    // }
     String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
     SmartCard.assertOK(resp);
     _ctap = await Ctap2.create(CtapTransimtter());

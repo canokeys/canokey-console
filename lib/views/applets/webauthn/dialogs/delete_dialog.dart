@@ -1,4 +1,7 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/utils/ui_mixins.dart';
+import 'package:canokey_console/helper/widgets/base_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
@@ -6,7 +9,7 @@ import 'package:canokey_console/models/webauthn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class WebAuthnDeleteDialog extends StatelessWidget {
+class WebAuthnDeleteDialog extends BaseDialog with UIMixin {
   final WebAuthnItem item;
   final Function onDelete;
 
@@ -17,15 +20,19 @@ class WebAuthnDeleteDialog extends StatelessWidget {
   });
 
   static Future<void> show(WebAuthnItem item, Function onDelete) {
-    return Get.dialog(WebAuthnDeleteDialog(item: item, onDelete: onDelete));
+    return Get.dialog(WebAuthnDeleteDialog(item: item, onDelete: onDelete), barrierDismissible: false);
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      child: SizedBox(
-        width: 400,
-        child: Column(
+  State<WebAuthnDeleteDialog> createState() => _WebAuthnDeleteDialogState();
+}
+
+class _WebAuthnDeleteDialogState extends BaseDialogState<WebAuthnDeleteDialog> with UIMixin {
+  @override
+  Widget buildDialogContent() {
+    return SingleChildScrollView(
+      child: Obx(
+        () => Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -33,12 +40,18 @@ class WebAuthnDeleteDialog extends StatelessWidget {
               padding: Spacing.all(16),
               child: CustomizedText.labelLarge(S.of(context).delete),
             ),
-            Divider(height: 0, thickness: 1),
+            const Divider(height: 0, thickness: 1),
             Padding(
               padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(S.of(context).webauthnDelete('${item.userDisplayName} (${item.userName})')),
+              child: CustomizedText.labelLarge(S.of(context).webauthnDelete('${widget.item.userDisplayName} (${widget.item.userName})')),
             ),
-            Divider(height: 0, thickness: 1),
+            if (errorMessage.value.isNotEmpty)
+              Padding(
+                padding: Spacing.all(16),
+                child: CustomizedText.bodyMedium(errorMessage.value,
+                    color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color),
+              ),
+            const Divider(height: 0, thickness: 1),
             Padding(
               padding: Spacing.all(16),
               child: Row(
@@ -48,22 +61,19 @@ class WebAuthnDeleteDialog extends StatelessWidget {
                     onPressed: () => Navigator.pop(context),
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
-                    backgroundColor: Theme.of(context).colorScheme.secondary,
+                    backgroundColor: contentTheme.secondary,
                     child: CustomizedText.labelMedium(
                       S.of(context).cancel,
-                      color: Theme.of(context).colorScheme.onSecondary,
+                      color: contentTheme.onSecondary,
                     ),
                   ),
                   Spacing.width(16),
                   CustomizedButton.rounded(
-                    onPressed: () => onDelete(),
+                    onPressed: () => widget.onDelete(),
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                    child: CustomizedText.labelMedium(
-                      S.of(context).delete,
-                      color: Theme.of(context).colorScheme.onError,
-                    ),
+                    backgroundColor: contentTheme.danger,
+                    child: CustomizedText.labelMedium(S.of(context).delete, color: contentTheme.onDanger),
                   ),
                 ],
               ),
