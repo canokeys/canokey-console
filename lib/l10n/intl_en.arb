@@ -207,5 +207,7 @@
   "savePinOnDevice": "Save the PIN on this device",
   "settingsClearPinCache": "Clear Saved PINs",
   "settingsClearPinCachePrompt": "Are you sure you want to clear all saved PINs from this device?",
-  "passNotSupported": "Your CanoKey does not support Pass."
+  "passNotSupported": "Your CanoKey does not support Pass.",
+  "appDescription": "CanoKey Console is the console app for CanoKey, an open-source security key.",
+  "soundCredit": "Summer Xu is the author of NFC interaction sounds."
 }

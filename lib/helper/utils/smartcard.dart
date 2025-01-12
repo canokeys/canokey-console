@@ -69,6 +69,8 @@ class SmartCard {
 
   static Timer? _androidNfcTimer;
 
+  static int _lastFinishedTime = 0;
+
   static NfcState _nfcState = NfcState.mute;
   static NfcState get nfcState => _nfcState;
   static set nfcState(NfcState value) {
@@ -109,7 +111,7 @@ class SmartCard {
     while (true) {
       try {
         final tag = await FlutterNfcKit.poll(
-          timeout: const Duration(seconds: 10),
+          timeout: const Duration(seconds: 1),
           androidCheckNDEF: false,
           readIso14443B: false,
           readIso15693: false,
@@ -122,6 +124,10 @@ class SmartCard {
             log.t("[nfcHandler] Current state: $nfcState. Do nothing.");
 
           case NfcState.idle:
+            if (DateTime.now().millisecondsSinceEpoch - _lastFinishedTime < 2000) {
+              log.t("[nfcHandler] Current state: $nfcState. Too soon. Ignored.");
+              break;
+            }
             log.t("[nfcHandler] Current state: $nfcState. Next state: refresh.");
             await _player.play(AssetSource('audio/poll.aac'), mode: PlayerMode.lowLatency);
             Prompts.promptAndroidPolling();
@@ -154,7 +160,7 @@ class SmartCard {
       } catch (e) {
         log.e('[nfcHandler] Current state: $nfcState. Error polling NFC tag.', error: e);
       }
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future.delayed(const Duration(milliseconds: 100));
     }
   }
 
@@ -168,28 +174,28 @@ class SmartCard {
         case NfcState.mute:
         case NfcState.idle:
         case NfcState.input:
-          log.e("[startPollingNfcOrWebUsb] Tag should not be polled in $nfcState state.");
+          log.e("[pollNfcOrWebUsb] Tag should not be polled in $nfcState state.");
           return false;
 
         case NfcState.processWithoutInput:
         case NfcState.processWithInput:
-          log.t("[startPollingNfcOrWebUsb] Current state: $nfcState. Start polling.");
+          log.t("[pollNfcOrWebUsb] Current state: $nfcState. Start polling.");
           Prompts.promptAndroidPolling();
           _androidNfcCompleter = Completer<bool>();
           _androidNfcTimer = Timer(const Duration(seconds: 10), () {
             _androidNfcCompleter.complete(false);
             if (nfcState == NfcState.processWithoutInput) {
-              log.t("[startPollingNfcOrWebUsb] Current state: $nfcState. Timeout. Next state: idle.");
+              log.t("[pollNfcOrWebUsb] Current state: $nfcState. Timeout. Next state: idle.");
               nfcState = NfcState.idle;
             } else {
-              log.t("[startPollingNfcOrWebUsb] Current state: $nfcState. Timeout. Next state: input.");
+              log.t("[pollNfcOrWebUsb] Current state: $nfcState. Timeout. Next state: input.");
               nfcState = NfcState.input;
             }
           });
           return _androidNfcCompleter.future;
 
         case NfcState.refresh:
-          log.t("[startPollingNfcOrWebUsb] Current state: refresh. Tag has been polled.");
+          log.t("[pollNfcOrWebUsb] Current state: refresh. Tag has been polled.");
           return true;
       }
     } else {
@@ -203,6 +209,7 @@ class SmartCard {
       return;
     }
     if (isAndroidApp()) {
+      await Future.delayed(const Duration(milliseconds: 500));
       Prompts.stopPromptAndroidPolling();
       switch (nfcState) {
         case NfcState.mute:
@@ -229,6 +236,7 @@ class SmartCard {
           } else {
             log.t("[stopPollingNfc] Current state: $nfcState. Next state: idle.");
             nfcState = NfcState.idle;
+            _lastFinishedTime = DateTime.now().millisecondsSinceEpoch;
             await _player.play(AssetSource('audio/finish.aac'), mode: PlayerMode.lowLatency);
           }
       }
@@ -263,8 +271,10 @@ class SmartCard {
         await f(sn);
       } on PlatformException catch (e) {
         if (e.message?.contains('SecurityError') == true) {
+          // This is for WebUSB, handled by PollingController
           rethrow;
         }
+        Prompts.stopPromptAndroidPolling(); // Hide other prompts first
         // TODO: check error messages
         if (e.message == 'NotFoundError: No device selected.') {
           Prompts.showPrompt(S.of(Get.context!).pollCanceled, ContentThemeColor.danger);
@@ -272,6 +282,8 @@ class SmartCard {
           Prompts.showPrompt(S.of(Get.context!).networkError, ContentThemeColor.danger);
         } else if (e.message == 'SessionCanceled') {
           Prompts.showPrompt(S.of(Get.context!).pollCanceled, ContentThemeColor.danger);
+        } else if (e.code == '500') {
+          Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger);
         } else {
           Prompts.showPrompt(e.message ?? 'Unknown error', ContentThemeColor.danger);
         }

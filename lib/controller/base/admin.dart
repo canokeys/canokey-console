@@ -72,7 +72,7 @@ mixin AdminApplet {
           SmartCard.stopPollingNfc(withInput: true);
           log.e('_selectAndVerifyPin failed', error: e);
           if (e.code == '500') {
-            Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger, level: 'E');
+            Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger);
           }
         }
         if (verified) {

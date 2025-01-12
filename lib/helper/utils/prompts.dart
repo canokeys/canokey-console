@@ -72,7 +72,7 @@ class Prompts {
           Get.find<RxString>(tag: 'dialog_error').value = '';
         });
       } catch (e) {
-        log.d('Failed to find a dialog', error: e);
+        // log.d('Failed to find a dialog', error: e);
         SnackBar snackBar = SnackBar(
           behavior: SnackBarBehavior.floating,
           width: 300,
@@ -190,11 +190,10 @@ class Prompts {
     try {
       Get.find<RxBool>(tag: 'dialog_polling').value = true;
     } catch (e) {
-      log.d('Failed to find a dialog', error: e);
       _snackbarController = Get.snackbar(
         S.of(Get.context!).androidAlertTitle,
         S.of(Get.context!).readingAlertMessage,
-        icon: SpinKitHourGlass(color: Colors.tealAccent, size: 32.0),
+        icon: SpinKitRipple(color: Colors.tealAccent, size: 32.0),
         duration: const Duration(seconds: 99),
         backgroundColor: Colors.grey.withOpacity(0.8),
         snackPosition: SnackPosition.BOTTOM,
@@ -207,7 +206,7 @@ class Prompts {
     try {
       Get.find<RxBool>(tag: 'dialog_polling').value = false;
     } catch (e) {
-      log.d('Failed to find a dialog', error: e);
+      // ignore: empty_catches
     }
     try {
       _snackbarController.close();

@@ -15,7 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-
 class OtherSettingsCard extends StatefulWidget {
   const OtherSettingsCard({super.key});
 
@@ -23,9 +22,7 @@ class OtherSettingsCard extends StatefulWidget {
   State<OtherSettingsCard> createState() => _OtherSettingsCardState();
 }
 
-
 class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
-
   PackageInfo _packageInfo = PackageInfo(
     appName: 'Unknown',
     packageName: 'Unknown',
@@ -82,21 +79,25 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                 Spacing.height(16),
                 InfoItem(iconData: LucideIcons.pin, title: S.of(context).settingsClearPinCache, value: '', onTap: () => ClearPinCacheDialog.show()),
                 Spacing.height(16),
-                InfoItem(iconData: LucideIcons.info, title: S.of(context).about, value: '', onTap: () => showAboutDialog(
-                  context: context,
-                  applicationName: S.of(context).homeScreenTitle,
-                  applicationVersion: '${_packageInfo.version} / build ${_packageInfo.buildNumber}'.trim(),
-                  applicationIcon: Image.asset('assets/images/logo/logo_icon_dark.png', width: 75, height: 75),
-                  applicationLegalese: '© 2025 canokeys.org',
-                  children: [
-                    Padding(
-                      padding: Spacing.y(8),
-                      child: CustomizedText.bodyMedium('CanoKey Console is a web console for CanoKey, an open-source security key.'), // TODO: i18n
-                    ),
-                    Spacing.height(8),
-                    CustomizedText.bodySmall('Summer Xu is the author of NFC interaction sounds.'), // TODO: i18n
-                  ],
-                ))
+                InfoItem(
+                    iconData: LucideIcons.info,
+                    title: S.of(context).about,
+                    value: '',
+                    onTap: () => showAboutDialog(
+                          context: context,
+                          applicationName: S.of(context).homeScreenTitle,
+                          applicationVersion: '${_packageInfo.version} / build ${_packageInfo.buildNumber}'.trim(),
+                          applicationIcon: Image.asset('assets/images/logo/logo_icon_dark.png', width: 75, height: 75),
+                          applicationLegalese: '© 2025 canokeys.org',
+                          children: [
+                            Padding(
+                              padding: Spacing.y(8),
+                              child: CustomizedText.bodyMedium(S.of(context).appDescription),
+                            ),
+                            Spacing.height(8),
+                            CustomizedText.bodySmall(S.of(context).soundCredit),
+                          ],
+                        ))
               ],
             ),
           ),

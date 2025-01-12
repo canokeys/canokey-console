@@ -14,7 +14,6 @@ import 'package:convert/convert.dart';
 import 'package:fido2/fido2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
@@ -28,7 +27,7 @@ class WebAuthnController extends PollingController {
 
   @override
   Future<void> doRefreshData() async {
-    SmartCard.process((String sn) async {
+    await SmartCard.process((String sn) async {
       List<int>? pinToken = await _getPinToken(sn);
       if (pinToken == null) {
         return;
@@ -63,8 +62,8 @@ class WebAuthnController extends PollingController {
     });
   }
 
-  changePin(String newPin) {
-    SmartCard.process((String sn) async {
+  changePin(String newPin) async {
+    await SmartCard.process((String sn) async {
       String? pinToTry = _loadPin(sn);
       if (pinToTry == null) {
         await refreshData();
@@ -98,8 +97,8 @@ class WebAuthnController extends PollingController {
     });
   }
 
-  delete(PublicKeyCredentialDescriptor credentialId) {
-    SmartCard.process((String sn) async {
+  delete(PublicKeyCredentialDescriptor credentialId) async {
+    await SmartCard.process((String sn) async {
       String? pinToTry = _loadPin(sn);
       if (pinToTry == null) {
         await refreshData();
@@ -139,6 +138,17 @@ class WebAuthnController extends PollingController {
   }
 
   Future<List<int>?> _getPinToken(String sn) async {
+    // try {
+    //   String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
+    //   SmartCard.assertOK(resp);
+    //   _ctap = await Ctap2.create(CtapTransimtter());
+    // } on PlatformException catch (e) {
+    //   if (e.code == '500') {
+    //     Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger);
+    //     return null;
+    //   }
+    //   rethrow;
+    // }
     String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
     SmartCard.assertOK(resp);
     _ctap = await Ctap2.create(CtapTransimtter());
@@ -205,7 +215,7 @@ class WebAuthnController extends PollingController {
           SmartCard.stopPollingNfc(withInput: true);
           log.e('_doGetPinToken failed', error: e);
           if (e.code == '500') {
-            Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger, level: 'E');
+            Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger);
           }
         }
         if (pinToken != null) {
@@ -250,7 +260,7 @@ class WebAuthnController extends PollingController {
         Prompts.stopPromptAndroidPolling();
         try {
           // Set PIN and refresh by recreating Ctap2
-          String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
+          String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
           SmartCard.assertOK(resp);
           final cp = ClientPin(_ctap);
           await cp.setPin(pin);
@@ -259,7 +269,7 @@ class WebAuthnController extends PollingController {
           SmartCard.stopPollingNfc(withInput: true);
           log.e('setPin failed', error: e);
           if (e.code == '500') {
-            Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger, level: 'E');
+            Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger);
           }
         }
         await _setPinCache(sn, pin, savePin);
@@ -281,10 +291,10 @@ class WebAuthnController extends PollingController {
   }
 
   Future<List<int>?> _doGetPinToken(String pin) async {
-    String resp = await FlutterNfcKit.transceive('00A4040008A0000006472F0001');
-    SmartCard.assertOK(resp);
-    final cp = ClientPin(_ctap);
     try {
+      String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
+      SmartCard.assertOK(resp);
+      final cp = ClientPin(_ctap);
       return await cp.getPinToken(pin, permissions: [ClientPinPermission.credentialManagement]);
     } on CtapError catch (e) {
       if (e.status == CtapStatusCode.ctap2ErrPinInvalid) {

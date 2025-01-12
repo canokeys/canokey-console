@@ -56,6 +56,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Touch your CanoKey"),
         "androidPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
             "Tap your CanoKey or insert it into the USB port"),
+        "appDescription": MessageLookupByLibrary.simpleMessage(
+            "CanoKey Console is the console app for CanoKey, an open-source security key."),
         "appletLocked": MessageLookupByLibrary.simpleMessage(
             "This applet has been locked."),
         "applets": MessageLookupByLibrary.simpleMessage("Applets"),
@@ -333,6 +335,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("WebAuthn SM2"),
         "settingsWebUSB":
             MessageLookupByLibrary.simpleMessage("WebUSB prompt when plug-in"),
+        "soundCredit": MessageLookupByLibrary.simpleMessage(
+            "Summer Xu is the author of NFC interaction sounds."),
         "successfullyChanged":
             MessageLookupByLibrary.simpleMessage("Successfully changed"),
         "validationExactLength": m8,

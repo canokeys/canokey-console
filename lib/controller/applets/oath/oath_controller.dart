@@ -367,7 +367,7 @@ class OathController extends PollingController {
           SmartCard.stopPollingNfc(withInput: true);
           log.e('_verifyCode failed', error: e);
           if (e.code == '500') {
-            Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger, level: 'E');
+            Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger);
           }
         }
         if (verified) {

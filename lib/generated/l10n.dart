@@ -2129,6 +2129,26 @@ class S {
       args: [],
     );
   }
+
+  /// `CanoKey Console is the console app for CanoKey, an open-source security key.`
+  String get appDescription {
+    return Intl.message(
+      'CanoKey Console is the console app for CanoKey, an open-source security key.',
+      name: 'appDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Summer Xu is the author of NFC interaction sounds.`
+  String get soundCredit {
+    return Intl.message(
+      'Summer Xu is the author of NFC interaction sounds.',
+      name: 'soundCredit',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

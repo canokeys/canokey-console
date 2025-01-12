@@ -46,6 +46,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "androidAlertTitle": MessageLookupByLibrary.simpleMessage("读取 CanoKey"),
         "androidPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
             "请用手机背面触碰您的 CanoKey 或将其插入 USB 接口"),
+        "appDescription": MessageLookupByLibrary.simpleMessage(
+            "CanoKey Console 是 CanoKey 开源安全密钥的管理工具。"),
         "appletLocked": MessageLookupByLibrary.simpleMessage("该应用已被锁定"),
         "applets": MessageLookupByLibrary.simpleMessage("应用"),
         "browserNotSupported": MessageLookupByLibrary.simpleMessage("不支持该浏览器"),
@@ -277,6 +279,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsWebAuthnSm2Support":
             MessageLookupByLibrary.simpleMessage("WebAuthn SM2"),
         "settingsWebUSB": MessageLookupByLibrary.simpleMessage("插入时 WebUSB 提示"),
+        "soundCredit":
+            MessageLookupByLibrary.simpleMessage("NFC 交互音效由 Summer Xu 制作。"),
         "successfullyChanged": MessageLookupByLibrary.simpleMessage("修改成功"),
         "validationExactLength": m8,
         "validationHexString":
