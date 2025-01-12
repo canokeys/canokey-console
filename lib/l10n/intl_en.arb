@@ -84,7 +84,7 @@
   "settingsSN": "Serial Number",
   "settingsChipId": "Chip ID",
   "settingsInputPin": "PIN Verification",
-  "settingsInputPinPrompt": "Please input your PIN. The default value is 123456. This PIN is irrelevant to other applets.",
+  "settingsInputPinPrompt": "Please input your admin PIN. The default value is 123456. This PIN is irrelevant to other applets.",
   "settingsHotp": "Input HOTP when touching",
   "settingsWebUSB": "WebUSB prompt when plug-in",
   "settingsNDEF": "NFC Tag Mode (NDEF)",

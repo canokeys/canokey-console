@@ -108,7 +108,7 @@
   "settingsSN": "序号",
   "settingsChipId": "芯片 ID",
   "settingsInputPin": "PIN 验证",
-  "settingsInputPinPrompt": "请输入您的 PIN（默认值为 123456）。请注意，该 PIN 与其他应用的 PIN 无关。",
+  "settingsInputPinPrompt": "请输入您的管理应用 PIN（默认值为 123456）。请注意，该 PIN 与其他应用的 PIN 无关。",
   "settingsHotp": "触摸时输出 HOTP",
   "settingsWebUSB": "插入时 WebUSB 提示",
   "settingsNDEF": "NFC 标签模式 (NDEF)",

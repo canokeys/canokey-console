@@ -247,7 +247,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsInfo": MessageLookupByLibrary.simpleMessage("CanoKey 信息"),
         "settingsInputPin": MessageLookupByLibrary.simpleMessage("PIN 验证"),
         "settingsInputPinPrompt": MessageLookupByLibrary.simpleMessage(
-            "请输入您的 PIN（默认值为 123456）。请注意，该 PIN 与其他应用的 PIN 无关。"),
+            "请输入您的管理应用 PIN（默认值为 123456）。请注意，该 PIN 与其他应用的 PIN 无关。"),
         "settingsKeyboardWithReturn":
             MessageLookupByLibrary.simpleMessage("OTP 输出后附加回车"),
         "settingsLanguage": MessageLookupByLibrary.simpleMessage("语言"),

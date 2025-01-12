@@ -890,10 +890,10 @@ class S {
     );
   }
 
-  /// `Please input your PIN. The default value is 123456. This PIN is irrelevant to other applets.`
+  /// `Please input your admin PIN. The default value is 123456. This PIN is irrelevant to other applets.`
   String get settingsInputPinPrompt {
     return Intl.message(
-      'Please input your PIN. The default value is 123456. This PIN is irrelevant to other applets.',
+      'Please input your admin PIN. The default value is 123456. This PIN is irrelevant to other applets.',
       name: 'settingsInputPinPrompt',
       desc: '',
       args: [],

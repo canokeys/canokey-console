@@ -298,7 +298,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsInputPin":
             MessageLookupByLibrary.simpleMessage("PIN Verification"),
         "settingsInputPinPrompt": MessageLookupByLibrary.simpleMessage(
-            "Please input your PIN. The default value is 123456. This PIN is irrelevant to other applets."),
+            "Please input your admin PIN. The default value is 123456. This PIN is irrelevant to other applets."),
         "settingsKeyboardWithReturn": MessageLookupByLibrary.simpleMessage(
             "The output of OTP value comes with enter"),
         "settingsLanguage": MessageLookupByLibrary.simpleMessage("Language"),

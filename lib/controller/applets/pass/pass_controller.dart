@@ -22,7 +22,7 @@ class PassController extends PollingController with AdminApplet {
 
   @override
   Future<void> doRefreshData() async {
-    SmartCard.process((String sn) async {
+    await SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));
 
       // read firmware version
@@ -40,24 +40,15 @@ class PassController extends PollingController with AdminApplet {
         return;
       }
 
-      // read pass configurations
-      resp = await SmartCard.transceive('0043000000');
-      SmartCard.assertOK(resp);
-
-      slots = PassSlot.fromData(SmartCard.dropSW(resp));
-      assert(slots.length == 2);
-      polled = true;
-
-      update();
+      await _refresh();
     });
   }
 
-  void setSlot(int index, PassSlotType type, String password, bool withEnter) {
-    SmartCard.process((String sn) async {
+  Future<void> setSlot(int index, PassSlotType type, String password, bool withEnter) async {
+    await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
         return;
       }
-      Navigator.pop(Get.context!);
 
       String capduData = '';
       if (type == PassSlotType.none) {
@@ -68,11 +59,26 @@ class PassController extends PollingController with AdminApplet {
         log.w('unsupported slot type');
         return;
       }
-      await SmartCard.transceive('0044${index == short ? '01' : '02'}00${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
-      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
+      SmartCard.assertOK(
+          await SmartCard.transceive('0044${index == short ? '01' : '02'}00${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
+      log.i('Successfully changed slot');
 
-      refreshData();
+      Navigator.pop(Get.context!);
+      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success, forceSnackBar: true);
+
+      await _refresh();
     });
+  }
+
+  Future<void> _refresh() async {
+    String resp = await SmartCard.transceive('0043000000');
+    SmartCard.assertOK(resp);
+
+    slots = PassSlot.fromData(SmartCard.dropSW(resp));
+    assert(slots.length == 2);
+    polled = true;
+
+    update();
   }
 
   static int short = 1;
