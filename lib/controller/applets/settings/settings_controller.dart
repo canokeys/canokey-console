@@ -28,123 +28,37 @@ class SettingsController extends PollingController with AdminApplet {
         return;
       }
 
-      String resp = await SmartCard.transceive('0031000000');
-      SmartCard.assertOK(resp);
-      String firmwareVersion = String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
-      resp = await SmartCard.transceive('0031010000');
-      SmartCard.assertOK(resp);
-      String model = String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
-      resp = await SmartCard.transceive('0032010000');
-      SmartCard.assertOK(resp);
-      String chipId = SmartCard.dropSW(resp).toUpperCase();
-
-      // read configurations
-      FunctionSetVersion functionSetVersion = CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
-      bool ledOn = false;
-      bool hotpOn = false;
-      bool ndefReadonly = false;
-      bool ndefEnabled = false;
-      bool webusbLandingEnabled = false;
-      bool keyboardWithReturn = false;
-      bool sigTouch = false;
-      bool decTouch = false;
-      bool autTouch = false;
-      int cacheTime = 0;
-      bool nfcEnabled = true;
-      resp = await SmartCard.transceive('0042000000');
-      SmartCard.assertOK(resp);
-      switch (functionSetVersion) {
-        case FunctionSetVersion.v1:
-          ledOn = resp.substring(0, 2) == '01';
-          hotpOn = resp.substring(2, 4) == '01';
-          ndefReadonly = resp.substring(4, 6) == '01';
-          sigTouch = resp.substring(6, 8) == '01';
-          decTouch = resp.substring(8, 10) == '01';
-          autTouch = resp.substring(10, 12) == '01';
-          cacheTime = int.parse(resp.substring(12, 14), radix: 16);
-          break;
-        case FunctionSetVersion.v2:
-          ledOn = resp.substring(0, 2) == '01';
-          hotpOn = resp.substring(2, 4) == '01';
-          ndefReadonly = resp.substring(4, 6) == '01';
-          ndefEnabled = resp.substring(6, 8) == '01';
-          webusbLandingEnabled = resp.substring(8, 10) == '01';
-          break;
-        case FunctionSetVersion.v3:
-          ledOn = resp.substring(0, 2) == '01';
-          hotpOn = resp.substring(2, 4) == '01';
-          ndefReadonly = resp.substring(4, 6) == '01';
-          ndefEnabled = resp.substring(6, 8) == '01';
-          webusbLandingEnabled = resp.substring(8, 10) == '01';
-          keyboardWithReturn = resp.substring(10, 12) == '01';
-          break;
-        case FunctionSetVersion.v4:
-          ledOn = resp.substring(0, 2) == '01';
-          ndefReadonly = resp.substring(4, 6) == '01';
-          ndefEnabled = resp.substring(6, 8) == '01';
-          webusbLandingEnabled = resp.substring(8, 10) == '01';
-          resp = await SmartCard.transceive('0014000000');
-          SmartCard.assertOK(resp);
-          nfcEnabled = resp.substring(0, 2) == '01';
-          break;
-      }
-
-      key = CanoKey(
-          model: model,
-          sn: sn,
-          chipId: chipId,
-          firmwareVersion: firmwareVersion,
-          functionSetVersion: functionSetVersion,
-          ledOn: ledOn,
-          hotpOn: hotpOn,
-          ndefReadonly: ndefReadonly,
-          ndefEnabled: ndefEnabled,
-          webusbLandingEnabled: webusbLandingEnabled,
-          keyboardWithReturn: keyboardWithReturn,
-          sigTouch: sigTouch,
-          decTouch: decTouch,
-          autTouch: autTouch,
-          touchCacheTime: cacheTime,
-          nfcEnabled: nfcEnabled);
-
-      if (key.getFunctionSet().contains(Func.webAuthnSm2Support)) {
-        resp = await SmartCard.transceive('0011000000');
-        SmartCard.assertOK(resp);
-        key.webAuthnSm2Config = WebAuthnSm2Config(
-          enabled: resp.substring(0, 2) == '01',
-          curveId: Int32.parseHex(resp.substring(2, 10)).toInt(),
-          algoId: Int32.parseHex(resp.substring(10, 18)).toInt(),
-        );
-      }
-
-      polled = true;
-
-      update();
+      await _refresh(sn);
     });
   }
 
-  void changeSwitch(Func func, bool value) {
-    SmartCard.process((String sn) async {
+  void changeSwitch(Func func, bool value) async {
+    await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
         return;
       }
 
       SmartCard.assertOK(await SmartCard.transceive(_changeSwitchAPDUs[func][value]));
-      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
-      await refreshData();
+      log.i('Successfully changed ${func.name}');
+      Navigator.pop(Get.context!);
+
+      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success, forceSnackBar: true);
+      await _refresh(sn);
     });
   }
 
-  void changePin(String newPin) {
-    SmartCard.process((String sn) async {
+  Future<void> changePin(String newPin, bool savePin) async {
+    await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
         return;
       }
 
       SmartCard.assertOK(await SmartCard.transceive('00210000${newPin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(newPin.codeUnits)}'));
-      Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
+      log.i('Successfully changed PIN');
+      Navigator.pop(Get.context!);
+      Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success, forceSnackBar: true);
 
-      updatePinCache(sn, newPin);
+      await updatePinCache(sn, newPin, savePin);
     });
   }
 
@@ -192,6 +106,101 @@ class SettingsController extends PollingController with AdminApplet {
       Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
       await refreshData();
     });
+  }
+
+  Future<void> _refresh(String sn) async {
+    String resp = await SmartCard.transceive('0031000000');
+    SmartCard.assertOK(resp);
+    String firmwareVersion = String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
+    resp = await SmartCard.transceive('0031010000');
+    SmartCard.assertOK(resp);
+    String model = String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
+    resp = await SmartCard.transceive('0032010000');
+    SmartCard.assertOK(resp);
+    String chipId = SmartCard.dropSW(resp).toUpperCase();
+
+    // read configurations
+    FunctionSetVersion functionSetVersion = CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
+    bool ledOn = false;
+    bool hotpOn = false;
+    bool ndefReadonly = false;
+    bool ndefEnabled = false;
+    bool webusbLandingEnabled = false;
+    bool keyboardWithReturn = false;
+    bool sigTouch = false;
+    bool decTouch = false;
+    bool autTouch = false;
+    int cacheTime = 0;
+    bool nfcEnabled = true;
+    resp = await SmartCard.transceive('0042000000');
+    SmartCard.assertOK(resp);
+    switch (functionSetVersion) {
+      case FunctionSetVersion.v1:
+        ledOn = resp.substring(0, 2) == '01';
+        hotpOn = resp.substring(2, 4) == '01';
+        ndefReadonly = resp.substring(4, 6) == '01';
+        sigTouch = resp.substring(6, 8) == '01';
+        decTouch = resp.substring(8, 10) == '01';
+        autTouch = resp.substring(10, 12) == '01';
+        cacheTime = int.parse(resp.substring(12, 14), radix: 16);
+        break;
+      case FunctionSetVersion.v2:
+        ledOn = resp.substring(0, 2) == '01';
+        hotpOn = resp.substring(2, 4) == '01';
+        ndefReadonly = resp.substring(4, 6) == '01';
+        ndefEnabled = resp.substring(6, 8) == '01';
+        webusbLandingEnabled = resp.substring(8, 10) == '01';
+        break;
+      case FunctionSetVersion.v3:
+        ledOn = resp.substring(0, 2) == '01';
+        hotpOn = resp.substring(2, 4) == '01';
+        ndefReadonly = resp.substring(4, 6) == '01';
+        ndefEnabled = resp.substring(6, 8) == '01';
+        webusbLandingEnabled = resp.substring(8, 10) == '01';
+        keyboardWithReturn = resp.substring(10, 12) == '01';
+        break;
+      case FunctionSetVersion.v4:
+        ledOn = resp.substring(0, 2) == '01';
+        ndefReadonly = resp.substring(4, 6) == '01';
+        ndefEnabled = resp.substring(6, 8) == '01';
+        webusbLandingEnabled = resp.substring(8, 10) == '01';
+        resp = await SmartCard.transceive('0014000000');
+        SmartCard.assertOK(resp);
+        nfcEnabled = resp.substring(0, 2) == '01';
+        break;
+    }
+
+    key = CanoKey(
+        model: model,
+        sn: sn,
+        chipId: chipId,
+        firmwareVersion: firmwareVersion,
+        functionSetVersion: functionSetVersion,
+        ledOn: ledOn,
+        hotpOn: hotpOn,
+        ndefReadonly: ndefReadonly,
+        ndefEnabled: ndefEnabled,
+        webusbLandingEnabled: webusbLandingEnabled,
+        keyboardWithReturn: keyboardWithReturn,
+        sigTouch: sigTouch,
+        decTouch: decTouch,
+        autTouch: autTouch,
+        touchCacheTime: cacheTime,
+        nfcEnabled: nfcEnabled);
+
+    if (key.getFunctionSet().contains(Func.webAuthnSm2Support)) {
+      resp = await SmartCard.transceive('0011000000');
+      SmartCard.assertOK(resp);
+      key.webAuthnSm2Config = WebAuthnSm2Config(
+        enabled: resp.substring(0, 2) == '01',
+        curveId: Int32.parseHex(resp.substring(2, 10)).toInt(),
+        algoId: Int32.parseHex(resp.substring(10, 18)).toInt(),
+      );
+    }
+
+    polled = true;
+
+    update();
   }
 
   final Map _changeSwitchAPDUs = {

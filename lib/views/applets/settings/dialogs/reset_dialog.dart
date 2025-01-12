@@ -14,9 +14,18 @@ class ResetDialog extends BaseDialog with UIMixin {
   final Function resetCanokey;
   final Function(Applet applet) resetApplet;
 
-  const ResetDialog({super.key, this.applet, required this.resetCanokey, required this.resetApplet});
+  const ResetDialog({
+    super.key,
+    this.applet,
+    required this.resetCanokey,
+    required this.resetApplet,
+  });
 
-  static Future<void> show({Applet? applet, required Function resetCanokey, required Function(Applet applet) resetApplet}) {
+  static Future<void> show({
+    Applet? applet,
+    required Function resetCanokey,
+    required Function(Applet applet) resetApplet,
+  }) {
     return Get.dialog(
       ResetDialog(
         applet: applet,

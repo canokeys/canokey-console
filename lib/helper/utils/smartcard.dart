@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/utils/audio.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:ccid/ccid.dart' if (dart.library.html) 'package:canokey_console/helper/ccid_dummy.dart';
@@ -49,18 +49,14 @@ enum NfcState {
   mute, // When USB is connected, NFC should be muted and not be polled
   refresh,
   idle,
-  // pollWithoutInput,
   processWithoutInput,
   input,
-  // pollWithInput,
   processWithInput,
 }
 
 typedef RefreshCallback = Future<void> Function();
 
 class SmartCard {
-  static final AudioPlayer _player = AudioPlayer();
-
   static String _currentSN = '';
 
   static CcidCard? _ccidCard;
@@ -111,7 +107,7 @@ class SmartCard {
     while (true) {
       try {
         final tag = await FlutterNfcKit.poll(
-          timeout: const Duration(seconds: 1),
+          timeout: const Duration(seconds: 10),
           androidCheckNDEF: false,
           readIso14443B: false,
           readIso15693: false,
@@ -129,7 +125,7 @@ class SmartCard {
               break;
             }
             log.t("[nfcHandler] Current state: $nfcState. Next state: refresh.");
-            await _player.play(AssetSource('audio/poll.aac'), mode: PlayerMode.lowLatency);
+            Audio.poll();
             Prompts.promptAndroidPolling();
             nfcState = NfcState.refresh;
             if (refreshHandler != null) {
@@ -145,7 +141,7 @@ class SmartCard {
             log.t("[nfcHandler] Current state: $nfcState. Continue to process.");
             _androidNfcTimer?.cancel();
             _androidNfcCompleter.complete(true);
-            await _player.play(AssetSource('audio/poll.aac'), mode: PlayerMode.lowLatency);
+            Audio.poll();
         }
       } on PlatformException catch (e) {
         if (e.code == '408') {
@@ -209,32 +205,32 @@ class SmartCard {
       Prompts.stopPromptAndroidPolling();
       switch (nfcState) {
         case NfcState.mute:
-        case NfcState.input:
           log.e("[stopPollingNfc] Current state: $nfcState. Tag should not be polled.");
 
         case NfcState.idle:
           log.t("[stopPollingNfc] Current state: $nfcState. Do nothing.");
+        // _lastFinishedTime = DateTime.now().millisecondsSinceEpoch;
+        // Audio.finish();
 
         case NfcState.processWithoutInput:
           log.t("[stopPollingNfc] Current state: $nfcState. Next state: idle.");
           nfcState = NfcState.idle;
-          await _player.play(AssetSource('audio/finish.aac'), mode: PlayerMode.lowLatency);
+          Audio.finish();
 
         case NfcState.processWithInput:
           log.t("[stopPollingNfc] Current state: $nfcState. Next state: input.");
           nfcState = NfcState.input;
 
-        case NfcState.refresh:
-          if (withInput) {
-            // CHECKED CASE
-            log.t("[stopPollingNfc] Current state: $nfcState. Next state: input.");
-            nfcState = NfcState.input;
-          } else {
-            log.t("[stopPollingNfc] Current state: $nfcState. Next state: idle.");
-            nfcState = NfcState.idle;
-            _lastFinishedTime = DateTime.now().millisecondsSinceEpoch;
-            await _player.play(AssetSource('audio/finish.aac'), mode: PlayerMode.lowLatency);
-          }
+        case NfcState.input: // CHECKED CASE
+          log.t("[stopPollingNfc] Current state: $nfcState. Do nothing.");
+          _lastFinishedTime = DateTime.now().millisecondsSinceEpoch;
+          Audio.finish();
+
+        case NfcState.refresh: // CHECKED CASE
+          log.t("[stopPollingNfc] Current state: $nfcState. Next state: idle.");
+          nfcState = NfcState.idle;
+          _lastFinishedTime = DateTime.now().millisecondsSinceEpoch;
+          Audio.finish();
       }
     } else {
       await FlutterNfcKit.finish();
@@ -287,7 +283,7 @@ class SmartCard {
           Prompts.showPrompt(e.message ?? 'Unknown error', ContentThemeColor.danger);
         }
         if (isAndroidApp()) {
-          await _player.play(AssetSource('audio/error.aac'), mode: PlayerMode.lowLatency);
+          Audio.error();
           switch (nfcState) {
             case NfcState.refresh:
               log.t("[process] Current state: refresh. Communication error. Next state: idle.");

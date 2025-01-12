@@ -87,89 +87,91 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
 
   @override
   Widget buildDialogContent() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: Spacing.all(16),
-          child: CustomizedText.labelLarge(widget.title),
-        ),
-        Divider(height: 0, thickness: 1),
-        Padding(
-          padding: Spacing.all(16),
-          child: CustomizedText.bodyMedium(widget.prompt),
-        ),
-        Divider(height: 0, thickness: 1),
-        Padding(
-          padding: Spacing.all(16),
-          child: Column(
-            children: [
-              Form(
-                key: _validator.formKey,
-                child: Obx(() => TextFormField(
-                      autofocus: true,
-                      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                      onTap: SmartCard.eject,
-                      obscureText: !_showPin.value,
-                      controller: _validator.getController('pin'),
-                      validator: _validator.getValidator('pin'),
-                      onFieldSubmitted: (_) => _onSubmit(),
-                      decoration: InputDecoration(
-                        labelText: widget.label,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                          borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onSurface.withAlpha(80)),
-                        ),
-                        floatingLabelBehavior: FloatingLabelBehavior.auto,
-                        suffixIcon: IconButton(
-                          icon: Icon(_showPin.value ? Icons.visibility : Icons.visibility_off),
-                          onPressed: () => _showPin.toggle(),
-                        ),
+    return Obx(
+      () => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: Spacing.all(16),
+            child: CustomizedText.labelLarge(widget.title),
+          ),
+          Divider(height: 0, thickness: 1),
+          Padding(
+            padding: Spacing.all(16),
+            child: CustomizedText.bodyMedium(widget.prompt),
+          ),
+          Divider(height: 0, thickness: 1),
+          Padding(
+            padding: Spacing.all(16),
+            child: Column(
+              children: [
+                Form(
+                  key: _validator.formKey,
+                  child: TextFormField(
+                    autofocus: true,
+                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    onTap: SmartCard.eject,
+                    obscureText: !_showPin.value,
+                    controller: _validator.getController('pin'),
+                    validator: _validator.getValidator('pin'),
+                    onFieldSubmitted: (_) => _onSubmit(),
+                    decoration: InputDecoration(
+                      labelText: widget.label,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                        borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onSurface.withAlpha(80)),
                       ),
-                    )),
-              ),
-              if (widget.showSaveOption) ...[
-                Obx(() => CheckboxListTile(
-                      value: _savePin.value,
-                      onChanged: (value) => _savePin.value = value!,
-                      title: CustomizedText.bodyMedium(S.of(context).savePinOnDevice),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: EdgeInsets.zero,
-                    )),
+                      floatingLabelBehavior: FloatingLabelBehavior.auto,
+                      suffixIcon: IconButton(
+                        icon: Icon(_showPin.value ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () => _showPin.toggle(),
+                      ),
+                    ),
+                  ),
+                ),
+                if (widget.showSaveOption)
+                  CheckboxListTile(
+                    value: _savePin.value,
+                    onChanged: (value) => _savePin.value = value!,
+                    title: CustomizedText.bodyMedium(S.of(context).savePinOnDevice),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                if (errorMessage.value.isNotEmpty)
+                  CustomizedText.bodyMedium(errorMessage.value,
+                      color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color),
               ],
-              Obx(() => CustomizedText.bodyMedium(errorMessage.value,
-                  color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color)),
-            ],
+            ),
           ),
-        ),
-        Divider(height: 0, thickness: 1),
-        Padding(
-          padding: Spacing.all(16),
-          child: Row(
-            children: [
-              CustomizedButton.rounded(
-                onPressed: () async {
-                  Navigator.pop(Get.context!);
-                  await widget.onCancel();
-                },
-                elevation: 0,
-                padding: Spacing.xy(20, 16),
-                backgroundColor: ContentThemeColor.secondary.color,
-                child: CustomizedText.labelMedium(S.of(Get.context!).cancel, color: ContentThemeColor.secondary.onColor),
-              ),
-              Spacing.width(16),
-              CustomizedButton.rounded(
-                onPressed: _onSubmit,
-                elevation: 0,
-                padding: Spacing.xy(20, 16),
-                backgroundColor: ContentThemeColor.primary.color,
-                child: CustomizedText.labelMedium(S.of(Get.context!).confirm, color: ContentThemeColor.primary.onColor),
-              ),
-            ],
+          Divider(height: 0, thickness: 1),
+          Padding(
+            padding: Spacing.all(16),
+            child: Row(
+              children: [
+                CustomizedButton.rounded(
+                  onPressed: () async {
+                    Navigator.pop(Get.context!);
+                    await widget.onCancel();
+                  },
+                  elevation: 0,
+                  padding: Spacing.xy(20, 16),
+                  backgroundColor: ContentThemeColor.secondary.color,
+                  child: CustomizedText.labelMedium(S.of(Get.context!).cancel, color: ContentThemeColor.secondary.onColor),
+                ),
+                Spacing.width(16),
+                CustomizedButton.rounded(
+                  onPressed: _onSubmit,
+                  elevation: 0,
+                  padding: Spacing.xy(20, 16),
+                  backgroundColor: ContentThemeColor.primary.color,
+                  child: CustomizedText.labelMedium(S.of(Get.context!).confirm, color: ContentThemeColor.primary.onColor),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

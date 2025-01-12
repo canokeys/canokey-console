@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/utils/audio.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
@@ -62,6 +63,7 @@ mixin AdminApplet {
         if (!await SmartCard.pollNfcOrWebUsb()) {
           Prompts.stopPromptAndroidPolling();
           Prompts.showPrompt(S.of(Get.context!).noCard, ContentThemeColor.warning, level: 'W');
+          Audio.error();
           return; // timeout, do not close the dialog
         }
         Prompts.stopPromptAndroidPolling();
@@ -73,14 +75,12 @@ mixin AdminApplet {
           log.e('_selectAndVerifyPin failed', error: e);
           if (e.code == '500') {
             Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger);
+            Audio.error();
           }
         }
         if (verified) {
           log.t('PIN verified');
-          _localPinCache[sn] = pin;
-          if (savePin) {
-            await LocalStorage.setPinCache(sn, _tag, pin);
-          }
+          await updatePinCache(sn, pin, savePin);
           completer.complete(true);
           // Since PIN has been cached, if error happens, we don't need to re-prompt
           SmartCard.nfcState = NfcState.processWithoutInput;
@@ -96,10 +96,10 @@ mixin AdminApplet {
     return await completer.future;
   }
 
-  Future<void> updatePinCache(String sn, String newPin) async {
-    _localPinCache[sn] = newPin;
-    if (LocalStorage.getPinCache(sn, _tag) != null) {
-      await LocalStorage.setPinCache(sn, _tag, newPin);
+  Future<void> updatePinCache(String sn, String pin, bool savePin) async {
+    _localPinCache[sn] = pin;
+    if (savePin) {
+      await LocalStorage.setPinCache(sn, _tag, pin);
     }
   }
 
