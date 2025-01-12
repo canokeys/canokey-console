@@ -319,6 +319,4 @@ class PivController extends Controller {
     0x82: 0x0D,
     0x83: 0x0E,
   };
-
-  final String _tag = 'PIV';
 }
