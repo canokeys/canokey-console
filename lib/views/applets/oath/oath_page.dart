@@ -74,7 +74,7 @@ class _OathPageState extends State<OathPage> with UIMixin {
         init: controller,
         builder: (_) => TopActions(
           controller: controller,
-          onQrScan: () => QrScannerDialog.show(onQrCodeScanned: (value) => controller.addUri(value)),
+          onQrScan: () => QrScannerDialog.show(onQrCodeScanned: (value) => controller.parseUri(value)),
           onScreenCapture: _showScreenCapture,
           onManualAdd: () => AddAccountDialog.show(controller.addAccount),
         ),
@@ -151,7 +151,7 @@ class _OathPageState extends State<OathPage> with UIMixin {
       final start = DateTime.now();
       final result = decodePngQrcode(pngFile: buffer.asUint8List());
       log.i('Rust decodePngQrcode took: ${DateTime.now().difference(start).inMilliseconds}ms');
-      controller.addUri(result);
+      controller.parseUri(result);
     } catch (e) {
       log.w('Rust decodePngQrcode error: $e');
       if (mounted) {

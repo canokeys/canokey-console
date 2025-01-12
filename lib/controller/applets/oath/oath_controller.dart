@@ -63,49 +63,12 @@ class OathController extends PollingController {
         return;
       }
 
-      String resp;
-      int challenge = DateTime.now().millisecondsSinceEpoch ~/ 30000;
-      String challengeStr = challenge.toRadixString(16).padLeft(16, '0');
-      if (version == OathVersion.legacy) {
-        resp = await _transceive('000500000A7408$challengeStr');
-      } else {
-        resp = await _transceive('00A400010A7408$challengeStr');
-      }
-      SmartCard.assertOK(resp);
-      List<int> data = hex.decode(SmartCard.dropSW(resp));
-      polled = true;
-
-      var items = _parse(data);
-      // update oathMap with items
-      for (var item in items) {
-        if (oathMap.containsKey(item.name)) {
-          // only update code
-          if (item.code.isNotEmpty) {
-            oathMap[item.name]!.code = item.code;
-          }
-        } else {
-          oathMap[item.name] = item;
-        }
-      }
-      // find names to remove
-      List<String> toRemove = [];
-      for (var name in oathMap.keys) {
-        if (!items.any((element) => element.name == name)) {
-          toRemove.add(name);
-        }
-      }
-      // remove items by names
-      for (var name in toRemove) {
-        oathMap.remove(name);
-      }
-
-      _startTimer();
-      update();
+      await _refresh();
     });
   }
 
-  void addAccount(String name, String secretHex, OathType type, OathAlgorithm algo, int digits, bool requireTouch, int initValue) {
-    SmartCard.process((String sn) async {
+  Future<void> addAccount(String name, String secretHex, OathType type, OathAlgorithm algo, int digits, bool requireTouch, int initValue) async {
+    await SmartCard.process((String sn) async {
       if (!await _authenticate(sn)) {
         return;
       }
@@ -131,15 +94,16 @@ class OathController extends PollingController {
 
       String resp = await _transceive('00010000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
       if (resp == '6985') {
-        Navigator.pop(Get.context!);
         Prompts.showPrompt(S.of(Get.context!).oathDuplicated, ContentThemeColor.danger);
         return;
       }
       SmartCard.assertOK(resp);
+      log.i('Successfully added $name');
 
       Navigator.pop(Get.context!);
-      Prompts.showPrompt(S.of(Get.context!).oathAdded, ContentThemeColor.success);
-      await refreshData();
+      Prompts.showPrompt(S.of(Get.context!).oathAdded, ContentThemeColor.success, forceSnackBar: true);
+
+      await _refresh();
     });
   }
 
@@ -206,8 +170,8 @@ class OathController extends PollingController {
     return code;
   }
 
-  void delete(String name) {
-    SmartCard.process((String sn) async {
+  Future<void> delete(String name) async {
+    await SmartCard.process((String sn) async {
       if (!await _authenticate(sn)) {
         return;
       }
@@ -215,10 +179,11 @@ class OathController extends PollingController {
       List<int> nameBytes = utf8.encode(name);
       String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
       SmartCard.assertOK(await _transceive('00020000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
+      log.i('Successfully deleted $name');
 
       Navigator.pop(Get.context!);
-      Prompts.showPrompt(S.of(Get.context!).deleted, ContentThemeColor.success);
-      await refreshData();
+      Prompts.showPrompt(S.of(Get.context!).deleted, ContentThemeColor.success, forceSnackBar: true);
+      await _refresh();
     });
   }
 
@@ -250,7 +215,7 @@ class OathController extends PollingController {
     });
   }
 
-  void addUri(String keyUri) {
+  void parseUri(String keyUri) {
     final uri = Uri.parse(keyUri);
     if (uri.scheme != 'otpauth') {
       return;
@@ -473,6 +438,47 @@ class OathController extends PollingController {
         return result + sw;
       }
     }
+  }
+
+  Future<void> _refresh() async {
+    String resp;
+    int challenge = DateTime.now().millisecondsSinceEpoch ~/ 30000;
+    String challengeStr = challenge.toRadixString(16).padLeft(16, '0');
+    if (version == OathVersion.legacy) {
+      resp = await _transceive('000500000A7408$challengeStr');
+    } else {
+      resp = await _transceive('00A400010A7408$challengeStr');
+    }
+    SmartCard.assertOK(resp);
+    List<int> data = hex.decode(SmartCard.dropSW(resp));
+    polled = true;
+
+    var items = _parse(data);
+    // update oathMap with items
+    for (var item in items) {
+      if (oathMap.containsKey(item.name)) {
+        // only update code
+        if (item.code.isNotEmpty) {
+          oathMap[item.name]!.code = item.code;
+        }
+      } else {
+        oathMap[item.name] = item;
+      }
+    }
+    // find names to remove
+    List<String> toRemove = [];
+    for (var name in oathMap.keys) {
+      if (!items.any((element) => element.name == name)) {
+        toRemove.add(name);
+      }
+    }
+    // remove items by names
+    for (var name in toRemove) {
+      oathMap.remove(name);
+    }
+
+    _startTimer();
+    update();
   }
 
   _startTimer() {

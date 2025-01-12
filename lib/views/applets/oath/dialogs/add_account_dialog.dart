@@ -2,8 +2,10 @@ import 'dart:convert';
 
 import 'package:base32/base32.dart';
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
+import 'package:canokey_console/helper/widgets/base_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
@@ -13,12 +15,7 @@ import 'package:canokey_console/models/oath.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AddAccountDialog extends StatelessWidget with UIMixin {
-  static const _kDialogWidth = 400.0;
-  static const _kPadding = 16.0;
-  static const _kLabelWidth = 90.0;
-  static const _kValidDigits = [6, 7, 8];
-
+class AddAccountDialog extends BaseDialog with UIMixin {
   final Function(String name, String secretHex, OathType type, OathAlgorithm algo, int digits, bool touch, int initValue) onAddAccount;
   final String? initialIssuer;
   final String? initialAccount;
@@ -66,103 +63,93 @@ class AddAccountDialog extends StatelessWidget with UIMixin {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final formData = _OathFormData.initialize(
-      initialIssuer: initialIssuer,
-      initialAccount: initialAccount,
-      initialSecret: initialSecret,
-      initialCounter: initialCounter,
-      initialType: initialType,
-      initialAlgorithm: initialAlgorithm,
-      initialDigits: initialDigits,
-    );
+  State<AddAccountDialog> createState() => _AddAccountDialogState();
+}
 
-    return Dialog(
-      child: SizedBox(
-        width: _kDialogWidth,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(context),
-              const Divider(height: 0, thickness: 1),
-              _buildForm(context, formData),
-              const Divider(height: 0, thickness: 1),
-              _buildActions(context, formData),
-            ],
-          ),
-        ),
-      ),
+class _AddAccountDialogState extends BaseDialogState<AddAccountDialog> with UIMixin {
+  static const _kPadding = 16.0;
+  static const _kValidDigits = [6, 7, 8];
+  static const _kLabelWidth = 90.0;
+
+  late final _OathFormData formData;
+
+  @override
+  void initState() {
+    super.initState();
+    formData = _OathFormData.initialize(
+      initialIssuer: widget.initialIssuer,
+      initialAccount: widget.initialAccount,
+      initialSecret: widget.initialSecret,
+      initialCounter: widget.initialCounter,
+      initialType: widget.initialType,
+      initialAlgorithm: widget.initialAlgorithm,
+      initialDigits: widget.initialDigits,
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(_kPadding),
-      child: CustomizedText.labelLarge(S.of(context).oathAddAccount),
-    );
+  void _handleSave() {
+    if (!formData.validator.validateForm(clear: true)) {
+      return;
+    }
+
+    final data = formData.validator.getData();
+    final issuer = data['issuer'];
+    final account = data['account'];
+    final secret = data['secret'];
+    final initValue = int.parse(data['counter']);
+    final name = '$issuer:$account';
+
+    if (utf8.encode(name).length > 63) {
+      formData.validator.addError('account', S.of(context).oathTooLong);
+      formData.validator.formKey.currentState!.validate();
+      return;
+    }
+
+    String secretHex;
+    try {
+      secretHex = base32.decodeAsHexString(secret.toUpperCase());
+    } catch (e) {
+      formData.validator.addError('secret', S.of(Get.context!).oathInvalidKey);
+      formData.validator.formKey.currentState!.validate();
+      return;
+    }
+
+    widget.onAddAccount(
+        name, secretHex, formData.oathType.value, formData.oathAlgorithm.value, formData.oathDigits.value, formData.requireTouch.value, initValue);
   }
 
-  Widget _buildForm(BuildContext context, _OathFormData formData) {
-    return Padding(
-      padding: const EdgeInsets.all(_kPadding),
-      child: Form(
-        key: formData.validator.formKey,
-        child: Obx(
-          () => Column(
-            children: [
-              _buildBasicFields(context, formData),
-              _buildTouchRequirement(context, formData),
-              _buildAdvancedSettings(context, formData),
-              if (formData.oathType.value == OathType.hotp) _buildHotpCounter(context, formData),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBasicFields(BuildContext context, _OathFormData formData) {
+  Widget _buildBasicFields() {
     return Column(
       children: [
         _buildTextField(
-          context: context,
           label: S.of(context).oathIssuer,
           fieldName: 'issuer',
-          validator: formData.validator,
           autofocus: true,
         ),
         Spacing.height(_kPadding),
         _buildTextField(
-          context: context,
           label: S.of(context).oathAccount,
           fieldName: 'account',
-          validator: formData.validator,
         ),
         Spacing.height(_kPadding),
         _buildTextField(
-          context: context,
           label: S.of(context).oathSecret,
           fieldName: 'secret',
-          validator: formData.validator,
         ),
       ],
     );
   }
 
   Widget _buildTextField({
-    required BuildContext context,
     required String label,
     required String fieldName,
-    required FormValidator validator,
     bool autofocus = false,
   }) {
     return TextFormField(
       onTap: SmartCard.eject,
       autofocus: autofocus,
-      controller: validator.getController(fieldName),
-      validator: validator.getValidator(fieldName),
+      controller: formData.validator.getController(fieldName),
+      validator: formData.validator.getValidator(fieldName),
       decoration: InputDecoration(
         labelText: label,
         border: outlineInputBorder,
@@ -171,18 +158,18 @@ class AddAccountDialog extends StatelessWidget with UIMixin {
     );
   }
 
-  Widget _buildTouchRequirement(BuildContext context, _OathFormData formData) {
+  Widget _buildTouchRequirement() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: _kPadding),
       child: Row(
         children: [
-          Checkbox(
-            onChanged: (value) => formData.requireTouch.value = value!,
-            value: formData.requireTouch.value,
-            activeColor: contentTheme.primary,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            visualDensity: getCompactDensity,
-          ),
+          Obx(() => Checkbox(
+                onChanged: (value) => formData.requireTouch.value = value!,
+                value: formData.requireTouch.value,
+                activeColor: contentTheme.primary,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: getCompactDensity,
+              )),
           Spacing.width(_kPadding),
           CustomizedText.bodyMedium(S.of(context).oathRequireTouch),
         ],
@@ -190,24 +177,23 @@ class AddAccountDialog extends StatelessWidget with UIMixin {
     );
   }
 
-  Widget _buildAdvancedSettings(BuildContext context, _OathFormData formData) {
+  Widget _buildAdvancedSettings() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomizedText.bodyMedium(S.of(context).oathAdvancedSettings),
         Spacing.height(12),
-        _buildTypeSelector(context, formData),
+        _buildTypeSelector(),
         Spacing.height(12),
-        _buildAlgorithmSelector(context, formData),
+        _buildAlgorithmSelector(),
         Spacing.height(12),
-        _buildDigitsSelector(context, formData),
+        _buildDigitsSelector(),
       ],
     );
   }
 
-  Widget _buildTypeSelector(BuildContext context, _OathFormData formData) {
+  Widget _buildTypeSelector() {
     return _buildOptionRow(
-      context,
       label: S.of(context).oathType,
       child: Wrap(
         spacing: _kPadding,
@@ -223,9 +209,8 @@ class AddAccountDialog extends StatelessWidget with UIMixin {
     );
   }
 
-  Widget _buildAlgorithmSelector(BuildContext context, _OathFormData formData) {
+  Widget _buildAlgorithmSelector() {
     return _buildOptionRow(
-      context,
       label: S.of(context).oathAlgorithm,
       child: Wrap(
         spacing: _kPadding,
@@ -241,9 +226,8 @@ class AddAccountDialog extends StatelessWidget with UIMixin {
     );
   }
 
-  Widget _buildDigitsSelector(BuildContext context, _OathFormData formData) {
+  Widget _buildDigitsSelector() {
     return _buildOptionRow(
-      context,
       label: S.of(context).oathDigits,
       child: Wrap(
         spacing: _kPadding,
@@ -259,7 +243,7 @@ class AddAccountDialog extends StatelessWidget with UIMixin {
     );
   }
 
-  Widget _buildOptionRow(BuildContext context, {required String label, required Widget child}) {
+  Widget _buildOptionRow({required String label, required Widget child}) {
     return Row(
       children: [
         SizedBox(
@@ -296,78 +280,83 @@ class AddAccountDialog extends StatelessWidget with UIMixin {
     );
   }
 
-  Widget _buildHotpCounter(BuildContext context, _OathFormData formData) {
+  Widget _buildHotpCounter() {
     return Padding(
       padding: const EdgeInsets.only(top: _kPadding),
       child: _buildTextField(
-        context: context,
         label: S.of(context).oathCounter,
         fieldName: 'counter',
-        validator: formData.validator,
       ),
     );
   }
 
-  Widget _buildActions(BuildContext context, _OathFormData formData) {
-    return Padding(
-      padding: const EdgeInsets.all(_kPadding),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          CustomizedButton.rounded(
-            onPressed: () => Navigator.pop(context),
-            elevation: 0,
-            padding: Spacing.xy(20, _kPadding),
-            backgroundColor: contentTheme.secondary,
-            child: CustomizedText.labelMedium(
-              S.of(context).close,
-              color: contentTheme.onSecondary,
+  @override
+  Widget buildDialogContent() {
+    return SingleChildScrollView(
+      child: Obx(
+        () => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(_kPadding),
+              child: CustomizedText.labelLarge(S.of(context).oathAddAccount),
             ),
-          ),
-          Spacing.width(_kPadding),
-          CustomizedButton.rounded(
-            onPressed: () => _handleSave(context, formData),
-            elevation: 0,
-            padding: Spacing.xy(20, _kPadding),
-            backgroundColor: contentTheme.primary,
-            child: CustomizedText.labelMedium(
-              S.of(context).save,
-              color: contentTheme.onPrimary,
+            const Divider(height: 0, thickness: 1),
+            Padding(
+              padding: const EdgeInsets.all(_kPadding),
+              child: Form(
+                key: formData.validator.formKey,
+                child: Column(
+                  children: [
+                    _buildBasicFields(),
+                    _buildTouchRequirement(),
+                    _buildAdvancedSettings(),
+                    if (formData.oathType.value == OathType.hotp) _buildHotpCounter(),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
+            if (errorMessage.value.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.all(_kPadding),
+                child: CustomizedText.bodyMedium(errorMessage.value,
+                    color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color),
+              ),
+            const Divider(height: 0, thickness: 1),
+            Padding(
+              padding: const EdgeInsets.all(_kPadding),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CustomizedButton.rounded(
+                    onPressed: () => Navigator.pop(context),
+                    elevation: 0,
+                    padding: Spacing.xy(20, _kPadding),
+                    backgroundColor: contentTheme.secondary,
+                    child: CustomizedText.labelMedium(
+                      S.of(context).close,
+                      color: contentTheme.onSecondary,
+                    ),
+                  ),
+                  Spacing.width(_kPadding),
+                  CustomizedButton.rounded(
+                    onPressed: _handleSave,
+                    elevation: 0,
+                    padding: Spacing.xy(20, _kPadding),
+                    backgroundColor: contentTheme.primary,
+                    child: CustomizedText.labelMedium(
+                      S.of(context).save,
+                      color: contentTheme.onPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
-  }
-
-  void _handleSave(BuildContext context, _OathFormData formData) {
-    if (!formData.validator.validateForm(clear: true)) {
-      return;
-    }
-
-    final data = formData.validator.getData();
-    final issuer = data['issuer'];
-    final account = data['account'];
-    final secret = data['secret'];
-    final initValue = int.parse(data['counter']);
-    final name = '$issuer:$account';
-
-    if (utf8.encode(name).length > 63) {
-      formData.validator.addError('account', S.of(context).oathTooLong);
-      formData.validator.formKey.currentState!.validate();
-      return;
-    }
-
-    String secretHex;
-    try {
-      secretHex = base32.decodeAsHexString(secret.toUpperCase());
-    } catch (e) {
-      formData.validator.addError('secret', S.of(Get.context!).oathInvalidKey);
-      formData.validator.formKey.currentState!.validate();
-      return;
-    }
-
-    onAddAccount(name, secretHex, formData.oathType.value, formData.oathAlgorithm.value, formData.oathDigits.value, formData.requireTouch.value, initValue);
   }
 }
 
