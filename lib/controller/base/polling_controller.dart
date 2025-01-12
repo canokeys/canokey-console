@@ -37,7 +37,8 @@ abstract class PollingController extends Controller {
       // Desktop platform: initial read and polling
       if (SmartCard.connectionType == ConnectionType.ccid) {
         try {
-          await refreshData();
+          refreshData();
+          polled = true; // We need to set polled to true here because PIN may be required in refreshData
         } catch (e) {
           log.w('Failed to read card on desktop platform', error: e);
         }
@@ -57,7 +58,8 @@ abstract class PollingController extends Controller {
       // Initial read if USB connected and polling
       if (SmartCard.connectionType == ConnectionType.ccid) {
         try {
-          await refreshData();
+          refreshData();
+          polled = true; // We need to set polled to true here because PIN may be required in refreshData
         } catch (e) {
           log.w('Failed to read card on mobile platform', error: e);
         }
