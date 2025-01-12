@@ -71,9 +71,6 @@ class TopActions extends StatelessWidget with UIMixin {
                 onSubmit: (code, saveCode) async {
                   await controller.setCode(code, saveCode);
                 },
-                onCancel: () async {
-                  Navigator.pop(context);
-                },
               );
             },
             child: Icon(LucideIcons.lock, size: 20, color: topBarTheme.onBackground),

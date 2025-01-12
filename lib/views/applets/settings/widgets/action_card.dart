@@ -73,9 +73,6 @@ class ActionCard extends StatelessWidget with UIMixin {
                         onSubmit: (pin, savePin) async {
                           await controller.changePin(pin, savePin);
                         },
-                        onCancel: () async {
-                          Navigator.pop(context);
-                        },
                       );
                     },
                     elevation: 0,
