@@ -107,11 +107,12 @@ class OathController extends PollingController {
     });
   }
 
-  void setCode(String newCode) {
-    SmartCard.process((String sn) async {
+  Future<void> setCode(String newCode, bool saveCode) async {
+    await SmartCard.process((String sn) async {
       String resp = await _transceive('00A4040007A0000005272101');
       SmartCard.assertOK(resp);
       if (resp == '9000') {
+        log.w('Code not supported');
         return;
       } else {
         if (!await _authenticate(sn)) {
@@ -128,12 +129,16 @@ class OathController extends PollingController {
           resp = await _transceive('000300002F731101${hex.encode(key)}7404000000007514${hex.encode(mac)}');
         }
 
+        SmartCard.assertOK(resp);
+        log.i('Successfully changed code');
+
         _localCodeCache[sn] = newCode;
-        if (LocalStorage.getPinCache(sn, _tag) != null) {
+        if (saveCode) {
           await LocalStorage.setPinCache(sn, _tag, newCode);
         }
 
-        Prompts.showPrompt(S.of(Get.context!).oathCodeChanged, ContentThemeColor.success);
+        Navigator.pop(Get.context!);
+        Prompts.showPrompt(S.of(Get.context!).oathCodeChanged, ContentThemeColor.success, forceSnackBar: true);
       }
     });
   }
@@ -187,8 +192,8 @@ class OathController extends PollingController {
     });
   }
 
-  void setDefault(String name, int slot, bool withEnter) {
-    SmartCard.process((String sn) async {
+  Future<void> setDefault(String name, int slot, bool withEnter) async {
+    await SmartCard.process((String sn) async {
       if (!await _authenticate(sn)) {
         return;
       }
@@ -196,9 +201,10 @@ class OathController extends PollingController {
       List<int> nameBytes = utf8.encode(name);
       String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
       SmartCard.assertOK(await _transceive('00550$slot${withEnter ? '01' : '00'}${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
+      log.i('Successfully changed default');
 
       Navigator.pop(Get.context!);
-      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
+      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success, forceSnackBar: true);
     });
   }
 
