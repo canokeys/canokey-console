@@ -1,4 +1,4 @@
-import 'package:canokey_console/controller/applets/pass.dart';
+import 'package:canokey_console/controller/applets/pass/pass_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';

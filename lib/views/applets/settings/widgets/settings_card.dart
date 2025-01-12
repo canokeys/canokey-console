@@ -1,4 +1,4 @@
-import 'package:canokey_console/controller/applets/settings.dart';
+import 'package:canokey_console/controller/applets/settings/settings_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';

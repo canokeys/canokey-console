@@ -1,4 +1,5 @@
 {
+  "@@locale": "zh_Hans",
   "applets": "应用",
   "settings": "设置",
   "other": "其他",
@@ -11,11 +12,22 @@
   "save": "保存",
   "close": "关闭",
   "pollCanoKey": "请点击右上角刷新按钮读取 CanoKey",
+  "androidPollCanoKeyPrompt": "请用手机背面触碰您的 CanoKey 或将其插入 USB 接口",
+  "desktopPollCanoKeyPrompt": "请将您的 CanoKey 插入 USB 接口",
+  "iosPollCanoKeyPrompt": "请点击刷新按钮并点击您的 CanoKey 或将其插入 USB 接口",
+  "webPollCanoKeyPrompt": "请将您的 CanoKey 插入 USB 接口并点击刷新按钮",
   "pollCanceled": "您没有选择任何 CanoKey",
   "networkError": "CanoKey 繁忙，请重新插拔并稍后再试",
   "appletLocked": "该应用已被锁定",
   "pinIncorrect": "PIN 输入错误",
   "pinRetries": "PIN 输入错误，剩余重试次数：{retries}",
+  "@pinRetries": {
+    "placeholders": {
+      "retries": {
+        "description": "Retries left"
+      }
+    }
+  },
   "pinLength": "输入的 PIN 长度错误",
   "seconds": "秒",
   "change": "修改",
@@ -30,6 +42,16 @@
   "changePin": "修改 PIN",
   "pinChanged": "PIN 修改成功",
   "changePinPrompt": "新 PIN 的长度应当为 {min} - {max} 个字符。",
+  "@changePinPrompt": {
+    "placeholders": {
+      "min": {
+        "description": "Minimum length"
+      },
+      "max": {
+        "description": "Maximum length"
+      }
+    }
+  },
   "pinInvalidLength": "长度错误",
   "warning": "警告",
   "delete": "删除",
@@ -44,7 +66,8 @@
   "search": "搜索",
   "iosAlertMessage": "使用 iPhone 顶部读取 CanoKey",
   "androidAlertTitle": "读取 CanoKey",
-  "androidAlertMessage": "请紧贴手机直到读取结束",
+  "readingAlertMessage": "请紧贴 CanoKey 直到读取结束",
+  "interrupted": "通讯中断。尝试紧贴 CanoKey 直到读取结束。",
   "noCard": "未找到 CanoKey",
   "browserNotSupported": "不支持该浏览器",
   "notSupported": "不支持该操作",
@@ -68,7 +91,14 @@
   "openpgpChangeTouchCacheTime": "修改触摸缓存时间",
   "openpgpUifChanged": "触摸设置修改成功",
   "openpgpUifCacheTimeChanged": "触摸缓存时间修改成功",
-  "openpgpChangeInteraction": "修改{keyType}密钥的触摸设置",
+  "openpgpChangeInteraction": "修改 {keyType} 密钥的触摸设置",
+  "@openpgpChangeInteraction": {
+    "placeholders": {
+      "keyType": {
+        "description": "Key type"
+      }
+    }
+  },
   "openpgpKeyNone": "[未导入]",
   "settingsInfo": "CanoKey 信息",
   "settingsOtherSettings": "其他设置",
@@ -78,7 +108,7 @@
   "settingsSN": "序号",
   "settingsChipId": "芯片 ID",
   "settingsInputPin": "PIN 验证",
-  "settingsInputPinPrompt": "请输入您的 PIN（默认值为 123456）。请注意，该 PIN 与其他应用的 PIN 无关。",
+  "settingsInputPinPrompt": "请输入您的管理应用 PIN（默认值为 123456）。请注意，该 PIN 与其他应用的 PIN 无关。",
   "settingsHotp": "触摸时输出 HOTP",
   "settingsWebUSB": "插入时 WebUSB 提示",
   "settingsNDEF": "NFC 标签模式 (NDEF)",
@@ -90,6 +120,13 @@
   "settingsResetWebAuthn": "重置 WebAuthn",
   "settingsResetPass": "重置 Pass",
   "settingsResetApplet": "该操作将抹除 {applet} 的全部数据！",
+  "@settingsResetApplet": {
+    "placeholders": {
+      "applet": {
+        "description": "Applet"
+      }
+    }
+  },
   "settingsResetAll": "重置 CanoKey",
   "settingsResetAllPrompt": "即将抹除全部数据。当您确认后，CanoKey 将会反复闪烁，请在闪烁时触摸，直到提示成功。",
   "settingsResetSuccess": "重置成功",
@@ -101,8 +138,22 @@
   "settingsKeyboardWithReturn": "OTP 输出后附加回车",
   "settingsWebAuthnSm2Support": "WebAuthn SM2",
   "settingsStartPage": "起始页",
-  "oathDelete": "您正在删除{name}，删除该项目后无法恢复！请确认相关服务的二步验证已经关闭。",
-  "oathSetDefaultPrompt": "您要将{name}设为触摸时的输出吗？小心，该操作将会覆盖原有的触摸输出。",
+  "oathDelete": "您正在删除 {name}，删除该项目后无法恢复！请确认相关服务的二步验证已经关闭。",
+  "@oathDelete": {
+    "placeholders": {
+      "name": {
+        "description": "Name"
+      }
+    }
+  },
+  "oathSetDefaultPrompt": "您要将 {name} 设为触摸时的输出吗？请注意，该操作将会覆盖原有的触摸输出。",
+  "@oathSetDefaultPrompt": {
+    "placeholders": {
+      "name": {
+        "description": "Name"
+      }
+    }
+  },
   "oathCopy": "复制",
   "oathSetDefault": "设为触摸输出",
   "oathAddAccount": "增加账户",
@@ -149,7 +200,14 @@
   "webauthnSetPinPrompt": "请设置 PIN 以启用凭据管理。PIN 的长度应当为 4 - 63 个字符。",
   "webauthnInputPinTitle": "解锁 WebAuthn",
   "webauthnInputPinPrompt": "请输入您的 WebAuthn PIN。",
-  "webauthnDelete": "您正在删除{name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。",
+  "webauthnDelete": "您正在删除 {name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。",
+  "@webauthnDelete": {
+    "placeholders": {
+      "name": {
+        "description": "Name"
+      }
+    }
+  },
   "webauthnPinAuthBlocked": "PIN 被锁定，请重新插拔 CanoKey。",
   "webauthnPinBlocked": "PIN 被锁定，请重置 WebAuthn。",
   "pivPinManagement": "管理 PIN",
@@ -157,6 +215,16 @@
   "pivOldPUK": "当前 PUK",
   "pivNewPUK": "新 PUK",
   "pivChangePinPrompt": "新 PUK 的长度应当为 {min} - {max} 个字符。",
+  "@pivChangePinPrompt": {
+    "placeholders": {
+      "min": {
+        "description": "Min"
+      },
+      "max": {
+        "description": "Max"
+      }
+    }
+  },
   "pivChangeManagementKey": "修改管理密钥",
   "pivChangeManagementKeyPrompt": "新管理密钥的长度应当为 24 字节。请妥善保管管理密钥，否则您将无法管理 PIV 应用。",
   "pivOldManagementKey": "当前密钥",
@@ -194,8 +262,29 @@
   "pivDelete": "删除",
   "pivExportCertificate": "导出证书",
   "pivDeleteSlot": "此操作将从您的 CanoKey 中删除 {slot} 中的证书和密钥。请确保您有其他方式访问。",
+  "@pivDeleteSlot": {
+    "placeholders": {
+      "slot": {
+        "description": "Slot"
+      }
+    }
+  },
   "pivVerifyManagementKey": "验证管理密钥",
   "validationHexString": "请输入十六进制字符串",
   "validationExactLength": "需要 {length} 个字符",
-  "viewUserId": "查看用户 ID"
+  "@validationExactLength": {
+    "placeholders": {
+      "length": {
+        "description": "Length"
+      }
+    }
+  },
+  "viewUserId": "查看用户 ID",
+  "savePinOnDevice": "在此设备上保存 PIN",
+  "settingsClearPinCache": "清除已保存的 PIN",
+  "settingsClearPinCachePrompt": "确定要清除此设备上所有已保存的 PIN 吗？",
+  "passNotSupported": "您的 CanoKey 不支持 Pass 功能。",
+  "appDescription": "CanoKey Console 是 CanoKey 开源安全密钥的管理工具。",
+  "soundCredit": "NFC 交互音效由 Summer Xu 制作。",
+  "beforeSourceLink": "可在 GitHub 获得源代码："
 }

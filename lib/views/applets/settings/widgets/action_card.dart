@@ -1,4 +1,4 @@
-import 'package:canokey_console/controller/applets/settings.dart';
+import 'package:canokey_console/controller/applets/settings/settings_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_style.dart';
@@ -8,6 +8,7 @@ import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_card.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
+import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/models/canokey.dart';
@@ -63,12 +64,16 @@ class ActionCard extends StatelessWidget with UIMixin {
                   // Change PIN
                   CustomizedButton(
                     onPressed: () {
-                      Prompts.showInputPinDialog(
+                      InputPinDialog.show(
                         title: S.of(context).changePin,
                         label: 'PIN',
                         prompt: S.of(context).changePinPrompt(6, 64),
                         validators: [LengthValidator(min: 6, max: 64)],
-                      ).then((value) => controller.changePin(value)).onError((error, stackTrace) => null); // Canceled
+                        showSaveOption: true,
+                        onSubmit: (pin, savePin) async {
+                          await controller.changePin(pin, savePin);
+                        },
+                      );
                     },
                     elevation: 0,
                     padding: Spacing.xy(20, 16),

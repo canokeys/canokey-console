@@ -1,6 +1,6 @@
-import 'package:logging/logging.dart';
+import 'package:canokey_console/helper/utils/logging.dart';
 
-final log = Logger('Console:CanoKey:Model');
+final log = Logging.logger('CanoKey:Model');
 
 enum Applet {
   openpgp(resetApdu: '00030000', name: 'OpenPGP'),
@@ -115,16 +115,16 @@ class CanoKey {
 
   static FunctionSetVersion functionSetFromFirmwareVersion(String firmwareVersion) {
     if (firmwareVersion.compareTo('1.5.') < 0) {
-      log.info("Function Set: V1");
+      log.i("Function Set: V1");
       return FunctionSetVersion.v1;
     } else if (firmwareVersion.compareTo('1.6.2') < 0) {
-      log.info("Function Set: V2");
+      log.i("Function Set: V2");
       return FunctionSetVersion.v2;
     } else if (firmwareVersion.compareTo('3.0.0') < 0) {
-      log.info("Function Set: V3");
+      log.i("Function Set: V3");
       return FunctionSetVersion.v3;
     }
-    log.info("Function Set: V4");
+    log.i("Function Set: V4");
     return FunctionSetVersion.v4;
   }
 

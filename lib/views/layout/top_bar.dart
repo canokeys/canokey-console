@@ -19,6 +19,8 @@ class TopBar extends StatefulWidget {
 }
 
 class _TopBarState extends State<TopBar> with SingleTickerProviderStateMixin, UIMixin {
+  final GlobalKey<FormState> _searchFormKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return CustomizedCard(
@@ -38,7 +40,7 @@ class _TopBarState extends State<TopBar> with SingleTickerProviderStateMixin, UI
           if (['/applets/oath', '/applets/webauthn'].contains(Get.currentRoute)) ...{
             Spacing.width(24),
             Expanded(
-              child: SearchBox(),
+              child: SearchBox(formKey: _searchFormKey),
             )
           },
           if (widget.actions != null) Expanded(child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [widget.actions!]))

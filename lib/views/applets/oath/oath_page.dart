@@ -1,17 +1,17 @@
-import 'package:canokey_console/src/rust/api/decode.dart';
-
 import 'package:canokey_console/controller/applets/oath/oath_controller.dart';
 import 'package:canokey_console/controller/applets/oath/qr_scan_result.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/no_credential_screen.dart';
-import 'package:canokey_console/helper/widgets/poll_cano_key_screen.dart';
+import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/search_box.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
+import 'package:canokey_console/src/rust/api/decode.dart';
 import 'package:canokey_console/views/applets/oath/dialogs/add_account_dialog.dart';
 import 'package:canokey_console/views/applets/oath/dialogs/qr_scanner_dialog.dart';
 import 'package:canokey_console/views/applets/oath/widgets/oath_item_card.dart';
@@ -20,9 +20,8 @@ import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
 import 'package:get/get.dart';
-import 'package:logging/logging.dart';
 
-final log = Logger('Console:OATH:View');
+final log = Logging.logger('OATH:View');
 
 class OathPage extends StatefulWidget {
   const OathPage({super.key});
@@ -32,8 +31,9 @@ class OathPage extends StatefulWidget {
 }
 
 class _OathPageState extends State<OathPage> with UIMixin {
-  final controller = Get.put(OathController());
-  final searchText = ''.obs;
+  final OathController controller = Get.put(OathController());
+  final RxString searchText = ''.obs;
+  final GlobalKey<FormState> _searchFormKey = GlobalKey<FormState>();
 
   late final Worker _qrScanWorker;
 
@@ -74,7 +74,7 @@ class _OathPageState extends State<OathPage> with UIMixin {
         init: controller,
         builder: (_) => TopActions(
           controller: controller,
-          onQrScan: () => QrScannerDialog.show(onQrCodeScanned: (value) => controller.addUri(value)),
+          onQrScan: () => QrScannerDialog.show(onQrCodeScanned: (value) => controller.parseUri(value)),
           onScreenCapture: _showScreenCapture,
           onManualAdd: () => AddAccountDialog.show(controller.addAccount),
         ),
@@ -98,7 +98,7 @@ class _OathPageState extends State<OathPage> with UIMixin {
                   children: [
                     if (ScreenMedia.getTypeFromWidth(MediaQuery.of(context).size.width).isMobile) ...{
                       Spacing.height(16),
-                      SearchBox(),
+                      SearchBox(formKey: _searchFormKey),
                     },
                     Spacing.height(16),
                     Obx(() {
@@ -126,7 +126,8 @@ class _OathPageState extends State<OathPage> with UIMixin {
                           );
                         },
                       );
-                    })
+                    }),
+                    Spacing.height(16),
                   ],
                 ),
               ),
@@ -146,13 +147,13 @@ class _OathPageState extends State<OathPage> with UIMixin {
     final buffer = await track.captureFrame();
     stream.getTracks().forEach((track) => track.stop());
     try {
-      log.info('Rust decodePngQrcode start');
+      log.i('Rust decodePngQrcode start');
       final start = DateTime.now();
       final result = decodePngQrcode(pngFile: buffer.asUint8List());
-      log.info('Rust decodePngQrcode took: ${DateTime.now().difference(start).inMilliseconds}ms');
-      controller.addUri(result);
+      log.i('Rust decodePngQrcode took: ${DateTime.now().difference(start).inMilliseconds}ms');
+      controller.parseUri(result);
     } catch (e) {
-      log.warning('Rust decodePngQrcode error: $e');
+      log.w('Rust decodePngQrcode error: $e');
       if (mounted) {
         Prompts.showPrompt(S.of(context).oathNoQr, ContentThemeColor.danger);
       }

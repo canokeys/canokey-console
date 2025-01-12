@@ -52,13 +52,17 @@ class MessageLookup extends MessageLookupByLibrary {
         "about": MessageLookupByLibrary.simpleMessage("About"),
         "actions": MessageLookupByLibrary.simpleMessage("Actions"),
         "add": MessageLookupByLibrary.simpleMessage("Add"),
-        "androidAlertMessage": MessageLookupByLibrary.simpleMessage(
-            "Hold the CanoKey until finished"),
         "androidAlertTitle":
             MessageLookupByLibrary.simpleMessage("Touch your CanoKey"),
+        "androidPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
+            "Tap your CanoKey or insert it into the USB port"),
+        "appDescription": MessageLookupByLibrary.simpleMessage(
+            "CanoKey Console is the console app for CanoKey, an open-source security key."),
         "appletLocked": MessageLookupByLibrary.simpleMessage(
             "This applet has been locked."),
         "applets": MessageLookupByLibrary.simpleMessage("Applets"),
+        "beforeSourceLink": MessageLookupByLibrary.simpleMessage(
+            "Source code available on GitHub: "),
         "browserNotSupported": MessageLookupByLibrary.simpleMessage(
             "Your browser does not support WebUSB"),
         "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
@@ -72,6 +76,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "copied": MessageLookupByLibrary.simpleMessage("Copied"),
         "delete": MessageLookupByLibrary.simpleMessage("Delete"),
         "deleted": MessageLookupByLibrary.simpleMessage("Successfully deleted"),
+        "desktopPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
+            "Insert your CanoKey into the USB port"),
         "enabled": MessageLookupByLibrary.simpleMessage("Enabled"),
         "home": MessageLookupByLibrary.simpleMessage("Home"),
         "homeDirectlySelect":
@@ -81,8 +87,12 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("CanoKey Console"),
         "homeSelect":
             MessageLookupByLibrary.simpleMessage("to select an applet"),
+        "interrupted": MessageLookupByLibrary.simpleMessage(
+            "Communication interrupted. Try to hold the CanoKey until finished."),
         "iosAlertMessage": MessageLookupByLibrary.simpleMessage(
             "Hold your iPhone near the CanoKey"),
+        "iosPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
+            "Tap the refresh button and tap your CanoKey or insert it into the USB port"),
         "networkError": MessageLookupByLibrary.simpleMessage(
             "CanoKey is busy. Replug it, wait for a moment, and retry."),
         "newPin": MessageLookupByLibrary.simpleMessage("New PIN"),
@@ -174,6 +184,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "other": MessageLookupByLibrary.simpleMessage("Other"),
         "passInputPinPrompt": MessageLookupByLibrary.simpleMessage(
             "Please input your Setting PIN. The default value is 123456."),
+        "passNotSupported": MessageLookupByLibrary.simpleMessage(
+            "Your CanoKey does not support Pass."),
         "passSlotConfigPrompt": MessageLookupByLibrary.simpleMessage(
             "Please select a slot type to configure. If you want to use HOTP, set it in the HOTP applet."),
         "passSlotConfigTitle":
@@ -261,14 +273,22 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("No CanoKey is selected."),
         "pollCanoKey": MessageLookupByLibrary.simpleMessage(
             "Please read your CanoKey by clicking the refresh button"),
+        "readingAlertMessage": MessageLookupByLibrary.simpleMessage(
+            "Hold the CanoKey until finished"),
         "reset": MessageLookupByLibrary.simpleMessage("Reset"),
         "save": MessageLookupByLibrary.simpleMessage("Save"),
+        "savePinOnDevice":
+            MessageLookupByLibrary.simpleMessage("Save the PIN on this device"),
         "search": MessageLookupByLibrary.simpleMessage("Search"),
         "seconds": MessageLookupByLibrary.simpleMessage("seconds"),
         "settings": MessageLookupByLibrary.simpleMessage("Settings"),
         "settingsChangeLanguage":
             MessageLookupByLibrary.simpleMessage("Change Language"),
         "settingsChipId": MessageLookupByLibrary.simpleMessage("Chip ID"),
+        "settingsClearPinCache":
+            MessageLookupByLibrary.simpleMessage("Clear Saved PINs"),
+        "settingsClearPinCachePrompt": MessageLookupByLibrary.simpleMessage(
+            "Are you sure you want to clear all saved PINs from this device?"),
         "settingsFirmwareVersion":
             MessageLookupByLibrary.simpleMessage("Firmware Version"),
         "settingsFixNFC": MessageLookupByLibrary.simpleMessage("Fix NFC"),
@@ -280,7 +300,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsInputPin":
             MessageLookupByLibrary.simpleMessage("PIN Verification"),
         "settingsInputPinPrompt": MessageLookupByLibrary.simpleMessage(
-            "Please input your PIN. The default value is 123456. This PIN is irrelevant to other applets."),
+            "Please input your admin PIN. The default value is 123456. This PIN is irrelevant to other applets."),
         "settingsKeyboardWithReturn": MessageLookupByLibrary.simpleMessage(
             "The output of OTP value comes with enter"),
         "settingsLanguage": MessageLookupByLibrary.simpleMessage("Language"),
@@ -317,6 +337,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("WebAuthn SM2"),
         "settingsWebUSB":
             MessageLookupByLibrary.simpleMessage("WebUSB prompt when plug-in"),
+        "soundCredit": MessageLookupByLibrary.simpleMessage(
+            "Summer Xu is the author of NFC interaction sounds."),
         "successfullyChanged":
             MessageLookupByLibrary.simpleMessage("Successfully changed"),
         "validationExactLength": m8,
@@ -324,6 +346,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Please input a valid hexadecimal string."),
         "viewUserId": MessageLookupByLibrary.simpleMessage("View User ID"),
         "warning": MessageLookupByLibrary.simpleMessage("Warning"),
+        "webPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
+            "Insert your CanoKey into the USB port and click the refresh button"),
         "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
             "This key does not support WebAuthn PIN."),
         "webauthnDelete": m9,

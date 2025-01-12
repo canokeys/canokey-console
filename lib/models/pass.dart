@@ -13,6 +13,10 @@ class PassSlot {
 
   PassSlot({required this.type, required this.name, required this.withEnter});
 
+  static PassSlot empty() {
+    return PassSlot(type: PassSlotType.none, name: '', withEnter: false);
+  }
+
   // Parse slots from data, two in total.
   // For each slot, the first byte is the type.
   // For PASS_SLOT_OFF, there is no more data
@@ -26,8 +30,7 @@ class PassSlot {
       i += 2;
       if (type == 0) {
         // OFF
-        slots
-            .add(PassSlot(type: PassSlotType.none, name: '', withEnter: false));
+        slots.add(PassSlot(type: PassSlotType.none, name: '', withEnter: false));
       } else if (type == 1) {
         // OATH
         int nameLen = int.parse(hexData.substring(i, i + 2), radix: 16);
@@ -37,14 +40,12 @@ class PassSlot {
         i += nameLen * 2;
         int withEnter = int.parse(hexData.substring(i, i + 2), radix: 16);
         i += 2;
-        slots.add(PassSlot(
-            type: PassSlotType.oath, name: name, withEnter: withEnter == 1));
+        slots.add(PassSlot(type: PassSlotType.oath, name: name, withEnter: withEnter == 1));
       } else if (type == 2) {
         // STATIC
         int withEnter = int.parse(hexData.substring(i, i + 2), radix: 16);
         i += 2;
-        slots.add(PassSlot(
-            type: PassSlotType.static, name: '', withEnter: withEnter == 1));
+        slots.add(PassSlot(type: PassSlotType.static, name: '', withEnter: withEnter == 1));
       }
     }
     return slots;

@@ -1,6 +1,6 @@
-import 'package:basic_utils/basic_utils.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/tlv.dart';
+import 'package:canokey_console/src/rust/api/crypto.dart';
 import 'package:get/get.dart';
 
 enum AlgorithmType {
@@ -167,7 +167,7 @@ class SlotInfo {
   final int retriesCount;
   final int remainingCount;
   List<int>? certBytes;
-  X509CertificateData? cert;
+  X509CertData? cert;
 
   SlotInfo(this.number, this.algorithm, this.pinPolicy, this.touchPolicy, this.origin, this.public, this.defaultValue, this.retriesCount, this.remainingCount);
 

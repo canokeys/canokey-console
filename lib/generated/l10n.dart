@@ -170,6 +170,46 @@ class S {
     );
   }
 
+  /// `Tap your CanoKey or insert it into the USB port`
+  String get androidPollCanoKeyPrompt {
+    return Intl.message(
+      'Tap your CanoKey or insert it into the USB port',
+      name: 'androidPollCanoKeyPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Insert your CanoKey into the USB port`
+  String get desktopPollCanoKeyPrompt {
+    return Intl.message(
+      'Insert your CanoKey into the USB port',
+      name: 'desktopPollCanoKeyPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tap the refresh button and tap your CanoKey or insert it into the USB port`
+  String get iosPollCanoKeyPrompt {
+    return Intl.message(
+      'Tap the refresh button and tap your CanoKey or insert it into the USB port',
+      name: 'iosPollCanoKeyPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Insert your CanoKey into the USB port and click the refresh button`
+  String get webPollCanoKeyPrompt {
+    return Intl.message(
+      'Insert your CanoKey into the USB port and click the refresh button',
+      name: 'webPollCanoKeyPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `No CanoKey is selected.`
   String get pollCanceled {
     return Intl.message(
@@ -501,10 +541,20 @@ class S {
   }
 
   /// `Hold the CanoKey until finished`
-  String get androidAlertMessage {
+  String get readingAlertMessage {
     return Intl.message(
       'Hold the CanoKey until finished',
-      name: 'androidAlertMessage',
+      name: 'readingAlertMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Communication interrupted. Try to hold the CanoKey until finished.`
+  String get interrupted {
+    return Intl.message(
+      'Communication interrupted. Try to hold the CanoKey until finished.',
+      name: 'interrupted',
       desc: '',
       args: [],
     );
@@ -840,10 +890,10 @@ class S {
     );
   }
 
-  /// `Please input your PIN. The default value is 123456. This PIN is irrelevant to other applets.`
+  /// `Please input your admin PIN. The default value is 123456. This PIN is irrelevant to other applets.`
   String get settingsInputPinPrompt {
     return Intl.message(
-      'Please input your PIN. The default value is 123456. This PIN is irrelevant to other applets.',
+      'Please input your admin PIN. The default value is 123456. This PIN is irrelevant to other applets.',
       name: 'settingsInputPinPrompt',
       desc: '',
       args: [],
@@ -2035,6 +2085,76 @@ class S {
     return Intl.message(
       'View User ID',
       name: 'viewUserId',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save the PIN on this device`
+  String get savePinOnDevice {
+    return Intl.message(
+      'Save the PIN on this device',
+      name: 'savePinOnDevice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Clear Saved PINs`
+  String get settingsClearPinCache {
+    return Intl.message(
+      'Clear Saved PINs',
+      name: 'settingsClearPinCache',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Are you sure you want to clear all saved PINs from this device?`
+  String get settingsClearPinCachePrompt {
+    return Intl.message(
+      'Are you sure you want to clear all saved PINs from this device?',
+      name: 'settingsClearPinCachePrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your CanoKey does not support Pass.`
+  String get passNotSupported {
+    return Intl.message(
+      'Your CanoKey does not support Pass.',
+      name: 'passNotSupported',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `CanoKey Console is the console app for CanoKey, an open-source security key.`
+  String get appDescription {
+    return Intl.message(
+      'CanoKey Console is the console app for CanoKey, an open-source security key.',
+      name: 'appDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Summer Xu is the author of NFC interaction sounds.`
+  String get soundCredit {
+    return Intl.message(
+      'Summer Xu is the author of NFC interaction sounds.',
+      name: 'soundCredit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Source code available on GitHub: `
+  String get beforeSourceLink {
+    return Intl.message(
+      'Source code available on GitHub: ',
+      name: 'beforeSourceLink',
       desc: '',
       args: [],
     );

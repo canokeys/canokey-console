@@ -22,11 +22,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m0(min, max) => "新 PIN 的长度应当为 ${min} - ${max} 个字符。";
 
-  static String m1(name) => "您正在删除${name}，删除该项目后无法恢复！请确认相关服务的二步验证已经关闭。";
+  static String m1(name) => "您正在删除 ${name}，删除该项目后无法恢复！请确认相关服务的二步验证已经关闭。";
 
-  static String m2(name) => "您要将${name}设为触摸时的输出吗？小心，该操作将会覆盖原有的触摸输出。";
+  static String m2(name) => "您要将 ${name} 设为触摸时的输出吗？请注意，该操作将会覆盖原有的触摸输出。";
 
-  static String m3(keyType) => "修改${keyType}密钥的触摸设置";
+  static String m3(keyType) => "修改 ${keyType} 密钥的触摸设置";
 
   static String m4(retries) => "PIN 输入错误，剩余重试次数：${retries}";
 
@@ -36,18 +36,22 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m8(length) => "需要 ${length} 个字符";
 
-  static String m9(name) => "您正在删除${name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。";
+  static String m9(name) => "您正在删除 ${name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "about": MessageLookupByLibrary.simpleMessage("关于"),
         "actions": MessageLookupByLibrary.simpleMessage("操作"),
         "add": MessageLookupByLibrary.simpleMessage("增加"),
-        "androidAlertMessage":
-            MessageLookupByLibrary.simpleMessage("请紧贴手机直到读取结束"),
         "androidAlertTitle": MessageLookupByLibrary.simpleMessage("读取 CanoKey"),
+        "androidPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
+            "请用手机背面触碰您的 CanoKey 或将其插入 USB 接口"),
+        "appDescription": MessageLookupByLibrary.simpleMessage(
+            "CanoKey Console 是 CanoKey 开源安全密钥的管理工具。"),
         "appletLocked": MessageLookupByLibrary.simpleMessage("该应用已被锁定"),
         "applets": MessageLookupByLibrary.simpleMessage("应用"),
+        "beforeSourceLink":
+            MessageLookupByLibrary.simpleMessage("可在 GitHub 获得源代码："),
         "browserNotSupported": MessageLookupByLibrary.simpleMessage("不支持该浏览器"),
         "cancel": MessageLookupByLibrary.simpleMessage("取消"),
         "change": MessageLookupByLibrary.simpleMessage("修改"),
@@ -59,6 +63,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "copied": MessageLookupByLibrary.simpleMessage("已复制"),
         "delete": MessageLookupByLibrary.simpleMessage("删除"),
         "deleted": MessageLookupByLibrary.simpleMessage("删除成功"),
+        "desktopPollCanoKeyPrompt":
+            MessageLookupByLibrary.simpleMessage("请将您的 CanoKey 插入 USB 接口"),
         "enabled": MessageLookupByLibrary.simpleMessage("启用"),
         "home": MessageLookupByLibrary.simpleMessage("首页"),
         "homeDirectlySelect": MessageLookupByLibrary.simpleMessage("请选择应用"),
@@ -66,8 +72,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "homeScreenTitle":
             MessageLookupByLibrary.simpleMessage("CanoKey Console"),
         "homeSelect": MessageLookupByLibrary.simpleMessage("选择应用"),
+        "interrupted":
+            MessageLookupByLibrary.simpleMessage("通讯中断。尝试紧贴 CanoKey 直到读取结束。"),
         "iosAlertMessage":
             MessageLookupByLibrary.simpleMessage("使用 iPhone 顶部读取 CanoKey"),
+        "iosPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
+            "请点击刷新按钮并点击您的 CanoKey 或将其插入 USB 接口"),
         "networkError":
             MessageLookupByLibrary.simpleMessage("CanoKey 繁忙，请重新插拔并稍后再试"),
         "newPin": MessageLookupByLibrary.simpleMessage("新 PIN"),
@@ -146,6 +156,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "other": MessageLookupByLibrary.simpleMessage("其他"),
         "passInputPinPrompt": MessageLookupByLibrary.simpleMessage(
             "请输入您的管理员（设置应用） PIN（默认值为 123456）。"),
+        "passNotSupported":
+            MessageLookupByLibrary.simpleMessage("您的 CanoKey 不支持 Pass 功能。"),
         "passSlotConfigPrompt": MessageLookupByLibrary.simpleMessage(
             "请配置该密码槽。如需配置HOTP，请前往HOTP应用配置。"),
         "passSlotConfigTitle": MessageLookupByLibrary.simpleMessage("配置"),
@@ -215,13 +227,20 @@ class MessageLookup extends MessageLookupByLibrary {
         "pollCanceled": MessageLookupByLibrary.simpleMessage("您没有选择任何 CanoKey"),
         "pollCanoKey":
             MessageLookupByLibrary.simpleMessage("请点击右上角刷新按钮读取 CanoKey"),
+        "readingAlertMessage":
+            MessageLookupByLibrary.simpleMessage("请紧贴 CanoKey 直到读取结束"),
         "reset": MessageLookupByLibrary.simpleMessage("重置"),
         "save": MessageLookupByLibrary.simpleMessage("保存"),
+        "savePinOnDevice": MessageLookupByLibrary.simpleMessage("在此设备上保存 PIN"),
         "search": MessageLookupByLibrary.simpleMessage("搜索"),
         "seconds": MessageLookupByLibrary.simpleMessage("秒"),
         "settings": MessageLookupByLibrary.simpleMessage("设置"),
         "settingsChangeLanguage": MessageLookupByLibrary.simpleMessage("修改语言"),
         "settingsChipId": MessageLookupByLibrary.simpleMessage("芯片 ID"),
+        "settingsClearPinCache":
+            MessageLookupByLibrary.simpleMessage("清除已保存的 PIN"),
+        "settingsClearPinCachePrompt":
+            MessageLookupByLibrary.simpleMessage("确定要清除此设备上所有已保存的 PIN 吗？"),
         "settingsFirmwareVersion": MessageLookupByLibrary.simpleMessage("固件版本"),
         "settingsFixNFC": MessageLookupByLibrary.simpleMessage("修复 NFC"),
         "settingsFixNFCSuccess":
@@ -230,7 +249,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsInfo": MessageLookupByLibrary.simpleMessage("CanoKey 信息"),
         "settingsInputPin": MessageLookupByLibrary.simpleMessage("PIN 验证"),
         "settingsInputPinPrompt": MessageLookupByLibrary.simpleMessage(
-            "请输入您的 PIN（默认值为 123456）。请注意，该 PIN 与其他应用的 PIN 无关。"),
+            "请输入您的管理应用 PIN（默认值为 123456）。请注意，该 PIN 与其他应用的 PIN 无关。"),
         "settingsKeyboardWithReturn":
             MessageLookupByLibrary.simpleMessage("OTP 输出后附加回车"),
         "settingsLanguage": MessageLookupByLibrary.simpleMessage("语言"),
@@ -262,12 +281,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsWebAuthnSm2Support":
             MessageLookupByLibrary.simpleMessage("WebAuthn SM2"),
         "settingsWebUSB": MessageLookupByLibrary.simpleMessage("插入时 WebUSB 提示"),
+        "soundCredit":
+            MessageLookupByLibrary.simpleMessage("NFC 交互音效由 Summer Xu 制作。"),
         "successfullyChanged": MessageLookupByLibrary.simpleMessage("修改成功"),
         "validationExactLength": m8,
         "validationHexString":
             MessageLookupByLibrary.simpleMessage("请输入十六进制字符串"),
         "viewUserId": MessageLookupByLibrary.simpleMessage("查看用户 ID"),
         "warning": MessageLookupByLibrary.simpleMessage("警告"),
+        "webPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
+            "请将您的 CanoKey 插入 USB 接口并点击刷新按钮"),
         "webauthnClientPinNotSupported":
             MessageLookupByLibrary.simpleMessage("该密钥不支持 WebAuthn PIN。"),
         "webauthnDelete": m9,

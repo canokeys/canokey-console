@@ -1,4 +1,4 @@
-import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/localization/hints.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +18,7 @@ class PollCanoKeyScreen extends StatelessWidget {
         Center(
           child: Padding(
             padding: Spacing.horizontal(36),
-            child: CustomizedText.bodyMedium(S.of(context).pollCanoKey, fontSize: 24),
+            child: CustomizedText.bodyMedium(Hints.pollCanoKeyPrompt, fontSize: 24),
           ),
         ),
       ],

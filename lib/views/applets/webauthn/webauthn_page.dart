@@ -1,9 +1,9 @@
-import 'package:canokey_console/controller/applets/webauthn.dart';
+import 'package:canokey_console/controller/applets/webauthn/webauthn_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/no_credential_screen.dart';
-import 'package:canokey_console/helper/widgets/poll_cano_key_screen.dart';
+import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/search_box.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
@@ -12,9 +12,6 @@ import 'package:canokey_console/views/applets/webauthn/widgets/webauthn_item_car
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:logging/logging.dart';
-
-final log = Logger('Console:WebAuthn:View');
 
 class WebAuthnPage extends StatefulWidget {
   const WebAuthnPage({super.key});
@@ -24,8 +21,9 @@ class WebAuthnPage extends StatefulWidget {
 }
 
 class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderStateMixin, UIMixin {
-  final controller = Get.put(WebAuthnController());
-  final searchText = ''.obs;
+  final WebAuthnController controller = Get.put(WebAuthnController());
+  final RxString searchText = ''.obs;
+  final GlobalKey<FormState> _searchFormKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -36,7 +34,7 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Layout(
-      title: "WebAuthn",
+      title: 'WebAuthn',
       topActions: TopActions(controller: controller),
       child: GetBuilder(
         init: controller,
@@ -57,7 +55,7 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                   children: [
                     if (ScreenMedia.getTypeFromWidth(MediaQuery.of(context).size.width).isMobile) ...{
                       Spacing.height(16),
-                      SearchBox(),
+                      SearchBox(formKey: _searchFormKey),
                     },
                     Spacing.height(16),
                     Obx(() {
