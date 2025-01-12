@@ -95,16 +95,19 @@ class SettingsController extends PollingController with AdminApplet {
     });
   }
 
-  void changeWebAuthnSm2Config(bool enabled, int curveId, int algoId) {
+  Future<void> changeWebAuthnSm2Config(bool enabled, int curveId, int algoId) async {
     String cmdData = (enabled ? '01' : '00') + hex.encode(Int32(curveId).toBytes().reversed.toList()) + hex.encode(Int32(algoId).toBytes().reversed.toList());
-    SmartCard.process((String sn) async {
+    await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
         return;
       }
 
       SmartCard.assertOK(await SmartCard.transceive('0012000009$cmdData'));
-      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
-      await refreshData();
+      log.i('Successfully changed WebAuthn SM2 config');
+      Navigator.pop(Get.context!);
+
+      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success, forceSnackBar: true);
+      await _refresh(sn);
     });
   }
 
