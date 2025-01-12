@@ -148,16 +148,17 @@ class SettingsController extends PollingController with AdminApplet {
     });
   }
 
-  void resetApplet(Applet applet) {
-    Navigator.pop(Get.context!);
-
-    SmartCard.process((String sn) async {
+  Future<void> resetApplet(Applet applet) async {
+    await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
         return;
       }
 
       SmartCard.assertOK(await SmartCard.transceive(applet.resetApdu));
-      Prompts.showPrompt(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
+      log.i('Successfully reset ${applet.name}');
+
+      Navigator.pop(Get.context!);
+      Prompts.showPrompt(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success, forceSnackBar: true);
     });
   }
 

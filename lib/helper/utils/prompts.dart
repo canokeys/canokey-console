@@ -47,7 +47,7 @@ class Prompts {
     }
   }
 
-  static void showPrompt(String content, ContentThemeColor selectedColor, {String level = 'E'}) {
+  static void showPrompt(String content, ContentThemeColor selectedColor, {String level = 'E', bool forceSnackBar = false}) {
     Color backgroundColor = selectedColor.color;
     Color color = selectedColor.onColor;
 
@@ -66,6 +66,9 @@ class Prompts {
       });
     } else {
       try {
+        if (forceSnackBar) {
+          throw Exception('expected');
+        }
         Get.find<RxString>(tag: 'dialog_error').value = content;
         Get.find<RxString>(tag: 'dialog_error_level').value = level;
         Timer(Duration(seconds: 3), () {

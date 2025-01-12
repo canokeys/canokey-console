@@ -149,11 +149,7 @@ class SmartCard {
         }
       } on PlatformException catch (e) {
         if (e.code == '408') {
-          if (nfcState == NfcState.idle || nfcState == NfcState.mute || nfcState == NfcState.input) {
-            log.t('[nfcHandler] Current state: $nfcState. Polling timeout. Ignored.');
-          } else {
-            log.e('[nfcHandler] Current state: $nfcState. Polling timeout.', error: e);
-          }
+          // do nothing
         } else {
           rethrow;
         }
@@ -251,6 +247,9 @@ class SmartCard {
     } else {
       if (nfcState == NfcState.idle) {
         nfcState = NfcState.processWithoutInput;
+      }
+      if (nfcState == NfcState.input) {
+        nfcState = NfcState.processWithInput;
       }
       if (!await pollNfcOrWebUsb()) {
         return;
