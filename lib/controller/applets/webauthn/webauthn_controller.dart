@@ -62,23 +62,18 @@ class WebAuthnController extends PollingController {
     });
   }
 
-  changePin(String newPin) async {
+  Future<void> changePin(String newPin, bool savePin) async {
     await SmartCard.process((String sn) async {
       String? pinToTry = _loadPin(sn);
       if (pinToTry == null) {
-        await refreshData();
-        changePin(newPin);
+        Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
         return;
       }
 
-      String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
-      SmartCard.assertOK(resp);
-
+      SmartCard.assertOK(await SmartCard.transceive('00A4040008A0000006472F0001'));
       final cp = ClientPin(_ctap);
       try {
         await cp.changePin(pinToTry, newPin);
-        await _setPinCache(sn, newPin, LocalStorage.getPinCache(sn, _tag) != null);
-        Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
       } catch (e) {
         if (e is CtapError) {
           if (e.status == CtapStatusCode.ctap2ErrPinInvalid) {
@@ -94,6 +89,12 @@ class WebAuthnController extends PollingController {
           rethrow;
         }
       }
+
+      await _setPinCache(sn, newPin, savePin);
+      log.i('Successfully changed PIN');
+
+      Navigator.pop(Get.context!);
+      Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success, forceSnackBar: true);
     });
   }
 
@@ -207,10 +208,7 @@ class WebAuthnController extends PollingController {
         }
         if (pinToken != null) {
           log.t('PIN verified');
-          _localPinCache[sn] = pin;
-          if (savePin) {
-            await LocalStorage.setPinCache(sn, _tag, pin);
-          }
+          await _setPinCache(sn, pin, savePin);
           completer.complete(pinToken);
           // Since PIN has been cached, if error happens, we don't need to re-prompt
           SmartCard.nfcState = NfcState.processWithoutInput;

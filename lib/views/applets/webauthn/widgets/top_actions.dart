@@ -1,7 +1,7 @@
 import 'package:canokey_console/controller/applets/webauthn/webauthn_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
+import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:flutter/material.dart';
@@ -32,12 +32,19 @@ class TopActions extends StatelessWidget with UIMixin {
           widgets.insertAll(0, [
             InkWell(
               onTap: () {
-                Prompts.showInputPinDialog(
+                InputPinDialog.show(
                   title: S.of(context).changePin,
                   label: 'PIN',
                   prompt: S.of(context).changePinPrompt(4, 63),
                   validators: [LengthValidator(min: 4, max: 63)],
-                ).then((value) => controller.changePin(value)).onError((error, stackTrace) => null); // Canceled
+                  showSaveOption: true,
+                  onSubmit: (pin, savePin) async {
+                    await controller.changePin(pin, savePin);
+                  },
+                  onCancel: () async {
+                    Navigator.pop(context);
+                  },
+                );
               },
               child: Icon(LucideIcons.lock, size: 20, color: topBarTheme.onBackground),
             ),
