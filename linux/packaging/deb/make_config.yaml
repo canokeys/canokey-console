@@ -1,0 +1,30 @@
+display_name: CanoKey Console
+package_name: canokey-console
+maintainer:
+  name: CanoKey Developers
+  email: 
+priority: optional
+section: x11
+essential: false
+installed_size: 200000
+
+dependencies:
+  - libgtk-3-0
+  - libblkid1
+  - liblzma5
+  - libpcsclite1
+  - libgstreamer1.0-0
+  - libgstreamer-plugins-base1.0-0
+
+icon: assets/images/logo/logo_icon_dark.png
+
+keywords:
+  - API
+  - API Client
+generic_name: Canokey Console
+
+categories:
+  - Development
+  - Utility
+
+startup_notify: true

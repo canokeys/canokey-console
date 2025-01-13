@@ -34,7 +34,9 @@ jobs:
               sudo apt-get update -y
               sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev # flutter dependencies
               sudo apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev # audioplayers_linux dependencies
+              dart pub global activate flutter_distributor
             build-args: ""
+            artifact-path: build/linux/x64/*.deb
             debug-artifact-path: build/linux/x64/debug/bundle
             release-artifact-path: build/linux/x64/release/bundle
           - target: windows
@@ -98,7 +100,12 @@ jobs:
     - name: Install Flutter Rust Bridge
       run: cargo install flutter_rust_bridge_codegen
     - name: Run flutter ${{ matrix.variant }} build (${{ matrix.target }})
-      run: flutter build ${{ matrix.target }} --${{ matrix.variant }} ${{ matrix.build-args }} --verbose
+      run: |
+        flutter build ${{ matrix.target }} --${{ matrix.variant }} ${{ matrix.build-args }} --verbose
+        if [ ${{ matrix.target }} == "linux" ]; then
+          flutter_distributor package --platform linux --targets deb --skip-clean --flutter-build-args=verbose,${{ matrix.variant }}
+          mv dist/*/*.deb build/linux/x64/
+        fi
 
     # upload build artifacts
     - uses: actions/upload-artifact@v4
