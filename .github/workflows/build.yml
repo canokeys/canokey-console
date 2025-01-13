@@ -23,7 +23,8 @@ jobs:
         include:
           - target: apk
             os: ubuntu-latest
-            pre-build-script: ""
+            pre-build-script: |
+              sed -i 's/signingConfigs.release/signingConfigs.debug/' android/app/build.gradle
             build-args: ""
             debug-artifact-path: build/app/outputs/flutter-apk/app-debug.apk
             release-artifact-path: build/app/outputs/flutter-apk/app-release.apk
@@ -94,15 +95,16 @@ jobs:
     - run: dart analyze
 
     # build flutter app
-    - name: Run flutter ${{ matrix.variant }} build on ${{ matrix.target }}
-      run: |
-        cargo install flutter_rust_bridge_codegen
-        flutter build ${{ matrix.target }} --${{ matrix.variant }} ${{ matrix.build-args }} --verbose
+    - name: Install Flutter Rust Bridge
+      run: cargo install flutter_rust_bridge_codegen
+    - name: Run flutter ${{ matrix.variant }} build (${{ matrix.target }})
+      run: flutter build ${{ matrix.target }} --${{ matrix.variant }} ${{ matrix.build-args }} --verbose
 
     # upload build artifacts
     - uses: actions/upload-artifact@v4
       with:
         name: canokey-console-${{ matrix.target }}-${{ matrix.variant }}
         path: |
+          ${{ matrix.artifact-path }}
           ${{ matrix.debug-artifact-path }}
           ${{ matrix.release-artifact-path }}
