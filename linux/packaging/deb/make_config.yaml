@@ -2,7 +2,7 @@ display_name: CanoKey Console
 package_name: canokey-console
 maintainer:
   name: CanoKey Developers
-  email: 
+  email: contact@canokeys.org
 priority: optional
 section: x11
 essential: false
@@ -19,9 +19,10 @@ dependencies:
 icon: assets/images/logo/logo_icon_dark.png
 
 keywords:
-  - API
-  - API Client
-generic_name: Canokey Console
+  - CanoKey
+  - Smart Card
+  - Security Key
+generic_name: CanoKey Console
 
 categories:
   - Development
