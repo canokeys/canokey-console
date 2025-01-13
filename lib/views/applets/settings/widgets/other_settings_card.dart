@@ -98,7 +98,7 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                             ),
                             RichText(text: TextSpan(
                               children: [
-                                TextSpan(text: S.of(context).beforeSourceLink, style: TextStyle()),
+                                TextSpan(text: S.of(context).beforeSourceLink, style: CustomizedText.bodyMedium('').style),
                                 TextSpan(
                                   text: 'canokeys/canokey-console',
                                   style: TextStyle(color: contentTheme.primary, decoration: TextDecoration.underline),

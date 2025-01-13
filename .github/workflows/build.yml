@@ -1,0 +1,120 @@
+name: Build Apps
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  JAVA_VERSION: 17
+  FLUTTER_VERSION: 3.24.5
+
+jobs:
+  build:
+    if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [apk, linux, windows, macos, ios]
+        variant: [debug, release]
+        include:
+          - target: apk
+            os: ubuntu-latest
+            pre-build-script: |
+              sed -i 's/signingConfigs.release/signingConfigs.debug/' android/app/build.gradle
+            build-args: ""
+            debug-artifact-path: build/app/outputs/flutter-apk/app-debug.apk
+            release-artifact-path: build/app/outputs/flutter-apk/app-release.apk
+          - target: linux
+            os: ubuntu-latest
+            pre-build-script: |
+              sudo apt-get update -y
+              sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev # flutter dependencies
+              sudo apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev # audioplayers_linux dependencies
+              dart pub global activate flutter_distributor
+            build-args: ""
+            artifact-path: build/linux/x64/*.deb
+            debug-artifact-path: build/linux/x64/debug/bundle
+            release-artifact-path: build/linux/x64/release/bundle
+          - target: windows
+            os: windows-latest
+            pre-build-script: ""
+            build-args: ""
+            debug-artifact-path: build/windows/x64/runner/Debug
+            release-artifact-path: build/windows/x64/runner/Release
+          - target: macos
+            os: macos-latest
+            pre-build-script: ""
+            build-args: ""
+            debug-artifact-path: build/macos/Build/Products/Debug/*.app
+            release-artifact-path: build/macos/Build/Products/Release/*.app
+          - target: ios
+            os: macos-latest
+            pre-build-script: ""
+            build-args: "--no-codesign"
+            artifact-path: |
+              build/ios/iphoneos/Runner.app
+
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.target }}-${{ matrix.variant }}
+
+    steps:
+
+    # setup environment
+    - uses: actions/checkout@v4
+    - uses: actions/cache@v4
+      with:
+        key: apk-${{ hashFiles('rust/Cargo.toml') }}
+        path: |
+          ~/.gradle
+          rust/target
+
+    # setup dependencies
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: nightly
+        components: rust-src
+    - uses: actions/setup-java@v4
+      if: ${{ matrix.target == 'apk' }}
+      with:
+        distribution: 'temurin'
+        java-version: ${{ env.JAVA_VERSION }}
+    - name: Setup Flutter SDK
+      uses: flutter-actions/setup-flutter@v3
+      with:
+        channel: stable
+        version: ${{ env.FLUTTER_VERSION }}
+        cache: true
+    - name: pre-build-script script for ${{ matrix.target }}
+      run: ${{ matrix.pre-build-script }}
+
+    # basic format & linting check
+    - run: flutter pub get
+    # - run: dart format --output=none --set-exit-if-changed lib/
+    - run: dart analyze
+
+    # build flutter app
+    - name: Install Flutter Rust Bridge
+      run: cargo install flutter_rust_bridge_codegen
+    - name: Run flutter ${{ matrix.variant }} build (${{ matrix.target }})
+      run: |
+        flutter build ${{ matrix.target }} --${{ matrix.variant }} ${{ matrix.build-args }} --verbose
+        if [ "${{ matrix.target }}" == "linux" ]; then
+          flutter_distributor package --platform linux --targets deb --skip-clean --flutter-build-args=verbose,${{ matrix.variant }}
+          mv dist/*/*.deb build/linux/x64/
+        fi
+
+    # upload build artifacts
+    - uses: actions/upload-artifact@v4
+      with:
+        name: canokey-console-${{ matrix.target }}-${{ matrix.variant }}
+        path: |
+          ${{ matrix.artifact-path }}
+          ${{ matrix.debug-artifact-path }}
+          ${{ matrix.release-artifact-path }}

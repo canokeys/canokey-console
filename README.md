@@ -1,6 +1,6 @@
 # CanoKey Console
 
-![Build Android App](https://github.com/canokeys/canokey-console/actions/workflows/android.yml/badge.svg)
+![Build Apps](https://github.com/canokeys/canokey-console/actions/workflows/build.yml/badge.svg)
 ![Build and Deploy to Netlify](https://github.com/canokeys/canokey-console/actions/workflows/netlify.yml/badge.svg)
 
 CanoKey Console is a cross-platform application that allows you to manage your CanoKey via NFC or USB connections. Built with Flutter, it provides a modern and intuitive interface for interacting with your CanoKey device.
