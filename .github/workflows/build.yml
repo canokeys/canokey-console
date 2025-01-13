@@ -103,7 +103,7 @@ jobs:
     - name: Run flutter ${{ matrix.variant }} build (${{ matrix.target }})
       run: |
         flutter build ${{ matrix.target }} --${{ matrix.variant }} ${{ matrix.build-args }} --verbose
-        if [ ${{ matrix.target }} == "linux" ]; then
+        if [ "${{ matrix.target }}" == "linux" ]; then
           flutter_distributor package --platform linux --targets deb --skip-clean --flutter-build-args=verbose,${{ matrix.variant }}
           mv dist/*/*.deb build/linux/x64/
         fi
