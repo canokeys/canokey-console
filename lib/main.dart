@@ -37,7 +37,7 @@ Future<void> main() async {
   if (!isWeb()) {
     SmartCard.pollCcid();
     if (isAndroidApp()) {
-      SmartCard.startNfcHandler();
+      SmartCard.startAndroidNfcHandler();
       Audio.init();
     }
   } else {
