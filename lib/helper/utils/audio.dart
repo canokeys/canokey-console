@@ -1,17 +1,24 @@
 import 'package:audioplayers/audioplayers.dart';
 
 class Audio {
-  static final AudioPlayer _player = AudioPlayer();
+  static late AudioPool _poll, _finish, _error;
+
+  static void init() async {
+    AudioPlayer.global.setAudioContext(AudioContextConfig(focus: AudioContextConfigFocus.mixWithOthers, respectSilence: true).build());
+    _poll = await AudioPool.createFromAsset(path: 'audio/poll.aac', maxPlayers: 1);
+    _finish = await AudioPool.createFromAsset(path: 'audio/finish.aac', maxPlayers: 1);
+    _error = await AudioPool.createFromAsset(path: 'audio/error.aac', maxPlayers: 1);
+  }
 
   static void poll() {
-    _player.play(AssetSource('audio/poll.aac'), mode: PlayerMode.lowLatency);
+    _poll.start();
   }
 
   static void finish() {
-    _player.play(AssetSource('audio/finish.aac'), mode: PlayerMode.lowLatency);
+    _finish.start();
   }
 
   static void error() {
-    _player.play(AssetSource('audio/error.aac'), mode: PlayerMode.lowLatency);
+    _error.start();
   }
 }
