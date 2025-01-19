@@ -34,6 +34,9 @@ android {
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutter.versionCode
         versionName flutter.versionName
+        manifestPlaceholders = [
+            launcherLabel: "CanoKey Console"
+        ]
     }
 
     signingConfigs {
@@ -46,6 +49,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-DEBUG"
+            manifestPlaceholders = [
+                launcherLabel: "CanoKey Console (DEBUG)"
+            ]
+        }
         release {
             signingConfig = signingConfigs.release
         }

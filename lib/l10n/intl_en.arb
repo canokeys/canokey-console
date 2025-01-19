@@ -16,6 +16,7 @@
   "desktopPollCanoKeyPrompt": "Insert your CanoKey into the USB port",
   "iosPollCanoKeyPrompt": "Tap the refresh button and tap your CanoKey or insert it into the USB port",
   "webPollCanoKeyPrompt": "Insert your CanoKey into the USB port and click the refresh button",
+  "desktopPollError": "Error finding CanoKey connected via USB. Please fix the problem and restart this app:",
   "pollCanceled": "No CanoKey is selected.",
   "networkError": "CanoKey is busy. Replug it, wait for a moment, and retry.",
   "appletLocked": "This applet has been locked.",

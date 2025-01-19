@@ -3,6 +3,7 @@
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:chinese_font_library/chinese_font_library.dart';
 
 enum TextType {
   displayLarge,
@@ -99,7 +100,7 @@ class CustomizedTextStyle {
         color: finalColor,
         decoration: decoration,
         height: height,
-        wordSpacing: wordSpacing);
+        wordSpacing: wordSpacing).useSystemChineseFont();
   }
 
   // Material Design 3

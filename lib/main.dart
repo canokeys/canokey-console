@@ -8,6 +8,7 @@ import 'package:canokey_console/helper/theme/app_notifier.dart';
 import 'package:canokey_console/helper/theme/app_style.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
+import 'package:canokey_console/helper/utils/audio.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/rust_license.dart';
 import 'package:canokey_console/routes.dart';
@@ -36,7 +37,8 @@ Future<void> main() async {
   if (!isWeb()) {
     SmartCard.pollCcid();
     if (isAndroidApp()) {
-      SmartCard.startNfcHandler();
+      SmartCard.startAndroidNfcHandler();
+      Audio.init();
     }
   } else {
     final deviceInfo = DeviceInfoPlugin();

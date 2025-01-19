@@ -16,6 +16,7 @@
   "desktopPollCanoKeyPrompt": "请将您的 CanoKey 插入 USB 接口",
   "iosPollCanoKeyPrompt": "请点击刷新按钮并点击您的 CanoKey 或将其插入 USB 接口",
   "webPollCanoKeyPrompt": "请将您的 CanoKey 插入 USB 接口并点击刷新按钮",
+  "desktopPollError": "寻找 USB 连接的 CanoKey 时遇到错误。请修复错误后重启此应用：",
   "pollCanceled": "您没有选择任何 CanoKey",
   "networkError": "CanoKey 繁忙，请重新插拔并稍后再试",
   "appletLocked": "该应用已被锁定",
