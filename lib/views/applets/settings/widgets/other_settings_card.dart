@@ -5,6 +5,7 @@ import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_card.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
+import 'package:canokey_console/helper/widgets/customized_text_style.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/language_dialog.dart';
@@ -98,7 +99,7 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                             ),
                             RichText(text: TextSpan(
                               children: [
-                                TextSpan(text: S.of(context).beforeSourceLink, style: CustomizedText.bodyMedium('').style),
+                                TextSpan(text: S.of(context).beforeSourceLink),
                                 TextSpan(
                                   text: 'canokeys/canokey-console',
                                   style: TextStyle(color: contentTheme.primary, decoration: TextDecoration.underline),
@@ -110,7 +111,8 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                                       }
                                     }
                                   ),
-                              ]
+                              ],
+                              style: CustomizedTextStyle.bodyMedium(),
                             )),
                             Spacing.height(12),
                             CustomizedText.bodySmall(S.of(context).soundCredit),
