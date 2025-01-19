@@ -77,6 +77,7 @@ class SmartCard {
   static RefreshCallback? refreshHandler;
 
   static ConnectionType connectionType = ConnectionType.none;
+  static String? connectionError;
 
   /// Returns the response APDU without the SW
   static String dropSW(String rapdu) {
@@ -330,7 +331,16 @@ class SmartCard {
 
   static void pollCcid() {
     Timer.periodic(const Duration(seconds: 1), (timer) async {
-      List<String> readers = await Ccid().listReaders();
+      List<String> readers = [];
+      connectionError = null;
+      try {
+        readers = await Ccid().listReaders();
+      } catch (e) {
+        log.e('Failed to get available readers, giving up...', error: e);
+        connectionError = e.toString();
+        timer.cancel();
+        return;
+      }
       final name = readers.firstWhereOrNull((name) => name.toLowerCase().contains("canokey"));
       if (name != null) {
         if (_ccidCard == null) {
