@@ -210,6 +210,16 @@ class S {
     );
   }
 
+  /// `Error finding CanoKey connected via USB. Please fix the problem and restart this app:`
+  String get desktopPollError {
+    return Intl.message(
+      'Error finding CanoKey connected via USB. Please fix the problem and restart this app:',
+      name: 'desktopPollError',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `No CanoKey is selected.`
   String get pollCanceled {
     return Intl.message(

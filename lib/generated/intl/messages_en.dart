@@ -78,6 +78,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "deleted": MessageLookupByLibrary.simpleMessage("Successfully deleted"),
         "desktopPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
             "Insert your CanoKey into the USB port"),
+        "desktopPollError": MessageLookupByLibrary.simpleMessage(
+            "Error finding CanoKey connected via USB. Please fix the problem and restart this app:"),
         "enabled": MessageLookupByLibrary.simpleMessage("Enabled"),
         "home": MessageLookupByLibrary.simpleMessage("Home"),
         "homeDirectlySelect":
