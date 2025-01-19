@@ -48,6 +48,7 @@ dependencies:
   logger: ^2.5.0
   audioplayers: ^6.1.0
   package_info_plus: ^8.1.2
+  chinese_font_library: ^1.2.0
 
 dependency_overrides:
   dart_webrtc: ^1.4.10
