@@ -53,7 +53,7 @@ Future<void> main() async {
 
     await SentryFlutter.init(
       (options) {
-        options.dsn = 'https://9ce5b504ec3d4fe1705d64792cf75ad3@o4508701954342912.ingest.us.sentry.io/4508701956571136';
+        options.dsn = 'https://4484dcb1b124a87b0b12403fd5747134@o292813.ingest.us.sentry.io/4508702185750528';
       },
       appRunner: () => runApp(ChangeNotifierProvider<AppNotifier>(
         create: (context) => AppNotifier(),
