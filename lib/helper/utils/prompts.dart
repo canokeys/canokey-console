@@ -95,7 +95,7 @@ class Prompts {
         S.of(Get.context!).readingAlertMessage,
         icon: SpinKitRipple(color: Colors.tealAccent, size: 32.0),
         duration: const Duration(seconds: 99),
-        backgroundColor: Colors.grey.withOpacity(0.8),
+        backgroundColor: Colors.grey.withValues(alpha: 0.8),
         snackPosition: SnackPosition.BOTTOM,
         maxWidth: 400,
       );
