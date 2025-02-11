@@ -50,7 +50,7 @@ abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
                     : GestureDetector(
                         onTap: () {},
                         child: Container(
-                          color: Colors.black.withValues(alpha: 0.8),
+                          color: Colors.black.withValues(alpha: 0.2),
                           child: Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,

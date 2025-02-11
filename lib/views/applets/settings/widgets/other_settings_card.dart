@@ -61,7 +61,7 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            color: contentTheme.primary.withValues(alpha: 0.8),
+            color: contentTheme.primary.withValues(alpha: 0.2),
             padding: Spacing.xy(16, 12),
             child: Row(
               children: [
