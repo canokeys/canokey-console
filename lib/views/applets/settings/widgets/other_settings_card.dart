@@ -61,7 +61,7 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            color: contentTheme.primary.withOpacity(0.08),
+            color: contentTheme.primary.withValues(alpha: 0.2),
             padding: Spacing.xy(16, 12),
             child: Row(
               children: [
@@ -97,20 +97,20 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                               padding: Spacing.y(8),
                               child: CustomizedText.bodyMedium(S.of(context).appDescription),
                             ),
-                            RichText(text: TextSpan(
+                            RichText(
+                                text: TextSpan(
                               children: [
                                 TextSpan(text: S.of(context).beforeSourceLink),
                                 TextSpan(
-                                  text: 'canokeys/canokey-console',
-                                  style: TextStyle(color: contentTheme.primary, decoration: TextDecoration.underline),
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () async {
-                                      const repoUrl = 'https://github.com/canokeys/canokey-console';
-                                      if (await canLaunchUrlString(repoUrl)) {
-                                        await launchUrlString(repoUrl, mode: LaunchMode.externalApplication);
-                                      }
-                                    }
-                                  ),
+                                    text: 'canokeys/canokey-console',
+                                    style: TextStyle(color: contentTheme.primary, decoration: TextDecoration.underline),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () async {
+                                        const repoUrl = 'https://github.com/canokeys/canokey-console';
+                                        if (await canLaunchUrlString(repoUrl)) {
+                                          await launchUrlString(repoUrl, mode: LaunchMode.externalApplication);
+                                        }
+                                      }),
                               ],
                               style: CustomizedTextStyle.bodyMedium(),
                             )),

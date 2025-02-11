@@ -25,7 +25,7 @@ class InfoCard extends StatelessWidget with UIMixin {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            color: contentTheme.primary.withOpacity(0.08),
+            color: contentTheme.primary.withValues(alpha: 0.2),
             padding: Spacing.xy(16, 12),
             child: Row(
               children: [

@@ -24,35 +24,45 @@ import 'package:get/get.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:platform_detector/platform_detector.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  await runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  await RustLib.init();
-  await LocalStorage.init();
-  AppStyle.init();
-  Language.init();
-  LicenseRegistry.addLicense(() => parseRustLicenses());
+    await RustLib.init();
+    await LocalStorage.init();
+    AppStyle.init();
+    Language.init();
+    LicenseRegistry.addLicense(() => parseRustLicenses());
 
-  if (!isWeb()) {
-    SmartCard.pollCcid();
-    if (isAndroidApp()) {
-      SmartCard.startAndroidNfcHandler();
-      Audio.init();
+    if (!isWeb()) {
+      SmartCard.pollCcid();
+      if (isAndroidApp()) {
+        SmartCard.startAndroidNfcHandler();
+        Audio.init();
+      }
+    } else {
+      final deviceInfo = DeviceInfoPlugin();
+      final info = await deviceInfo.webBrowserInfo;
+      if (info.browserName != BrowserName.chrome && info.browserName != BrowserName.edge) {
+        Layout.notSupported = true;
+      }
+      WebUSB.onDisconnect = SmartCard.onWebUSBDisconnected;
     }
-  } else {
-    final deviceInfo = DeviceInfoPlugin();
-    final info = await deviceInfo.webBrowserInfo;
-    if (info.browserName != BrowserName.chrome && info.browserName != BrowserName.edge) {
-      Layout.notSupported = true;
-    }
-    WebUSB.onDisconnect = SmartCard.onWebUSBDisconnected;
-  }
 
-  runApp(ChangeNotifierProvider<AppNotifier>(
-    create: (context) => AppNotifier(),
-    child: MyApp(),
-  ));
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = 'https://4484dcb1b124a87b0b12403fd5747134@o292813.ingest.us.sentry.io/4508702185750528';
+      },
+      appRunner: () => runApp(ChangeNotifierProvider<AppNotifier>(
+        create: (context) => AppNotifier(),
+        child: MyApp(),
+      )),
+    );
+  }, (exception, stackTrace) async {
+    await Sentry.captureException(exception, stackTrace: stackTrace);
+  });
 }
 
 class MyApp extends StatelessWidget {
