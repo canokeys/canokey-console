@@ -126,10 +126,10 @@ packages:
     dependency: "direct main"
     description:
       name: ccid
-      sha256: "7d3bfe5795995ac3b2092f17ed296a6ee2eb2c1c3867c0c9d143710b3ef2ae5e"
+      sha256: "915542c704364b8fe7a19dec6c8803f5d86ab09140f4b7d9ea4fe88cdb8f2eea"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.7"
+    version: "0.1.8"
   characters:
     dependency: transitive
     description:
@@ -1060,4 +1060,4 @@ packages:
     version: "1.1.0"
 sdks:
   dart: ">=3.6.0 <4.0.0"
-  flutter: ">=3.27.3"
+  flutter: ">=3.27.4"
