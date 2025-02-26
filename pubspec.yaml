@@ -2,11 +2,11 @@ name: canokey_console
 description: Manage your CanoKey via NFC or USB.
 publish_to: 'none'
 
-version: 1.1.0+7
+version: 1.1.1+8
 
 environment:
   sdk: '>=3.4.0 <4.0.0'
-  flutter: 3.24.5
+  flutter: 3.27.4
 
 dependencies:
   flutter:
@@ -28,14 +28,14 @@ dependencies:
   convert: ^3.1.2
   percent_indicator: ^4.2.4
   timer_controller: ^1.0.0
-  loader_overlay: ^4.0.3
+  loader_overlay: ^5.0.0
   flutter_spinkit: ^5.2.1
   fixnum: ^1.1.1
   platform_detector: ^0.2.0
   mobile_scanner: ^6.0.2
   flutter_webrtc: ^0.12.3
   fido2: ^0.0.4
-  ccid: ^0.1.7
+  ccid: ^0.1.8
   device_info_plus: ^11.2.0
   file_saver: ^0.2.14
   basic_utils:
@@ -49,9 +49,7 @@ dependencies:
   audioplayers: ^6.1.0
   package_info_plus: ^8.1.2
   chinese_font_library: ^1.2.0
-
-dependency_overrides:
-  dart_webrtc: ^1.4.10
+  sentry_flutter: ^8.12.0
 
 dev_dependencies:
   flutter_test:

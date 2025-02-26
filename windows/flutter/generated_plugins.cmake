@@ -7,6 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   ccid
   file_saver
   flutter_webrtc
+  sentry_flutter
   url_launcher_windows
 )
 
