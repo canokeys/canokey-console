@@ -9,7 +9,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  FLUTTER_VERSION: 3.27.3
+  FLUTTER_VERSION: 3.27.4
 
 jobs:
   build:
