@@ -98,7 +98,7 @@
   "settingsResetPass": "Reset Pass",
   "settingsResetApplet": "This operation will RESET all data of {applet}!",
   "settingsResetAll": "Reset CanoKey",
-  "settingsResetAllPrompt": "All data is about to be erased. When you confirm, the CanoKey will blink repeatedly. Touch while it is blinking until success.",
+  "settingsResetAllPrompt": "All data will be erased. Once confirmed, the CanoKey will blink multiple times. Please touch it each time you see a blink until the success prompt appears.",
   "settingsResetSuccess": "Successfully reset",
   "settingsResetConditionNotSatisfying": "PIN has not been locked yet",
   "settingsResetPresenceTestFailed": "You did not touch the pad in time",

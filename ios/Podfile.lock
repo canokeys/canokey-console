@@ -45,7 +45,7 @@ PODS:
   - Flutter (1.0.0)
   - flutter_nfc_kit (3.6.0):
     - Flutter
-  - flutter_webrtc (0.12.2):
+  - flutter_webrtc (0.12.6):
     - Flutter
     - WebRTC-SDK (= 125.6422.06)
   - GoogleDataTransport (10.1.0):
@@ -107,6 +107,11 @@ PODS:
   - SDWebImage (5.20.0):
     - SDWebImage/Core (= 5.20.0)
   - SDWebImage/Core (5.20.0)
+  - Sentry/HybridSDK (8.46.0)
+  - sentry_flutter (8.14.1):
+    - Flutter
+    - FlutterMacOS
+    - Sentry/HybridSDK (= 8.46.0)
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -128,6 +133,7 @@ DEPENDENCIES:
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - rust_lib_canokey_console (from `.symlinks/plugins/rust_lib_canokey_console/ios`)
+  - sentry_flutter (from `.symlinks/plugins/sentry_flutter/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
@@ -147,6 +153,7 @@ SPEC REPOS:
     - nanopb
     - PromisesObjC
     - SDWebImage
+    - Sentry
     - SwiftyGif
     - WebRTC-SDK
 
@@ -175,6 +182,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   rust_lib_canokey_console:
     :path: ".symlinks/plugins/rust_lib_canokey_console/ios"
+  sentry_flutter:
+    :path: ".symlinks/plugins/sentry_flutter/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   url_launcher_ios:
@@ -190,7 +199,7 @@ SPEC CHECKSUMS:
   file_saver: 6cdbcddd690cb02b0c1a0c225b37cd805c2bf8b6
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_nfc_kit: e1b71583eafd2c9650bc86844a7f2d185fb414f6
-  flutter_webrtc: 9216845e00f7910a3fe8687116e448fe50e98a97
+  flutter_webrtc: 57f32415b8744e806f9c2a96ccdb60c6a627ba33
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleMLKit: eff9e23ec1d90ea4157a1ee2e32a4f610c5b3318
   GoogleToolboxForMac: d1a2cbf009c453f4d6ded37c105e2f67a32206d8
@@ -207,6 +216,8 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   rust_lib_canokey_console: 518e9996761d9fed2cd1d6f8f330170acd007d69
   SDWebImage: 73c6079366fea25fa4bb9640d5fb58f0893facd8
+  Sentry: da60d980b197a46db0b35ea12cb8f39af48d8854
+  sentry_flutter: 942017adbe00f963061cb11ec260414a990b7a42
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   url_launcher_ios: 694010445543906933d732453a59da0a173ae33d

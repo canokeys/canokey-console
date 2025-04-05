@@ -129,7 +129,7 @@
     }
   },
   "settingsResetAll": "重置 CanoKey",
-  "settingsResetAllPrompt": "即将抹除全部数据。当您确认后，CanoKey 将会反复闪烁，请在闪烁时触摸，直到提示成功。",
+  "settingsResetAllPrompt": "即将抹除全部数据。当您确认后，CanoKey 将会多次闪烁，请在每次看到闪烁时触摸，直到提示成功。",
   "settingsResetSuccess": "重置成功",
   "settingsResetConditionNotSatisfying": "PIN 尚未锁定",
   "settingsResetPresenceTestFailed": "请按提示触摸",
