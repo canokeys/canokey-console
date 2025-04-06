@@ -20,7 +20,7 @@ dependencies:
   google_fonts: ^6.2.1
   lucide_icons: ^0.257.0
   url_launcher: ^6.3.1
-  file_picker: 8.1.7
+  file_picker: ^10.0.0
   font_awesome_flutter: ^10.8.0
   intl: ^0.19.0
   flutter_nfc_kit: ^3.6.0
