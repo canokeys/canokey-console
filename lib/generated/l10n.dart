@@ -18,17 +18,20 @@ class S {
   static S? _current;
 
   static S get current {
-    assert(_current != null,
-        'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
+    assert(
+      _current != null,
+      'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.',
+    );
     return _current!;
   }
 
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name = (locale.countryCode?.isEmpty ?? false)
-        ? locale.languageCode
-        : locale.toString();
+    final name =
+        (locale.countryCode?.isEmpty ?? false)
+            ? locale.languageCode
+            : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -41,8 +44,10 @@ class S {
 
   static S of(BuildContext context) {
     final instance = S.maybeOf(context);
-    assert(instance != null,
-        'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?');
+    assert(
+      instance != null,
+      'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?',
+    );
     return instance!;
   }
 
@@ -52,42 +57,22 @@ class S {
 
   /// `Applets`
   String get applets {
-    return Intl.message(
-      'Applets',
-      name: 'applets',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Applets', name: 'applets', desc: '', args: []);
   }
 
   /// `Settings`
   String get settings {
-    return Intl.message(
-      'Settings',
-      name: 'settings',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Settings', name: 'settings', desc: '', args: []);
   }
 
   /// `Other`
   String get other {
-    return Intl.message(
-      'Other',
-      name: 'other',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Other', name: 'other', desc: '', args: []);
   }
 
   /// `About`
   String get about {
-    return Intl.message(
-      'About',
-      name: 'about',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('About', name: 'about', desc: '', args: []);
   }
 
   /// `CanoKey Console`
@@ -102,12 +87,7 @@ class S {
 
   /// `Press`
   String get homePress {
-    return Intl.message(
-      'Press',
-      name: 'homePress',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Press', name: 'homePress', desc: '', args: []);
   }
 
   /// `to select an applet`
@@ -132,32 +112,17 @@ class S {
 
   /// `Home`
   String get home {
-    return Intl.message(
-      'Home',
-      name: 'home',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Home', name: 'home', desc: '', args: []);
   }
 
   /// `Save`
   String get save {
-    return Intl.message(
-      'Save',
-      name: 'save',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Save', name: 'save', desc: '', args: []);
   }
 
   /// `Close`
   String get close {
-    return Intl.message(
-      'Close',
-      name: 'close',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Close', name: 'close', desc: '', args: []);
   }
 
   /// `Please read your CanoKey by clicking the refresh button`
@@ -282,92 +247,47 @@ class S {
 
   /// `seconds`
   String get seconds {
-    return Intl.message(
-      'seconds',
-      name: 'seconds',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('seconds', name: 'seconds', desc: '', args: []);
   }
 
   /// `Change`
   String get change {
-    return Intl.message(
-      'Change',
-      name: 'change',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Change', name: 'change', desc: '', args: []);
   }
 
   /// `Current PIN`
   String get oldPin {
-    return Intl.message(
-      'Current PIN',
-      name: 'oldPin',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Current PIN', name: 'oldPin', desc: '', args: []);
   }
 
   /// `New PIN`
   String get newPin {
-    return Intl.message(
-      'New PIN',
-      name: 'newPin',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('New PIN', name: 'newPin', desc: '', args: []);
   }
 
   /// `Actions`
   String get actions {
-    return Intl.message(
-      'Actions',
-      name: 'actions',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Actions', name: 'actions', desc: '', args: []);
   }
 
   /// `Cancel`
   String get cancel {
-    return Intl.message(
-      'Cancel',
-      name: 'cancel',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Cancel', name: 'cancel', desc: '', args: []);
   }
 
   /// `Confirm`
   String get confirm {
-    return Intl.message(
-      'Confirm',
-      name: 'confirm',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Confirm', name: 'confirm', desc: '', args: []);
   }
 
   /// `On`
   String get on {
-    return Intl.message(
-      'On',
-      name: 'on',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('On', name: 'on', desc: '', args: []);
   }
 
   /// `Off`
   String get off {
-    return Intl.message(
-      'Off',
-      name: 'off',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Off', name: 'off', desc: '', args: []);
   }
 
   /// `Successfully changed`
@@ -382,12 +302,7 @@ class S {
 
   /// `Change PIN`
   String get changePin {
-    return Intl.message(
-      'Change PIN',
-      name: 'changePin',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Change PIN', name: 'changePin', desc: '', args: []);
   }
 
   /// `New PIN should be at least {min} characters long. The maximum length is {max}.`
@@ -422,22 +337,12 @@ class S {
 
   /// `Warning`
   String get warning {
-    return Intl.message(
-      'Warning',
-      name: 'warning',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Warning', name: 'warning', desc: '', args: []);
   }
 
   /// `Delete`
   String get delete {
-    return Intl.message(
-      'Delete',
-      name: 'delete',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Delete', name: 'delete', desc: '', args: []);
   }
 
   /// `Successfully deleted`
@@ -452,22 +357,12 @@ class S {
 
   /// `Add`
   String get add {
-    return Intl.message(
-      'Add',
-      name: 'add',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Add', name: 'add', desc: '', args: []);
   }
 
   /// `Reset`
   String get reset {
-    return Intl.message(
-      'Reset',
-      name: 'reset',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Reset', name: 'reset', desc: '', args: []);
   }
 
   /// `Please connect your CanoKey first.`
@@ -482,22 +377,12 @@ class S {
 
   /// `Copied`
   String get copied {
-    return Intl.message(
-      'Copied',
-      name: 'copied',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Copied', name: 'copied', desc: '', args: []);
   }
 
   /// `Enabled`
   String get enabled {
-    return Intl.message(
-      'Enabled',
-      name: 'enabled',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Enabled', name: 'enabled', desc: '', args: []);
   }
 
   /// `No credential`
@@ -522,12 +407,7 @@ class S {
 
   /// `Search`
   String get search {
-    return Intl.message(
-      'Search',
-      name: 'search',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Search', name: 'search', desc: '', args: []);
   }
 
   /// `Hold your iPhone near the CanoKey`
@@ -622,12 +502,7 @@ class S {
 
   /// `Version`
   String get openpgpVersion {
-    return Intl.message(
-      'Version',
-      name: 'openpgpVersion',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Version', name: 'openpgpVersion', desc: '', args: []);
   }
 
   /// `Manufacturer`
@@ -642,12 +517,7 @@ class S {
 
   /// `Serial Number`
   String get openpgpSN {
-    return Intl.message(
-      'Serial Number',
-      name: 'openpgpSN',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Serial Number', name: 'openpgpSN', desc: '', args: []);
   }
 
   /// `Card Holder`
@@ -672,12 +542,7 @@ class S {
 
   /// `Keys`
   String get openpgpKeys {
-    return Intl.message(
-      'Keys',
-      name: 'openpgpKeys',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Keys', name: 'openpgpKeys', desc: '', args: []);
   }
 
   /// `Signature`
@@ -722,22 +587,12 @@ class S {
 
   /// `Off`
   String get openpgpUifOff {
-    return Intl.message(
-      'Off',
-      name: 'openpgpUifOff',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Off', name: 'openpgpUifOff', desc: '', args: []);
   }
 
   /// `On`
   String get openpgpUifOn {
-    return Intl.message(
-      'On',
-      name: 'openpgpUifOn',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('On', name: 'openpgpUifOn', desc: '', args: []);
   }
 
   /// `Permanent (Cannot turn off)`
@@ -812,12 +667,7 @@ class S {
 
   /// `[none]`
   String get openpgpKeyNone {
-    return Intl.message(
-      '[none]',
-      name: 'openpgpKeyNone',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('[none]', name: 'openpgpKeyNone', desc: '', args: []);
   }
 
   /// `CanoKey Info`
@@ -852,12 +702,7 @@ class S {
 
   /// `Model`
   String get settingsModel {
-    return Intl.message(
-      'Model',
-      name: 'settingsModel',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Model', name: 'settingsModel', desc: '', args: []);
   }
 
   /// `Firmware Version`
@@ -882,12 +727,7 @@ class S {
 
   /// `Chip ID`
   String get settingsChipId {
-    return Intl.message(
-      'Chip ID',
-      name: 'settingsChipId',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Chip ID', name: 'settingsChipId', desc: '', args: []);
   }
 
   /// `PIN Verification`
@@ -1030,10 +870,10 @@ class S {
     );
   }
 
-  /// `All data is about to be erased. When you confirm, the CanoKey will blink repeatedly. Touch while it is blinking until success.`
+  /// `All data will be erased. Once confirmed, the CanoKey will blink multiple times. Please touch it each time you see a blink until the success prompt appears.`
   String get settingsResetAllPrompt {
     return Intl.message(
-      'All data is about to be erased. When you confirm, the CanoKey will blink repeatedly. Touch while it is blinking until success.',
+      'All data will be erased. Once confirmed, the CanoKey will blink multiple times. Please touch it each time you see a blink until the success prompt appears.',
       name: 'settingsResetAllPrompt',
       desc: '',
       args: [],
@@ -1082,12 +922,7 @@ class S {
 
   /// `Fix NFC`
   String get settingsFixNFC {
-    return Intl.message(
-      'Fix NFC',
-      name: 'settingsFixNFC',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Fix NFC', name: 'settingsFixNFC', desc: '', args: []);
   }
 
   /// `NFC is successfully fixed`
@@ -1182,12 +1017,7 @@ class S {
 
   /// `Issuer`
   String get oathIssuer {
-    return Intl.message(
-      'Issuer',
-      name: 'oathIssuer',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Issuer', name: 'oathIssuer', desc: '', args: []);
   }
 
   /// `Account name`
@@ -1202,52 +1032,27 @@ class S {
 
   /// `Secret key`
   String get oathSecret {
-    return Intl.message(
-      'Secret key',
-      name: 'oathSecret',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Secret key', name: 'oathSecret', desc: '', args: []);
   }
 
   /// `Type`
   String get oathType {
-    return Intl.message(
-      'Type',
-      name: 'oathType',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Type', name: 'oathType', desc: '', args: []);
   }
 
   /// `Algorithm`
   String get oathAlgorithm {
-    return Intl.message(
-      'Algorithm',
-      name: 'oathAlgorithm',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Algorithm', name: 'oathAlgorithm', desc: '', args: []);
   }
 
   /// `Digits`
   String get oathDigits {
-    return Intl.message(
-      'Digits',
-      name: 'oathDigits',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Digits', name: 'oathDigits', desc: '', args: []);
   }
 
   /// `Period`
   String get oathPeriod {
-    return Intl.message(
-      'Period',
-      name: 'oathPeriod',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Period', name: 'oathPeriod', desc: '', args: []);
   }
 
   /// `Require Touch`
@@ -1262,32 +1067,17 @@ class S {
 
   /// `Required`
   String get oathRequired {
-    return Intl.message(
-      'Required',
-      name: 'oathRequired',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Required', name: 'oathRequired', desc: '', args: []);
   }
 
   /// `Too long`
   String get oathTooLong {
-    return Intl.message(
-      'Too long',
-      name: 'oathTooLong',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Too long', name: 'oathTooLong', desc: '', args: []);
   }
 
   /// `Counter`
   String get oathCounter {
-    return Intl.message(
-      'Counter',
-      name: 'oathCounter',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Counter', name: 'oathCounter', desc: '', args: []);
   }
 
   /// `Not a number`
@@ -1352,12 +1142,7 @@ class S {
 
   /// `Passphrase`
   String get oathCode {
-    return Intl.message(
-      'Passphrase',
-      name: 'oathCode',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Passphrase', name: 'oathCode', desc: '', args: []);
   }
 
   /// `Set Passphrase`
@@ -1412,12 +1197,7 @@ class S {
 
   /// `Slot`
   String get oathSlot {
-    return Intl.message(
-      'Slot',
-      name: 'oathSlot',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Slot', name: 'oathSlot', desc: '', args: []);
   }
 
   /// `Scan QR Code`
@@ -1502,42 +1282,22 @@ class S {
 
   /// `Slot Long`
   String get passSlotLong {
-    return Intl.message(
-      'Slot Long',
-      name: 'passSlotLong',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Slot Long', name: 'passSlotLong', desc: '', args: []);
   }
 
   /// `Status`
   String get passStatus {
-    return Intl.message(
-      'Status',
-      name: 'passStatus',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Status', name: 'passStatus', desc: '', args: []);
   }
 
   /// `Off`
   String get passSlotOff {
-    return Intl.message(
-      'Off',
-      name: 'passSlotOff',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Off', name: 'passSlotOff', desc: '', args: []);
   }
 
   /// `HOTP`
   String get passSlotHotp {
-    return Intl.message(
-      'HOTP',
-      name: 'passSlotHotp',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('HOTP', name: 'passSlotHotp', desc: '', args: []);
   }
 
   /// `Static Password`
@@ -1652,32 +1412,17 @@ class S {
 
   /// `Change PUK`
   String get pivChangePUK {
-    return Intl.message(
-      'Change PUK',
-      name: 'pivChangePUK',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Change PUK', name: 'pivChangePUK', desc: '', args: []);
   }
 
   /// `Current PUK`
   String get pivOldPUK {
-    return Intl.message(
-      'Current PUK',
-      name: 'pivOldPUK',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Current PUK', name: 'pivOldPUK', desc: '', args: []);
   }
 
   /// `New PUK`
   String get pivNewPUK {
-    return Intl.message(
-      'New PUK',
-      name: 'pivNewPUK',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('New PUK', name: 'pivNewPUK', desc: '', args: []);
   }
 
   /// `New PUK should be at least {min} characters long. The maximum length is {max}.`
@@ -1772,22 +1517,12 @@ class S {
 
   /// `Slots`
   String get pivSlots {
-    return Intl.message(
-      'Slots',
-      name: 'pivSlots',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Slots', name: 'pivSlots', desc: '', args: []);
   }
 
   /// `Empty`
   String get pivEmpty {
-    return Intl.message(
-      'Empty',
-      name: 'pivEmpty',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Empty', name: 'pivEmpty', desc: '', args: []);
   }
 
   /// `Authentication`
@@ -1832,22 +1567,12 @@ class S {
 
   /// `Retired 1`
   String get pivRetired1 {
-    return Intl.message(
-      'Retired 1',
-      name: 'pivRetired1',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Retired 1', name: 'pivRetired1', desc: '', args: []);
   }
 
   /// `Retired 2`
   String get pivRetired2 {
-    return Intl.message(
-      'Retired 2',
-      name: 'pivRetired2',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Retired 2', name: 'pivRetired2', desc: '', args: []);
   }
 
   /// `Current Algorithm`
@@ -1862,12 +1587,7 @@ class S {
 
   /// `PIN Policy`
   String get pivPinPolicy {
-    return Intl.message(
-      'PIN Policy',
-      name: 'pivPinPolicy',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('PIN Policy', name: 'pivPinPolicy', desc: '', args: []);
   }
 
   /// `Default`
@@ -1882,22 +1602,12 @@ class S {
 
   /// `Never`
   String get pivPinPolicyNever {
-    return Intl.message(
-      'Never',
-      name: 'pivPinPolicyNever',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Never', name: 'pivPinPolicyNever', desc: '', args: []);
   }
 
   /// `Once`
   String get pivPinPolicyOnce {
-    return Intl.message(
-      'Once',
-      name: 'pivPinPolicyOnce',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Once', name: 'pivPinPolicyOnce', desc: '', args: []);
   }
 
   /// `Always`
@@ -1962,12 +1672,7 @@ class S {
 
   /// `Origin`
   String get pivOrigin {
-    return Intl.message(
-      'Origin',
-      name: 'pivOrigin',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Origin', name: 'pivOrigin', desc: '', args: []);
   }
 
   /// `Generated`
@@ -2002,42 +1707,22 @@ class S {
 
   /// `Import`
   String get pivImport {
-    return Intl.message(
-      'Import',
-      name: 'pivImport',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Import', name: 'pivImport', desc: '', args: []);
   }
 
   /// `Generate`
   String get pivGenerate {
-    return Intl.message(
-      'Generate',
-      name: 'pivGenerate',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Generate', name: 'pivGenerate', desc: '', args: []);
   }
 
   /// `Export`
   String get pivExport {
-    return Intl.message(
-      'Export',
-      name: 'pivExport',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Export', name: 'pivExport', desc: '', args: []);
   }
 
   /// `Delete`
   String get pivDelete {
-    return Intl.message(
-      'Delete',
-      name: 'pivDelete',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Delete', name: 'pivDelete', desc: '', args: []);
   }
 
   /// `Export Certificate`
@@ -2092,12 +1777,7 @@ class S {
 
   /// `View User ID`
   String get viewUserId {
-    return Intl.message(
-      'View User ID',
-      name: 'viewUserId',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('View User ID', name: 'viewUserId', desc: '', args: []);
   }
 
   /// `Save the PIN on this device`
