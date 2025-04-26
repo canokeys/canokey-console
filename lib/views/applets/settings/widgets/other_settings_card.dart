@@ -9,6 +9,7 @@ import 'package:canokey_console/helper/widgets/customized_text_style.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/language_dialog.dart';
+import 'package:canokey_console/views/applets/settings/dialogs/nfc_sound_dialog.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/start_page_dialog.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/clear_pin_cache_dialog.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
@@ -81,6 +82,8 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                 InfoItem(iconData: LucideIcons.home, title: S.of(context).settingsStartPage, value: startPage, onTap: StartPageDialog.show),
                 Spacing.height(16),
                 InfoItem(iconData: LucideIcons.pin, title: S.of(context).settingsClearPinCache, value: '', onTap: () => ClearPinCacheDialog.show()),
+                Spacing.height(16),
+                InfoItem(iconData: LucideIcons.bellRing, title: S.of(context).nfcSound, value: '', onTap: () => NfcSoundDialog.show()),
                 Spacing.height(16),
                 InfoItem(
                     iconData: LucideIcons.info,
