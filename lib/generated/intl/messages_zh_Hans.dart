@@ -72,6 +72,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "desktopPollError": MessageLookupByLibrary.simpleMessage(
       "寻找 USB 连接的 CanoKey 时遇到错误。请修复错误后重启此应用：",
     ),
+    "disableSound": MessageLookupByLibrary.simpleMessage("无音效"),
     "enabled": MessageLookupByLibrary.simpleMessage("启用"),
     "home": MessageLookupByLibrary.simpleMessage("首页"),
     "homeDirectlySelect": MessageLookupByLibrary.simpleMessage("请选择应用"),
@@ -91,6 +92,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "CanoKey 繁忙，请重新插拔并稍后再试",
     ),
     "newPin": MessageLookupByLibrary.simpleMessage("新 PIN"),
+    "nfcSound": MessageLookupByLibrary.simpleMessage("NFC 交互音效"),
+    "nfcSoundPrompt": MessageLookupByLibrary.simpleMessage(
+      "播放顺序：读卡开始、读卡结束、读卡失败",
+    ),
     "noCard": MessageLookupByLibrary.simpleMessage("未找到 CanoKey"),
     "noCredential": MessageLookupByLibrary.simpleMessage("没有找到凭据"),
     "noMatchingCredential": MessageLookupByLibrary.simpleMessage("没有找到匹配的凭据"),
@@ -244,6 +249,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("从不验证"),
     "pivUseDefaultManagementKey": MessageLookupByLibrary.simpleMessage("默认值"),
     "pivVerifyManagementKey": MessageLookupByLibrary.simpleMessage("验证管理密钥"),
+    "play": MessageLookupByLibrary.simpleMessage("播放"),
     "pollCanceled": MessageLookupByLibrary.simpleMessage("您没有选择任何 CanoKey"),
     "pollCanoKey": MessageLookupByLibrary.simpleMessage("请点击右上角刷新按钮读取 CanoKey"),
     "readingAlertMessage": MessageLookupByLibrary.simpleMessage(

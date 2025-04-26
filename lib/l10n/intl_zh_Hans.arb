@@ -287,5 +287,9 @@
   "passNotSupported": "您的 CanoKey 不支持 Pass 功能。",
   "appDescription": "CanoKey Console 是 CanoKey 开源安全密钥的管理工具。",
   "soundCredit": "NFC 交互音效由 Summer Xu 制作。",
-  "beforeSourceLink": "可在 GitHub 获得源代码："
+  "beforeSourceLink": "可在 GitHub 获得源代码：",
+  "nfcSound": "NFC 交互音效",
+  "disableSound": "无音效",
+  "play": "播放",
+  "nfcSoundPrompt": "播放顺序：读卡开始、读卡结束、读卡失败"
 }

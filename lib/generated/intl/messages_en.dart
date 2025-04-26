@@ -89,6 +89,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "desktopPollError": MessageLookupByLibrary.simpleMessage(
       "Error finding CanoKey connected via USB. Please fix the problem and restart this app:",
     ),
+    "disableSound": MessageLookupByLibrary.simpleMessage("Sound disabled"),
     "enabled": MessageLookupByLibrary.simpleMessage("Enabled"),
     "home": MessageLookupByLibrary.simpleMessage("Home"),
     "homeDirectlySelect": MessageLookupByLibrary.simpleMessage(
@@ -110,6 +111,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "CanoKey is busy. Replug it, wait for a moment, and retry.",
     ),
     "newPin": MessageLookupByLibrary.simpleMessage("New PIN"),
+    "nfcSound": MessageLookupByLibrary.simpleMessage("NFC interaction sound"),
+    "nfcSoundPrompt": MessageLookupByLibrary.simpleMessage(
+      "Playing in order: poll, finish, error",
+    ),
     "noCard": MessageLookupByLibrary.simpleMessage("CanoKey not found"),
     "noCredential": MessageLookupByLibrary.simpleMessage("No credential"),
     "noMatchingCredential": MessageLookupByLibrary.simpleMessage(
@@ -302,6 +307,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivVerifyManagementKey": MessageLookupByLibrary.simpleMessage(
       "Verify Management Key",
     ),
+    "play": MessageLookupByLibrary.simpleMessage("Play"),
     "pollCanceled": MessageLookupByLibrary.simpleMessage(
       "No CanoKey is selected.",
     ),
