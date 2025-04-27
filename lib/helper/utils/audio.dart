@@ -13,7 +13,6 @@ class Audio {
   static late int _current; // -1 for disabled
 
   static final _player = AudioPlayer();
-  static final _playQueue = <Source>[];
 
   static final Logger log = Logging.logger('Audio');
 
@@ -33,32 +32,17 @@ class Audio {
       _error.add(AssetSource('audio/error$i.aac'));
     }
     _player.setReleaseMode(ReleaseMode.stop);
-    // support playing multiple sounds in a row
-    _player.onPlayerStateChanged.listen((state) {
-      log.i('Player state changed: $state');
-      if (state == PlayerState.completed && _playQueue.isNotEmpty) {
-        _playQueue.removeAt(0);
-        if (_playQueue.isNotEmpty) {
-          // sleep for 0.5 seconds before playing the next sound
-          Future.delayed(const Duration(milliseconds: 500), () {
-            _player.play(_playQueue.first, mode: PlayerMode.lowLatency);
-          });
-        }
-      }
-    });
   }
 
   static void playAll(int set) {
     if (set < 0) return;
     assert(set >= 0 && set < AUDIO_SET_NUM, 'Invalid audio set: $set');
-    _player.stop().then((value) {
-      _playQueue.clear();
-      _playQueue.addAll([
-        _poll[set],
-        _finish[set],
-        _error[set],
-      ]);
-      _player.play(_playQueue.first, mode: PlayerMode.lowLatency);
+    _player.play(_poll[set], mode: PlayerMode.lowLatency);
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      _player.play(_finish[set], mode: PlayerMode.lowLatency);
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        _player.play(_error[set], mode: PlayerMode.lowLatency);
+      });
     });
   }
 
