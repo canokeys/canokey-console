@@ -17,6 +17,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:platform_detector/platform_detector.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class OtherSettingsCard extends StatefulWidget {
@@ -83,8 +84,10 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                 Spacing.height(16),
                 InfoItem(iconData: LucideIcons.pin, title: S.of(context).settingsClearPinCache, value: '', onTap: () => ClearPinCacheDialog.show()),
                 Spacing.height(16),
-                InfoItem(iconData: LucideIcons.bellRing, title: S.of(context).nfcSound, value: '', onTap: () => NfcSoundDialog.show()),
-                Spacing.height(16),
+                if (isAndroidApp() || isIOSApp()) ...{
+                  InfoItem(iconData: LucideIcons.bellRing, title: S.of(context).nfcSound, value: '', onTap: () => NfcSoundDialog.show()),
+                  Spacing.height(16),
+                },
                 InfoItem(
                     iconData: LucideIcons.info,
                     title: S.of(context).about,
