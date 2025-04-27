@@ -34,30 +34,34 @@ class Audio {
     _player.setReleaseMode(ReleaseMode.stop);
   }
 
-  static void playAll(int set) {
+  static void playAll(int set) async {
     if (set < 0) return;
     assert(set >= 0 && set < AUDIO_SET_NUM, 'Invalid audio set: $set');
-    _player.play(_poll[set], mode: PlayerMode.lowLatency);
-    Future.delayed(const Duration(milliseconds: 1000), () {
-      _player.play(_finish[set], mode: PlayerMode.lowLatency);
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        _player.play(_error[set], mode: PlayerMode.lowLatency);
-      });
-    });
+    await _player.stop();
+    // there is no easy way to get notified when the sound is finished
+    // so we just wait for 1 second and then play the next sound
+    await _player.play(_poll[set], mode: PlayerMode.lowLatency);
+    await Future.delayed(const Duration(milliseconds: 1000));
+    await _player.play(_finish[set], mode: PlayerMode.lowLatency);
+    await Future.delayed(const Duration(milliseconds: 1000));
+    await _player.play(_error[set], mode: PlayerMode.lowLatency);
   }
 
-  static void poll() {
+  static void poll() async {
     if (_current < 0) return;
-    _player.stop().then((value) => _player.play(_poll[_current]));
+    await _player.stop();
+    await _player.play(_poll[_current]);
   }
 
-  static void finish() {
+  static void finish() async {
     if (_current < 0) return;
-    _player.stop().then((value) => _player.play(_finish[_current]));
+    await _player.stop();
+    await _player.play(_finish[_current]);
   }
 
-  static void error() {
+  static void error() async {
     if (_current < 0) return;
-    _player.stop().then((value) => _player.play(_error[_current]));
+    await _player.stop();
+    await _player.play(_error[_current]);
   }
 }
