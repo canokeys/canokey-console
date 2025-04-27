@@ -1,5 +1,7 @@
 import 'package:canokey_console/helper/storage/local_storage.dart';
+import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:logger/logger.dart';
 
 class Audio {
 
@@ -11,6 +13,8 @@ class Audio {
 
   static final _player = AudioPlayer();
   static final _playQueue = <Source>[];
+
+  static final Logger log = Logging.logger('Audio');
 
   static void reloadSoundSet() {
     int sound = LocalStorage.getNfcSound() ?? 1;
@@ -30,6 +34,7 @@ class Audio {
     _player.setReleaseMode(ReleaseMode.stop);
     // support playing multiple sounds in a row
     _player.onPlayerStateChanged.listen((state) {
+      log.i('Player state changed: $state');
       if (state == PlayerState.completed && _playQueue.isNotEmpty) {
         _playQueue.removeAt(0);
         if (_playQueue.isNotEmpty) {
