@@ -211,5 +211,9 @@
   "passNotSupported": "Your CanoKey does not support Pass.",
   "appDescription": "CanoKey Console is the console app for CanoKey, an open-source security key.",
   "soundCredit": "Summer Xu is the author of NFC interaction sounds.",
-  "beforeSourceLink": "Source code available on GitHub: "
+  "beforeSourceLink": "Source code available on GitHub: ",
+  "nfcSound": "NFC interaction sound",
+  "disableSound": "Sound disabled",
+  "play": "Play",
+  "nfcSoundPrompt": "Playing in order: poll, finish, error"
 }

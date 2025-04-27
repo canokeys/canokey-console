@@ -1849,6 +1849,41 @@ class S {
       args: [],
     );
   }
+
+  /// `NFC interaction sound`
+  String get nfcSound {
+    return Intl.message(
+      'NFC interaction sound',
+      name: 'nfcSound',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sound disabled`
+  String get disableSound {
+    return Intl.message(
+      'Sound disabled',
+      name: 'disableSound',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Play`
+  String get play {
+    return Intl.message('Play', name: 'play', desc: '', args: []);
+  }
+
+  /// `Playing in order: poll, finish, error`
+  String get nfcSoundPrompt {
+    return Intl.message(
+      'Playing in order: poll, finish, error',
+      name: 'nfcSoundPrompt',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
