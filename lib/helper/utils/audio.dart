@@ -14,7 +14,7 @@ class Audio {
 
   static void reloadSoundSet() {
     int sound = LocalStorage.getNfcSound() ?? 1;
-    assert(sound > 0 && sound < AUDIO_SET_NUM, 'Invalid audio set: $sound');
+    assert(sound >= -1 && sound < AUDIO_SET_NUM, 'Invalid audio set: $sound');
     _current = sound;
   }
 
@@ -44,7 +44,7 @@ class Audio {
 
   static void playAll(int set) {
     if (set < 0) return;
-    assert(set > 0 && set < AUDIO_SET_NUM, 'Invalid audio set: $set');
+    assert(set >= 0 && set < AUDIO_SET_NUM, 'Invalid audio set: $set');
     _player.stop().then((value) {
       _playQueue.clear();
       _playQueue.addAll([

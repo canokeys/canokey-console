@@ -16,10 +16,11 @@ class NfcSoundDialog extends StatelessWidget with UIMixin {
   }
 
   Widget _buildNfcSoundItem(BuildContext context, RxInt nfcSound, int sound) {
+    final title = sound == -1 ? S.of(context).disableSound : "${S.of(context).nfcSound} ${sound + 1}";
     return RadioListTile(
       dense: true,
       contentPadding: Spacing.x(16),
-      title: CustomizedText.bodyMedium("${S.of(context).nfcSound} $sound"),
+      title: CustomizedText.bodyMedium(title),
       value: sound,
       groupValue: nfcSound.value,
       activeColor: contentTheme.primary,
@@ -44,12 +45,11 @@ class NfcSoundDialog extends StatelessWidget with UIMixin {
             ),
             Divider(height: 0, thickness: 1),
             Obx(() => Column(
-                  children: List.generate(Audio.AUDIO_SET_NUM, (set) {
-                    // generate 1, 2, .., n, -1
-                    if (set == Audio.AUDIO_SET_NUM) set = -2;
-                    return _buildNfcSoundItem(context, nfcSound, set + 1);
-                  }, growable: false)
-                )),
+                    children: List.generate(Audio.AUDIO_SET_NUM + 1, (set) {
+                  // generate 0, 1, 2, .., n-1, n
+                  if (set == Audio.AUDIO_SET_NUM) set = -1;
+                  return _buildNfcSoundItem(context, nfcSound, set);
+                }, growable: false))),
             Divider(height: 0, thickness: 1),
             Padding(
               padding: Spacing.all(16),
