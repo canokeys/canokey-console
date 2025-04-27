@@ -30,7 +30,7 @@ class NfcSoundDialog extends StatelessWidget with UIMixin {
 
   @override
   Widget build(BuildContext context) {
-    final nfcSound = (LocalStorage.getNfcSound() ?? 1).obs;
+    final nfcSound = (LocalStorage.getNfcSound() ?? Audio.AUDIO_SET_DEFAULT).obs;
 
     return Dialog(
       child: SizedBox(

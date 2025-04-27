@@ -6,6 +6,7 @@ import 'package:logger/logger.dart';
 class Audio {
 
   static const int AUDIO_SET_NUM = 3;
+  static const int AUDIO_SET_DEFAULT = 0;
   static final _poll = <Source>[];
   static final _finish = <Source>[];
   static final _error = <Source>[];
@@ -17,7 +18,7 @@ class Audio {
   static final Logger log = Logging.logger('Audio');
 
   static void reloadSoundSet() {
-    int sound = LocalStorage.getNfcSound() ?? 1;
+    int sound = LocalStorage.getNfcSound() ?? AUDIO_SET_DEFAULT;
     assert(sound >= -1 && sound < AUDIO_SET_NUM, 'Invalid audio set: $sound');
     _current = sound;
   }
