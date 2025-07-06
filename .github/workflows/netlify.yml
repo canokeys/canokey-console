@@ -84,5 +84,5 @@ jobs:
       - name: Install EdgeOne CLI
         run: npm install -g edgeone
       - name: Deploy to EdgeOne
-        run: edgeone pages deploy /tmp/console-build -n ${{ vars.EDGEONE_PROJECT_NAME }} -t ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: edgeone pages deploy /tmp/console-build -n ${{ vars.EDGEONE_PROJECT_NAME }} -t ${{ secrets.EDGEONE_API_TOKEN }}
         timeout-minutes: 10
