@@ -67,3 +67,22 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ vars.NETLIFY_SITE_ID }}
         timeout-minutes: 5
+  deploy-edgeone:
+    runs-on: ubuntu-24.04
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-spa
+          path: /tmp/console-build
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install EdgeOne CLI
+        run: npm install -g edgeone
+      - name: Deploy to EdgeOne
+        run: edgeone pages deploy /tmp/console-build -n ${{ vars.EDGEONE_PROJECT_NAME }} -t ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        timeout-minutes: 10
