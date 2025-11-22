@@ -1,19 +1,19 @@
 [
   {
     "package_name": "ab_glyph",
-    "package_version": "0.2.29",
+    "package_version": "0.2.32",
     "repository": "https://github.com/alexheretic/ab-glyph",
     "license": "Apache-2.0"
   },
   {
     "package_name": "ab_glyph_rasterizer",
-    "package_version": "0.1.8",
+    "package_version": "0.1.10",
     "repository": "https://github.com/alexheretic/ab-glyph",
     "license": "Apache-2.0"
   },
   {
     "package_name": "addr2line",
-    "package_version": "0.24.2",
+    "package_version": "0.25.1",
     "repository": "https://github.com/gimli-rs/addr2line",
     "license": "Apache-2.0 OR MIT"
   },
@@ -34,12 +34,6 @@
     "package_version": "0.4.2",
     "repository": "https://github.com/rust-embedded-community/aligned",
     "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "aligned-vec",
-    "package_version": "0.5.0",
-    "repository": "https://github.com/sarah-ek/aligned-vec/",
-    "license": "MIT"
   },
   {
     "package_name": "aligned-vec",
@@ -85,7 +79,7 @@
   },
   {
     "package_name": "arbitrary",
-    "package_version": "1.4.1",
+    "package_version": "1.4.2",
     "repository": "https://github.com/rust-fuzz/arbitrary/",
     "license": "MIT OR Apache-2.0"
   },
@@ -139,19 +133,19 @@
   },
   {
     "package_name": "av1-grain",
-    "package_version": "0.2.3",
+    "package_version": "0.2.5",
     "repository": "https://github.com/rust-av/av1-grain",
     "license": "BSD-2-Clause"
   },
   {
     "package_name": "avif-serialize",
-    "package_version": "0.8.3",
+    "package_version": "0.8.6",
     "repository": "https://github.com/kornelski/avif-serialize",
     "license": "BSD-3-Clause"
   },
   {
     "package_name": "backtrace",
-    "package_version": "0.3.74",
+    "package_version": "0.3.76",
     "repository": "https://github.com/rust-lang/backtrace-rs",
     "license": "MIT OR Apache-2.0"
   },
@@ -229,7 +223,7 @@
   },
   {
     "package_name": "chrono-tz",
-    "package_version": "0.10.3",
+    "package_version": "0.10.4",
     "repository": "https://github.com/chronotope/chrono-tz",
     "license": "MIT OR Apache-2.0"
   },
@@ -301,13 +295,13 @@
   },
   {
     "package_name": "crunchy",
-    "package_version": "0.2.3",
+    "package_version": "0.2.4",
     "repository": "https://github.com/eira-fransham/crunchy",
     "license": "MIT"
   },
   {
     "package_name": "crypto-common",
-    "package_version": "0.1.6",
+    "package_version": "0.1.7",
     "repository": "https://github.com/RustCrypto/traits",
     "license": "MIT OR Apache-2.0"
   },
@@ -325,7 +319,7 @@
   },
   {
     "package_name": "data-encoding",
-    "package_version": "2.8.0",
+    "package_version": "2.9.0",
     "repository": "https://github.com/ia0/data-encoding",
     "license": "MIT"
   },
@@ -565,7 +559,7 @@
   },
   {
     "package_name": "gimli",
-    "package_version": "0.31.1",
+    "package_version": "0.32.3",
     "repository": "https://github.com/gimli-rs/gimli",
     "license": "MIT OR Apache-2.0"
   },
@@ -583,7 +577,7 @@
   },
   {
     "package_name": "hermit-abi",
-    "package_version": "0.3.9",
+    "package_version": "0.5.2",
     "repository": "https://github.com/hermit-os/hermit-rs",
     "license": "MIT OR Apache-2.0"
   },
@@ -631,7 +625,7 @@
   },
   {
     "package_name": "imgref",
-    "package_version": "1.11.0",
+    "package_version": "1.12.0",
     "repository": "https://github.com/kornelski/imgref",
     "license": "CC0-1.0 OR Apache-2.0"
   },
@@ -667,8 +661,8 @@
   },
   {
     "package_name": "js-sys",
-    "package_version": "0.3.77",
-    "repository": "https://github.com/rustwasm/wasm-bindgen/tree/master/crates/js-sys",
+    "package_version": "0.3.82",
+    "repository": "https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/js-sys",
     "license": "MIT OR Apache-2.0"
   },
   {
@@ -679,7 +673,7 @@
   },
   {
     "package_name": "lebe",
-    "package_version": "0.5.2",
+    "package_version": "0.5.3",
     "repository": "https://github.com/johannesvollmer/lebe",
     "license": "BSD-3-Clause"
   },
@@ -691,7 +685,7 @@
   },
   {
     "package_name": "libfuzzer-sys",
-    "package_version": "0.4.9",
+    "package_version": "0.4.10",
     "repository": "https://github.com/rust-fuzz/libfuzzer",
     "license": "(MIT OR Apache-2.0) AND NCSA"
   },
@@ -721,7 +715,7 @@
   },
   {
     "package_name": "matrixmultiply",
-    "package_version": "0.3.9",
+    "package_version": "0.3.10",
     "repository": "https://github.com/bluss/matrixmultiply/",
     "license": "MIT/Apache-2.0"
   },
@@ -763,7 +757,7 @@
   },
   {
     "package_name": "multimap",
-    "package_version": "0.10.0",
+    "package_version": "0.10.1",
     "repository": "https://github.com/havarnov/multimap",
     "license": "MIT OR Apache-2.0"
   },
@@ -783,6 +777,12 @@
     "package_name": "nom",
     "package_version": "7.1.3",
     "repository": "https://github.com/Geal/nom",
+    "license": "MIT"
+  },
+  {
+    "package_name": "nom",
+    "package_version": "8.0.0",
+    "repository": "https://github.com/rust-bakery/nom",
     "license": "MIT"
   },
   {
@@ -847,13 +847,13 @@
   },
   {
     "package_name": "num_cpus",
-    "package_version": "1.16.0",
+    "package_version": "1.17.0",
     "repository": "https://github.com/seanmonstar/num_cpus",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "object",
-    "package_version": "0.36.7",
+    "package_version": "0.37.3",
     "repository": "https://github.com/gimli-rs/object",
     "license": "Apache-2.0 OR MIT"
   },
@@ -877,7 +877,7 @@
   },
   {
     "package_name": "owned_ttf_parser",
-    "package_version": "0.25.0",
+    "package_version": "0.25.1",
     "repository": "https://github.com/alexheretic/owned-ttf-parser",
     "license": "Apache-2.0"
   },
@@ -907,13 +907,13 @@
   },
   {
     "package_name": "phf",
-    "package_version": "0.11.3",
+    "package_version": "0.12.1",
     "repository": "https://github.com/rust-phf/rust-phf",
     "license": "MIT"
   },
   {
     "package_name": "phf_shared",
-    "package_version": "0.11.3",
+    "package_version": "0.12.1",
     "repository": "https://github.com/rust-phf/rust-phf",
     "license": "MIT"
   },
@@ -937,7 +937,7 @@
   },
   {
     "package_name": "portable-atomic",
-    "package_version": "1.11.0",
+    "package_version": "1.11.1",
     "repository": "https://github.com/taiki-e/portable-atomic",
     "license": "Apache-2.0 OR MIT"
   },
@@ -961,13 +961,13 @@
   },
   {
     "package_name": "profiling",
-    "package_version": "1.0.16",
+    "package_version": "1.0.17",
     "repository": "https://github.com/aclysma/profiling",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "profiling-procmacros",
-    "package_version": "1.0.16",
+    "package_version": "1.0.17",
     "repository": "https://github.com/aclysma/profiling",
     "license": "MIT OR Apache-2.0"
   },
@@ -1105,7 +1105,7 @@
   },
   {
     "package_name": "rustc-demangle",
-    "package_version": "0.1.24",
+    "package_version": "0.1.26",
     "repository": "https://github.com/rust-lang/rustc-demangle",
     "license": "MIT/Apache-2.0"
   },
@@ -1116,20 +1116,14 @@
     "license": "MIT/Apache-2.0"
   },
   {
-    "package_name": "rustversion",
-    "package_version": "1.0.22",
-    "repository": "https://github.com/dtolnay/rustversion",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
     "package_name": "rxing",
-    "package_version": "0.8.2",
+    "package_version": "0.7.1",
     "repository": "https://github.com/rxing-core/rxing",
     "license": "Apache-2.0"
   },
   {
     "package_name": "rxing-one-d-proc-derive",
-    "package_version": "0.8.0",
+    "package_version": "0.6.0",
     "repository": "https://github.com/rxing-core/rxing/tree/main/crates/one-d-proc-derive",
     "license": "Apache-2.0"
   },
@@ -1195,7 +1189,7 @@
   },
   {
     "package_name": "slab",
-    "package_version": "0.4.9",
+    "package_version": "0.4.11",
     "repository": "https://github.com/tokio-rs/slab",
     "license": "MIT"
   },
@@ -1273,7 +1267,7 @@
   },
   {
     "package_name": "tokio",
-    "package_version": "1.44.2",
+    "package_version": "1.48.0",
     "repository": "https://github.com/tokio-rs/tokio",
     "license": "MIT"
   },
@@ -1315,7 +1309,7 @@
   },
   {
     "package_name": "v_frame",
-    "package_version": "0.3.8",
+    "package_version": "0.3.9",
     "repository": "https://github.com/rust-av/v_frame",
     "license": "BSD-2-Clause"
   },
@@ -1333,44 +1327,38 @@
   },
   {
     "package_name": "wasm-bindgen",
-    "package_version": "0.2.100",
-    "repository": "https://github.com/rustwasm/wasm-bindgen",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "wasm-bindgen-backend",
-    "package_version": "0.2.100",
-    "repository": "https://github.com/rustwasm/wasm-bindgen/tree/master/crates/backend",
+    "package_version": "0.2.105",
+    "repository": "https://github.com/wasm-bindgen/wasm-bindgen",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "wasm-bindgen-futures",
-    "package_version": "0.4.50",
-    "repository": "https://github.com/rustwasm/wasm-bindgen/tree/master/crates/futures",
+    "package_version": "0.4.55",
+    "repository": "https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/futures",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "wasm-bindgen-macro",
-    "package_version": "0.2.100",
-    "repository": "https://github.com/rustwasm/wasm-bindgen/tree/master/crates/macro",
+    "package_version": "0.2.105",
+    "repository": "https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/macro",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "wasm-bindgen-macro-support",
-    "package_version": "0.2.100",
-    "repository": "https://github.com/rustwasm/wasm-bindgen/tree/master/crates/macro-support",
+    "package_version": "0.2.105",
+    "repository": "https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/macro-support",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "wasm-bindgen-shared",
-    "package_version": "0.2.100",
-    "repository": "https://github.com/rustwasm/wasm-bindgen/tree/master/crates/shared",
+    "package_version": "0.2.105",
+    "repository": "https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/shared",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "web-sys",
-    "package_version": "0.3.77",
-    "repository": "https://github.com/rustwasm/wasm-bindgen/tree/master/crates/web-sys",
+    "package_version": "0.3.82",
+    "repository": "https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/web-sys",
     "license": "MIT OR Apache-2.0"
   },
   {
@@ -1381,31 +1369,25 @@
   },
   {
     "package_name": "wide",
-    "package_version": "0.7.32",
+    "package_version": "0.7.33",
     "repository": "https://github.com/Lokathor/wide",
     "license": "Zlib OR Apache-2.0 OR MIT"
   },
   {
     "package_name": "windows-core",
-    "package_version": "0.61.0",
+    "package_version": "0.62.2",
     "repository": "https://github.com/microsoft/windows-rs",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "windows-implement",
-    "package_version": "0.60.0",
+    "package_version": "0.60.2",
     "repository": "https://github.com/microsoft/windows-rs",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "windows-interface",
-    "package_version": "0.59.1",
-    "repository": "https://github.com/microsoft/windows-rs",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "windows-link",
-    "package_version": "0.1.1",
+    "package_version": "0.59.3",
     "repository": "https://github.com/microsoft/windows-rs",
     "license": "MIT OR Apache-2.0"
   },
@@ -1417,67 +1399,13 @@
   },
   {
     "package_name": "windows-result",
-    "package_version": "0.3.2",
+    "package_version": "0.4.1",
     "repository": "https://github.com/microsoft/windows-rs",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "windows-strings",
-    "package_version": "0.4.0",
-    "repository": "https://github.com/microsoft/windows-rs",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "windows-targets",
-    "package_version": "0.52.6",
-    "repository": "https://github.com/microsoft/windows-rs",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "windows_aarch64_gnullvm",
-    "package_version": "0.52.6",
-    "repository": "https://github.com/microsoft/windows-rs",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "windows_aarch64_msvc",
-    "package_version": "0.52.6",
-    "repository": "https://github.com/microsoft/windows-rs",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "windows_i686_gnu",
-    "package_version": "0.52.6",
-    "repository": "https://github.com/microsoft/windows-rs",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "windows_i686_gnullvm",
-    "package_version": "0.52.6",
-    "repository": "https://github.com/microsoft/windows-rs",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "windows_i686_msvc",
-    "package_version": "0.52.6",
-    "repository": "https://github.com/microsoft/windows-rs",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "windows_x86_64_gnu",
-    "package_version": "0.52.6",
-    "repository": "https://github.com/microsoft/windows-rs",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "windows_x86_64_gnullvm",
-    "package_version": "0.52.6",
-    "repository": "https://github.com/microsoft/windows-rs",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "windows_x86_64_msvc",
-    "package_version": "0.52.6",
+    "package_version": "0.5.1",
     "repository": "https://github.com/microsoft/windows-rs",
     "license": "MIT OR Apache-2.0"
   },
