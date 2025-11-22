@@ -11,7 +11,7 @@ class WidgetConstant {
 
   static WidgetConstantData get constant => _constant;
 
-  static setConstant(WidgetConstantData constantData) {
+  static void setConstant(WidgetConstantData constantData) {
     _constant = constantData;
   }
 }

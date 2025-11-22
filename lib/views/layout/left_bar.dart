@@ -17,15 +17,15 @@ typedef LeftbarMenuFunction = void Function(String key);
 class LeftbarObserver {
   static Map<String, LeftbarMenuFunction> observers = {};
 
-  static attachListener(String key, LeftbarMenuFunction fn) {
+  static void attachListener(String key, LeftbarMenuFunction fn) {
     observers[key] = fn;
   }
 
-  static detachListener(String key) {
+  static void detachListener(String key) {
     observers.remove(key);
   }
 
-  static notifyAll(String key) {
+  static void notifyAll(String key) {
     for (var fn in observers.values) {
       fn(key);
     }

@@ -25,7 +25,7 @@ class MyFlex extends StatelessWidget {
       this.spacing,
       this.runSpacing});
 
-  getPadding(index, length) {
+  EdgeInsets getPadding(index, length) {
     if (contentPadding) {
       return Spacing.x((spacing ?? flexSpacing) / 2);
     } else {

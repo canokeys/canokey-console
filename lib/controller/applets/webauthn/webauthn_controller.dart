@@ -42,8 +42,8 @@ class WebAuthnController extends PollingController {
           for (var element in (await cm.enumerateCredentials(rp.rpIdHash))) {
             webAuthnItems.add(WebAuthnItem(
               rpId: rp.rp.id,
-              userName: element.user.name,
-              userDisplayName: element.user.displayName,
+              userName: element.user.name ?? '<unknown>',
+              userDisplayName: element.user.displayName ?? '<unknown>',
               userId: element.user.id,
               credentialId: element.credentialId,
             ));

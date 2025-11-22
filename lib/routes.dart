@@ -6,7 +6,7 @@ import 'package:canokey_console/views/applets/settings/settings_page.dart';
 import 'package:canokey_console/views/starter_screen.dart';
 import 'package:get/get.dart';
 
-getPageRoute() {
+List<GetPage<dynamic>> getPageRoute() {
   var routes = [
     GetPage(name: '/', page: () => const StarterScreen()),
 

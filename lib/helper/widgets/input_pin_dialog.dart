@@ -35,7 +35,7 @@ class InputPinDialog extends BaseDialog {
     required this.onCancel,
   });
 
-  static show({
+  static void show({
     required String title,
     required String label,
     required String prompt,

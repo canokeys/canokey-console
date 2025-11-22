@@ -487,7 +487,7 @@ class OathController extends PollingController {
     update();
   }
 
-  _startTimer() {
+  void _startTimer() {
     int running = DateTime.now().millisecondsSinceEpoch ~/ 1000 % 30;
     timerController.reset();
     timerController.value = new TimerValue(remaining: 30 - running, unit: TimerUnit.second);

@@ -128,7 +128,7 @@ class CanoKey {
     return FunctionSetVersion.v4;
   }
 
-  static get pigeon => "CanoKey Pigeon";
+  static String get pigeon => "CanoKey Pigeon";
 
-  static get canary => "CanoKey Canary";
+  static String get canary => "CanoKey Canary";
 }

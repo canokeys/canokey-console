@@ -207,7 +207,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     );
   }
 
-  _showChangePinDialog({
+  void _showChangePinDialog({
     required String title,
     required String oldValueLabel,
     required String newValueLabel,
@@ -405,7 +405,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     return c.future;
   }
 
-  _showChangeManagementKeyDialog() {
+  void _showChangeManagementKeyDialog() {
     FormValidator validator = FormValidator();
     validator.addField('old', required: true, controller: TextEditingController(), validators: [LengthValidator(exact: 48), HexStringValidator()]);
     validator.addField('new', required: true, controller: TextEditingController(), validators: [LengthValidator(exact: 48), HexStringValidator()]);
@@ -565,7 +565,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     );
   }
 
-  _showSlotDetailDialog(String title, String slotNumber, SlotInfo? slot) {
+  void _showSlotDetailDialog(String title, String slotNumber, SlotInfo? slot) {
     Get.dialog(Dialog(
       child: SizedBox(
         width: slot == null ? 400 : max(430, MediaQuery.of(context).size.width * 0.6),
@@ -693,7 +693,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     ));
   }
 
-  _showExportDialog(SlotInfo slot) {
+  void _showExportDialog(SlotInfo slot) {
     Get.dialog(Dialog(
         child: SizedBox(
             width: 300,
@@ -731,7 +731,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
             ]))));
   }
 
-  _showImportDialog(String slotNumber) {
+  void _showImportDialog(String slotNumber) {
     Rx<int> step = 0.obs;
     Rx<bool> hasCert = false.obs;
     Rx<bool> hasKey = false.obs;
@@ -908,14 +908,14 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                 content: Column(
                   children: [
                     DropdownButtonFormField(
-                      value: pinPolicy,
+                      initialValue: pinPolicy,
                       items: [PinPolicy.never, PinPolicy.once, PinPolicy.always].map((e) => DropdownMenuItem(value: e, child: Text(e.toString()))).toList(),
                       onChanged: (value) => setState(() => pinPolicy = value!),
                       decoration: InputDecoration(labelText: 'PIN Policy'),
                       dropdownColor: contentTheme.background,
                     ),
                     DropdownButtonFormField(
-                      value: touchPolicy,
+                      initialValue: touchPolicy,
                       items: [TouchPolicy.never, TouchPolicy.cached, TouchPolicy.always]
                           .map((e) => DropdownMenuItem(value: e, child: Text(e.toString())))
                           .toList(),
@@ -943,7 +943,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
     ));
   }
 
-  _showDeleteDialog(String slotNumber) {
+  void _showDeleteDialog(String slotNumber) {
     Get.dialog(Dialog(
       child: SizedBox(
         width: 400,

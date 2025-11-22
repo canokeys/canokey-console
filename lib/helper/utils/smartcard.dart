@@ -104,7 +104,7 @@ class SmartCard {
     }
   }
 
-  static startAndroidNfcHandler() async {
+  static Future<void> startAndroidNfcHandler() async {
     while (true) {
       try {
         final tag = await FlutterNfcKit.poll(

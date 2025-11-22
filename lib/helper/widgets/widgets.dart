@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 class Widgets {
   // entry point of the package
-  init() {}
+  void init() {}
 
   static void changeFontFamily(GoogleFontFunction fontFamily) {
     CustomizedTextStyle.changeFontFamily(fontFamily);
@@ -27,15 +27,15 @@ class Widgets {
     CustomizedTextStyle.changeDefaultLetterSpacing(defaultLetterSpacing);
   }
 
-  static setConstant(WidgetConstantData constantData) {
+  static void setConstant(WidgetConstantData constantData) {
     WidgetConstant.setConstant(constantData);
   }
 
-  static setFlexSpacing(double spacing) {
+  static void setFlexSpacing(double spacing) {
     ScreenMedia.flexSpacing = spacing;
   }
 
-  static setFlexColumns(int columns) {
+  static void setFlexColumns(int columns) {
     ScreenMedia.flexColumns = columns;
   }
 }

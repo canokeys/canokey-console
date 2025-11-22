@@ -11,11 +11,11 @@ class AppTheme {
 
   AppTheme._();
 
-  static init() {
+  static void init() {
     initTextStyle();
   }
 
-  static initTextStyle() {
+  static void initTextStyle() {
     CustomizedTextStyle.changeFontFamily(GoogleFonts.ibmPlexSans);
     CustomizedTextStyle.changeDefaultFontWeight({
       100: FontWeight.w100,
@@ -71,7 +71,7 @@ class AppTheme {
         backgroundColor: Color(0xffffffff), iconTheme: IconThemeData(color: Color(0xff495057)), actionsIconTheme: IconThemeData(color: Color(0xff495057))),
 
     /// Card Theme
-    cardTheme: CardTheme(color: Color(0xffffffff)),
+    cardTheme: CardThemeData(color: Color(0xffffffff)),
     cardColor: Color(0xffffffff),
 
     textTheme: TextTheme(titleLarge: GoogleFonts.aBeeZee(), bodyLarge: GoogleFonts.abel()),
@@ -91,10 +91,10 @@ class AppTheme {
     dividerColor: Color(0xffe8e8e8),
 
     /// Bottom AppBar Theme
-    bottomAppBarTheme: BottomAppBarTheme(color: Color(0xffeeeeee), elevation: 2),
+    bottomAppBarTheme: BottomAppBarThemeData(color: Color(0xffeeeeee), elevation: 2),
 
     /// Tab bar Theme
-    tabBarTheme: TabBarTheme(
+    tabBarTheme: TabBarThemeData(
       unselectedLabelColor: Color(0xff495057),
       labelColor: Color(0xff009678),
       indicatorSize: TabBarIndicatorSize.label,
@@ -161,7 +161,6 @@ class AppTheme {
 
     /// Other Colors
     splashColor: Colors.white.withAlpha(100),
-    indicatorColor: Color(0xffeeeeee),
     highlightColor: Color(0xffeeeeee),
     colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff009678), brightness: Brightness.light, surfaceTint: Colors.transparent)
         .copyWith(surface: Color(0xffffffff))
@@ -186,7 +185,7 @@ class AppTheme {
     appBarTheme: AppBarTheme(backgroundColor: Color(0xff161616)),
 
     /// Card Theme
-    cardTheme: CardTheme(color: Color(0xff222327)),
+    cardTheme: CardThemeData(color: Color(0xff222327)),
     cardColor: Color(0xff222327),
 
     /// Input (Text-Field) Theme
@@ -217,10 +216,10 @@ class AppTheme {
         foregroundColor: Colors.white),
 
     /// Bottom AppBar Theme
-    bottomAppBarTheme: BottomAppBarTheme(color: Color(0xff464c52), elevation: 2),
+    bottomAppBarTheme: BottomAppBarThemeData(color: Color(0xff464c52), elevation: 2),
 
     /// Tab bar Theme
-    tabBarTheme: TabBarTheme(
+    tabBarTheme: TabBarThemeData(
       unselectedLabelColor: Color(0xff495057),
       labelColor: Color(0xff009678),
       indicatorSize: TabBarIndicatorSize.label,
@@ -273,9 +272,6 @@ class AppTheme {
         color: Colors.white,
       ),
     ),
-
-    ///Other Color
-    indicatorColor: Colors.white,
     disabledColor: Color(0xffa3a3a3),
     highlightColor: Colors.white.withAlpha(28),
     splashColor: Colors.white.withAlpha(56),

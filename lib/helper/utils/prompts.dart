@@ -86,7 +86,7 @@ class Prompts {
     }
   }
 
-  static promptAndroidPolling() {
+  static void promptAndroidPolling() {
     try {
       Get.find<RxBool>(tag: 'dialog_polling').value = true;
     } catch (e) {
@@ -102,7 +102,7 @@ class Prompts {
     }
   }
 
-  static stopPromptAndroidPolling() {
+  static void stopPromptAndroidPolling() {
     try {
       Get.find<RxBool>(tag: 'dialog_polling').value = false;
     } catch (e) {

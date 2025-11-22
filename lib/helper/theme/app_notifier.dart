@@ -11,7 +11,7 @@ class AppNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  updateTheme(ThemeCustomizer themeCustomizer) {
+  void updateTheme(ThemeCustomizer themeCustomizer) {
     _changeTheme();
     notifyListeners();
   }

@@ -54,7 +54,7 @@ class PivController extends Controller {
     });
   }
 
-  changePin(String oldPin, String newPin) {
+  void changePin(String oldPin, String newPin) {
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       String oldPinHex = _padPin(oldPin);
@@ -69,7 +69,7 @@ class PivController extends Controller {
     });
   }
 
-  changePUK(String oldPin, String newPin) {
+  void changePUK(String oldPin, String newPin) {
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       String oldPinHex = _padPin(oldPin);
@@ -99,7 +99,7 @@ class PivController extends Controller {
     return c.future;
   }
 
-  setManagementKey(String key) async {
+  Future<void> setManagementKey(String key) async {
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00FFFFFF1B039B18$key'));
       Navigator.pop(Get.context!);

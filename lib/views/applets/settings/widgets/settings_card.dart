@@ -17,7 +17,7 @@ class SettingsCard extends StatelessWidget with UIMixin {
 
   const SettingsCard({super.key, required this.controller});
 
-  _showChangeSwitchDialog(String title, Func func, bool currentState) {
+  void _showChangeSwitchDialog(String title, Func func, bool currentState) {
     SwitchDialog.show(
       title: title,
       initialValue: currentState,
