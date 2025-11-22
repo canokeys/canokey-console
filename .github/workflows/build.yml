@@ -10,7 +10,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   JAVA_VERSION: 17
-  FLUTTER_VERSION: 3.29.2
+  FLUTTER_VERSION: 3.38.3
 
 jobs:
   build:
@@ -68,7 +68,7 @@ jobs:
     steps:
 
     # setup environment
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: actions/cache@v4
       with:
         key: apk-${{ hashFiles('rust/Cargo.toml') }}
@@ -81,13 +81,13 @@ jobs:
       with:
         toolchain: nightly
         components: rust-src
-    - uses: actions/setup-java@v4
+    - uses: actions/setup-java@v5
       if: ${{ matrix.target == 'apk' }}
       with:
         distribution: 'temurin'
         java-version: ${{ env.JAVA_VERSION }}
     - name: Setup Flutter SDK
-      uses: flutter-actions/setup-flutter@v3
+      uses: flutter-actions/setup-flutter@v4
       with:
         channel: stable
         version: ${{ env.FLUTTER_VERSION }}
@@ -112,7 +112,7 @@ jobs:
         fi
 
     # upload build artifacts
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v5
       with:
         name: canokey-console-${{ matrix.target }}-${{ matrix.variant }}
         path: |
