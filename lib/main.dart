@@ -83,6 +83,7 @@ class MyApp extends StatelessWidget {
             );
           },
           child: GetMaterialApp(
+            title: 'CanoKey Console',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
