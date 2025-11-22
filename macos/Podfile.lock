@@ -1,50 +1,75 @@
 PODS:
-  - ccid (0.1.5):
+  - audioplayers_darwin (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - ccid (0.1.6):
     - Flutter
     - FlutterMacOS
   - device_info_plus (0.0.1):
     - FlutterMacOS
+  - file_picker (0.0.1):
+    - FlutterMacOS
   - file_saver (0.0.1):
     - FlutterMacOS
-  - flutter_webrtc (0.12.2):
+  - flutter_webrtc (1.2.0):
     - FlutterMacOS
-    - WebRTC-SDK (= 125.6422.06)
+    - WebRTC-SDK (= 137.7151.04)
   - FlutterMacOS (1.0.0)
-  - mobile_scanner (6.0.2):
+  - mobile_scanner (7.0.0):
+    - Flutter
+    - FlutterMacOS
+  - objective_c (0.0.1):
+    - FlutterMacOS
+  - package_info_plus (0.0.1):
     - FlutterMacOS
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
   - rust_lib_canokey_console (0.0.1):
     - FlutterMacOS
+  - Sentry/HybridSDK (8.56.2)
+  - sentry_flutter (9.8.0):
+    - Flutter
+    - FlutterMacOS
+    - Sentry/HybridSDK (= 8.56.2)
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
   - url_launcher_macos (0.0.1):
     - FlutterMacOS
-  - WebRTC-SDK (125.6422.06)
+  - WebRTC-SDK (137.7151.04)
 
 DEPENDENCIES:
+  - audioplayers_darwin (from `Flutter/ephemeral/.symlinks/plugins/audioplayers_darwin/darwin`)
   - ccid (from `Flutter/ephemeral/.symlinks/plugins/ccid/darwin`)
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
+  - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
   - file_saver (from `Flutter/ephemeral/.symlinks/plugins/file_saver/macos`)
   - flutter_webrtc (from `Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
-  - mobile_scanner (from `Flutter/ephemeral/.symlinks/plugins/mobile_scanner/macos`)
+  - mobile_scanner (from `Flutter/ephemeral/.symlinks/plugins/mobile_scanner/darwin`)
+  - objective_c (from `Flutter/ephemeral/.symlinks/plugins/objective_c/macos`)
+  - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
   - rust_lib_canokey_console (from `Flutter/ephemeral/.symlinks/plugins/rust_lib_canokey_console/macos`)
+  - sentry_flutter (from `Flutter/ephemeral/.symlinks/plugins/sentry_flutter/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
 
 SPEC REPOS:
   trunk:
+    - Sentry
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
+  audioplayers_darwin:
+    :path: Flutter/ephemeral/.symlinks/plugins/audioplayers_darwin/darwin
   ccid:
     :path: Flutter/ephemeral/.symlinks/plugins/ccid/darwin
   device_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
+  file_picker:
+    :path: Flutter/ephemeral/.symlinks/plugins/file_picker/macos
   file_saver:
     :path: Flutter/ephemeral/.symlinks/plugins/file_saver/macos
   flutter_webrtc:
@@ -52,29 +77,41 @@ EXTERNAL SOURCES:
   FlutterMacOS:
     :path: Flutter/ephemeral
   mobile_scanner:
-    :path: Flutter/ephemeral/.symlinks/plugins/mobile_scanner/macos
+    :path: Flutter/ephemeral/.symlinks/plugins/mobile_scanner/darwin
+  objective_c:
+    :path: Flutter/ephemeral/.symlinks/plugins/objective_c/macos
+  package_info_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
   path_provider_foundation:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
   rust_lib_canokey_console:
     :path: Flutter/ephemeral/.symlinks/plugins/rust_lib_canokey_console/macos
+  sentry_flutter:
+    :path: Flutter/ephemeral/.symlinks/plugins/sentry_flutter/macos
   shared_preferences_foundation:
     :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
   url_launcher_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
 
 SPEC CHECKSUMS:
-  ccid: 177607aa71ea9e050991c400623687b03fc2883f
-  device_info_plus: 4fb280989f669696856f8b129e4a5e3cd6c48f76
-  file_saver: e35bd97de451dde55ff8c38862ed7ad0f3418d0f
-  flutter_webrtc: 56b1b0a80685dc60958fd8657016df16d5114de5
-  FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
-  mobile_scanner: 0e365ed56cad24f28c0fd858ca04edefb40dfac3
-  path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
-  rust_lib_canokey_console: a4a9152dbbc3183d4ddfe4c79a57f3de31203bd3
-  shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
-  url_launcher_macos: 0fba8ddabfc33ce0a9afe7c5fef5aab3d8d2d673
-  WebRTC-SDK: 79942c006ea64f6fb48d7da8a4786dfc820bc1db
+  audioplayers_darwin: 4027b33a8f471d996c13f71cb77f0b1583b5d923
+  ccid: 0a9700ba10fcda9dd32cd13827d579c987b86981
+  device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
+  file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
+  file_saver: 44e6fbf666677faf097302460e214e977fdd977b
+  flutter_webrtc: f3000fcd54abc3fa966c77ecf7e43ab701793c64
+  FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
+  mobile_scanner: 77265f3dc8d580810e91849d4a0811a90467ed5e
+  objective_c: e5f8194456e8fc943e034d1af00510a1bc29c067
+  package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
+  path_provider_foundation: 0b743cbb62d8e47eab856f09262bb8c1ddcfe6ba
+  rust_lib_canokey_console: 89db6468f1f8d654b249e0745882c359f6cd8a79
+  Sentry: b53951377b78e21a734f5dc8318e333dbfc682d7
+  sentry_flutter: f074f75557daea0e1dd9607381a05cc0e3e456fe
+  shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
+  url_launcher_macos: 175a54c831f4375a6cf895875f716ee5af3888ce
+  WebRTC-SDK: 40d4f5ba05cadff14e4db5614aec402a633f007e
 
-PODFILE CHECKSUM: 236401fc2c932af29a9fcf0e97baeeb2d750d367
+PODFILE CHECKSUM: 9ebaf0ce3d369aaa26a9ea0e159195ed94724cf3
 
 COCOAPODS: 1.16.2
