@@ -22,7 +22,7 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 ### Mobile Apps
 
 - Android: Download from [Google Play Store](https://play.google.com/store/apps/details?id=org.canokeys.console)
-- iOS: Download from [App Store](https://apps.apple.com/app/canokey-console/id1234567890)
+- iOS: Download from [App Store](https://apps.apple.com/app/canokey-console/id6476454147)
 
 ## Development
 
