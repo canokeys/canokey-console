@@ -185,6 +185,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "passSlotStatic": MessageLookupByLibrary.simpleMessage("静态口令"),
     "passSlotWithEnter": MessageLookupByLibrary.simpleMessage("附加回车"),
     "passStatus": MessageLookupByLibrary.simpleMessage("状态"),
+    "passkey": MessageLookupByLibrary.simpleMessage("通行密钥"),
     "pinChanged": MessageLookupByLibrary.simpleMessage("PIN 修改成功"),
     "pinIncorrect": MessageLookupByLibrary.simpleMessage("PIN 输入错误"),
     "pinInvalidLength": MessageLookupByLibrary.simpleMessage("长度错误"),

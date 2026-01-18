@@ -230,6 +230,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "The output comes with Enter",
     ),
     "passStatus": MessageLookupByLibrary.simpleMessage("Status"),
+    "passkey": MessageLookupByLibrary.simpleMessage("Passkey"),
     "pinChanged": MessageLookupByLibrary.simpleMessage(
       "PIN has been successfully changed.",
     ),

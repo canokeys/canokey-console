@@ -1,6 +1,7 @@
 import 'package:canokey_console/controller/applets/oath/oath_controller.dart';
 import 'package:canokey_console/controller/applets/oath/qr_scan_result.dart';
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
@@ -20,6 +21,7 @@ import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
 import 'package:get/get.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 final log = Logging.logger('OATH:View');
 
@@ -33,14 +35,26 @@ class OathPage extends StatefulWidget {
 class _OathPageState extends State<OathPage> with UIMixin {
   final OathController controller = Get.put(OathController());
   final RxString searchText = ''.obs;
+  final RxBool sortAlphabetically = false.obs;
   final GlobalKey<FormState> _searchFormKey = GlobalKey<FormState>();
 
   late final Worker _qrScanWorker;
+  late final Worker _sortWorker;
 
   @override
   void initState() {
     super.initState();
     Get.put(searchText, tag: 'oath_search');
+    Get.put(sortAlphabetically, tag: 'oath_sort');
+    
+    // Load saved preference
+    sortAlphabetically.value = LocalStorage.getOathSortAlphabetically();
+    
+    // Save preference when it changes
+    _sortWorker = ever(sortAlphabetically, (bool value) {
+      LocalStorage.setOathSortAlphabetically(value);
+    });
+    
     _qrScanWorker = ever(
       controller.qrScanResult,
       (QrScanResult? result) {
@@ -63,6 +77,9 @@ class _OathPageState extends State<OathPage> with UIMixin {
   @override
   void dispose() {
     _qrScanWorker.dispose();
+    _sortWorker.dispose();
+    Get.delete<RxString>(tag: 'oath_search');
+    Get.delete<RxBool>(tag: 'oath_sort');
     super.dispose();
   }
 
@@ -72,11 +89,24 @@ class _OathPageState extends State<OathPage> with UIMixin {
       title: 'TOTP / HOTP',
       topActions: GetBuilder(
         init: controller,
-        builder: (_) => TopActions(
-          controller: controller,
-          onQrScan: () => QrScannerDialog.show(onQrCodeScanned: (value) => controller.parseUri(value)),
-          onScreenCapture: _showScreenCapture,
-          onManualAdd: () => AddAccountDialog.show(controller.addAccount),
+        builder: (_) => Row(
+          children: [
+            Obx(() => InkWell(
+              onTap: () => sortAlphabetically.value = !sortAlphabetically.value,
+              child: Icon(
+                sortAlphabetically.value ? LucideIcons.arrowDownAZ : LucideIcons.clock,
+                size: 20,
+                color: topBarTheme.onBackground,
+              ),
+            )),
+            Spacing.width(12),
+            TopActions(
+              controller: controller,
+              onQrScan: () => QrScannerDialog.show(onQrCodeScanned: (value) => controller.parseUri(value)),
+              onScreenCapture: _showScreenCapture,
+              onManualAdd: () => AddAccountDialog.show(controller.addAccount),
+            ),
+          ],
         ),
       ),
       child: GetBuilder(
@@ -106,11 +136,15 @@ class _OathPageState extends State<OathPage> with UIMixin {
                           ? controller.oathMap
                           : Map.fromEntries(controller.oathMap.entries.where((entry) => entry.key.toLowerCase().contains(searchText.value.toLowerCase())));
                       if (filteredMap.isEmpty) return Center(child: CustomizedText.bodyMedium(S.of(context).noMatchingCredential, fontSize: 24));
+                      final names = filteredMap.keys.toList();
+                      if (sortAlphabetically.value) {
+                        names.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+                      }
                       return GridView.builder(
                         physics: ScrollPhysics(),
                         shrinkWrap: true,
                         scrollDirection: Axis.vertical,
-                        itemCount: filteredMap.length,
+                        itemCount: names.length,
                         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                           maxCrossAxisExtent: 500,
                           crossAxisSpacing: 16,
@@ -118,7 +152,7 @@ class _OathPageState extends State<OathPage> with UIMixin {
                           mainAxisExtent: 150,
                         ),
                         itemBuilder: (context, index) {
-                          String name = filteredMap.keys.toList()[index];
+                          String name = names[index];
                           return OathItemCard(
                             name: name,
                             item: filteredMap[name]!,
