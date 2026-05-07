@@ -47,4 +47,3 @@ pub fn decode_png_qrcode(png_file: Vec<u8>) -> String {
 
     text
 }
-

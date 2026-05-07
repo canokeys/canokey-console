@@ -1,5 +1,5 @@
-use des::cipher::{BlockEncrypt, KeyInit};
-use pbkdf2::hmac::{Hmac, Mac};
+use des::cipher::{Block, BlockCipherEncrypt, KeyInit};
+use pbkdf2::hmac::{Hmac, KeyInit as HmacKeyInit, Mac};
 use pbkdf2::pbkdf2_hmac;
 use sha1::Sha1;
 use x509_parser::pem::parse_x509_pem;
@@ -20,9 +20,12 @@ pub struct X509CertData {
 
 pub fn tdes_ede3_enc(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
     assert_eq!(key.len(), 24, "des-ede3 key length must be 24 bytes");
+    assert_eq!(data.len(), 8, "des-ede3 encrypts exactly one 8-byte block");
     let mut enc_data = vec![0u8; data.len()];
-    let tdes = des::TdesEde3::new(key.as_slice().into());
-    tdes.encrypt_block_b2b(data.as_slice().into(), enc_data.as_mut_slice().into());
+    let tdes = des::TdesEde3::new_from_slice(key.as_slice()).unwrap();
+    let input = <&Block<des::TdesEde3>>::try_from(data.as_slice()).unwrap();
+    let output = <&mut Block<des::TdesEde3>>::try_from(enc_data.as_mut_slice()).unwrap();
+    tdes.encrypt_block_b2b(input, output);
     enc_data
 }
 
@@ -79,7 +82,7 @@ pub fn pbkdf2_hmac_sha1(password: String, salt: Vec<u8>, iterations: u32, key_le
 
 pub fn hmac_sha1(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
     type HmacSha1 = Hmac<Sha1>;
-    let mut mac = <HmacSha1 as Mac>::new_from_slice(key.as_slice()).unwrap();
+    let mut mac = <HmacSha1 as HmacKeyInit>::new_from_slice(key.as_slice()).unwrap();
     mac.update(data.as_slice());
     mac.finalize().into_bytes().to_vec()
 }
