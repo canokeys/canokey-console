@@ -852,7 +852,7 @@ class _PivPageState extends State<PivPage> with SingleTickerProviderStateMixin, 
                 title: Text('Select Your Certificate'),
                 content: InkWell(
                   onTap: () async {
-                    final result = await FilePicker.platform.pickFiles();
+                    final result = await FilePicker.pickFiles();
                     final file = result?.files.firstOrNull;
                     if (file != null) {
                       selected.value = true;
