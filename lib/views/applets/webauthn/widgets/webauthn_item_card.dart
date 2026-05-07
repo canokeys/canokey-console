@@ -33,7 +33,7 @@ class WebAuthnItemCard extends StatelessWidget with UIMixin {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(child: CustomizedText.bodyMedium(item.userDisplayName, fontSize: 16, fontWeight: 600, overflow: TextOverflow.ellipsis)),
+              Flexible(child: CustomizedText.bodyMedium(item.userDisplayName.isEmpty ? S.of(context).passkey : item.userDisplayName, fontSize: 16, fontWeight: 600, overflow: TextOverflow.ellipsis)),
               CustomizedContainer.none(
                 paddingAll: 8,
                 borderRadiusAll: 5,

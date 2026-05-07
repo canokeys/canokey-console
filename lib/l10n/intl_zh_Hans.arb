@@ -280,6 +280,7 @@
       }
     }
   },
+  "passkey": "通行密钥",
   "viewUserId": "查看用户 ID",
   "savePinOnDevice": "在此设备上保存 PIN",
   "settingsClearPinCache": "清除已保存的 PIN",

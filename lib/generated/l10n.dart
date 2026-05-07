@@ -1775,6 +1775,11 @@ class S {
     );
   }
 
+  /// `Passkey`
+  String get passkey {
+    return Intl.message('Passkey', name: 'passkey', desc: '', args: []);
+  }
+
   /// `View User ID`
   String get viewUserId {
     return Intl.message('View User ID', name: 'viewUserId', desc: '', args: []);

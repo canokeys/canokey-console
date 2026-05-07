@@ -204,6 +204,7 @@
   "pivVerifyManagementKey": "Verify Management Key",
   "validationHexString": "Please input a valid hexadecimal string.",
   "validationExactLength": "Need exact {length} characters",
+  "passkey": "Passkey",
   "viewUserId": "View User ID",
   "savePinOnDevice": "Save the PIN on this device",
   "settingsClearPinCache": "Clear Saved PINs",
