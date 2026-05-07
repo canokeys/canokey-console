@@ -2,7 +2,7 @@ name: Build Apps
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, ci]
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
@@ -56,7 +56,7 @@ jobs:
             debug-artifact-path: build/macos/Build/Products/Debug/*.app
             release-artifact-path: build/macos/Build/Products/Release/*.app
           - target: ios
-            os: macos-latest
+            os: macos-26
             pre-build-script: ""
             build-args: "--no-codesign"
             artifact-path: |
