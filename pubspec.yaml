@@ -44,7 +44,7 @@ dependencies:
       ref: 743c57a717a8425f9baf3f363f9359216dcb832e
   rust_lib_canokey_console:
     path: rust_builder
-  flutter_rust_bridge: 2.11.1
+  flutter_rust_bridge: 2.12.0
   logger: ^2.5.0
   audioplayers: ^6.1.0
   package_info_plus: ^9.0.0
