@@ -9,7 +9,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  FLUTTER_VERSION: 3.38.3
+  FLUTTER_VERSION: 3.41.9
 
 jobs:
   build:
@@ -18,7 +18,7 @@ jobs:
     - uses: actions/checkout@v6
       with:
         submodules: recursive
-    - uses: actions/cache@v4
+    - uses: actions/cache@v5
       with:
         key: web-spa-rust-${{ hashFiles('rust/Cargo.toml') }}
         path: |
@@ -40,7 +40,7 @@ jobs:
         cargo install flutter_rust_bridge_codegen
         flutter_rust_bridge_codegen build-web --release
     - run: flutter build web --verbose
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v7
       with:
         name: web-spa
         path: build/web/
@@ -49,7 +49,7 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           name: web-spa
           path: /tmp/console-build
@@ -73,7 +73,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           name: web-spa
           path: /tmp/console-build
