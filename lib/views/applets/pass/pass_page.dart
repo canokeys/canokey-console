@@ -8,7 +8,7 @@ import 'package:canokey_console/views/applets/pass/widgets/slot_card.dart';
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:platform_detector/platform_detector.dart';
 
 class PassPage extends StatefulWidget {

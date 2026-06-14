@@ -13,6 +13,7 @@ class Prompts {
   static late SnackbarController _snackbarController;
 
   static String getPinFailureResult(String resp) {
+    resp = resp.toUpperCase();
     if (resp == '6983') {
       return S.of(Get.context!).appletLocked;
     } else if (resp == '6982') {
@@ -22,27 +23,39 @@ class Prompts {
       return S.of(Get.context!).pinRetries(retries);
     } else if (resp == '6700') {
       return S.of(Get.context!).pinLength;
+    } else if (isStorageFull(resp)) {
+      return S.of(Get.context!).storageFull;
     } else {
       return 'Unknown response';
     }
   }
 
   static void promptPinFailureResult(String resp) {
+    resp = resp.toUpperCase();
     if (resp == '6983') {
       showPrompt(S.of(Get.context!).appletLocked, ContentThemeColor.danger);
     } else if (resp == '6982') {
       showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
     } else if (resp.toUpperCase().startsWith('63C')) {
       String retries = resp[resp.length - 1];
-      showPrompt(S.of(Get.context!).pinRetries(retries), ContentThemeColor.danger);
+      showPrompt(
+          S.of(Get.context!).pinRetries(retries), ContentThemeColor.danger);
     } else if (resp == '6700') {
       showPrompt(S.of(Get.context!).pinLength, ContentThemeColor.danger);
+    } else if (isStorageFull(resp)) {
+      showPrompt(S.of(Get.context!).storageFull, ContentThemeColor.danger);
     } else {
       showPrompt('Unknown response', ContentThemeColor.danger);
     }
   }
 
-  static void showPrompt(String content, ContentThemeColor selectedColor, {String level = 'E', bool forceSnackBar = false}) {
+  static bool isStorageFull(String resp) {
+    final sw = resp.toUpperCase();
+    return sw == '6A84' || sw == '6581';
+  }
+
+  static void showPrompt(String content, ContentThemeColor selectedColor,
+      {String level = 'E', bool forceSnackBar = false}) {
     Color backgroundColor = selectedColor.color;
     Color color = selectedColor.onColor;
 

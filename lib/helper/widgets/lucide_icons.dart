@@ -1,0 +1,79 @@
+import 'package:flutter/widgets.dart';
+
+class LucideIcons {
+  const LucideIcons._();
+
+  static const _fontFamily = 'Lucide';
+  static const _fontPackage = 'lucide_icons_flutter';
+
+  static const IconData arrowDownAZ =
+      IconData(58389, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData arrowRightCircle =
+      IconData(57466, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData bellRing =
+      IconData(57892, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData clock =
+      IconData(57479, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData copy =
+      IconData(57502, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData cornerDownLeft =
+      IconData(57505, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData cpu =
+      IconData(57513, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData database =
+      IconData(57517, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData creditCard =
+      IconData(57514, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData fileLock =
+      IconData(58142, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData globe =
+      IconData(57576, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData hash =
+      IconData(57583, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData home =
+      IconData(57589, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData info =
+      IconData(57593, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData key =
+      IconData(57597, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData keyRound =
+      IconData(58531, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData keyboard =
+      IconData(57988, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData languages =
+      IconData(57598, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData lightbulb =
+      IconData(57794, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData lock =
+      IconData(57611, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData menu =
+      IconData(57621, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData moreHorizontal =
+      IconData(57526, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData nfc =
+      IconData(58307, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData pin =
+      IconData(57945, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData plus =
+      IconData(57661, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData refreshCw =
+      IconData(57669, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData search =
+      IconData(57681, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData settings =
+      IconData(57684, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData settings2 =
+      IconData(57925, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData shieldAlert =
+      IconData(57854, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData shieldCheck =
+      IconData(57855, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData tag =
+      IconData(57727, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData timer =
+      IconData(57824, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData uploadCloud =
+      IconData(57489, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData user =
+      IconData(57759, fontFamily: _fontFamily, fontPackage: _fontPackage);
+}

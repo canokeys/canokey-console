@@ -14,7 +14,7 @@ import 'package:canokey_console/views/applets/webauthn/widgets/webauthn_item_car
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 
 class WebAuthnPage extends StatefulWidget {
   const WebAuthnPage({super.key});

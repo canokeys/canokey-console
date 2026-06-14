@@ -5,6 +5,7 @@ import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
+import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/views/applets/settings/widgets/action_card.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_card.dart';
 import 'package:canokey_console/views/applets/settings/widgets/other_settings_card.dart';
@@ -12,7 +13,6 @@ import 'package:canokey_console/views/applets/settings/widgets/settings_card.dar
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:platform_detector/platform_detector.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -22,7 +22,8 @@ class SettingsPage extends StatefulWidget {
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderStateMixin, UIMixin {
+class _SettingsPageState extends State<SettingsPage>
+    with SingleTickerProviderStateMixin, UIMixin {
   final _controller = Get.put(SettingsController());
 
   @override
@@ -32,17 +33,21 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
       topActions: isWeb() || isIOSApp()
           ? InkWell(
               onTap: () => _controller.refreshData(),
-              child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
+              child: Icon(Icons.refresh,
+                  size: 20, color: topBarTheme.onBackground),
             )
           : Container(),
       child: GetBuilder(
         init: _controller,
         builder: (_) {
+          final showNfcSettings = (isAndroidApp() || isIOSApp()) &&
+              (!_controller.polled ||
+                  _controller.key.getFunctionSet().contains(Func.nfcSwitch));
           List<Widget> widgets = [
             Spacing.height(20),
             ActionCard(controller: _controller),
             Spacing.height(20),
-            OtherSettingsCard(),
+            OtherSettingsCard(showNfcSettings: showNfcSettings),
             Spacing.height(20),
           ];
 
@@ -58,7 +63,9 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
                       Center(
                         child: Padding(
                           padding: Spacing.horizontal(36),
-                          child: CustomizedText.bodyMedium(Hints.pollCanoKeyPrompt, fontSize: 14),
+                          child: CustomizedText.bodyMedium(
+                              Hints.pollCanoKeyPrompt,
+                              fontSize: 14),
                         ),
                       ),
                       ...widgets

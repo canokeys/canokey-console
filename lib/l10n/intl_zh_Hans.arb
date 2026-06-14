@@ -19,6 +19,7 @@
   "desktopPollError": "寻找 USB 连接的 CanoKey 时遇到错误。请修复错误后重启此应用：",
   "pollCanceled": "您没有选择任何 CanoKey",
   "networkError": "CanoKey 繁忙，请重新插拔并稍后再试",
+  "storageFull": "CanoKey 存储空间不足",
   "appletLocked": "该应用已被锁定",
   "pinIncorrect": "PIN 输入错误",
   "pinRetries": "PIN 输入错误，剩余重试次数：{retries}",
@@ -108,6 +109,9 @@
   "settingsFirmwareVersion": "固件版本",
   "settingsSN": "序号",
   "settingsChipId": "芯片 ID",
+  "settingsStorageUsage": "存储用量",
+  "settingsAppletStorageUsage": "各应用 Flash 用量",
+  "settingsStorageFree": "可用",
   "settingsInputPin": "PIN 验证",
   "settingsInputPinPrompt": "请输入您的管理应用 PIN（默认值为 123456）。请注意，该 PIN 与其他应用的 PIN 无关。",
   "settingsHotp": "触摸时输出 HOTP",
@@ -137,6 +141,19 @@
   "settingsFixNFC": "修复 NFC",
   "settingsFixNFCSuccess": "修复 NFC 成功",
   "settingsKeyboardWithReturn": "OTP 输出后附加回车",
+  "settingsKeyboardLayout": "键盘布局",
+  "settingsKeyboardLayoutDefault": "默认 / US QWERTY",
+  "settingsKeyboardLayoutCustom": "自定义布局",
+  "settingsKeyboardLayoutUnknown": "未知",
+  "settingsKeyboardLayoutCurrent": "当前：{layout}",
+  "@settingsKeyboardLayoutCurrent": {
+    "placeholders": {
+      "layout": {
+        "description": "Keyboard layout display name"
+      }
+    }
+  },
+  "settingsKeyboardLayoutUnknownPrompt": "当前 keymap 与内置预置不一致。应用预置会覆盖现有 keymap。",
   "settingsWebAuthnSm2Support": "WebAuthn SM2",
   "settingsStartPage": "起始页",
   "oathDelete": "您正在删除 {name}，删除该项目后无法恢复！请确认相关服务的二步验证已经关闭。",
@@ -195,6 +212,8 @@
   "passSlotOff": "关闭",
   "passSlotHotp": "HOTP",
   "passSlotStatic": "静态口令",
+  "passSlotHmacSha1": "HMAC-SHA1",
+  "passSlotHmacSha1Key": "20 字节 HMAC-SHA1 密钥（十六进制）",
   "passSlotWithEnter": "附加回车",
   "webauthnClientPinNotSupported": "该密钥不支持 WebAuthn PIN。",
   "webauthnSetPinTitle": "设置 WebAuthn PIN",

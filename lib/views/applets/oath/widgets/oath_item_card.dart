@@ -14,7 +14,7 @@ import 'package:canokey_console/views/applets/oath/dialogs/set_default_dialog.da
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:timer_controller/timer_controller.dart';
 

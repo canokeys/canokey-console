@@ -15,17 +15,32 @@ import 'package:get/get.dart';
 class SlotConfigDialog extends BaseDialog with UIMixin {
   final int index;
   final PassSlot slot;
-  final Function(int index, PassSlotType slotType, String password, bool withEnter) onSetSlot;
+  final bool hmacSha1Supported;
+  final Function(
+          int index, PassSlotType slotType, String password, bool withEnter)
+      onSetSlot;
 
-  const SlotConfigDialog({super.key, required this.index, required this.slot, required this.onSetSlot});
+  const SlotConfigDialog(
+      {super.key,
+      required this.index,
+      required this.slot,
+      required this.hmacSha1Supported,
+      required this.onSetSlot});
 
   static Future<void> show({
     required int index,
     required PassSlot slot,
-    required Function(int index, PassSlotType slotType, String password, bool withEnter) onSetSlot,
+    required bool hmacSha1Supported,
+    required Function(
+            int index, PassSlotType slotType, String password, bool withEnter)
+        onSetSlot,
   }) {
     return Get.dialog(
-      SlotConfigDialog(index: index, slot: slot, onSetSlot: onSetSlot),
+      SlotConfigDialog(
+          index: index,
+          slot: slot,
+          hmacSha1Supported: hmacSha1Supported,
+          onSetSlot: onSetSlot),
       barrierDismissible: false,
     );
   }
@@ -34,7 +49,8 @@ class SlotConfigDialog extends BaseDialog with UIMixin {
   State<SlotConfigDialog> createState() => _SlotConfigDialogState();
 }
 
-class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog> with UIMixin {
+class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
+    with UIMixin {
   final FormValidator validator = FormValidator();
 
   late final RxBool showPassword;
@@ -47,14 +63,32 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog> with UIMi
     showPassword = false.obs;
     withEnter = widget.slot.withEnter.obs;
     slotType = Rx<PassSlotType>(widget.slot.type);
-    validator.addField('password', required: true, controller: TextEditingController(), validators: [LengthValidator(min: 1, max: 32)]);
+    validator.addField('password',
+        required: true,
+        controller: TextEditingController(),
+        validators: [LengthValidator(min: 1, max: 32)]);
+    validator.addField('hmacKey',
+        required: true,
+        controller: TextEditingController(),
+        validators: [LengthValidator(exact: 40), HexStringValidator()]);
   }
 
   void _onSubmit() {
     if (slotType.value == PassSlotType.static && !validator.validateForm()) {
       return;
     }
-    widget.onSetSlot(widget.index, slotType.value, validator.getController('password')!.text, withEnter.value);
+    if (slotType.value == PassSlotType.hmacSha1) {
+      final hmacKey = validator.getController('hmacKey')!.text.trim();
+      if (!RegExp(r'^[0-9a-fA-F]{40}$').hasMatch(hmacKey)) {
+        validator.formKey.currentState?.validate();
+        return;
+      }
+      widget.onSetSlot(
+          widget.index, slotType.value, hmacKey.toLowerCase(), false);
+      return;
+    }
+    widget.onSetSlot(widget.index, slotType.value,
+        validator.getController('password')!.text, withEnter.value);
   }
 
   String _slotTypeName(PassSlotType type) {
@@ -65,6 +99,8 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog> with UIMi
         return S.of(context).passSlotHotp;
       case PassSlotType.static:
         return S.of(context).passSlotStatic;
+      case PassSlotType.hmacSha1:
+        return S.of(context).passSlotHmacSha1;
     }
   }
 
@@ -110,13 +146,18 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog> with UIMi
                   Spacing.height(16),
                   Row(
                     children: [
-                      SizedBox(width: 90, child: CustomizedText.labelLarge(S.of(context).oathType)),
+                      SizedBox(
+                          width: 90,
+                          child: CustomizedText.labelLarge(
+                              S.of(context).oathType)),
                       Expanded(
                         child: Wrap(
                           spacing: 16,
                           children: [
                             _buildRadioOption(PassSlotType.none),
                             _buildRadioOption(PassSlotType.static),
+                            if (widget.hmacSha1Supported)
+                              _buildRadioOption(PassSlotType.hmacSha1),
                           ],
                         ),
                       )
@@ -134,13 +175,30 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog> with UIMi
                         border: outlineInputBorder,
                         floatingLabelBehavior: FloatingLabelBehavior.auto,
                         suffixIcon: IconButton(
-                          onPressed: () => showPassword.value = !showPassword.value,
-                          icon: Icon(showPassword.value ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                          onPressed: () =>
+                              showPassword.value = !showPassword.value,
+                          icon: Icon(showPassword.value
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined),
                         ),
                       ),
                     ),
                   ],
-                  if (slotType.value != PassSlotType.none) ...[
+                  if (slotType.value == PassSlotType.hmacSha1) ...[
+                    Spacing.height(16),
+                    TextFormField(
+                      onTap: SmartCard.eject,
+                      controller: validator.getController('hmacKey'),
+                      validator: validator.getValidator('hmacKey'),
+                      decoration: InputDecoration(
+                        labelText: S.of(context).passSlotHmacSha1Key,
+                        border: outlineInputBorder,
+                        floatingLabelBehavior: FloatingLabelBehavior.auto,
+                      ),
+                    ),
+                  ],
+                  if (slotType.value != PassSlotType.none &&
+                      slotType.value != PassSlotType.hmacSha1) ...[
                     Spacing.height(16),
                     Row(
                       children: [
@@ -148,11 +206,13 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog> with UIMi
                               onChanged: (value) => withEnter.value = value!,
                               value: withEnter.value,
                               activeColor: contentTheme.primary,
-                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
                               visualDensity: getCompactDensity,
                             )),
                         Spacing.width(16),
-                        CustomizedText.bodyMedium(S.of(context).passSlotWithEnter),
+                        CustomizedText.bodyMedium(
+                            S.of(context).passSlotWithEnter),
                       ],
                     ),
                   ]
@@ -164,7 +224,9 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog> with UIMi
             Padding(
               padding: Spacing.all(16),
               child: CustomizedText.bodyMedium(errorMessage.value,
-                  color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color),
+                  color: errorLevel.value == 'E'
+                      ? ContentThemeColor.danger.color
+                      : ContentThemeColor.warning.color),
             ),
           Divider(height: 0, thickness: 1),
           Padding(
@@ -177,7 +239,8 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog> with UIMi
                   elevation: 0,
                   padding: Spacing.xy(20, 16),
                   backgroundColor: contentTheme.secondary,
-                  child: CustomizedText.labelMedium(S.of(context).close, color: contentTheme.onSecondary),
+                  child: CustomizedText.labelMedium(S.of(context).close,
+                      color: contentTheme.onSecondary),
                 ),
                 Spacing.width(16),
                 CustomizedButton.rounded(
@@ -185,7 +248,8 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog> with UIMi
                   elevation: 0,
                   padding: Spacing.xy(20, 16),
                   backgroundColor: contentTheme.primary,
-                  child: CustomizedText.labelMedium(S.of(context).save, color: contentTheme.onPrimary),
+                  child: CustomizedText.labelMedium(S.of(context).save,
+                      color: contentTheme.onPrimary),
                 ),
               ],
             ),

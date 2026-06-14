@@ -28,10 +28,9 @@ class S {
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name =
-        (locale.countryCode?.isEmpty ?? false)
-            ? locale.languageCode
-            : locale.toString();
+    final name = (locale.countryCode?.isEmpty ?? false)
+        ? locale.languageCode
+        : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -200,6 +199,16 @@ class S {
     return Intl.message(
       'CanoKey is busy. Replug it, wait for a moment, and retry.',
       name: 'networkError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `CanoKey storage is full.`
+  String get storageFull {
+    return Intl.message(
+      'CanoKey storage is full.',
+      name: 'storageFull',
       desc: '',
       args: [],
     );
@@ -730,6 +739,36 @@ class S {
     return Intl.message('Chip ID', name: 'settingsChipId', desc: '', args: []);
   }
 
+  /// `Storage Usage`
+  String get settingsStorageUsage {
+    return Intl.message(
+      'Storage Usage',
+      name: 'settingsStorageUsage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Applet Flash Usage`
+  String get settingsAppletStorageUsage {
+    return Intl.message(
+      'Applet Flash Usage',
+      name: 'settingsAppletStorageUsage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Free`
+  String get settingsStorageFree {
+    return Intl.message(
+      'Free',
+      name: 'settingsStorageFree',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `PIN Verification`
   String get settingsInputPin {
     return Intl.message(
@@ -940,6 +979,66 @@ class S {
     return Intl.message(
       'The output of OTP value comes with enter',
       name: 'settingsKeyboardWithReturn',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Keyboard Layout`
+  String get settingsKeyboardLayout {
+    return Intl.message(
+      'Keyboard Layout',
+      name: 'settingsKeyboardLayout',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Default / US QWERTY`
+  String get settingsKeyboardLayoutDefault {
+    return Intl.message(
+      'Default / US QWERTY',
+      name: 'settingsKeyboardLayoutDefault',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Custom layout`
+  String get settingsKeyboardLayoutCustom {
+    return Intl.message(
+      'Custom layout',
+      name: 'settingsKeyboardLayoutCustom',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unknown`
+  String get settingsKeyboardLayoutUnknown {
+    return Intl.message(
+      'Unknown',
+      name: 'settingsKeyboardLayoutUnknown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Current: {layout}`
+  String settingsKeyboardLayoutCurrent(Object layout) {
+    return Intl.message(
+      'Current: $layout',
+      name: 'settingsKeyboardLayoutCurrent',
+      desc: '',
+      args: [layout],
+    );
+  }
+
+  /// `The current keymap does not match a built-in preset. Applying a preset will overwrite it.`
+  String get settingsKeyboardLayoutUnknownPrompt {
+    return Intl.message(
+      'The current keymap does not match a built-in preset. Applying a preset will overwrite it.',
+      name: 'settingsKeyboardLayoutUnknownPrompt',
       desc: '',
       args: [],
     );
@@ -1305,6 +1404,26 @@ class S {
     return Intl.message(
       'Static Password',
       name: 'passSlotStatic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `HMAC-SHA1`
+  String get passSlotHmacSha1 {
+    return Intl.message(
+      'HMAC-SHA1',
+      name: 'passSlotHmacSha1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `20-byte HMAC-SHA1 key (hex)`
+  String get passSlotHmacSha1Key {
+    return Intl.message(
+      '20-byte HMAC-SHA1 key (hex)',
+      name: 'passSlotHmacSha1Key',
       desc: '',
       args: [],
     );

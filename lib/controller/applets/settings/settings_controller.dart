@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:canokey_console/controller/base/admin.dart';
 import 'package:canokey_console/controller/base/polling_controller.dart';
@@ -8,6 +9,7 @@ import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
+import 'package:canokey_console/models/keyboard_keymap.dart';
 import 'package:convert/convert.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
@@ -38,11 +40,14 @@ class SettingsController extends PollingController with AdminApplet {
         return;
       }
 
-      SmartCard.assertOK(await SmartCard.transceive(_changeSwitchAPDUs[func][value]));
+      SmartCard.assertOK(
+          await SmartCard.transceive(_changeSwitchAPDUs[func][value]));
       log.i('Successfully changed ${func.name}');
       Navigator.pop(Get.context!);
 
-      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success, forceSnackBar: true);
+      Prompts.showPrompt(
+          S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
+          forceSnackBar: true);
       await _refresh(sn);
     });
   }
@@ -53,11 +58,14 @@ class SettingsController extends PollingController with AdminApplet {
         return;
       }
 
-      SmartCard.assertOK(await SmartCard.transceive('00210000${newPin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(newPin.codeUnits)}'));
+      SmartCard.assertOK(await SmartCard.transceive(
+          '00210000${newPin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(newPin.codeUnits)}'));
       log.i('Successfully changed PIN');
 
       Navigator.pop(Get.context!);
-      Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success, forceSnackBar: true);
+      Prompts.showPrompt(
+          S.of(Get.context!).pinChanged, ContentThemeColor.success,
+          forceSnackBar: true);
 
       await updatePinCache(sn, newPin, savePin);
     });
@@ -73,7 +81,9 @@ class SettingsController extends PollingController with AdminApplet {
       log.i('Successfully reset ${applet.name}');
 
       Navigator.pop(Get.context!);
-      Prompts.showPrompt(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success, forceSnackBar: true);
+      Prompts.showPrompt(
+          S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success,
+          forceSnackBar: true);
     });
   }
 
@@ -85,29 +95,76 @@ class SettingsController extends PollingController with AdminApplet {
       Get.context!.loaderOverlay.hide();
       Navigator.pop(Get.context!);
       if (resp == '9000') {
-        Prompts.showPrompt(S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
+        Prompts.showPrompt(
+            S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
       } else if (resp == '6985') {
-        Prompts.showPrompt(S.of(Get.context!).settingsResetConditionNotSatisfying, ContentThemeColor.danger);
+        Prompts.showPrompt(
+            S.of(Get.context!).settingsResetConditionNotSatisfying,
+            ContentThemeColor.danger);
       } else if (resp == '6982') {
-        Prompts.showPrompt(S.of(Get.context!).settingsResetPresenceTestFailed, ContentThemeColor.danger);
+        Prompts.showPrompt(S.of(Get.context!).settingsResetPresenceTestFailed,
+            ContentThemeColor.danger);
       } else {
         Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
       }
     });
   }
 
-  Future<void> changeWebAuthnSm2Config(bool enabled, int curveId, int algoId) async {
-    String cmdData = (enabled ? '01' : '00') + hex.encode(Int32(curveId).toBytes().reversed.toList()) + hex.encode(Int32(algoId).toBytes().reversed.toList());
+  Future<void> changeWebAuthnSm2Config(
+      bool enabled, int curveId, int algoId) async {
+    await SmartCard.process((String sn) async {
+      if (!await authenticate(sn)) {
+        return;
+      }
+      if (!key.getFunctionSet().contains(Func.webAuthnSm2Support)) {
+        Prompts.showPrompt(
+            S.of(Get.context!).notSupported, ContentThemeColor.warning);
+        return;
+      }
+
+      final effectiveEnabled =
+          key.functionSetVersion == FunctionSetVersion.v5 ? true : enabled;
+      String cmdData = (effectiveEnabled ? '01' : '00') +
+          hex.encode(Int32(curveId).toBytes().reversed.toList()) +
+          hex.encode(Int32(algoId).toBytes().reversed.toList());
+      SmartCard.assertOK(await SmartCard.transceive('0012000009$cmdData'));
+      log.i('Successfully changed WebAuthn SM2 config');
+      Navigator.pop(Get.context!);
+
+      Prompts.showPrompt(
+          S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
+          forceSnackBar: true);
+      await _refresh(sn);
+    });
+  }
+
+  void changeKeyboardKeymap(KeyboardKeymapPreset preset) async {
     await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
         return;
       }
 
-      SmartCard.assertOK(await SmartCard.transceive('0012000009$cmdData'));
-      log.i('Successfully changed WebAuthn SM2 config');
+      if (preset.isDefault) {
+        SmartCard.assertOK(await SmartCard.transceive('00470000'));
+      } else {
+        final entries = preset.entries;
+        final id = preset.id;
+        if (entries == null || id == null) {
+          throw Exception('Invalid keyboard layout preset');
+        }
+        final validationError = KeyboardKeymapPresets.validateEntries(entries);
+        if (validationError != null) {
+          throw Exception(validationError);
+        }
+        SmartCard.assertOK(await SmartCard.transceive(
+            '004500${id.toRadixString(16).padLeft(2, '0')}000100${hex.encode(entries)}'));
+      }
+      log.i('Successfully changed keyboard layout');
       Navigator.pop(Get.context!);
 
-      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success, forceSnackBar: true);
+      Prompts.showPrompt(
+          S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
+          forceSnackBar: true);
       await _refresh(sn);
     });
   }
@@ -115,7 +172,8 @@ class SettingsController extends PollingController with AdminApplet {
   Future<void> _refresh(String sn) async {
     String resp = await SmartCard.transceive('0031000000');
     SmartCard.assertOK(resp);
-    String firmwareVersion = String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
+    String firmwareVersion =
+        String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
     resp = await SmartCard.transceive('0031010000');
     SmartCard.assertOK(resp);
     String model = String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
@@ -124,7 +182,9 @@ class SettingsController extends PollingController with AdminApplet {
     String chipId = SmartCard.dropSW(resp).toUpperCase();
 
     // read configurations
-    FunctionSetVersion functionSetVersion = CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
+    FunctionSetVersion functionSetVersion =
+        CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
+    final functionSet = CanoKey.functionSet(functionSetVersion);
     bool ledOn = false;
     bool hotpOn = false;
     bool ndefReadonly = false;
@@ -136,6 +196,8 @@ class SettingsController extends PollingController with AdminApplet {
     bool autTouch = false;
     int cacheTime = 0;
     bool nfcEnabled = true;
+    StorageUsage? storageUsage;
+    KeyboardKeymapState? keyboardKeymap;
     resp = await SmartCard.transceive('0042000000');
     SmartCard.assertOK(resp);
     switch (functionSetVersion) {
@@ -168,10 +230,37 @@ class SettingsController extends PollingController with AdminApplet {
         ndefReadonly = resp.substring(4, 6) == '01';
         ndefEnabled = resp.substring(6, 8) == '01';
         webusbLandingEnabled = resp.substring(8, 10) == '01';
-        resp = await SmartCard.transceive('0014000000');
-        SmartCard.assertOK(resp);
-        nfcEnabled = resp.substring(0, 2) == '01';
         break;
+      case FunctionSetVersion.v5:
+        ledOn = resp.substring(0, 2) == '01';
+        webusbLandingEnabled = resp.substring(8, 10) == '01';
+        break;
+    }
+    if (functionSet.contains(Func.nfcSwitch)) {
+      resp = await SmartCard.transceive('0014000000');
+      SmartCard.assertOK(resp);
+      nfcEnabled = resp.substring(0, 2) == '01';
+    }
+    if (functionSet.contains(Func.dynamicOathCapacity) ||
+        functionSet.contains(Func.dynamicWebAuthnCapacity)) {
+      resp = await SmartCard.transceive('0041000002');
+      SmartCard.assertOK(resp);
+      final totalUsage = SmartCard.dropSW(resp);
+      storageUsage = StorageUsage(
+        usedKiB: int.parse(totalUsage.substring(0, 2), radix: 16),
+        totalKiB: int.parse(totalUsage.substring(2, 4), radix: 16),
+      );
+      final appletUsage = await _tryReadAppletStorageUsage(functionSet);
+      if (appletUsage.isNotEmpty) {
+        storageUsage = StorageUsage(
+          usedKiB: storageUsage.usedKiB,
+          totalKiB: storageUsage.totalKiB,
+          applets: appletUsage,
+        );
+      }
+    }
+    if (functionSet.contains(Func.keyboardKeymap)) {
+      keyboardKeymap = await _tryReadKeyboardKeymap();
     }
 
     key = CanoKey(
@@ -190,7 +279,9 @@ class SettingsController extends PollingController with AdminApplet {
         decTouch: decTouch,
         autTouch: autTouch,
         touchCacheTime: cacheTime,
-        nfcEnabled: nfcEnabled);
+        nfcEnabled: nfcEnabled,
+        storageUsage: storageUsage,
+        keyboardKeymap: keyboardKeymap);
 
     if (key.getFunctionSet().contains(Func.webAuthnSm2Support)) {
       resp = await SmartCard.transceive('0011000000');
@@ -205,6 +296,123 @@ class SettingsController extends PollingController with AdminApplet {
     polled = true;
 
     update();
+  }
+
+  Future<List<AppletStorageUsage>> _tryReadAppletStorageUsage(
+      Set<Func> functionSet) async {
+    final resp = await SmartCard.transceive('0041010030');
+    if (!SmartCard.isOK(resp)) {
+      log.w('Failed to read applet flash usage: $resp');
+      return [];
+    }
+
+    final data = SmartCard.dropSW(resp);
+    if (data.length < _appletUsageMinResponseLengthHex ||
+        data.length % _appletUsageRecordLengthHex != 0) {
+      log.w('Invalid applet flash usage length: ${data.length ~/ 2}');
+      return [];
+    }
+
+    final usages = <AppletStorageUsage>[];
+    final recordCount = data.length ~/ _appletUsageRecordLengthHex;
+    for (var i = 0; i < recordCount; i++) {
+      final offset = i * _appletUsageRecordLengthHex;
+      final id = int.parse(data.substring(offset, offset + 2), radix: 16);
+      final flags =
+          int.parse(data.substring(offset + 2, offset + 4), radix: 16);
+      final name = _appletUsageNames[id];
+      if (name == null || !_hasAppletStorageUsage(id, functionSet)) {
+        continue;
+      }
+      usages.add(AppletStorageUsage(
+        id: id,
+        name: name,
+        logicalBytes:
+            int.parse(data.substring(offset + 4, offset + 12), radix: 16),
+        hasMissingSources: flags & 0x01 != 0,
+      ));
+    }
+    return usages;
+  }
+
+  Future<KeyboardKeymapState> _tryReadKeyboardKeymap() async {
+    var resp = await SmartCard.transceive('0046000001');
+    if (SmartCard.sw(resp) == '6A88') {
+      return const KeyboardKeymapState(
+        layoutId: null,
+        entries: null,
+        preset: KeyboardKeymapPresets.defaultPreset,
+        isDefault: true,
+      );
+    }
+    if (!SmartCard.isOK(resp)) {
+      log.w('Failed to read keyboard layout id: $resp');
+      return const KeyboardKeymapState(
+        layoutId: null,
+        entries: null,
+        preset: null,
+        isDefault: false,
+      );
+    }
+    final layoutId = int.parse(SmartCard.dropSW(resp), radix: 16);
+
+    resp = await SmartCard.transceive('0046000100');
+    if (!SmartCard.isOK(resp)) {
+      log.w('Failed to read keyboard keymap: $resp');
+      return KeyboardKeymapState(
+        layoutId: layoutId,
+        entries: null,
+        preset: KeyboardKeymapPresets.findById(layoutId),
+        isDefault: false,
+      );
+    }
+
+    final entries = Uint8List.fromList(hex.decode(SmartCard.dropSW(resp)));
+    final preset = KeyboardKeymapPresets.findMatching(layoutId, entries);
+    return KeyboardKeymapState(
+      layoutId: layoutId,
+      entries: entries,
+      preset: preset,
+      isDefault: false,
+    );
+  }
+
+  static const int _appletUsageRecordLengthBytes = 6;
+  static const int _appletUsageRecordLengthHex =
+      _appletUsageRecordLengthBytes * 2;
+  static const int _appletUsageMinRecordCount = 7;
+  static const int _appletUsageMinResponseLengthHex =
+      _appletUsageRecordLengthHex * _appletUsageMinRecordCount;
+
+  static const Map<int, String> _appletUsageNames = {
+    0x00: 'System',
+    0x01: 'Admin',
+    0x02: 'OpenPGP',
+    0x03: 'PIV',
+    0x04: 'TOTP / HOTP',
+    0x05: 'WebAuthn',
+    0x06: 'NDEF',
+    0x07: 'Pass',
+  };
+
+  bool _hasAppletStorageUsage(int id, Set<Func> functionSet) {
+    switch (id) {
+      case 0x00: // System
+      case 0x01: // Admin
+      case 0x02: // OpenPGP
+      case 0x03: // PIV
+      case 0x04: // OATH
+      case 0x05: // CTAP / WebAuthn
+        return true;
+      case 0x06: // NDEF
+        return functionSet.contains(Func.ndefEnabled) ||
+            functionSet.contains(Func.ndefReadonly) ||
+            functionSet.contains(Func.resetNdef);
+      case 0x07: // Pass
+        return functionSet.contains(Func.pass);
+      default:
+        return false;
+    }
   }
 
   final Map _changeSwitchAPDUs = {
