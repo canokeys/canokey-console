@@ -171,6 +171,9 @@ class CanoKey {
     return functionSet(functionSetVersion);
   }
 
+  bool get canChangeWebAuthnSm2Enabled =>
+      functionSetVersion != FunctionSetVersion.v5;
+
   static Set<Func> functionSet(FunctionSetVersion functionSetVersion) {
     switch (functionSetVersion) {
       case FunctionSetVersion.v1:

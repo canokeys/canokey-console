@@ -98,8 +98,8 @@ class ActionCard extends StatelessWidget with UIMixin {
                     CustomizedButton(
                       onPressed: () => Sm2ConfigDialog.show(
                         config: controller.key.webAuthnSm2Config!,
-                        canChangeEnabled: controller.key.functionSetVersion !=
-                            FunctionSetVersion.v5,
+                        canChangeEnabled:
+                            controller.key.canChangeWebAuthnSm2Enabled,
                         onConfirm: (enabled, curveId, algoId) => controller
                             .changeWebAuthnSm2Config(enabled, curveId, algoId),
                       ),

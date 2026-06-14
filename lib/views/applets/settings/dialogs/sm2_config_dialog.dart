@@ -52,7 +52,7 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
   @override
   void initState() {
     super.initState();
-    enabled = widget.config.enabled.obs;
+    enabled = (widget.canChangeEnabled ? widget.config.enabled : true).obs;
     validator.addField('curveId',
         controller: TextEditingController(),
         validators: [IntValidator(min: -65536, max: 65535)]);
@@ -66,7 +66,7 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
   void _onSubmit() {
     if (validator.formKey.currentState!.validate()) {
       widget.onConfirm(
-          widget.canChangeEnabled ? enabled.value : true,
+          enabled.value,
           int.parse(validator.getController('curveId')!.text),
           int.parse(validator.getController('algoId')!.text));
     }
@@ -91,22 +91,23 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
               key: validator.formKey,
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      Checkbox(
-                        onChanged: widget.canChangeEnabled
-                            ? (value) => enabled.value = value!
-                            : null,
-                        value: widget.canChangeEnabled ? enabled.value : true,
-                        activeColor: contentTheme.primary,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: getCompactDensity,
-                      ),
-                      Spacing.width(16),
-                      CustomizedText.bodyMedium(S.of(context).enabled),
-                    ],
-                  ),
-                  Spacing.height(16),
+                  if (widget.canChangeEnabled) ...[
+                    Row(
+                      children: [
+                        Checkbox(
+                          onChanged: (value) => enabled.value = value!,
+                          value: enabled.value,
+                          activeColor: contentTheme.primary,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: getCompactDensity,
+                        ),
+                        Spacing.width(16),
+                        CustomizedText.bodyMedium(S.of(context).enabled),
+                      ],
+                    ),
+                    Spacing.height(16),
+                  ],
                   TextFormField(
                     autofocus: true,
                     onTap: SmartCard.eject,
