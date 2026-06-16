@@ -15,6 +15,7 @@ import 'package:pointycastle/asn1/primitives/asn1_octet_string.dart';
 import 'package:pointycastle/asn1/primitives/asn1_sequence.dart';
 import 'package:pointycastle/asn1/primitives/asn1_set.dart';
 import 'package:pointycastle/asn1/primitives/asn1_utc_time.dart';
+import 'package:pointycastle/asn1/pkcs/pkcs10/asn1_subject_public_key_info.dart';
 
 class PivPublicKey {
   final AlgorithmType algorithm;
@@ -72,6 +73,71 @@ class PivPublicKey {
       default:
         throw ArgumentError('Unsupported generated key algorithm: $algorithm');
     }
+  }
+
+  factory PivPublicKey.fromSlotMetadata(
+    AlgorithmType algorithm,
+    List<int> public,
+  ) {
+    final keyMap = TLV.parse(public);
+    switch (algorithm) {
+      case AlgorithmType.rsa1024:
+      case AlgorithmType.rsa2048:
+      case AlgorithmType.rsa3072:
+      case AlgorithmType.rsa4096:
+        return PivPublicKey(
+          algorithm: algorithm,
+          encodedSubjectPublicKeyInfo: _rsaSubjectPublicKeyInfo(keyMap),
+        );
+      case AlgorithmType.eccp256:
+      case AlgorithmType.eccp384:
+      case AlgorithmType.secp256k1:
+      case AlgorithmType.sm2:
+        final rawPublicKey = _childOctets(keyMap, 0x86);
+        return PivPublicKey(
+          algorithm: algorithm,
+          encodedSubjectPublicKeyInfo:
+              _eccSubjectPublicKeyInfo(algorithm, rawPublicKey),
+          rawPublicKey: rawPublicKey,
+        );
+      case AlgorithmType.ed25519:
+        return PivPublicKey(
+          algorithm: algorithm,
+          encodedSubjectPublicKeyInfo: _ed25519SubjectPublicKeyInfo(keyMap),
+          rawPublicKey: _childOctets(keyMap, 0x86),
+        );
+      case AlgorithmType.x25519:
+        return PivPublicKey(
+          algorithm: algorithm,
+          encodedSubjectPublicKeyInfo:
+              _montgomerySubjectPublicKeyInfo(keyMap, 'curveX25519'),
+          rawPublicKey: _childOctets(keyMap, 0x86),
+        );
+      default:
+        throw ArgumentError('Unsupported public key algorithm: $algorithm');
+    }
+  }
+
+  factory PivPublicKey.fromSubjectPublicKeyInfo(
+    AlgorithmType algorithm,
+    Uint8List subjectPublicKeyInfo,
+  ) {
+    final spki = ASN1SubjectPublicKeyInfo.fromSequence(
+        ASN1Sequence.fromBytes(subjectPublicKeyInfo));
+    final rawPublicKey =
+        Uint8List.fromList(spki.subjectPublicKey.stringValues ?? const <int>[]);
+    return PivPublicKey(
+      algorithm: algorithm,
+      encodedSubjectPublicKeyInfo: subjectPublicKeyInfo,
+      rawPublicKey: rawPublicKey,
+    );
+  }
+
+  String toPem() {
+    final encoded = base64.encode(encodedSubjectPublicKeyInfo);
+    return '-----BEGIN PUBLIC KEY-----\n'
+        '${StringUtils.chunk(encoded, 64).join('\n')}\n'
+        '-----END PUBLIC KEY-----';
   }
 
   static Uint8List _rsaSubjectPublicKeyInfo(Map keyMap) {

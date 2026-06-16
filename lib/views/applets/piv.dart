@@ -64,6 +64,34 @@ class _PivPageState extends State<PivPage>
     }
   }
 
+  Future<bool> _savePivFile({
+    required String name,
+    required String extension,
+    required List<int> bytes,
+    MimeType mimeType = MimeType.other,
+  }) async {
+    try {
+      final path = await FileSaver.instance.saveAs(
+        name: name,
+        bytes: Uint8List.fromList(bytes),
+        fileExtension: extension,
+        mimeType: mimeType,
+      );
+      if (path == null || path.isEmpty) {
+        return false;
+      }
+      if (path == 'Failed to save file') {
+        Prompts.showPrompt(path, ContentThemeColor.danger);
+        return false;
+      }
+      Prompts.showPrompt('Saved', ContentThemeColor.success);
+      return true;
+    } catch (e) {
+      Prompts.showPrompt('Save failed: $e', ContentThemeColor.danger);
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Layout(
@@ -1435,17 +1463,42 @@ class _PivPageState extends State<PivPage>
                         color: contentTheme.onPrimary),
                   ),
                   if (slot != null) ...[
+                    if (slot.algorithm != AlgorithmType.x25519)
+                      CustomizedButton.rounded(
+                        onPressed: () {
+                          Navigator.pop(Get.context!);
+                          _showSignVerifyDialog(slotNumber, slot);
+                        },
+                        elevation: 0,
+                        padding: Spacing.xy(20, 16),
+                        backgroundColor: contentTheme.primary,
+                        child: CustomizedText.labelMedium('Sign / Verify',
+                            color: contentTheme.onPrimary),
+                      ),
                     CustomizedButton.rounded(
                       onPressed: () {
                         Navigator.pop(Get.context!);
-                        _showExportDialog(slot);
+                        _showExportPublicKeyDialog(slot);
                       },
                       elevation: 0,
                       padding: Spacing.xy(20, 16),
                       backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium(S.of(context).pivExport,
+                      child: CustomizedText.labelMedium('Export Public Key',
                           color: contentTheme.onPrimary),
                     ),
+                    if (slot.certBytes != null)
+                      CustomizedButton.rounded(
+                        onPressed: () {
+                          Navigator.pop(Get.context!);
+                          _showExportDialog(slot);
+                        },
+                        elevation: 0,
+                        padding: Spacing.xy(20, 16),
+                        backgroundColor: contentTheme.primary,
+                        child: CustomizedText.labelMedium(
+                            S.of(context).pivExportCertificate,
+                            color: contentTheme.onPrimary),
+                      ),
                     CustomizedButton.rounded(
                       onPressed: () {
                         Navigator.pop(Get.context!);
@@ -1488,10 +1541,14 @@ class _PivPageState extends State<PivPage>
                             CustomizedButton.rounded(
                               onPressed: () async {
                                 // Export DER
-                                await FileSaver.instance.saveFile(
-                                    name: 'certificate.der',
-                                    bytes: slot.certBytes! as Uint8List);
-                                Get.back();
+                                final saved = await _savePivFile(
+                                  name: 'certificate',
+                                  extension: 'der',
+                                  bytes: slot.certBytes!,
+                                );
+                                if (saved) {
+                                  Get.back();
+                                }
                               },
                               elevation: 0,
                               padding: Spacing.xy(20, 16),
@@ -1507,10 +1564,15 @@ class _PivPageState extends State<PivPage>
                                     .join("\n");
                                 String pem =
                                     '${X509Utils.BEGIN_CERT}\n$encodedDer\n${X509Utils.END_CERT}';
-                                await FileSaver.instance.saveFile(
-                                    name: 'certificate.pem',
-                                    bytes: utf8.encode(pem));
-                                Get.back();
+                                final saved = await _savePivFile(
+                                  name: 'certificate',
+                                  extension: 'pem',
+                                  bytes: utf8.encode(pem),
+                                  mimeType: MimeType.text,
+                                );
+                                if (saved) {
+                                  Get.back();
+                                }
                               },
                               elevation: 0,
                               padding: Spacing.xy(20, 16),
@@ -1520,6 +1582,228 @@ class _PivPageState extends State<PivPage>
                             )
                           ]))
                 ]))));
+  }
+
+  void _showExportPublicKeyDialog(SlotInfo slot) {
+    final publicKey = controller.publicKeyForSlot(slot);
+    if (publicKey == null) {
+      Prompts.showPrompt('No public key available', ContentThemeColor.danger);
+      return;
+    }
+    Get.dialog(Dialog(
+        child: SizedBox(
+            width: 360,
+            child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                      padding: Spacing.all(16),
+                      child: CustomizedText.labelLarge('Export Public Key')),
+                  Divider(height: 0, thickness: 1),
+                  Padding(
+                      padding: Spacing.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomizedText.bodySmall(
+                              'Algorithm: ${slot.algorithm.name.toUpperCase()}'),
+                          Spacing.height(16),
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CustomizedButton.rounded(
+                                  onPressed: () async {
+                                    final saved = await _savePivFile(
+                                      name: 'public-key',
+                                      extension: 'der',
+                                      bytes:
+                                          publicKey.encodedSubjectPublicKeyInfo,
+                                    );
+                                    if (saved) {
+                                      Get.back();
+                                    }
+                                  },
+                                  elevation: 0,
+                                  padding: Spacing.xy(20, 16),
+                                  backgroundColor: contentTheme.primary,
+                                  child: CustomizedText.labelMedium('DER',
+                                      color: contentTheme.onPrimary),
+                                ),
+                                Spacing.width(12),
+                                CustomizedButton.rounded(
+                                  onPressed: () async {
+                                    final saved = await _savePivFile(
+                                      name: 'public-key',
+                                      extension: 'pem',
+                                      bytes: utf8.encode(publicKey.toPem()),
+                                      mimeType: MimeType.text,
+                                    );
+                                    if (saved) {
+                                      Get.back();
+                                    }
+                                  },
+                                  elevation: 0,
+                                  padding: Spacing.xy(20, 16),
+                                  backgroundColor: contentTheme.primary,
+                                  child: CustomizedText.labelMedium('PEM',
+                                      color: contentTheme.onPrimary),
+                                ),
+                              ]),
+                        ],
+                      ))
+                ]))));
+  }
+
+  void _showSignVerifyDialog(String slotNumber, SlotInfo slot) {
+    FormValidator validator = FormValidator();
+    validator.addField('pin',
+        required: true,
+        controller: TextEditingController(),
+        validators: [LengthValidator(min: 6, max: 8)]);
+    validator.addField('message',
+        required: true,
+        controller: TextEditingController(text: 'hello canokey'));
+    final signature = ''.obs;
+    final verifyResult = ''.obs;
+
+    Get.dialog(Dialog(
+      child: SizedBox(
+        width: 560,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: Spacing.all(16),
+              child: CustomizedText.labelLarge('Sign / Verify Test'),
+            ),
+            Divider(height: 0, thickness: 1),
+            Padding(
+              padding: Spacing.all(16),
+              child: Form(
+                key: validator.formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      autofocus: true,
+                      onTap: SmartCard.eject,
+                      obscureText: true,
+                      controller: validator.getController('pin'),
+                      validator: validator.getValidator('pin'),
+                      decoration: InputDecoration(
+                          labelText: 'PIN', border: outlineInputBorder),
+                    ),
+                    Spacing.height(16),
+                    TextFormField(
+                      controller: validator.getController('message'),
+                      validator: validator.getValidator('message'),
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                          labelText: 'Message', border: outlineInputBorder),
+                    ),
+                    Obx(() => signature.value.isEmpty
+                        ? SizedBox.shrink()
+                        : Column(
+                            children: [
+                              Spacing.height(16),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: CustomizedText.bodyMedium(
+                                  'Signature (hex)',
+                                  fontWeight: 600,
+                                ),
+                              ),
+                              Spacing.height(8),
+                              Container(
+                                width: double.infinity,
+                                constraints: BoxConstraints(maxHeight: 120),
+                                padding: Spacing.all(12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: contentTheme.cardBorder),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: SingleChildScrollView(
+                                  child: SelectableText(signature.value),
+                                ),
+                              ),
+                              Spacing.height(16),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: CustomizedText.bodyMedium(
+                                  'Verify Result',
+                                  fontWeight: 600,
+                                ),
+                              ),
+                              Spacing.height(8),
+                              Container(
+                                width: double.infinity,
+                                padding: Spacing.all(12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: contentTheme.cardBorder),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: SelectableText(verifyResult.value),
+                              ),
+                            ],
+                          )),
+                  ],
+                ),
+              ),
+            ),
+            Divider(height: 0, thickness: 1),
+            Padding(
+              padding: Spacing.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CustomizedButton.rounded(
+                    onPressed: () => Get.back(),
+                    elevation: 0,
+                    backgroundColor: contentTheme.secondary,
+                    child: CustomizedText.labelMedium(S.of(context).cancel,
+                        color: contentTheme.onSecondary),
+                  ),
+                  Spacing.width(12),
+                  CustomizedButton.rounded(
+                    onPressed: () async {
+                      if (!validator.validateForm()) return;
+                      Get.context!.loaderOverlay.show();
+                      try {
+                        final result = await controller.signAndVerify(
+                          slotNumber,
+                          slot,
+                          validator.getController('pin')!.text,
+                          Uint8List.fromList(utf8.encode(
+                              validator.getController('message')!.text)),
+                        );
+                        if (result == null) {
+                          Prompts.showPrompt(
+                              'Sign / verify failed', ContentThemeColor.danger);
+                          return;
+                        }
+                        signature.value = hex.encode(result.signature);
+                        verifyResult.value = result.verified
+                            ? 'Verified'
+                            : 'Verification failed';
+                      } finally {
+                        Get.context!.loaderOverlay.hide();
+                      }
+                    },
+                    elevation: 0,
+                    backgroundColor: contentTheme.primary,
+                    child: CustomizedText.labelMedium('Sign and Verify',
+                        color: contentTheme.onPrimary),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
   }
 
   void _showImportDialog(String slotNumber) {
@@ -2531,8 +2815,12 @@ class _PivPageState extends State<PivPage>
                   Spacing.width(12),
                   CustomizedButton.rounded(
                     onPressed: () async {
-                      await FileSaver.instance.saveFile(
-                          name: 'piv-$slotNumber.csr', bytes: utf8.encode(csr));
+                      await _savePivFile(
+                        name: 'piv-$slotNumber',
+                        extension: 'csr',
+                        bytes: utf8.encode(csr),
+                        mimeType: MimeType.text,
+                      );
                     },
                     elevation: 0,
                     backgroundColor: contentTheme.primary,
@@ -2596,8 +2884,12 @@ class _PivPageState extends State<PivPage>
                   Spacing.width(12),
                   CustomizedButton.rounded(
                     onPressed: () async {
-                      await FileSaver.instance.saveFile(
-                          name: 'piv-$slotNumber.pem', bytes: utf8.encode(pem));
+                      await _savePivFile(
+                        name: 'piv-$slotNumber',
+                        extension: 'pem',
+                        bytes: utf8.encode(pem),
+                        mimeType: MimeType.text,
+                      );
                     },
                     elevation: 0,
                     backgroundColor: contentTheme.primary,

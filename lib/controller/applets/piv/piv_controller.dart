@@ -8,6 +8,7 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/helper/utils/piv_csr.dart';
+import 'package:canokey_console/helper/utils/piv_signature.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
@@ -96,6 +97,10 @@ class PivController extends Controller {
       c.complete(SmartCard.isOK(resp));
     });
     return c.future;
+  }
+
+  PivPublicKey? publicKeyForSlot(SlotInfo slot) {
+    return PivSignatureTest.publicKeyFromSlot(slot);
   }
 
   void changePin(String oldPin, String newPin) {
@@ -490,6 +495,54 @@ class PivController extends Controller {
     return c.future;
   }
 
+  Future<PivSignVerifyResult?> signAndVerify(
+      String slot, SlotInfo slotInfo, String pin, Uint8List data) async {
+    final publicKey = publicKeyForSlot(slotInfo);
+    if (publicKey == null) {
+      return null;
+    }
+    final c = Completer<PivSignVerifyResult?>();
+    try {
+      await SmartCard.process((String sn) async {
+        try {
+          SmartCard.assertOK(
+              await SmartCard.transceive('00A4040005A000000308'));
+          if (!await _verifyPinInSession(pin)) {
+            c.complete(null);
+            return;
+          }
+          final resp = await _generalAuthenticate(
+              slot, slotInfo.algorithm, data, publicKey);
+          if (!SmartCard.isOK(resp)) {
+            c.complete(null);
+            return;
+          }
+          final signature =
+              _parseAuthenticateSignature(hex.decode(SmartCard.dropSW(resp)));
+          final verified = await PivSignatureTest.verify(
+            publicKey: publicKey,
+            data: data,
+            signature: signature,
+          );
+          c.complete(
+              PivSignVerifyResult(signature: signature, verified: verified));
+        } catch (_) {
+          if (!c.isCompleted) {
+            c.complete(null);
+          }
+        }
+      });
+    } catch (_) {
+      if (!c.isCompleted) {
+        c.complete(null);
+      }
+    }
+    if (!c.isCompleted) {
+      c.complete(null);
+    }
+    return c.future;
+  }
+
   Future<bool> importEd25519Key(String slotNumber, Uint8List key,
       PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
     final c = new Completer<bool>();
@@ -793,20 +846,7 @@ class PivController extends Controller {
     if (point == null || point.length != 65 || point.first != 0x04) {
       throw ArgumentError('Invalid SM2 public key');
     }
-    final userId = Uint8List.fromList('1234567812345678'.codeUnits);
-    final entl = userId.length * 8;
-    final za = Sm3Digest.digest([
-      entl >> 8,
-      entl & 0xFF,
-      ...userId,
-      ..._sm2A,
-      ..._sm2B,
-      ..._sm2Gx,
-      ..._sm2Gy,
-      ...point.sublist(1, 33),
-      ...point.sublist(33),
-    ]);
-    return Sm3Digest.digest([...za, ...data]);
+    return PivSm2.digest(data, point);
   }
 
   Uint8List _parseAuthenticateSignature(List<int> data) {
@@ -1099,15 +1139,6 @@ class PivController extends Controller {
     for (var slot = 0x82; slot <= 0x95; slot++) slot
   ];
 
-  static final Uint8List _sm2A = Uint8List.fromList(hex.decode(
-      'FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFC'));
-  static final Uint8List _sm2B = Uint8List.fromList(hex.decode(
-      '28E9FA9E9D9F5E344D5A9E4BCF6509A7F39789F515AB8F92DDBCBD414D940E93'));
-  static final Uint8List _sm2Gx = Uint8List.fromList(hex.decode(
-      '32C4AE2C1F1981195F9904466A39C9948FE30BBFF2660BE1715A4589334C74C7'));
-  static final Uint8List _sm2Gy = Uint8List.fromList(hex.decode(
-      'BC3736A2F4F6779C59BDCEE36B692153D0A9877CC62A474002DF32E52139F0A0'));
-
   static const int _objectDataTag = 0x53;
   static const int _pivmanDataObject = 0x5FFF00;
   static const int _pivmanProtectedDataObject = 0x5FC109;
@@ -1118,4 +1149,14 @@ class PivController extends Controller {
   static const int _pivmanProtectedDataTag = 0x88;
   static const int _pivmanProtectedKeyTag = 0x89;
   static const int _pivmanManagementKeyProtectedFlag = 0x02;
+}
+
+class PivSignVerifyResult {
+  final Uint8List signature;
+  final bool verified;
+
+  const PivSignVerifyResult({
+    required this.signature,
+    required this.verified,
+  });
 }
