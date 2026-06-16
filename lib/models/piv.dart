@@ -15,6 +15,8 @@ enum AlgorithmType {
   rsa4096(0x16),
   eccp256(0x11),
   eccp384(0x14),
+  secp256k1(0x53),
+  sm2(0x54),
   ed25519(0xE0),
   x25519(0xE1);
 
@@ -44,6 +46,10 @@ enum AlgorithmType {
         return AlgorithmType.eccp256;
       case 0x14:
         return AlgorithmType.eccp384;
+      case 0x53:
+        return AlgorithmType.secp256k1;
+      case 0x54:
+        return AlgorithmType.sm2;
       case 0xE0:
         return AlgorithmType.ed25519;
       case 0xE1:
@@ -169,7 +175,16 @@ class SlotInfo {
   List<int>? certBytes;
   X509CertData? cert;
 
-  SlotInfo(this.number, this.algorithm, this.pinPolicy, this.touchPolicy, this.origin, this.public, this.defaultValue, this.retriesCount, this.remainingCount);
+  SlotInfo(
+      this.number,
+      this.algorithm,
+      this.pinPolicy,
+      this.touchPolicy,
+      this.origin,
+      this.public,
+      this.defaultValue,
+      this.retriesCount,
+      this.remainingCount);
 
   static SlotInfo parse(int number, List<int> buf) {
     Map map = TLV.parse(buf);
@@ -197,7 +212,8 @@ class SlotInfo {
       retriesCount = map[0x06][0];
       remainingCount = map[0x06][1];
     }
-    return SlotInfo(number, algo, pinPolicy, touchPolicy, origin, public, defaultValue, retriesCount, remainingCount);
+    return SlotInfo(number, algo, pinPolicy, touchPolicy, origin, public,
+        defaultValue, retriesCount, remainingCount);
   }
 
   @override
