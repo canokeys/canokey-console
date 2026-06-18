@@ -137,6 +137,23 @@ class PivController extends Controller {
     });
   }
 
+  void unblockPin(String puk, String newPin) {
+    SmartCard.process((String sn) async {
+      SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
+      String pukHex = _padPin(puk);
+      String newPinHex = _padPin(newPin);
+      String resp = await SmartCard.transceive('002C008010$pukHex$newPinHex');
+      if (SmartCard.isOK(resp)) {
+        Navigator.pop(Get.context!);
+        await refreshData();
+        Prompts.showPrompt(
+            S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
+      } else {
+        Prompts.promptPinFailureResult(resp);
+      }
+    });
+  }
+
   Future<bool> verifyManagementKey(String key) {
     final c = new Completer<bool>();
     SmartCard.process((String sn) async {
@@ -201,6 +218,15 @@ class PivController extends Controller {
   Future<bool> importEccKey(String slot, ECPrivateKey key, PinPolicy pinPolicy,
       TouchPolicy touchPolicy) async {
     final c = new Completer<bool>();
+    SmartCard.process((String sn) async {
+      c.complete(
+          await _importEccKeyInSession(slot, key, pinPolicy, touchPolicy));
+    });
+    return c.future;
+  }
+
+  Future<bool> _importEccKeyInSession(String slot, ECPrivateKey key,
+      PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
     String algoId = '';
     switch (key.parameters!.domainName) {
       case 'prime256v1':
@@ -213,16 +239,18 @@ class PivController extends Controller {
         algoId = '53';
         break;
     }
-    var rawKey = key.d!.toRadixString(16);
+    final keyBytes = switch (key.parameters!.domainName) {
+      'prime256v1' || 'secp256k1' => 32,
+      'secp384r1' => 48,
+      _ => (key.d!.bitLength + 7) ~/ 8,
+    };
+    var rawKey = key.d!.toRadixString(16).padLeft(keyBytes * 2, '0');
     var data =
         '06${(rawKey.length ~/ 2).toRadixString(16).padLeft(2, '0')}${rawKey}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';
     var capdu =
         '00FE$algoId$slot${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}$data';
-    SmartCard.process((String sn) async {
-      String resp = await SmartCard.transceive(capdu);
-      c.complete(SmartCard.isOK(resp));
-    });
-    return c.future;
+    String resp = await SmartCard.transceive(capdu);
+    return SmartCard.isOK(resp);
   }
 
   Future<String?> generateCsr(
@@ -497,11 +525,21 @@ class PivController extends Controller {
 
   Future<PivSignVerifyResult?> signAndVerify(
       String slot, SlotInfo slotInfo, String pin, Uint8List data) async {
+    final signature = await signData(slot, slotInfo, pin, data);
+    if (signature == null) {
+      return null;
+    }
+    final verified = await verifySignature(slotInfo, data, signature);
+    return PivSignVerifyResult(signature: signature, verified: verified);
+  }
+
+  Future<Uint8List?> signData(
+      String slot, SlotInfo slotInfo, String pin, Uint8List data) async {
     final publicKey = publicKeyForSlot(slotInfo);
     if (publicKey == null) {
       return null;
     }
-    final c = Completer<PivSignVerifyResult?>();
+    final c = Completer<Uint8List?>();
     try {
       await SmartCard.process((String sn) async {
         try {
@@ -519,13 +557,7 @@ class PivController extends Controller {
           }
           final signature =
               _parseAuthenticateSignature(hex.decode(SmartCard.dropSW(resp)));
-          final verified = await PivSignatureTest.verify(
-            publicKey: publicKey,
-            data: data,
-            signature: signature,
-          );
-          c.complete(
-              PivSignVerifyResult(signature: signature, verified: verified));
+          c.complete(signature);
         } catch (_) {
           if (!c.isCompleted) {
             c.complete(null);
@@ -543,29 +575,112 @@ class PivController extends Controller {
     return c.future;
   }
 
+  Future<bool> verifySignature(
+      SlotInfo slotInfo, Uint8List data, Uint8List signature) async {
+    final publicKey = publicKeyForSlot(slotInfo);
+    if (publicKey == null) {
+      return false;
+    }
+    try {
+      return await PivSignatureTest.verify(
+        publicKey: publicKey,
+        data: data,
+        signature: signature,
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<bool> importEd25519Key(String slotNumber, Uint8List key,
       PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
     final c = new Completer<bool>();
-    String rawKey = hex.encode(key);
-    var data =
-        '06${key.length.toRadixString(16).padLeft(2, '0')}${rawKey}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';
-
-    // Build the command APDU
-    // INS: 0xFE, P1: algorithm ID (0xE0 for Ed25519), P2: slot number
-    var capdu =
-        '00FEE0$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}$data';
     SmartCard.process((String sn) async {
-      String resp = await SmartCard.transceive(capdu);
-      c.complete(SmartCard.isOK(resp));
+      c.complete(await _importEd25519KeyInSession(
+          slotNumber, key, pinPolicy, touchPolicy));
     });
 
+    return c.future;
+  }
+
+  Future<bool> importAuthenticated({
+    required String slot,
+    required String pin,
+    required String managementKey,
+    required bool usePinOnly,
+    ECPrivateKey? ecPrivateKey,
+    RSAPrivateKey? rsaPrivateKey,
+    Uint8List? edPrivateKey,
+    Uint8List? cert,
+    required PinPolicy pinPolicy,
+    required TouchPolicy touchPolicy,
+  }) async {
+    final c = Completer<bool>();
+    SmartCard.process((String sn) async {
+      SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
+      if (!await _verifyPinInSession(pin)) {
+        c.complete(false);
+        return;
+      }
+      if (!await _authenticateManagementKeyOrPinOnly(
+          pin, managementKey, usePinOnly)) {
+        c.complete(false);
+        return;
+      }
+      if (ecPrivateKey != null &&
+          !await _importEccKeyInSession(
+              slot, ecPrivateKey, pinPolicy, touchPolicy)) {
+        c.complete(false);
+        return;
+      }
+      if (rsaPrivateKey != null &&
+          !await _importRsaKeyInSession(
+              slot, rsaPrivateKey, pinPolicy, touchPolicy)) {
+        c.complete(false);
+        return;
+      }
+      if (edPrivateKey != null &&
+          !await _importEd25519KeyInSession(
+              slot, edPrivateKey, pinPolicy, touchPolicy)) {
+        c.complete(false);
+        return;
+      }
+      if (cert != null && !await _importCertInSession(slot, cert)) {
+        c.complete(false);
+        return;
+      }
+      c.complete(true);
+    });
     return c.future;
   }
 
   Future<bool> importRsaKey(String slotNumber, RSAPrivateKey rsaPrivateKey,
       PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
     final c = new Completer<bool>();
+    SmartCard.process((String sn) async {
+      c.complete(await _importRsaKeyInSession(
+          slotNumber, rsaPrivateKey, pinPolicy, touchPolicy));
+    });
+    return c.future;
+  }
 
+  Future<bool> _importEd25519KeyInSession(String slotNumber, Uint8List key,
+      PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
+    String rawKey = hex.encode(key);
+    var data =
+        '06${key.length.toRadixString(16).padLeft(2, '0')}${rawKey}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';
+
+    var capdu =
+        '00FEE0$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}$data';
+    String resp = await SmartCard.transceive(capdu);
+    return SmartCard.isOK(resp);
+  }
+
+  Future<bool> _importRsaKeyInSession(
+      String slotNumber,
+      RSAPrivateKey rsaPrivateKey,
+      PinPolicy pinPolicy,
+      TouchPolicy touchPolicy) async {
     // Get p and q from the private key
     BigInt p = rsaPrivateKey.p!;
     BigInt q = rsaPrivateKey.q!;
@@ -627,12 +742,8 @@ class PivController extends Controller {
     String capdu =
         '00FE${algoId.toRadixString(16).padLeft(2, '0')}$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(6, '0')}$data';
 
-    SmartCard.process((String sn) async {
-      String resp = await SmartCard.transceive(capdu);
-      c.complete(SmartCard.isOK(resp));
-    });
-
-    return c.future;
+    String resp = await SmartCard.transceive(capdu);
+    return SmartCard.isOK(resp);
   }
 
   Uint8List buildPivCert(Uint8List cert) {

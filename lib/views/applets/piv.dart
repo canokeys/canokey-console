@@ -8,8 +8,8 @@ import 'package:basic_utils/basic_utils.dart';
 import 'package:canokey_console/controller/applets/piv/piv_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
-import 'package:canokey_console/helper/theme/app_style.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
+import 'package:canokey_console/helper/utils/piv_signature.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
@@ -24,9 +24,11 @@ import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/models/piv.dart';
-import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
+import 'package:canokey_console/views/applets/piv/widgets/piv_pin_management_card.dart';
+import 'package:canokey_console/views/applets/piv/widgets/piv_slot_list_item.dart';
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:convert/convert.dart';
+import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +36,11 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
+import 'package:pointycastle/asn1/primitives/asn1_bit_string.dart';
+import 'package:pointycastle/asn1/primitives/asn1_integer.dart';
+import 'package:pointycastle/asn1/primitives/asn1_null.dart';
+import 'package:pointycastle/asn1/primitives/asn1_object_identifier.dart';
+import 'package:pointycastle/asn1/primitives/asn1_sequence.dart';
 
 class PivPage extends StatefulWidget {
   const PivPage({super.key});
@@ -92,6 +99,159 @@ class _PivPageState extends State<PivPage>
     }
   }
 
+  String _t({required String en, required String zh}) {
+    return Localizations.localeOf(context).languageCode == 'zh' ? zh : en;
+  }
+
+  String _sha256Fingerprint(List<int> bytes) {
+    final digest = sha256.convert(bytes).bytes;
+    return digest
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0').toUpperCase())
+        .join(':');
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes >= 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KiB';
+    }
+    return '$bytes B';
+  }
+
+  String _algorithmLabel(AlgorithmType algorithm) {
+    return algorithm.name.toUpperCase();
+  }
+
+  String _slotUsageHint(String slotNumber, AlgorithmType algorithm) {
+    final base = switch (slotNumber) {
+      '9A' => _t(
+          en: 'Authentication slot. Use a signing-capable key for login.',
+          zh: '认证槽。用于登录时应选择可签名密钥。'),
+      '9C' => _t(
+          en: 'Digital signature slot. PIN policy defaults to always.',
+          zh: '数字签名槽。PIN 策略默认总是验证。'),
+      '9D' => _t(
+          en: 'Key management slot. X25519 can derive shared secrets only.',
+          zh: '密钥管理槽。X25519 只能用于派生共享密钥。'),
+      '9E' => _t(
+          en: 'Card authentication slot. PIN may be unnecessary for some uses.',
+          zh: '卡认证槽。部分用途可能不需要 PIN。'),
+      _ => _t(
+          en: 'Retired key management slot for old encryption certificates.',
+          zh: '过期密钥管理槽，用于旧加密证书。'),
+    };
+    if (algorithm == AlgorithmType.x25519) {
+      return '$base ${_t(en: 'CSR and certificates are disabled for X25519.', zh: 'X25519 不支持 CSR 和证书。')}';
+    }
+    if (algorithm == AlgorithmType.ed25519 || algorithm == AlgorithmType.sm2) {
+      return '$base ${_t(en: 'Check client compatibility before using this algorithm.', zh: '使用此算法前请确认客户端兼容性。')}';
+    }
+    return base;
+  }
+
+  AlgorithmType? _algorithmFromEcDomain(String? domainName) {
+    return switch (domainName) {
+      'prime256v1' => AlgorithmType.eccp256,
+      'secp384r1' => AlgorithmType.eccp384,
+      'secp256k1' => AlgorithmType.secp256k1,
+      _ => null,
+    };
+  }
+
+  AlgorithmType? _algorithmFromRsaKey(RSAPrivateKey key) {
+    return switch (key.modulus!.bitLength) {
+      <= 1024 => AlgorithmType.rsa1024,
+      <= 2048 => AlgorithmType.rsa2048,
+      <= 3072 => AlgorithmType.rsa3072,
+      _ => AlgorithmType.rsa4096,
+    };
+  }
+
+  AlgorithmType? _selectedImportAlgorithm({
+    ECPrivateKey? ecPrivateKey,
+    RSAPrivateKey? rsaPrivateKey,
+    Uint8List? edPrivateKey,
+  }) {
+    if (ecPrivateKey != null) {
+      return _algorithmFromEcDomain(ecPrivateKey.parameters?.domainName);
+    }
+    if (rsaPrivateKey != null) {
+      return _algorithmFromRsaKey(rsaPrivateKey);
+    }
+    if (edPrivateKey != null) {
+      return AlgorithmType.ed25519;
+    }
+    return null;
+  }
+
+  Uint8List _subjectPublicKeyInfoFromCertificate(List<int> certBytes) {
+    return PivSignatureTest.subjectPublicKeyInfoFromCertificate(certBytes);
+  }
+
+  Uint8List _rsaSubjectPublicKeyInfoFromPrivate(RSAPrivateKey key) {
+    final exponent = key.publicExponent ?? BigInt.from(65537);
+    final publicKey = ASN1Sequence()
+      ..add(ASN1Integer(key.modulus!))
+      ..add(ASN1Integer(exponent));
+    final algorithm = ASN1Sequence()
+      ..add(ASN1ObjectIdentifier.fromName('rsaEncryption'))
+      ..add(ASN1Null());
+    return (ASN1Sequence()
+          ..add(algorithm)
+          ..add(ASN1BitString(stringValues: publicKey.encode())))
+        .encode();
+  }
+
+  Uint8List? _ecSubjectPublicKeyInfoFromPrivate(ECPrivateKey key) {
+    final params = key.parameters;
+    final d = key.d;
+    if (params == null || d == null) {
+      return null;
+    }
+    final point = params.G * d;
+    if (point == null) {
+      return null;
+    }
+    final publicKey = ECPublicKey(point, params);
+    return Uint8List.fromList(CryptoUtils.getBytesFromPEMString(
+        CryptoUtils.encodeEcPublicKeyToPem(publicKey)));
+  }
+
+  Uint8List? _privateKeySubjectPublicKeyInfo({
+    ECPrivateKey? ecPrivateKey,
+    RSAPrivateKey? rsaPrivateKey,
+    Uint8List? edPrivateKey,
+  }) {
+    if (rsaPrivateKey != null) {
+      return _rsaSubjectPublicKeyInfoFromPrivate(rsaPrivateKey);
+    }
+    if (ecPrivateKey != null) {
+      return _ecSubjectPublicKeyInfoFromPrivate(ecPrivateKey);
+    }
+    return null;
+  }
+
+  bool _certificateMatchesPrivateKey({
+    required Uint8List certBytes,
+    ECPrivateKey? ecPrivateKey,
+    RSAPrivateKey? rsaPrivateKey,
+    Uint8List? edPrivateKey,
+  }) {
+    final privateSpki = _privateKeySubjectPublicKeyInfo(
+      ecPrivateKey: ecPrivateKey,
+      rsaPrivateKey: rsaPrivateKey,
+      edPrivateKey: edPrivateKey,
+    );
+    if (privateSpki == null) {
+      return true;
+    }
+    return hex.encode(privateSpki) ==
+        hex.encode(_subjectPublicKeyInfoFromCertificate(certBytes));
+  }
+
+  String _certificateKeySummary(X509CertData cert) {
+    return '${cert.publicKeyAlgorithm}, ${cert.publicKeySize} bits';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Layout(
@@ -128,142 +288,46 @@ class _PivPageState extends State<PivPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Spacing.height(20),
-                    CustomizedCard(
-                      clipBehavior: Clip.antiAliasWithSaveLayer,
-                      shadow: Shadow(
-                          elevation: 0.5, position: ShadowPosition.bottom),
-                      paddingAll: 0,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Container(
-                            color: contentTheme.primary.withValues(alpha: 0.2),
-                            padding: Spacing.xy(16, 12),
-                            child: Row(
-                              children: [
-                                Icon(LucideIcons.keyboard,
-                                    color: contentTheme.primary, size: 16),
-                                Spacing.width(12),
-                                CustomizedText.titleMedium(
-                                    S.of(context).pivPinManagement,
-                                    fontWeight: 600,
-                                    color: contentTheme.primary)
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: Spacing.xy(flexSpacing, 16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                InfoItem(
-                                  iconData: LucideIcons.lock,
-                                  title: 'PIN',
-                                  value:
-                                      _credentialRetryValue(controller.pinInfo),
-                                ),
-                                Spacing.height(16),
-                                InfoItem(
-                                  iconData: LucideIcons.keyRound,
-                                  title: 'PUK',
-                                  value:
-                                      _credentialRetryValue(controller.pukInfo),
-                                ),
-                                Spacing.height(16),
-                                InfoItem(
-                                  iconData: LucideIcons.shieldCheck,
-                                  title: 'PIN-only mode',
-                                  value: controller.pinOnlyMode
-                                      ? S.of(context).on
-                                      : S.of(context).off,
-                                  onTap: controller.pinOnlyMode
-                                      ? _showDisablePinOnlyDialog
-                                      : _showEnablePinOnlyDialog,
-                                ),
-                                Spacing.height(16),
-                                Wrap(
-                                  spacing: 12,
-                                  runSpacing: 12,
-                                  children: [
-                                    CustomizedButton(
-                                      onPressed: () {
-                                        _showChangePinDialog(
-                                          title: S.of(context).changePin,
-                                          oldValueLabel: S.of(context).oldPin,
-                                          newValueLabel: S.of(context).newPin,
-                                          prompt: S
-                                              .of(context)
-                                              .changePinPrompt(6, 8),
-                                          validators: [
-                                            LengthValidator(min: 6, max: 8)
-                                          ],
-                                          handler: controller.changePin,
-                                        );
-                                      },
-                                      elevation: 0,
-                                      padding: Spacing.xy(20, 16),
-                                      backgroundColor: contentTheme.primary,
-                                      borderRadiusAll:
-                                          AppStyle.buttonRadius.medium,
-                                      child: CustomizedText.bodySmall(
-                                          S.of(context).changePin,
-                                          color: contentTheme.onPrimary),
-                                    ),
-                                    CustomizedButton(
-                                      onPressed: () {
-                                        _showChangePinDialog(
-                                          title: S.of(context).pivChangePUK,
-                                          oldValueLabel:
-                                              S.of(context).pivOldPUK,
-                                          newValueLabel:
-                                              S.of(context).pivNewPUK,
-                                          prompt: S
-                                              .of(context)
-                                              .pivChangePUKPrompt(6, 8),
-                                          validators: [
-                                            LengthValidator(min: 6, max: 8)
-                                          ],
-                                          handler: controller.changePUK,
-                                        );
-                                      },
-                                      elevation: 0,
-                                      padding: Spacing.xy(20, 16),
-                                      backgroundColor: contentTheme.primary,
-                                      borderRadiusAll:
-                                          AppStyle.buttonRadius.medium,
-                                      child: CustomizedText.bodySmall(
-                                          S.of(context).pivChangePUK,
-                                          color: contentTheme.onPrimary),
-                                    ),
-                                    CustomizedButton(
-                                      onPressed: _showChangeManagementKeyDialog,
-                                      elevation: 0,
-                                      padding: Spacing.xy(20, 16),
-                                      backgroundColor: contentTheme.primary,
-                                      borderRadiusAll:
-                                          AppStyle.buttonRadius.medium,
-                                      child: CustomizedText.bodySmall(
-                                          S.of(context).pivChangeManagementKey,
-                                          color: contentTheme.onPrimary),
-                                    ),
-                                    CustomizedButton(
-                                      onPressed: _showSetPinRetriesDialog,
-                                      elevation: 0,
-                                      padding: Spacing.xy(20, 16),
-                                      backgroundColor: contentTheme.primary,
-                                      borderRadiusAll:
-                                          AppStyle.buttonRadius.medium,
-                                      child: CustomizedText.bodySmall(
-                                          'Set PIN/PUK Retries',
-                                          color: contentTheme.onPrimary),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                    PivPinManagementCard(
+                      pinInfo: controller.pinInfo,
+                      pukInfo: controller.pukInfo,
+                      pinOnlyMode: controller.pinOnlyMode,
+                      canUnblockPin: controller.pinInfo?.remainingCount == 0,
+                      flexSpacing: flexSpacing,
+                      contentTheme: contentTheme,
+                      credentialRetryValue: _credentialRetryValue,
+                      t: ({required en, required zh}) => _t(en: en, zh: zh),
+                      onChangePin: () => _showChangePinDialog(
+                        title: S.of(context).changePin,
+                        oldValueLabel: S.of(context).oldPin,
+                        newValueLabel: S.of(context).newPin,
+                        prompt: S.of(context).changePinPrompt(6, 8),
+                        validators: [LengthValidator(min: 6, max: 8)],
+                        handler: controller.changePin,
                       ),
+                      onChangePuk: () => _showChangePinDialog(
+                        title: S.of(context).pivChangePUK,
+                        oldValueLabel: S.of(context).pivOldPUK,
+                        newValueLabel: S.of(context).pivNewPUK,
+                        prompt: S.of(context).pivChangePUKPrompt(6, 8),
+                        validators: [LengthValidator(min: 6, max: 8)],
+                        handler: controller.changePUK,
+                      ),
+                      onUnblockPin: () => _showChangePinDialog(
+                        title: _t(en: 'Unblock PIN', zh: '解锁 PIN'),
+                        oldValueLabel: S.of(context).pivOldPUK,
+                        newValueLabel: S.of(context).newPin,
+                        prompt: _t(
+                            en: 'Enter the current PUK and set a new PIN.',
+                            zh: '输入当前 PUK 并设置新的 PIN。'),
+                        validators: [LengthValidator(min: 6, max: 8)],
+                        handler: controller.unblockPin,
+                      ),
+                      onChangeManagementKey: _showChangeManagementKeyDialog,
+                      onSetPinRetries: _showSetPinRetriesDialog,
+                      onTogglePinOnlyMode: controller.pinOnlyMode
+                          ? _showDisablePinOnlyDialog
+                          : _showEnablePinOnlyDialog,
                     ),
                     Spacing.height(20),
                     CustomizedCard(
@@ -450,9 +514,11 @@ class _PivPageState extends State<PivPage>
 
   String _credentialRetryValue(SlotInfo? info) {
     if (info == null) {
-      return 'Retries: unknown';
+      return _t(en: 'Retries: unknown', zh: '剩余次数：未知');
     }
-    return 'Retries: ${info.remainingCount}/${info.retriesCount}';
+    return _t(
+        en: 'Retries: ${info.remainingCount}/${info.retriesCount}',
+        zh: '剩余次数：${info.remainingCount}/${info.retriesCount}');
   }
 
   Widget _buildManagementKeyField(
@@ -541,7 +607,8 @@ class _PivPageState extends State<PivPage>
             children: [
               Padding(
                 padding: Spacing.all(16),
-                child: CustomizedText.labelLarge('Set PIN/PUK Retries'),
+                child: CustomizedText.labelLarge(
+                    _t(en: 'Set PIN/PUK Retries', zh: '设置 PIN/PUK 重试次数')),
               ),
               Divider(height: 0, thickness: 1),
               Padding(
@@ -552,7 +619,9 @@ class _PivPageState extends State<PivPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomizedText.bodySmall(
-                        'This resets PIN to 123456 and PUK to 12345678.',
+                        _t(
+                            en: 'This resets PIN to 123456 and PUK to 12345678.',
+                            zh: '此操作会将 PIN 重置为 123456，PUK 重置为 12345678。'),
                         color: contentTheme.danger,
                       ),
                       Spacing.height(16),
@@ -563,7 +632,7 @@ class _PivPageState extends State<PivPage>
                         controller: validator.getController('pin'),
                         validator: validator.getValidator('pin'),
                         decoration: InputDecoration(
-                            labelText: 'Current PIN',
+                            labelText: S.of(context).oldPin,
                             border: outlineInputBorder),
                       ),
                       if (controller.pinOnlyMode) ...[
@@ -573,7 +642,9 @@ class _PivPageState extends State<PivPage>
                           onChanged: (value) =>
                               setDialogState(() => usePinOnly = value ?? true),
                           contentPadding: EdgeInsets.zero,
-                          title: Text('Use PIN-only management key'),
+                          title: Text(_t(
+                              en: 'Use PIN-only management key',
+                              zh: '使用 PIN-only 管理密钥')),
                         ),
                       ],
                       Spacing.height(16),
@@ -591,7 +662,8 @@ class _PivPageState extends State<PivPage>
                               validator: validator.getValidator('pinRetries'),
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
-                                  labelText: 'PIN retries',
+                                  labelText:
+                                      _t(en: 'PIN retries', zh: 'PIN 重试次数'),
                                   border: outlineInputBorder),
                             ),
                           ),
@@ -602,7 +674,8 @@ class _PivPageState extends State<PivPage>
                               validator: validator.getValidator('pukRetries'),
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
-                                  labelText: 'PUK retries',
+                                  labelText:
+                                      _t(en: 'PUK retries', zh: 'PUK 重试次数'),
                                   border: outlineInputBorder),
                             ),
                           ),
@@ -646,12 +719,15 @@ class _PivPageState extends State<PivPage>
                           );
                           if (!ok) {
                             Prompts.showPrompt(
-                                'Set retries failed', ContentThemeColor.danger);
+                                _t(en: 'Set retries failed', zh: '设置重试次数失败'),
+                                ContentThemeColor.danger);
                             return;
                           }
                           await controller.refreshData();
                           Prompts.showPrompt(
-                              'PIN/PUK retries set. PIN and PUK were reset.',
+                              _t(
+                                  en: 'PIN/PUK retries set. PIN and PUK were reset.',
+                                  zh: 'PIN/PUK 重试次数已设置，PIN 和 PUK 已重置。'),
                               ContentThemeColor.success);
                           Get.back();
                         } finally {
@@ -660,7 +736,7 @@ class _PivPageState extends State<PivPage>
                       },
                       elevation: 0,
                       backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium('Confirm',
+                      child: CustomizedText.labelMedium(S.of(context).confirm,
                           color: contentTheme.onPrimary),
                     ),
                   ],
@@ -693,7 +769,8 @@ class _PivPageState extends State<PivPage>
           children: [
             Padding(
               padding: Spacing.all(16),
-              child: CustomizedText.labelLarge('Enable PIN-only Mode'),
+              child: CustomizedText.labelLarge(
+                  _t(en: 'Enable PIN-only Mode', zh: '启用 PIN-only 模式')),
             ),
             Divider(height: 0, thickness: 1),
             Padding(
@@ -704,7 +781,9 @@ class _PivPageState extends State<PivPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomizedText.bodySmall(
-                      'A random management key will be set and stored on the card, protected by PIN.',
+                      _t(
+                          en: 'A random management key will be set and stored on the card, protected by PIN.',
+                          zh: '将设置随机管理密钥，并以 PIN 保护的形式保存在卡内。'),
                     ),
                     Spacing.height(16),
                     TextFormField(
@@ -720,7 +799,7 @@ class _PivPageState extends State<PivPage>
                     _buildManagementKeyField(
                       validator,
                       'managementKey',
-                      label: 'Current Management Key',
+                      label: S.of(context).pivOldManagementKey,
                     ),
                   ],
                 ),
@@ -750,13 +829,19 @@ class _PivPageState extends State<PivPage>
                           validator.getController('managementKey')!.text,
                         );
                         if (!ok) {
-                          Prompts.showPrompt('Enable PIN-only failed',
+                          Prompts.showPrompt(
+                              _t(
+                                  en: 'Enable PIN-only failed',
+                                  zh: '启用 PIN-only 模式失败'),
                               ContentThemeColor.danger);
                           return;
                         }
                         await controller.refreshData();
                         Prompts.showPrompt(
-                            'PIN-only mode enabled', ContentThemeColor.success);
+                            _t(
+                                en: 'PIN-only mode enabled',
+                                zh: 'PIN-only 模式已启用'),
+                            ContentThemeColor.success);
                         Get.back();
                       } finally {
                         Get.context!.loaderOverlay.hide();
@@ -764,7 +849,8 @@ class _PivPageState extends State<PivPage>
                     },
                     elevation: 0,
                     backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium('Enable',
+                    child: CustomizedText.labelMedium(
+                        _t(en: 'Enable', zh: '启用'),
                         color: contentTheme.onPrimary),
                   ),
                 ],
@@ -805,7 +891,8 @@ class _PivPageState extends State<PivPage>
             children: [
               Padding(
                 padding: Spacing.all(16),
-                child: CustomizedText.labelLarge('Disable PIN-only Mode'),
+                child: CustomizedText.labelLarge(
+                    _t(en: 'Disable PIN-only Mode', zh: '禁用 PIN-only 模式')),
               ),
               Divider(height: 0, thickness: 1),
               Padding(
@@ -816,7 +903,9 @@ class _PivPageState extends State<PivPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomizedText.bodySmall(
-                        'A new management key will be set before the PIN-protected copy is cleared.',
+                        _t(
+                            en: 'A new management key will be set before the PIN-protected copy is cleared.',
+                            zh: '清除 PIN 保护的副本前会先设置新的管理密钥。'),
                       ),
                       Spacing.height(16),
                       TextFormField(
@@ -834,14 +923,16 @@ class _PivPageState extends State<PivPage>
                         onChanged: (value) =>
                             setDialogState(() => usePinOnly = value ?? true),
                         contentPadding: EdgeInsets.zero,
-                        title: Text('Use PIN-only management key'),
+                        title: Text(_t(
+                            en: 'Use PIN-only management key',
+                            zh: '使用 PIN-only 管理密钥')),
                       ),
                       Spacing.height(16),
                       _buildManagementKeyField(
                         validator,
                         'currentManagementKey',
                         enabled: !usePinOnly,
-                        label: 'Current Management Key',
+                        label: S.of(context).pivOldManagementKey,
                       ),
                       Spacing.height(16),
                       Row(children: [
@@ -853,7 +944,7 @@ class _PivPageState extends State<PivPage>
                             validator:
                                 validator.getValidator('newManagementKey'),
                             decoration: InputDecoration(
-                                labelText: 'New Management Key',
+                                labelText: S.of(context).pivNewManagementKey,
                                 border: outlineInputBorder),
                           ),
                         ),
@@ -909,12 +1000,18 @@ class _PivPageState extends State<PivPage>
                             usePinOnly,
                           );
                           if (!ok) {
-                            Prompts.showPrompt('Disable PIN-only failed',
+                            Prompts.showPrompt(
+                                _t(
+                                    en: 'Disable PIN-only failed',
+                                    zh: '禁用 PIN-only 模式失败'),
                                 ContentThemeColor.danger);
                             return;
                           }
                           await controller.refreshData();
-                          Prompts.showPrompt('PIN-only mode disabled',
+                          Prompts.showPrompt(
+                              _t(
+                                  en: 'PIN-only mode disabled',
+                                  zh: 'PIN-only 模式已禁用'),
                               ContentThemeColor.success);
                           Get.back();
                         } finally {
@@ -923,7 +1020,8 @@ class _PivPageState extends State<PivPage>
                       },
                       elevation: 0,
                       backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium('Disable',
+                      child: CustomizedText.labelMedium(
+                          _t(en: 'Disable', zh: '禁用'),
                           color: contentTheme.onPrimary),
                     ),
                   ],
@@ -1101,7 +1199,9 @@ class _PivPageState extends State<PivPage>
                             onChanged: (value) => setDialogState(
                                 () => usePinOnly = value ?? true),
                             contentPadding: EdgeInsets.zero,
-                            title: Text('Use PIN-only management key'),
+                            title: Text(_t(
+                                en: 'Use PIN-only management key',
+                                zh: '使用 PIN-only 管理密钥')),
                           ),
                         ],
                         Spacing.height(16),
@@ -1147,7 +1247,9 @@ class _PivPageState extends State<PivPage>
                             onChanged: (value) => setDialogState(
                                 () => storeOnDevice = value ?? true),
                             contentPadding: EdgeInsets.zero,
-                            title: Text('Keep PIN-only mode enabled'),
+                            title: Text(_t(
+                                en: 'Keep PIN-only mode enabled',
+                                zh: '保持 PIN-only 模式启用')),
                           ),
                         ],
                       ]))),
@@ -1220,40 +1322,11 @@ class _PivPageState extends State<PivPage>
   }
 
   Widget _buildInfo(String title, String slotNumber, SlotInfo? slot) {
-    return InkWell(
-      onTap: () {
-        _showSlotDetailDialog(title, slotNumber, slot);
-      },
-      child: Row(
-        children: [
-          CustomizedContainer(
-            paddingAll: 4,
-            height: 32,
-            width: 32,
-            child: Icon(LucideIcons.fileLock, size: 20),
-          ),
-          Spacing.width(16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomizedText.bodyMedium('$title - $slotNumber', fontSize: 16),
-                if (slot != null) ...[
-                  InkWell(
-                      child: CustomizedText.bodySmall(
-                          '${S.of(context).pivAlgorithm}: ${slot.algorithm.name.toUpperCase()}')),
-                  InkWell(
-                      child: CustomizedText.bodySmall(
-                          '${S.of(context).pivCertificate}: ${slot.cert?.subject.isNotEmpty == true ? slot.cert!.subject : S.of(context).pivEmpty}')),
-                ] else ...[
-                  CustomizedText.bodySmall(S.of(context).pivEmpty),
-                ],
-              ],
-            ),
-          ),
-          Icon(Icons.arrow_forward_ios)
-        ],
-      ),
+    return PivSlotListItem(
+      title: title,
+      slotNumber: slotNumber,
+      slot: slot,
+      onTap: () => _showSlotDetailDialog(title, slotNumber, slot),
     );
   }
 
@@ -1298,223 +1371,286 @@ class _PivPageState extends State<PivPage>
 
   void _showSlotDetailDialog(String title, String slotNumber, SlotInfo? slot) {
     Get.dialog(Dialog(
-      child: SizedBox(
-        width: slot == null
-            ? 400
-            : max(430, MediaQuery.of(context).size.width * 0.6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.labelLarge('$title - $slotNumber'),
-            ),
-            Divider(height: 0, thickness: 1),
-            if (slot != null && slot.cert != null) ...[
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        child: SizedBox(
+          width: slot == null
+              ? 400
+              : max(430, MediaQuery.of(context).size.width * 0.6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Padding(
-                  padding: Spacing.all(16),
-                  child: Form(
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          initialValue: slot.cert!.subject,
-                          readOnly: true,
-                          decoration: InputDecoration(
-                              labelText: 'Subject',
-                              border: outlineInputBorder,
-                              floatingLabelBehavior:
-                                  FloatingLabelBehavior.auto),
-                        ),
-                        Spacing.height(16),
-                        TextFormField(
-                          initialValue: slot.cert!.issuer,
-                          readOnly: true,
-                          decoration: InputDecoration(
-                              labelText: 'Issuer',
-                              border: outlineInputBorder,
-                              floatingLabelBehavior:
-                                  FloatingLabelBehavior.auto),
-                        ),
-                        Spacing.height(16),
-                        TextFormField(
-                          initialValue: slot.cert!.serialNumber,
-                          readOnly: true,
-                          decoration: InputDecoration(
-                              labelText: 'Serial',
-                              border: outlineInputBorder,
-                              floatingLabelBehavior:
-                                  FloatingLabelBehavior.auto),
-                        ),
-                        Spacing.height(16),
-                        TextFormField(
-                          initialValue: slot.cert!.signatureAlgorithm,
-                          readOnly: true,
-                          decoration: InputDecoration(
-                              labelText: 'Fingerprint Algorithm',
-                              border: outlineInputBorder,
-                              floatingLabelBehavior:
-                                  FloatingLabelBehavior.auto),
-                        ),
-                        Spacing.height(16),
-                        TextFormField(
-                          initialValue: hex.encode(slot.cert!.signatureValue),
-                          readOnly: true,
-                          decoration: InputDecoration(
-                              labelText: 'Fingerprint',
-                              border: outlineInputBorder,
-                              floatingLabelBehavior:
-                                  FloatingLabelBehavior.auto),
-                        ),
-                        Spacing.height(16),
-                        TextFormField(
-                          initialValue: slot.cert!.notBefore,
-                          readOnly: true,
-                          decoration: InputDecoration(
-                              labelText: 'Valid from',
-                              border: outlineInputBorder,
-                              floatingLabelBehavior:
-                                  FloatingLabelBehavior.auto),
-                        ),
-                        Spacing.height(16),
-                        TextFormField(
-                          initialValue: slot.cert!.notAfter,
-                          readOnly: true,
-                          decoration: InputDecoration(
-                              labelText: 'Valid to',
-                              border: outlineInputBorder,
-                              floatingLabelBehavior:
-                                  FloatingLabelBehavior.auto),
-                        ),
-                        Spacing.height(16),
-                      ],
-                    ),
-                  )),
-              Divider(height: 0, thickness: 1)
-            ],
-            Padding(
-              padding: Spacing.all(16),
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  if (slot?.algorithm != AlgorithmType.x25519) ...[
-                    CustomizedButton.rounded(
-                      onPressed: () {
-                        Navigator.pop(Get.context!);
-                        _showGenerateDialog(slotNumber, selfSigned: false);
-                      },
-                      elevation: 0,
-                      padding: Spacing.xy(20, 16),
-                      backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium('Generate CSR',
-                          color: contentTheme.onSecondary),
-                    ),
-                    CustomizedButton.rounded(
-                      onPressed: () {
-                        Navigator.pop(Get.context!);
-                        _showGenerateDialog(slotNumber, selfSigned: true);
-                      },
-                      elevation: 0,
-                      padding: Spacing.xy(20, 16),
-                      backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium('Self-sign',
-                          color: contentTheme.onSecondary),
-                    ),
-                  ],
-                  CustomizedButton.rounded(
-                    onPressed: () {
-                      Navigator.pop(Get.context!);
-                      _showGenerateKeyDialog(slotNumber);
-                    },
-                    elevation: 0,
-                    padding: Spacing.xy(20, 16),
-                    backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium('Generate Key',
-                        color: contentTheme.onPrimary),
-                  ),
-                  if (slot?.algorithm == AlgorithmType.x25519)
-                    CustomizedButton.rounded(
-                      onPressed: () {
-                        Navigator.pop(Get.context!);
-                        _showDeriveSecretDialog(slotNumber);
-                      },
-                      elevation: 0,
-                      padding: Spacing.xy(20, 16),
-                      backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium('Derive Secret',
-                          color: contentTheme.onPrimary),
-                    ),
-                  CustomizedButton.rounded(
-                    onPressed: () async {
-                      // if (cachedManagementKey == null) {
-                      //   if (!await _showVerifyManagementKeyDialog()) {
-                      //     return;
-                      //   }
-                      // }
-                      Navigator.pop(Get.context!);
-                      _showImportDialog(slotNumber);
-                    },
-                    elevation: 0,
-                    padding: Spacing.xy(20, 16),
-                    backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(S.of(context).pivImport,
-                        color: contentTheme.onPrimary),
-                  ),
-                  if (slot != null) ...[
-                    if (slot.algorithm != AlgorithmType.x25519)
-                      CustomizedButton.rounded(
-                        onPressed: () {
-                          Navigator.pop(Get.context!);
-                          _showSignVerifyDialog(slotNumber, slot);
-                        },
-                        elevation: 0,
-                        padding: Spacing.xy(20, 16),
-                        backgroundColor: contentTheme.primary,
-                        child: CustomizedText.labelMedium('Sign / Verify',
-                            color: contentTheme.onPrimary),
-                      ),
-                    CustomizedButton.rounded(
-                      onPressed: () {
-                        Navigator.pop(Get.context!);
-                        _showExportPublicKeyDialog(slot);
-                      },
-                      elevation: 0,
-                      padding: Spacing.xy(20, 16),
-                      backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium('Export Public Key',
-                          color: contentTheme.onPrimary),
-                    ),
-                    if (slot.certBytes != null)
-                      CustomizedButton.rounded(
-                        onPressed: () {
-                          Navigator.pop(Get.context!);
-                          _showExportDialog(slot);
-                        },
-                        elevation: 0,
-                        padding: Spacing.xy(20, 16),
-                        backgroundColor: contentTheme.primary,
-                        child: CustomizedText.labelMedium(
-                            S.of(context).pivExportCertificate,
-                            color: contentTheme.onPrimary),
-                      ),
-                    CustomizedButton.rounded(
-                      onPressed: () {
-                        Navigator.pop(Get.context!);
-                        _showDeleteDialog(slotNumber);
-                      },
-                      elevation: 0,
-                      padding: Spacing.xy(20, 16),
-                      backgroundColor: contentTheme.danger,
-                      child: CustomizedText.labelMedium(S.of(context).pivDelete,
-                          color: contentTheme.onDanger),
-                    ),
-                  ],
-                ],
+                padding: Spacing.all(16),
+                child: CustomizedText.labelLarge('$title - $slotNumber'),
               ),
-            ),
-          ],
+              Divider(height: 0, thickness: 1),
+              if (slot != null && slot.cert != null) ...[
+                Flexible(
+                  child: SingleChildScrollView(
+                      padding: Spacing.all(16),
+                      child: Form(
+                        child: Column(
+                          children: [
+                            CustomizedText.bodySmall(
+                              _slotUsageHint(slotNumber, slot.algorithm),
+                              color: contentTheme.onBackground.withAlpha(180),
+                            ),
+                            Spacing.height(16),
+                            TextFormField(
+                              initialValue: slot.cert!.subject,
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                  labelText: 'Subject',
+                                  border: outlineInputBorder,
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.auto),
+                            ),
+                            Spacing.height(16),
+                            TextFormField(
+                              initialValue: slot.cert!.issuer,
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                  labelText: 'Issuer',
+                                  border: outlineInputBorder,
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.auto),
+                            ),
+                            Spacing.height(16),
+                            TextFormField(
+                              initialValue: slot.cert!.serialNumber,
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                  labelText: 'Serial',
+                                  border: outlineInputBorder,
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.auto),
+                            ),
+                            Spacing.height(16),
+                            TextFormField(
+                              initialValue: _certificateKeySummary(slot.cert!),
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                  labelText: _t(en: 'Public Key', zh: '公钥'),
+                                  border: outlineInputBorder,
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.auto),
+                            ),
+                            Spacing.height(16),
+                            TextFormField(
+                              initialValue: slot.cert!.signatureAlgorithm,
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                  labelText:
+                                      _t(en: 'Signature Algorithm', zh: '签名算法'),
+                                  border: outlineInputBorder,
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.auto),
+                            ),
+                            Spacing.height(16),
+                            TextFormField(
+                              initialValue: _sha256Fingerprint(slot.certBytes!),
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                  labelText: _t(
+                                      en: 'SHA-256 Fingerprint',
+                                      zh: 'SHA-256 指纹'),
+                                  border: outlineInputBorder,
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.auto),
+                            ),
+                            Spacing.height(16),
+                            TextFormField(
+                              initialValue: slot.cert!.notBefore,
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                  labelText: 'Valid from',
+                                  border: outlineInputBorder,
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.auto),
+                            ),
+                            Spacing.height(16),
+                            TextFormField(
+                              initialValue: slot.cert!.notAfter,
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                  labelText: 'Valid to',
+                                  border: outlineInputBorder,
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.auto),
+                            ),
+                            Spacing.height(16),
+                            TextFormField(
+                              initialValue:
+                                  _formatBytes(slot.certBytes!.length),
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                  labelText:
+                                      _t(en: 'Certificate Size', zh: '证书大小'),
+                                  border: outlineInputBorder,
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.auto),
+                            ),
+                          ],
+                        ),
+                      )),
+                ),
+                Divider(height: 0, thickness: 1)
+              ],
+              Padding(
+                padding: Spacing.all(16),
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    if (slot?.algorithm != AlgorithmType.x25519) ...[
+                      CustomizedButton.rounded(
+                        onPressed: () {
+                          Navigator.pop(Get.context!);
+                          _showGenerateDialog(slotNumber, selfSigned: false);
+                        },
+                        elevation: 0,
+                        padding: Spacing.xy(20, 16),
+                        backgroundColor: contentTheme.primary,
+                        child: CustomizedText.labelMedium('Generate CSR',
+                            color: contentTheme.onSecondary),
+                      ),
+                      CustomizedButton.rounded(
+                        onPressed: () {
+                          Navigator.pop(Get.context!);
+                          _showGenerateDialog(slotNumber, selfSigned: true);
+                        },
+                        elevation: 0,
+                        padding: Spacing.xy(20, 16),
+                        backgroundColor: contentTheme.primary,
+                        child: CustomizedText.labelMedium('Self-sign',
+                            color: contentTheme.onSecondary),
+                      ),
+                    ],
+                    CustomizedButton.rounded(
+                      onPressed: () {
+                        Navigator.pop(Get.context!);
+                        _showGenerateKeyDialog(slotNumber);
+                      },
+                      elevation: 0,
+                      padding: Spacing.xy(20, 16),
+                      backgroundColor: contentTheme.primary,
+                      child: CustomizedText.labelMedium('Generate Key',
+                          color: contentTheme.onPrimary),
+                    ),
+                    if (slot?.algorithm == AlgorithmType.x25519)
+                      CustomizedButton.rounded(
+                        onPressed: () {
+                          Navigator.pop(Get.context!);
+                          _showDeriveSecretDialog(slotNumber);
+                        },
+                        elevation: 0,
+                        padding: Spacing.xy(20, 16),
+                        backgroundColor: contentTheme.primary,
+                        child: CustomizedText.labelMedium('Derive Secret',
+                            color: contentTheme.onPrimary),
+                      ),
+                    CustomizedButton.rounded(
+                      onPressed: () async {
+                        // if (cachedManagementKey == null) {
+                        //   if (!await _showVerifyManagementKeyDialog()) {
+                        //     return;
+                        //   }
+                        // }
+                        Navigator.pop(Get.context!);
+                        _showImportDialog(slotNumber);
+                      },
+                      elevation: 0,
+                      padding: Spacing.xy(20, 16),
+                      backgroundColor: contentTheme.primary,
+                      child: CustomizedText.labelMedium(S.of(context).pivImport,
+                          color: contentTheme.onPrimary),
+                    ),
+                    if (slot != null) ...[
+                      if (slot.algorithm != AlgorithmType.x25519)
+                        CustomizedButton.rounded(
+                          onPressed: () {
+                            Navigator.pop(Get.context!);
+                            _showSignVerifyDialog(slotNumber, slot);
+                          },
+                          elevation: 0,
+                          padding: Spacing.xy(20, 16),
+                          backgroundColor: contentTheme.primary,
+                          child: CustomizedText.labelMedium('Sign / Verify',
+                              color: contentTheme.onPrimary),
+                        ),
+                      if (slot.algorithm != AlgorithmType.x25519)
+                        CustomizedButton.rounded(
+                          onPressed: () {
+                            Navigator.pop(Get.context!);
+                            _showFileSignDialog(slotNumber, slot);
+                          },
+                          elevation: 0,
+                          padding: Spacing.xy(20, 16),
+                          backgroundColor: contentTheme.primary,
+                          child: CustomizedText.labelMedium(
+                              _t(en: 'Sign File', zh: '签名文件'),
+                              color: contentTheme.onPrimary),
+                        ),
+                      if (slot.algorithm != AlgorithmType.x25519)
+                        CustomizedButton.rounded(
+                          onPressed: () {
+                            Navigator.pop(Get.context!);
+                            _showFileVerifyDialog(slot);
+                          },
+                          elevation: 0,
+                          padding: Spacing.xy(20, 16),
+                          backgroundColor: contentTheme.primary,
+                          child: CustomizedText.labelMedium(
+                              _t(en: 'Verify File', zh: '验证文件'),
+                              color: contentTheme.onPrimary),
+                        ),
+                      CustomizedButton.rounded(
+                        onPressed: () {
+                          Navigator.pop(Get.context!);
+                          _showExportPublicKeyDialog(slot);
+                        },
+                        elevation: 0,
+                        padding: Spacing.xy(20, 16),
+                        backgroundColor: contentTheme.primary,
+                        child: CustomizedText.labelMedium('Export Public Key',
+                            color: contentTheme.onPrimary),
+                      ),
+                      if (slot.certBytes != null)
+                        CustomizedButton.rounded(
+                          onPressed: () {
+                            Navigator.pop(Get.context!);
+                            _showExportDialog(slot);
+                          },
+                          elevation: 0,
+                          padding: Spacing.xy(20, 16),
+                          backgroundColor: contentTheme.primary,
+                          child: CustomizedText.labelMedium(
+                              S.of(context).pivExportCertificate,
+                              color: contentTheme.onPrimary),
+                        ),
+                      CustomizedButton.rounded(
+                        onPressed: () {
+                          Navigator.pop(Get.context!);
+                          _showDeleteDialog(slotNumber);
+                        },
+                        elevation: 0,
+                        padding: Spacing.xy(20, 16),
+                        backgroundColor: contentTheme.danger,
+                        child: CustomizedText.labelMedium(
+                            S.of(context).pivDelete,
+                            color: contentTheme.onDanger),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     ));
@@ -1806,14 +1942,322 @@ class _PivPageState extends State<PivPage>
     ));
   }
 
+  void _showFileSignDialog(String slotNumber, SlotInfo slot) {
+    FormValidator validator = FormValidator();
+    validator.addField('pin',
+        required: true,
+        controller: TextEditingController(),
+        validators: [LengthValidator(min: 6, max: 8)]);
+    final selectedFileName = ''.obs;
+    Uint8List? selectedBytes;
+
+    Get.dialog(Dialog(
+      child: Obx(
+        () => SizedBox(
+          width: 520,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: Spacing.all(16),
+                child:
+                    CustomizedText.labelLarge(_t(en: 'Sign File', zh: '签名文件')),
+              ),
+              Divider(height: 0, thickness: 1),
+              Padding(
+                padding: Spacing.all(16),
+                child: Form(
+                  key: validator.formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomizedText.bodySmall(_t(
+                          en: 'Creates a detached raw signature for the selected file.',
+                          zh: '为所选文件生成分离式原始签名。')),
+                      Spacing.height(16),
+                      TextFormField(
+                        autofocus: true,
+                        onTap: SmartCard.eject,
+                        obscureText: true,
+                        controller: validator.getController('pin'),
+                        validator: validator.getValidator('pin'),
+                        decoration: InputDecoration(
+                            labelText: 'PIN', border: outlineInputBorder),
+                      ),
+                      Spacing.height(16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomizedText.bodyMedium(
+                              selectedFileName.value.isEmpty
+                                  ? _t(en: 'No file selected', zh: '未选择文件')
+                                  : selectedFileName.value,
+                            ),
+                          ),
+                          Spacing.width(12),
+                          CustomizedButton.rounded(
+                            onPressed: () async {
+                              final result = await FilePicker.pickFiles();
+                              final file = result?.files.firstOrNull;
+                              if (file == null) return;
+                              selectedFileName.value = file.name;
+                              selectedBytes = await file.xFile.readAsBytes();
+                            },
+                            elevation: 0,
+                            backgroundColor: contentTheme.primary,
+                            child: CustomizedText.labelMedium(
+                                _t(en: 'Select', zh: '选择'),
+                                color: contentTheme.onPrimary),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Divider(height: 0, thickness: 1),
+              Padding(
+                padding: Spacing.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    CustomizedButton.rounded(
+                      onPressed: () => Get.back(),
+                      elevation: 0,
+                      backgroundColor: contentTheme.secondary,
+                      child: CustomizedText.labelMedium(S.of(context).cancel,
+                          color: contentTheme.onSecondary),
+                    ),
+                    Spacing.width(12),
+                    CustomizedButton.rounded(
+                      onPressed: () async {
+                        if (!validator.validateForm()) return;
+                        final data = selectedBytes;
+                        if (data == null) {
+                          Prompts.showPrompt(
+                              _t(en: 'Select a file first.', zh: '请先选择文件。'),
+                              ContentThemeColor.danger);
+                          return;
+                        }
+                        Get.context!.loaderOverlay.show();
+                        try {
+                          final signature = await controller.signData(
+                            slotNumber,
+                            slot,
+                            validator.getController('pin')!.text,
+                            data,
+                          );
+                          if (signature == null) {
+                            Prompts.showPrompt(
+                                _t(en: 'File signing failed', zh: '文件签名失败'),
+                                ContentThemeColor.danger);
+                            return;
+                          }
+                          final saved = await _savePivFile(
+                            name: selectedFileName.value.isEmpty
+                                ? 'signature'
+                                : selectedFileName.value,
+                            extension: 'sig',
+                            bytes: signature,
+                          );
+                          if (saved) {
+                            Get.back();
+                          }
+                        } finally {
+                          Get.context!.loaderOverlay.hide();
+                        }
+                      },
+                      elevation: 0,
+                      backgroundColor: contentTheme.primary,
+                      child: CustomizedText.labelMedium(
+                          _t(en: 'Sign', zh: '签名'),
+                          color: contentTheme.onPrimary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ));
+  }
+
+  void _showFileVerifyDialog(SlotInfo slot) {
+    final selectedFileName = ''.obs;
+    final selectedSignatureName = ''.obs;
+    final verifyResult = ''.obs;
+    Uint8List? selectedBytes;
+    Uint8List? selectedSignature;
+
+    Get.dialog(Dialog(
+      child: Obx(
+        () => SizedBox(
+          width: 520,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: Spacing.all(16),
+                child: CustomizedText.labelLarge(
+                    _t(en: 'Verify File Signature', zh: '验证文件签名')),
+              ),
+              Divider(height: 0, thickness: 1),
+              Padding(
+                padding: Spacing.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomizedText.bodySmall(_t(
+                        en: 'Verifies a detached raw signature against this slot public key.',
+                        zh: '使用当前槽位公钥验证分离式原始签名。')),
+                    Spacing.height(16),
+                    _buildFilePickerRow(
+                      label: _t(en: 'File', zh: '文件'),
+                      value: selectedFileName.value,
+                      onPick: () async {
+                        final result = await FilePicker.pickFiles();
+                        final file = result?.files.firstOrNull;
+                        if (file == null) return;
+                        selectedFileName.value = file.name;
+                        selectedBytes = await file.xFile.readAsBytes();
+                        verifyResult.value = '';
+                      },
+                    ),
+                    Spacing.height(12),
+                    _buildFilePickerRow(
+                      label: _t(en: 'Signature', zh: '签名'),
+                      value: selectedSignatureName.value,
+                      onPick: () async {
+                        final result = await FilePicker.pickFiles();
+                        final file = result?.files.firstOrNull;
+                        if (file == null) return;
+                        selectedSignatureName.value = file.name;
+                        selectedSignature = await file.xFile.readAsBytes();
+                        verifyResult.value = '';
+                      },
+                    ),
+                    if (verifyResult.value.isNotEmpty) ...[
+                      Spacing.height(16),
+                      CustomizedText.bodyMedium(
+                        verifyResult.value,
+                        color: verifyResult.value ==
+                                _t(en: 'Signature verified', zh: '签名验证通过')
+                            ? contentTheme.success
+                            : contentTheme.danger,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Divider(height: 0, thickness: 1),
+              Padding(
+                padding: Spacing.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    CustomizedButton.rounded(
+                      onPressed: () => Get.back(),
+                      elevation: 0,
+                      backgroundColor: contentTheme.secondary,
+                      child: CustomizedText.labelMedium(S.of(context).close,
+                          color: contentTheme.onSecondary),
+                    ),
+                    Spacing.width(12),
+                    CustomizedButton.rounded(
+                      onPressed: () async {
+                        final data = selectedBytes;
+                        final signature = selectedSignature;
+                        if (data == null || signature == null) {
+                          Prompts.showPrompt(
+                              _t(
+                                  en: 'Select a file and signature first.',
+                                  zh: '请先选择文件和签名。'),
+                              ContentThemeColor.danger);
+                          return;
+                        }
+                        final ok = await controller.verifySignature(
+                          slot,
+                          data,
+                          signature,
+                        );
+                        verifyResult.value = ok
+                            ? _t(en: 'Signature verified', zh: '签名验证通过')
+                            : _t(
+                                en: 'Signature verification failed',
+                                zh: '签名验证失败');
+                      },
+                      elevation: 0,
+                      backgroundColor: contentTheme.primary,
+                      child: CustomizedText.labelMedium(
+                          _t(en: 'Verify', zh: '验证'),
+                          color: contentTheme.onPrimary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ));
+  }
+
+  Widget _buildFilePickerRow({
+    required String label,
+    required String value,
+    required VoidCallback onPick,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomizedText.bodySmall(label, fontWeight: 600),
+              Spacing.height(4),
+              CustomizedText.bodyMedium(
+                value.isEmpty ? _t(en: 'Not selected', zh: '未选择') : value,
+              ),
+            ],
+          ),
+        ),
+        Spacing.width(12),
+        CustomizedButton.rounded(
+          onPressed: onPick,
+          elevation: 0,
+          backgroundColor: contentTheme.primary,
+          child: CustomizedText.labelMedium(_t(en: 'Select', zh: '选择'),
+              color: contentTheme.onPrimary),
+        ),
+      ],
+    );
+  }
+
   void _showImportDialog(String slotNumber) {
     Rx<int> step = 0.obs;
     Rx<bool> hasCert = false.obs;
     Rx<bool> hasKey = false.obs;
     Rx<bool> selected = false.obs;
+    Rx<String> parseMessage = ''.obs;
     PinPolicy pinPolicy =
         slotNumber == '9C' ? PinPolicy.always : PinPolicy.once;
     TouchPolicy touchPolicy = TouchPolicy.never;
+    bool usePinOnly = controller.pinOnlyMode;
+    FormValidator authValidator = FormValidator();
+    authValidator.addField('pin',
+        required: true,
+        controller: TextEditingController(),
+        validators: [LengthValidator(min: 6, max: 8)]);
+    authValidator.addField('managementKey',
+        required: false,
+        controller: TextEditingController(),
+        validators: [
+          LengthValidator(exact: 48, required: false),
+          HexStringValidator(required: false)
+        ]);
     ECPrivateKey? ecPrivateKey;
     RSAPrivateKey? rsaPrivateKey;
     Uint8List? edPrivateKey;
@@ -1821,45 +2265,74 @@ class _PivPageState extends State<PivPage>
     Uint8List? certBytes;
 
     void nextStep() async {
-      if (step.value < 2) {
+      if (step.value == 0) {
+        if (!authValidator.validateForm()) return;
+        if (!_validateManagementKeyInput(
+            authValidator, 'managementKey', usePinOnly)) {
+          return;
+        }
         setState(() => step.value++);
-      } else {
-        // We first import the private key
-        if (ecPrivateKey != null) {
-          bool importSuccess = await controller.importEccKey(
-              slotNumber, ecPrivateKey!, pinPolicy, touchPolicy);
-          if (!importSuccess) {
-            Prompts.showPrompt('Import Key Failed', ContentThemeColor.danger);
-            return;
-          }
-        } else if (rsaPrivateKey != null) {
-          bool importSuccess = await controller.importRsaKey(
-              slotNumber, rsaPrivateKey!, pinPolicy, touchPolicy);
-          if (!importSuccess) {
-            Prompts.showPrompt('Import Key Failed', ContentThemeColor.danger);
-            return;
-          }
-        } else if (edPrivateKey != null) {
-          bool importSuccess = await controller.importEd25519Key(
-              slotNumber, edPrivateKey!, pinPolicy, touchPolicy);
-          if (!importSuccess) {
-            Prompts.showPrompt('Import Key Failed', ContentThemeColor.danger);
-            return;
-          }
+        return;
+      }
+      if (step.value == 1) {
+        if (!hasCert.value && !hasKey.value) {
+          Prompts.showPrompt(
+              _t(
+                  en: 'Select a certificate or private key first.',
+                  zh: '请先选择证书或私钥。'),
+              ContentThemeColor.danger);
+          return;
+        }
+        setState(() => step.value++);
+        return;
+      }
+      if (step.value == 2) {
+        setState(() => step.value++);
+        return;
+      }
+
+      if (certBytes != null &&
+          hasKey.value &&
+          !_certificateMatchesPrivateKey(
+            certBytes: certBytes!,
+            ecPrivateKey: ecPrivateKey,
+            rsaPrivateKey: rsaPrivateKey,
+            edPrivateKey: edPrivateKey,
+          )) {
+        Prompts.showPrompt(
+            _t(
+                en: 'The certificate public key does not match the selected private key.',
+                zh: '证书公钥与所选私钥不匹配。'),
+            ContentThemeColor.danger);
+        return;
+      }
+
+      Get.context!.loaderOverlay.show();
+      try {
+        final importSuccess = await controller.importAuthenticated(
+          slot: slotNumber,
+          pin: authValidator.getController('pin')!.text,
+          managementKey: authValidator.getController('managementKey')!.text,
+          usePinOnly: usePinOnly,
+          ecPrivateKey: ecPrivateKey,
+          rsaPrivateKey: rsaPrivateKey,
+          edPrivateKey: edPrivateKey,
+          cert: certBytes,
+          pinPolicy: pinPolicy,
+          touchPolicy: touchPolicy,
+        );
+        if (!importSuccess) {
+          Prompts.showPrompt(
+              _t(en: 'Import failed', zh: '导入失败'), ContentThemeColor.danger);
+          return;
         }
 
-        // We then import the certificate
-        if (cert != null) {
-          bool importSuccess =
-              await controller.importCert(slotNumber, certBytes!);
-          if (!importSuccess) {
-            Prompts.showPrompt('Import Cert Failed', ContentThemeColor.danger);
-            return;
-          }
-        }
-
-        Prompts.showPrompt('Import Succeeded', ContentThemeColor.success);
+        await controller.refreshData();
+        Prompts.showPrompt(
+            _t(en: 'Import succeeded', zh: '导入成功'), ContentThemeColor.success);
         Navigator.pop(Get.context!);
+      } finally {
+        Get.context!.loaderOverlay.hide();
       }
     }
 
@@ -1871,37 +2344,114 @@ class _PivPageState extends State<PivPage>
       }
     }
 
+    void resetImportState() {
+      hasCert.value = false;
+      hasKey.value = false;
+      ecPrivateKey = null;
+      rsaPrivateKey = null;
+      edPrivateKey = null;
+      cert = null;
+      certBytes = null;
+      parseMessage.value = '';
+    }
+
     void parsePem(Uint8List bytes) {
-      final pem = utf8.decode(bytes);
+      final pem = utf8.decode(bytes, allowMalformed: true);
       pem.split('-----BEGIN ').forEach((element) {
         if (element.isNotEmpty) {
           final item = '-----BEGIN $element';
-          if (item.startsWith(CryptoUtils.BEGIN_EC_PRIVATE_KEY)) {
-            // ECDSA
-            ecPrivateKey = CryptoUtils.ecPrivateKeyFromPem(item);
-            hasKey.value = true;
-          } else if (item.startsWith(CryptoUtils.BEGIN_RSA_PRIVATE_KEY)) {
-            // RSA
-            rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromPemPkcs1(item);
-            hasKey.value = true;
-          } else if (item.startsWith(CryptoUtils.BEGIN_PRIVATE_KEY)) {
-            // Ed25519
-            edPrivateKey = CryptoUtils.ed25519PrivateKeyFromPem(item);
-            hasKey.value = true;
-          } else if (item.startsWith(X509Utils.BEGIN_CERT)) {
-            // Certificate
-            cert = parseX509CertFromPem(pem: element);
-            certBytes = cert!.bytes;
-            hasCert.value = true;
+          try {
+            if (item.startsWith(CryptoUtils.BEGIN_EC_PRIVATE_KEY)) {
+              ecPrivateKey = CryptoUtils.ecPrivateKeyFromPem(item);
+              hasKey.value = true;
+            } else if (item.startsWith(CryptoUtils.BEGIN_RSA_PRIVATE_KEY)) {
+              rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromPemPkcs1(item);
+              hasKey.value = true;
+            } else if (item.startsWith(CryptoUtils.BEGIN_PRIVATE_KEY)) {
+              try {
+                rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromPem(item);
+              } catch (_) {
+                try {
+                  ecPrivateKey = CryptoUtils.ecPrivateKeyFromPem(item);
+                } catch (_) {
+                  edPrivateKey = CryptoUtils.ed25519PrivateKeyFromPem(item);
+                }
+              }
+              hasKey.value = true;
+            } else if (item.startsWith(X509Utils.BEGIN_CERT)) {
+              cert = parseX509CertFromPem(pem: item);
+              certBytes = cert!.bytes;
+              hasCert.value = true;
+            }
+          } catch (e) {
+            parseMessage.value = e.toString();
           }
         }
       });
     }
 
+    void parseDer(Uint8List bytes) {
+      try {
+        cert = parseX509CertFromDer(der: bytes);
+        certBytes = cert!.bytes;
+        hasCert.value = true;
+        return;
+      } catch (_) {}
+      try {
+        rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromDERBytes(bytes);
+        hasKey.value = true;
+        return;
+      } catch (_) {}
+      try {
+        rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromDERBytesPkcs1(bytes);
+        hasKey.value = true;
+        return;
+      } catch (_) {}
+      try {
+        ecPrivateKey = CryptoUtils.ecPrivateKeyFromDerBytes(bytes, pkcs8: true);
+        hasKey.value = true;
+        return;
+      } catch (_) {}
+      try {
+        ecPrivateKey = CryptoUtils.ecPrivateKeyFromDerBytes(bytes);
+        hasKey.value = true;
+        return;
+      } catch (e) {
+        parseMessage.value = e.toString();
+      }
+    }
+
+    void parseImportFile(Uint8List bytes) {
+      resetImportState();
+      final text = utf8.decode(bytes, allowMalformed: true);
+      if (text.contains('-----BEGIN ')) {
+        parsePem(bytes);
+      } else {
+        parseDer(bytes);
+      }
+      if (!hasCert.value && !hasKey.value && parseMessage.value.isEmpty) {
+        parseMessage.value = _t(
+            en: 'Unsupported file. Use PEM or DER certificate/private key files.',
+            zh: '不支持的文件。请使用 PEM 或 DER 格式的证书/私钥文件。');
+      }
+    }
+
+    String keySummary() {
+      final algorithm = _selectedImportAlgorithm(
+        ecPrivateKey: ecPrivateKey,
+        rsaPrivateKey: rsaPrivateKey,
+        edPrivateKey: edPrivateKey,
+      );
+      if (algorithm == null) {
+        return S.of(context).pivEmpty;
+      }
+      return _algorithmLabel(algorithm);
+    }
+
     Get.dialog(Dialog(
       child: Obx(
         () => SizedBox(
-          width: 400,
+          width: 460,
           child: Stepper(
             currentStep: step.value,
             onStepContinue: nextStep,
@@ -1909,23 +2459,25 @@ class _PivPageState extends State<PivPage>
             controlsBuilder: (BuildContext context, ControlsDetails details) {
               return Row(
                 children: <Widget>[
-                  if (details.stepIndex > 0) ...{
-                    CustomizedButton.rounded(
-                      onPressed: details.onStepContinue,
-                      elevation: 0,
-                      backgroundColor: ContentThemeColor.primary.color,
-                      child: CustomizedText.labelMedium(
-                          step.value == 2 ? 'Import' : 'Next',
-                          color: ContentThemeColor.primary.onColor),
-                    ),
-                    Spacing.width(12),
-                  },
+                  CustomizedButton.rounded(
+                    onPressed: details.onStepContinue,
+                    elevation: 0,
+                    backgroundColor: ContentThemeColor.primary.color,
+                    child: CustomizedText.labelMedium(
+                        step.value == 3
+                            ? _t(en: 'Import', zh: '导入')
+                            : _t(en: 'Next', zh: '下一步'),
+                        color: ContentThemeColor.primary.onColor),
+                  ),
+                  Spacing.width(12),
                   CustomizedButton.rounded(
                     onPressed: details.onStepCancel,
                     elevation: 0,
                     backgroundColor: ContentThemeColor.secondary.color,
                     child: CustomizedText.labelMedium(
-                        step.value == 0 ? 'Cancel' : 'Back',
+                        step.value == 0
+                            ? S.of(context).cancel
+                            : _t(en: 'Back', zh: '上一步'),
                         color: ContentThemeColor.secondary.onColor),
                   ),
                 ],
@@ -1933,14 +2485,54 @@ class _PivPageState extends State<PivPage>
             },
             steps: [
               Step(
-                title: Text('Select Your Certificate'),
+                title: Text(_t(
+                    en: 'Verify PIN and Management Key', zh: '验证 PIN 和管理密钥')),
+                content: StatefulBuilder(
+                  builder: (context, setDialogState) => Form(
+                    key: authValidator.formKey,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          autofocus: true,
+                          onTap: SmartCard.eject,
+                          obscureText: true,
+                          controller: authValidator.getController('pin'),
+                          validator: authValidator.getValidator('pin'),
+                          decoration: InputDecoration(
+                              labelText: 'PIN', border: outlineInputBorder),
+                        ),
+                        if (controller.pinOnlyMode) ...[
+                          Spacing.height(12),
+                          CheckboxListTile(
+                            value: usePinOnly,
+                            onChanged: (value) => setDialogState(
+                                () => usePinOnly = value ?? true),
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(_t(
+                                en: 'Use PIN-only management key',
+                                zh: '使用 PIN-only 管理密钥')),
+                          ),
+                        ],
+                        Spacing.height(18),
+                        _buildManagementKeyField(
+                          authValidator,
+                          'managementKey',
+                          enabled: !usePinOnly,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Step(
+                title: Text(_t(en: 'Select File', zh: '选择文件')),
                 content: InkWell(
                   onTap: () async {
                     final result = await FilePicker.pickFiles();
                     final file = result?.files.firstOrNull;
                     if (file != null) {
                       selected.value = true;
-                      parsePem(await file.xFile.readAsBytes());
+                      parseImportFile(await file.xFile.readAsBytes());
                       if (hasKey.value && hasCert.value) {
                         nextStep();
                       }
@@ -1961,7 +2553,9 @@ class _PivPageState extends State<PivPage>
                               alignment: Alignment.center,
                               paddingAll: 0,
                               child: CustomizedText.titleMedium(
-                                "Click to select a certificate",
+                                _t(
+                                    en: 'Click to select a PEM or DER certificate/key',
+                                    zh: '点击选择 PEM 或 DER 证书/私钥'),
                                 fontWeight: 600,
                                 muted: true,
                                 fontSize: 18,
@@ -1974,7 +2568,11 @@ class _PivPageState extends State<PivPage>
                               CustomizedContainer(
                                 alignment: Alignment.center,
                                 child: CustomizedText.titleMedium(
-                                  "(Make sure the file contains a plaintext key and a certificate)",
+                                  parseMessage.value.isEmpty
+                                      ? _t(
+                                          en: '(Make sure the file contains a plaintext key or a certificate)',
+                                          zh: '（请确认文件包含明文私钥或证书）')
+                                      : parseMessage.value,
                                   muted: true,
                                   fontWeight: 500,
                                   fontSize: 12,
@@ -1990,9 +2588,20 @@ class _PivPageState extends State<PivPage>
                 ),
               ),
               Step(
-                title: Text('PIN and Touch Policy'),
+                title: Text(_t(en: 'PIN and Touch Policy', zh: 'PIN 和触摸策略')),
                 content: Column(
                   children: [
+                    CustomizedText.bodySmall(
+                      _slotUsageHint(
+                          slotNumber,
+                          _selectedImportAlgorithm(
+                                ecPrivateKey: ecPrivateKey,
+                                rsaPrivateKey: rsaPrivateKey,
+                                edPrivateKey: edPrivateKey,
+                              ) ??
+                              AlgorithmType.eccp256),
+                    ),
+                    Spacing.height(12),
                     DropdownButtonFormField(
                       initialValue: pinPolicy,
                       items: [PinPolicy.never, PinPolicy.once, PinPolicy.always]
@@ -2000,9 +2609,11 @@ class _PivPageState extends State<PivPage>
                               value: e, child: Text(e.toString())))
                           .toList(),
                       onChanged: (value) => setState(() => pinPolicy = value!),
-                      decoration: InputDecoration(labelText: 'PIN Policy'),
+                      decoration: InputDecoration(
+                          labelText: S.of(context).pivPinPolicy),
                       dropdownColor: contentTheme.background,
                     ),
+                    Spacing.height(12),
                     DropdownButtonFormField(
                       initialValue: touchPolicy,
                       items: [
@@ -2015,21 +2626,60 @@ class _PivPageState extends State<PivPage>
                           .toList(),
                       onChanged: (value) =>
                           setState(() => touchPolicy = value!),
-                      decoration: InputDecoration(labelText: 'Touch Policy'),
+                      decoration: InputDecoration(
+                          labelText: S.of(context).pivTouchPolicy),
                       dropdownColor: contentTheme.background,
                     ),
                   ],
                 ),
               ),
               Step(
-                  title: Text('Review'),
+                  title: Text(_t(en: 'Review', zh: '确认')),
                   content: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      CustomizedText.bodyMedium(
+                          '${_t(en: 'Private Key', zh: '私钥')}: ${hasKey.value ? keySummary() : S.of(context).pivEmpty}'),
+                      Spacing.height(8),
                       if (cert != null)
                         CustomizedText.bodyMedium(
                             '${S.of(context).pivCertificate}: ${cert!.subject != "" ? cert!.subject : S.of(context).pivEmpty}'),
-                      CustomizedText.bodyMedium('PIN Policy: $pinPolicy'),
-                      CustomizedText.bodyMedium('Touch Policy: $touchPolicy'),
+                      if (cert != null) ...[
+                        Spacing.height(8),
+                        CustomizedText.bodyMedium(
+                            '${_t(en: 'Certificate Key', zh: '证书公钥')}: ${_certificateKeySummary(cert!)}'),
+                      ],
+                      if (certBytes != null && hasKey.value) ...[
+                        Spacing.height(8),
+                        CustomizedText.bodyMedium(
+                          _certificateMatchesPrivateKey(
+                            certBytes: certBytes!,
+                            ecPrivateKey: ecPrivateKey,
+                            rsaPrivateKey: rsaPrivateKey,
+                            edPrivateKey: edPrivateKey,
+                          )
+                              ? _t(
+                                  en: 'Certificate matches the private key',
+                                  zh: '证书与私钥匹配')
+                              : _t(
+                                  en: 'Certificate does not match the private key',
+                                  zh: '证书与私钥不匹配'),
+                          color: _certificateMatchesPrivateKey(
+                            certBytes: certBytes!,
+                            ecPrivateKey: ecPrivateKey,
+                            rsaPrivateKey: rsaPrivateKey,
+                            edPrivateKey: edPrivateKey,
+                          )
+                              ? contentTheme.success
+                              : contentTheme.danger,
+                        ),
+                      ],
+                      Spacing.height(8),
+                      CustomizedText.bodyMedium(
+                          '${S.of(context).pivPinPolicy}: $pinPolicy'),
+                      Spacing.height(8),
+                      CustomizedText.bodyMedium(
+                          '${S.of(context).pivTouchPolicy}: $touchPolicy'),
                     ],
                   )),
             ],
@@ -2288,7 +2938,20 @@ class _PivPageState extends State<PivPage>
                     content: Padding(
                       padding: Spacing.top(10),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          CustomizedText.bodySmall(
+                            selfSigned
+                                ? _t(
+                                    en:
+                                        'Self-signed certificates are for local testing and compatibility depends on the client.',
+                                    zh: '自签证书适合本地测试，兼容性取决于客户端。')
+                                : _t(
+                                    en: 'CSR generation signs the request with the new key on the card.',
+                                    zh: '生成 CSR 会使用卡内新密钥对请求签名。'),
+                            color: contentTheme.onBackground.withAlpha(180),
+                          ),
+                          Spacing.height(12),
                           DropdownButtonFormField(
                             initialValue: algorithm,
                             items: [
