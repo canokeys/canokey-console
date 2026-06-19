@@ -120,12 +120,12 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
                     isCondensed: isCondensed,
                     route: '/applets/piv',
                   ),
-                  // NavigationItem(
-                  //   iconData: LucideIcons.lock,
-                  //   title: "OpenPGP",
-                  //   isCondensed: isCondensed,
-                  //   route: '/applets/openpgp',
-                  // ),
+                  NavigationItem(
+                    iconData: LucideIcons.lock,
+                    title: "OpenPGP",
+                    isCondensed: isCondensed,
+                    route: '/applets/openpgp',
+                  ),
                   labelWidget(S.of(context).other),
                   NavigationItem(
                     iconData: LucideIcons.settings,

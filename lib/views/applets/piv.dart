@@ -358,10 +358,9 @@ class _PivPageState extends State<PivPage>
   Widget build(BuildContext context) {
     return Layout(
       title: 'PIV',
-      topActions: InkWell(
-        onTap: _refreshSlots,
-        child: Icon(LucideIcons.refreshCw,
-            size: 20, color: topBarTheme.onBackground),
+      topActions: IconButton(
+        onPressed: _refreshSlots,
+        icon: Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
       ),
       child: GetBuilder(
         init: controller,

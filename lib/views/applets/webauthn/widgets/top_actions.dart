@@ -22,16 +22,16 @@ class TopActions extends StatelessWidget with UIMixin {
         List<Widget> widgets = [];
 
         if (isWeb() || isIOSApp()) {
-          widgets.add(InkWell(
-            onTap: controller.refreshData,
-            child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
+          widgets.add(IconButton(
+            onPressed: controller.refreshData,
+            icon: Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
           ));
         }
 
         if (controller.polled) {
           widgets.insertAll(0, [
-            InkWell(
-              onTap: () {
+            IconButton(
+              onPressed: () {
                 InputPinDialog.show(
                   title: S.of(context).changePin,
                   label: 'PIN',
@@ -43,7 +43,7 @@ class TopActions extends StatelessWidget with UIMixin {
                   },
                 );
               },
-              child: Icon(LucideIcons.lock, size: 20, color: topBarTheme.onBackground),
+              icon: Icon(LucideIcons.lock, color: topBarTheme.onBackground),
             ),
             Spacing.width(12),
           ]);

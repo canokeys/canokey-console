@@ -91,14 +91,13 @@ class _OathPageState extends State<OathPage> with UIMixin {
         init: controller,
         builder: (_) => Row(
           children: [
-            Obx(() => InkWell(
-              onTap: () => sortAlphabetically.value = !sortAlphabetically.value,
-              child: Icon(
-                sortAlphabetically.value ? LucideIcons.arrowDownAZ : LucideIcons.clock,
-                size: 20,
-                color: topBarTheme.onBackground,
-              ),
-            )),
+            Obx(() => IconButton(
+                  onPressed: () => sortAlphabetically.value = !sortAlphabetically.value,
+                  icon: Icon(
+                    sortAlphabetically.value ? LucideIcons.arrowDownAZ : LucideIcons.clock,
+                    color: topBarTheme.onBackground,
+                  ),
+                )),
             Spacing.width(12),
             TopActions(
               controller: controller,

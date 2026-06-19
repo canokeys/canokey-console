@@ -22,9 +22,9 @@ class TopActions extends StatelessWidget with UIMixin {
     List<Widget> widgets = [];
 
     if (isWeb() || isIOSApp()) {
-      widgets.add(InkWell(
-        onTap: controller.refreshData,
-        child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
+      widgets.add(IconButton(
+        onPressed: controller.refreshData,
+        icon: Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
       ));
     }
 
@@ -33,6 +33,7 @@ class TopActions extends StatelessWidget with UIMixin {
         PopupMenuButton(
           offset: const Offset(0, 10),
           position: PopupMenuPosition.under,
+          icon: Icon(LucideIcons.plus, color: topBarTheme.onBackground),
           itemBuilder: (BuildContext context) => [
             if (!isDesktop()) // Use camera to scan the QR code
               PopupMenuItem(
@@ -56,12 +57,11 @@ class TopActions extends StatelessWidget with UIMixin {
               child: CustomizedText.bodySmall(S.of(context).oathAddManually),
             ),
           ],
-          child: const Icon(LucideIcons.plus, size: 20),
         ),
         Spacing.width(12),
         if (controller.version != OathVersion.legacy) ...{
-          InkWell(
-            onTap: () {
+          IconButton(
+            onPressed: () {
               InputPinDialog.show(
                 title: S.of(context).oathSetCode,
                 label: S.of(context).oathCode,
@@ -73,7 +73,7 @@ class TopActions extends StatelessWidget with UIMixin {
                 },
               );
             },
-            child: Icon(LucideIcons.lock, size: 20, color: topBarTheme.onBackground),
+            icon: Icon(LucideIcons.lock, color: topBarTheme.onBackground),
           ),
           Spacing.width(12),
         }

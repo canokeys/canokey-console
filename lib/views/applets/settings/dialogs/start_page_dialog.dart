@@ -69,6 +69,8 @@ class StartPageDialog extends StatelessWidget with UIMixin {
                     _buildStartPageItem(context, startPage, '/applets/oath'),
                     _buildStartPageItem(context, startPage, '/applets/webauthn'),
                     _buildStartPageItem(context, startPage, '/applets/pass'),
+                    _buildStartPageItem(context, startPage, '/applets/piv'),
+                    _buildStartPageItem(context, startPage, '/applets/openpgp'),
                   ],
                 )),
             Divider(height: 0, thickness: 1),

@@ -26,9 +26,9 @@ class _PassPageState extends State<PassPage> with UIMixin {
     return Layout(
       title: 'Pass',
       topActions: isWeb() || isIOSApp()
-          ? InkWell(
-              onTap: () => _controller.refreshData(),
-              child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
+          ? IconButton(
+              onPressed: () => _controller.refreshData(),
+              icon: Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
             )
           : Container(),
       child: GetBuilder(

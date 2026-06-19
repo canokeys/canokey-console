@@ -31,10 +31,9 @@ class _SettingsPageState extends State<SettingsPage>
     return Layout(
       title: S.of(context).settings,
       topActions: isWeb() || isIOSApp()
-          ? InkWell(
-              onTap: () => _controller.refreshData(),
-              child: Icon(Icons.refresh,
-                  size: 20, color: topBarTheme.onBackground),
+          ? IconButton(
+              onPressed: () => _controller.refreshData(),
+              icon: Icon(Icons.refresh, color: topBarTheme.onBackground),
             )
           : Container(),
       child: GetBuilder(

@@ -60,14 +60,13 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
       title: 'WebAuthn',
       topActions: Row(
         children: [
-          Obx(() => InkWell(
-            onTap: () => sortAlphabetically.value = !sortAlphabetically.value,
-            child: Icon(
-              sortAlphabetically.value ? LucideIcons.arrowDownAZ : LucideIcons.clock,
-              size: 20,
-              color: topBarTheme.onBackground,
-            ),
-          )),
+          Obx(() => IconButton(
+                onPressed: () => sortAlphabetically.value = !sortAlphabetically.value,
+                icon: Icon(
+                  sortAlphabetically.value ? LucideIcons.arrowDownAZ : LucideIcons.clock,
+                  color: topBarTheme.onBackground,
+                ),
+              )),
           Spacing.width(12),
           TopActions(controller: controller),
         ],
