@@ -20,6 +20,7 @@ import 'package:canokey_console/views/applets/openpgp/widgets/openpgp_touch_poli
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:platform_detector/platform_detector.dart';
 
 class OpenPgpPage extends StatefulWidget {
   const OpenPgpPage({super.key});
@@ -39,11 +40,14 @@ class _OpenPgpPageState extends State<OpenPgpPage> with UIMixin {
   Widget build(BuildContext context) {
     return Layout(
       title: 'OpenPGP',
-      topActions: IconButton(
-        tooltip: 'Refresh',
-        icon: Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
-        onPressed: controller.refreshData,
-      ),
+      topActions: isWeb() || isIOSApp()
+          ? IconButton(
+              tooltip: 'Refresh',
+              icon:
+                  Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
+              onPressed: controller.refreshData,
+            )
+          : Container(),
       child: GetBuilder(
         init: controller,
         builder: (_) {
