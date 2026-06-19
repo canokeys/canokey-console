@@ -797,7 +797,8 @@ class PivController extends Controller {
   Future<bool> _importCertInSession(String slot, Uint8List cert) async {
     int slotInt = int.parse(slot, radix: 16);
     if (_certDO.containsKey(slotInt)) {
-      cert = buildPivCert(cert);
+      cert =
+          cert.isEmpty ? Uint8List.fromList([0x53, 0x00]) : buildPivCert(cert);
       String data =
           '5C035FC1${hex.encode([_certDO[slotInt]!])}${hex.encode(cert)}';
       const int chunkSize = 0xFF * 2;
@@ -821,8 +822,32 @@ class PivController extends Controller {
     return false;
   }
 
-  Future<bool> delete(String slot) async {
-    return importCert(slot, Uint8List(0));
+  Future<bool> clearSlotAuthenticated({
+    required String slot,
+    required String pin,
+    required String managementKey,
+    required bool usePinOnly,
+  }) async {
+    final c = Completer<bool>();
+    SmartCard.process((String sn) async {
+      SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
+      if (!await _verifyPinInSession(pin)) {
+        c.complete(false);
+        return;
+      }
+      if (!await _authenticateManagementKeyOrPinOnly(
+          pin, managementKey, usePinOnly)) {
+        c.complete(false);
+        return;
+      }
+      final deleteKeyResp = await SmartCard.transceive('00F6FF$slot');
+      if (!SmartCard.isOK(deleteKeyResp)) {
+        c.complete(false);
+        return;
+      }
+      c.complete(await _importCertInSession(slot, Uint8List(0)));
+    });
+    return c.future;
   }
 
   BigInt _randomSerialNumber() {

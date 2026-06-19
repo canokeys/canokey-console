@@ -272,6 +272,14 @@ class MessageLookup extends MessageLookupByLibrary {
           "Card Authentication",
         ),
         "pivCertificate": MessageLookupByLibrary.simpleMessage("Certificate"),
+        "pivCertificateDoesNotMatchPrivateKey":
+            MessageLookupByLibrary.simpleMessage(
+          "The certificate public key does not match the selected private key.",
+        ),
+        "pivCertificateOnlyKeepsPrivateKey":
+            MessageLookupByLibrary.simpleMessage(
+          "Certificate-only import does not change the private key. Make sure this certificate belongs to the key already on the card.",
+        ),
         "pivChangeManagementKey": MessageLookupByLibrary.simpleMessage(
           "Change Management Key",
         ),
@@ -289,17 +297,33 @@ class MessageLookup extends MessageLookupByLibrary {
         ),
         "pivGenerate": MessageLookupByLibrary.simpleMessage("Generate"),
         "pivImport": MessageLookupByLibrary.simpleMessage("Import"),
+        "pivImportWillReplaceCertificate": MessageLookupByLibrary.simpleMessage(
+          "This import will replace the certificate currently stored in this slot.",
+        ),
+        "pivImportWillReplacePrivateKey": MessageLookupByLibrary.simpleMessage(
+          "This import will replace the private key currently stored in this slot.",
+        ),
+        "pivKeyOnlyKeepsCertificate": MessageLookupByLibrary.simpleMessage(
+          "Key-only import leaves the existing certificate in place. Replace or clear the certificate if it no longer matches.",
+        ),
         "pivKeyManagement":
             MessageLookupByLibrary.simpleMessage("Key Management"),
         "pivManagementKey":
             MessageLookupByLibrary.simpleMessage("Management Key"),
+        "pivManagementKeyAuthentication": MessageLookupByLibrary.simpleMessage(
+          "Management key authentication",
+        ),
         "pivManagementKeyVerificationFailed":
             MessageLookupByLibrary.simpleMessage(
           "Management Key verification failed",
         ),
+        "pivManualManagementKey":
+            MessageLookupByLibrary.simpleMessage("Manual management key"),
         "pivNewManagementKey": MessageLookupByLibrary.simpleMessage(
           "New Management Key",
         ),
+        "pivNoCertificate":
+            MessageLookupByLibrary.simpleMessage("No certificate"),
         "pivNewPUK": MessageLookupByLibrary.simpleMessage("New PUK"),
         "pivOldManagementKey": MessageLookupByLibrary.simpleMessage(
           "Current Management Key",
@@ -310,6 +334,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "pivOriginImported": MessageLookupByLibrary.simpleMessage("Imported"),
         "pivPinManagement":
             MessageLookupByLibrary.simpleMessage("PIN Management"),
+        "pivPinProtectedKeyOnCard":
+            MessageLookupByLibrary.simpleMessage("PIN-protected key on card"),
         "pivPinPolicy": MessageLookupByLibrary.simpleMessage("PIN Policy"),
         "pivPinPolicyAlways": MessageLookupByLibrary.simpleMessage("Always"),
         "pivPinPolicyDefault": MessageLookupByLibrary.simpleMessage("Default"),
@@ -319,6 +345,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Random"),
         "pivRetired1": MessageLookupByLibrary.simpleMessage("Retired 1"),
         "pivRetired2": MessageLookupByLibrary.simpleMessage("Retired 2"),
+        "pivRetiredSlotsCertificateOnly": MessageLookupByLibrary.simpleMessage(
+          "Retired slots accept certificates only. Import the private key into 9D, then place old certificates here.",
+        ),
         "pivSignature":
             MessageLookupByLibrary.simpleMessage("Digital Signature"),
         "pivSlots": MessageLookupByLibrary.simpleMessage("Slots"),
@@ -335,6 +364,12 @@ class MessageLookup extends MessageLookupByLibrary {
         ),
         "pivVerifyManagementKey": MessageLookupByLibrary.simpleMessage(
           "Verify Management Key",
+        ),
+        "pivX25519CannotUseCertificate": MessageLookupByLibrary.simpleMessage(
+          "X25519 cannot be used with certificates. Import the key without a certificate.",
+        ),
+        "pivX25519OnlyIn9D": MessageLookupByLibrary.simpleMessage(
+          "X25519 keys are only supported in the key management slot 9D.",
         ),
         "play": MessageLookupByLibrary.simpleMessage("Play"),
         "pollCanceled": MessageLookupByLibrary.simpleMessage(

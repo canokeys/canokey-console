@@ -1824,6 +1824,16 @@ class S {
     );
   }
 
+  /// `No certificate`
+  String get pivNoCertificate {
+    return Intl.message(
+      'No certificate',
+      name: 'pivNoCertificate',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Import`
   String get pivImport {
     return Intl.message('Import', name: 'pivImport', desc: '', args: []);
@@ -1869,6 +1879,116 @@ class S {
     return Intl.message(
       'Verify Management Key',
       name: 'pivVerifyManagementKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Management key authentication`
+  String get pivManagementKeyAuthentication {
+    return Intl.message(
+      'Management key authentication',
+      name: 'pivManagementKeyAuthentication',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `PIN-protected key on card`
+  String get pivPinProtectedKeyOnCard {
+    return Intl.message(
+      'PIN-protected key on card',
+      name: 'pivPinProtectedKeyOnCard',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manual management key`
+  String get pivManualManagementKey {
+    return Intl.message(
+      'Manual management key',
+      name: 'pivManualManagementKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Retired slots accept certificates only. Import the private key into 9D, then place old certificates here.`
+  String get pivRetiredSlotsCertificateOnly {
+    return Intl.message(
+      'Retired slots accept certificates only. Import the private key into 9D, then place old certificates here.',
+      name: 'pivRetiredSlotsCertificateOnly',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `X25519 keys are only supported in the key management slot 9D.`
+  String get pivX25519OnlyIn9D {
+    return Intl.message(
+      'X25519 keys are only supported in the key management slot 9D.',
+      name: 'pivX25519OnlyIn9D',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The certificate public key does not match the selected private key.`
+  String get pivCertificateDoesNotMatchPrivateKey {
+    return Intl.message(
+      'The certificate public key does not match the selected private key.',
+      name: 'pivCertificateDoesNotMatchPrivateKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `X25519 cannot be used with certificates. Import the key without a certificate.`
+  String get pivX25519CannotUseCertificate {
+    return Intl.message(
+      'X25519 cannot be used with certificates. Import the key without a certificate.',
+      name: 'pivX25519CannotUseCertificate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This import will replace the private key currently stored in this slot.`
+  String get pivImportWillReplacePrivateKey {
+    return Intl.message(
+      'This import will replace the private key currently stored in this slot.',
+      name: 'pivImportWillReplacePrivateKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This import will replace the certificate currently stored in this slot.`
+  String get pivImportWillReplaceCertificate {
+    return Intl.message(
+      'This import will replace the certificate currently stored in this slot.',
+      name: 'pivImportWillReplaceCertificate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Certificate-only import does not change the private key. Make sure this certificate belongs to the key already on the card.`
+  String get pivCertificateOnlyKeepsPrivateKey {
+    return Intl.message(
+      'Certificate-only import does not change the private key. Make sure this certificate belongs to the key already on the card.',
+      name: 'pivCertificateOnlyKeepsPrivateKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Key-only import leaves the existing certificate in place. Replace or clear the certificate if it no longer matches.`
+  String get pivKeyOnlyKeepsCertificate {
+    return Intl.message(
+      'Key-only import leaves the existing certificate in place. Replace or clear the certificate if it no longer matches.',
+      name: 'pivKeyOnlyKeepsCertificate',
       desc: '',
       args: [],
     );

@@ -249,7 +249,109 @@ class _PivPageState extends State<PivPage>
   }
 
   String _certificateKeySummary(X509CertData cert) {
-    return '${cert.publicKeyAlgorithm}, ${cert.publicKeySize} bits';
+    final algorithm = switch (cert.publicKeyAlgorithm) {
+      '1.2.840.113549.1.1.1' => 'RSA',
+      '1.2.840.10045.2.1' => 'EC',
+      '1.3.101.112' => 'Ed25519',
+      '1.3.101.110' => 'X25519',
+      _ => cert.publicKeyAlgorithm,
+    };
+    final size = switch (cert.publicKeyAlgorithm) {
+      '1.3.101.112' || '1.3.101.110' => BigInt.from(256),
+      _ => cert.publicKeySize,
+    };
+    if (size == BigInt.zero) {
+      return algorithm;
+    }
+    return '$algorithm, $size bits';
+  }
+
+  bool _slotHasKey(String slotNumber) {
+    return controller.slots[int.parse(slotNumber, radix: 16)] != null;
+  }
+
+  bool _slotHasCertificate(String slotNumber) {
+    return controller.slots[int.parse(slotNumber, radix: 16)]?.certBytes !=
+        null;
+  }
+
+  bool _isCertificateOnlySlot(String slotNumber) {
+    return slotNumber != '9A' &&
+        slotNumber != '9C' &&
+        slotNumber != '9D' &&
+        slotNumber != '9E';
+  }
+
+  Future<bool> _confirmOverwriteKey({
+    required String slotNumber,
+    required String action,
+  }) async {
+    final slot = controller.slots[int.parse(slotNumber, radix: 16)];
+    if (slot == null) {
+      return true;
+    }
+
+    final c = Completer<bool>();
+    Get.dialog(Dialog(
+      child: SizedBox(
+        width: 420,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: Spacing.all(16),
+              child: CustomizedText.labelLarge(
+                  _t(en: 'Overwrite Key', zh: '覆盖密钥')),
+            ),
+            Divider(height: 0, thickness: 1),
+            Padding(
+              padding: Spacing.all(16),
+              child: CustomizedText.bodyMedium(
+                _t(
+                    en: '$action will replace the private key in slot $slotNumber. Existing authentication or signing that depends on this key may stop working.',
+                    zh: '$action 将替换 $slotNumber 槽中的私钥。依赖此密钥的认证或签名可能会失效。'),
+                color: contentTheme.danger,
+              ),
+            ),
+            Divider(height: 0, thickness: 1),
+            Padding(
+              padding: Spacing.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CustomizedButton.rounded(
+                    onPressed: () {
+                      if (!c.isCompleted) c.complete(false);
+                      Get.back();
+                    },
+                    elevation: 0,
+                    backgroundColor: contentTheme.secondary,
+                    child: CustomizedText.labelMedium(S.of(context).cancel,
+                        color: contentTheme.onSecondary),
+                  ),
+                  Spacing.width(12),
+                  CustomizedButton.rounded(
+                    onPressed: () {
+                      if (!c.isCompleted) c.complete(true);
+                      Get.back();
+                    },
+                    elevation: 0,
+                    backgroundColor: contentTheme.danger,
+                    child: CustomizedText.labelMedium(
+                        _t(en: 'Overwrite', zh: '覆盖'),
+                        color: contentTheme.onDanger),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    )).whenComplete(() {
+      if (!c.isCompleted) c.complete(false);
+    });
+    return c.future;
   }
 
   @override
@@ -572,6 +674,59 @@ class _PivPageState extends State<PivPage>
     return true;
   }
 
+  String _managementKeyAuthModeTitle(bool usePinOnly) {
+    return usePinOnly
+        ? S.of(context).pivPinProtectedKeyOnCard
+        : S.of(context).pivManualManagementKey;
+  }
+
+  String _managementKeyAuthModeDescription(bool usePinOnly) {
+    return usePinOnly
+        ? _t(
+            en: 'Use the PIN to unlock the management key stored on this card.',
+            zh: '使用 PIN 解锁保存在卡内的管理密钥。')
+        : _t(
+            en: 'Enter the 24-byte management key for this operation.',
+            zh: '为本次操作输入 24 字节管理密钥。');
+  }
+
+  Widget _buildManagementKeyAuthModeControl({
+    required bool usePinOnly,
+    required ValueChanged<bool> onChanged,
+  }) {
+    if (!controller.pinOnlyMode) {
+      return SizedBox.shrink();
+    }
+
+    Widget option(bool value) => RadioListTile<bool>(
+          value: value,
+          contentPadding: EdgeInsets.zero,
+          dense: true,
+          title: Text(_managementKeyAuthModeTitle(value)),
+          subtitle: Text(_managementKeyAuthModeDescription(value)),
+        );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomizedText.bodySmall(
+          S.of(context).pivManagementKeyAuthentication,
+          fontWeight: 600,
+        ),
+        RadioGroup<bool>(
+          groupValue: usePinOnly,
+          onChanged: (value) => onChanged(value ?? usePinOnly),
+          child: Column(
+            children: [
+              option(true),
+              option(false),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   void _showSetPinRetriesDialog() {
     bool usePinOnly = controller.pinOnlyMode;
     FormValidator validator = FormValidator();
@@ -637,22 +792,19 @@ class _PivPageState extends State<PivPage>
                       ),
                       if (controller.pinOnlyMode) ...[
                         Spacing.height(12),
-                        CheckboxListTile(
-                          value: usePinOnly,
+                        _buildManagementKeyAuthModeControl(
+                          usePinOnly: usePinOnly,
                           onChanged: (value) =>
-                              setDialogState(() => usePinOnly = value ?? true),
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(_t(
-                              en: 'Use PIN-only management key',
-                              zh: '使用 PIN-only 管理密钥')),
+                              setDialogState(() => usePinOnly = value),
                         ),
                       ],
-                      Spacing.height(16),
-                      _buildManagementKeyField(
-                        validator,
-                        'managementKey',
-                        enabled: !usePinOnly,
-                      ),
+                      if (!usePinOnly) ...[
+                        Spacing.height(16),
+                        _buildManagementKeyField(
+                          validator,
+                          'managementKey',
+                        ),
+                      ],
                       Spacing.height(16),
                       Row(
                         children: [
@@ -769,8 +921,8 @@ class _PivPageState extends State<PivPage>
           children: [
             Padding(
               padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(
-                  _t(en: 'Enable PIN-only Mode', zh: '启用 PIN-only 模式')),
+              child: CustomizedText.labelLarge(_t(
+                  en: 'Use PIN-Protected Management Key', zh: '使用 PIN 保护管理密钥')),
             ),
             Divider(height: 0, thickness: 1),
             Padding(
@@ -831,16 +983,16 @@ class _PivPageState extends State<PivPage>
                         if (!ok) {
                           Prompts.showPrompt(
                               _t(
-                                  en: 'Enable PIN-only failed',
-                                  zh: '启用 PIN-only 模式失败'),
+                                  en: 'Failed to store a PIN-protected management key',
+                                  zh: '保存 PIN 保护管理密钥失败'),
                               ContentThemeColor.danger);
                           return;
                         }
                         await controller.refreshData();
                         Prompts.showPrompt(
                             _t(
-                                en: 'PIN-only mode enabled',
-                                zh: 'PIN-only 模式已启用'),
+                                en: 'Management key is now PIN-protected',
+                                zh: '管理密钥已由 PIN 保护'),
                             ContentThemeColor.success);
                         Get.back();
                       } finally {
@@ -892,7 +1044,7 @@ class _PivPageState extends State<PivPage>
               Padding(
                 padding: Spacing.all(16),
                 child: CustomizedText.labelLarge(
-                    _t(en: 'Disable PIN-only Mode', zh: '禁用 PIN-only 模式')),
+                    _t(en: 'Return to Manual Management Key', zh: '改为手动管理密钥')),
               ),
               Divider(height: 0, thickness: 1),
               Padding(
@@ -918,22 +1070,19 @@ class _PivPageState extends State<PivPage>
                             labelText: 'PIN', border: outlineInputBorder),
                       ),
                       Spacing.height(12),
-                      CheckboxListTile(
-                        value: usePinOnly,
+                      _buildManagementKeyAuthModeControl(
+                        usePinOnly: usePinOnly,
                         onChanged: (value) =>
-                            setDialogState(() => usePinOnly = value ?? true),
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(_t(
-                            en: 'Use PIN-only management key',
-                            zh: '使用 PIN-only 管理密钥')),
+                            setDialogState(() => usePinOnly = value),
                       ),
-                      Spacing.height(16),
-                      _buildManagementKeyField(
-                        validator,
-                        'currentManagementKey',
-                        enabled: !usePinOnly,
-                        label: S.of(context).pivOldManagementKey,
-                      ),
+                      if (!usePinOnly) ...[
+                        Spacing.height(16),
+                        _buildManagementKeyField(
+                          validator,
+                          'currentManagementKey',
+                          label: S.of(context).pivOldManagementKey,
+                        ),
+                      ],
                       Spacing.height(16),
                       Row(children: [
                         Expanded(
@@ -1002,16 +1151,16 @@ class _PivPageState extends State<PivPage>
                           if (!ok) {
                             Prompts.showPrompt(
                                 _t(
-                                    en: 'Disable PIN-only failed',
-                                    zh: '禁用 PIN-only 模式失败'),
+                                    en: 'Failed to return to manual management key',
+                                    zh: '改为手动管理密钥失败'),
                                 ContentThemeColor.danger);
                             return;
                           }
                           await controller.refreshData();
                           Prompts.showPrompt(
                               _t(
-                                  en: 'PIN-only mode disabled',
-                                  zh: 'PIN-only 模式已禁用'),
+                                  en: 'Manual management key is now required',
+                                  zh: '之后需要手动输入管理密钥'),
                               ContentThemeColor.success);
                           Get.back();
                         } finally {
@@ -1194,23 +1343,20 @@ class _PivPageState extends State<PivPage>
                                 labelText: 'PIN', border: outlineInputBorder),
                           ),
                           Spacing.height(12),
-                          CheckboxListTile(
-                            value: usePinOnly,
-                            onChanged: (value) => setDialogState(
-                                () => usePinOnly = value ?? true),
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(_t(
-                                en: 'Use PIN-only management key',
-                                zh: '使用 PIN-only 管理密钥')),
+                          _buildManagementKeyAuthModeControl(
+                            usePinOnly: usePinOnly,
+                            onChanged: (value) =>
+                                setDialogState(() => usePinOnly = value),
                           ),
                         ],
-                        Spacing.height(16),
-                        _buildManagementKeyField(
-                          validator,
-                          'old',
-                          enabled: !usePinOnly,
-                          label: S.of(context).pivOldManagementKey,
-                        ),
+                        if (!usePinOnly) ...[
+                          Spacing.height(16),
+                          _buildManagementKeyField(
+                            validator,
+                            'old',
+                            label: S.of(context).pivOldManagementKey,
+                          ),
+                        ],
                         Spacing.height(16),
                         Row(children: [
                           Expanded(
@@ -1248,8 +1394,11 @@ class _PivPageState extends State<PivPage>
                                 () => storeOnDevice = value ?? true),
                             contentPadding: EdgeInsets.zero,
                             title: Text(_t(
-                                en: 'Keep PIN-only mode enabled',
-                                zh: '保持 PIN-only 模式启用')),
+                                en: 'Store the new management key on this card',
+                                zh: '将新管理密钥保存在卡内')),
+                            subtitle: Text(_t(
+                                en: 'When enabled, future management operations can authenticate with PIN.',
+                                zh: '启用后，后续管理操作可用 PIN 完成认证。')),
                           ),
                         ],
                       ]))),
@@ -1369,7 +1518,146 @@ class _PivPageState extends State<PivPage>
     return 'Retired $index';
   }
 
+  Widget _slotActionSection(String title, List<Widget> actions) {
+    if (actions.isEmpty) {
+      return SizedBox.shrink();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomizedText.bodySmall(
+          title,
+          fontWeight: 600,
+          color: contentTheme.onBackground.withAlpha(190),
+        ),
+        Spacing.height(8),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: actions,
+        ),
+      ],
+    );
+  }
+
+  Widget _slotActionButton({
+    required String text,
+    required VoidCallback onPressed,
+    bool danger = false,
+  }) {
+    return CustomizedButton.rounded(
+      onPressed: onPressed,
+      elevation: 0,
+      padding: Spacing.xy(20, 16),
+      backgroundColor: danger ? contentTheme.danger : contentTheme.primary,
+      child: CustomizedText.labelMedium(
+        text,
+        color: danger ? contentTheme.onDanger : contentTheme.onPrimary,
+      ),
+    );
+  }
+
   void _showSlotDetailDialog(String title, String slotNumber, SlotInfo? slot) {
+    final isX25519Slot = slot?.algorithm == AlgorithmType.x25519;
+    final canGenerateX25519Key =
+        slotNumber == '9D' && (slot == null || isX25519Slot);
+    final canUseCertificateWorkflows = !isX25519Slot;
+    final provisioningActions = <Widget>[
+      if (canUseCertificateWorkflows) ...[
+        _slotActionButton(
+          text: 'Generate CSR',
+          onPressed: () {
+            Navigator.pop(Get.context!);
+            _showGenerateDialog(slotNumber, selfSigned: false);
+          },
+        ),
+        _slotActionButton(
+          text: 'Self-sign',
+          onPressed: () {
+            Navigator.pop(Get.context!);
+            _showGenerateDialog(slotNumber, selfSigned: true);
+          },
+        ),
+      ],
+      if (canGenerateX25519Key)
+        _slotActionButton(
+          text: 'Generate X25519 Key',
+          onPressed: () {
+            Navigator.pop(Get.context!);
+            _showGenerateKeyDialog(slotNumber);
+          },
+        ),
+      _slotActionButton(
+        text: S.of(context).pivImport,
+        onPressed: () {
+          Navigator.pop(Get.context!);
+          _showImportDialog(slotNumber);
+        },
+      ),
+    ];
+    final exportActions = <Widget>[
+      if (slot != null)
+        _slotActionButton(
+          text: 'Export Public Key',
+          onPressed: () {
+            Navigator.pop(Get.context!);
+            _showExportPublicKeyDialog(slot);
+          },
+        ),
+      if (slot?.certBytes != null)
+        _slotActionButton(
+          text: S.of(context).pivExportCertificate,
+          onPressed: () {
+            Navigator.pop(Get.context!);
+            _showExportDialog(slot!);
+          },
+        ),
+    ];
+    final diagnosticActions = <Widget>[
+      if (slot?.algorithm == AlgorithmType.x25519)
+        _slotActionButton(
+          text: 'Derive Secret',
+          onPressed: () {
+            Navigator.pop(Get.context!);
+            _showDeriveSecretDialog(slotNumber);
+          },
+        ),
+      if (slot != null && slot.algorithm != AlgorithmType.x25519) ...[
+        _slotActionButton(
+          text: 'Sign / Verify',
+          onPressed: () {
+            Navigator.pop(Get.context!);
+            _showSignVerifyDialog(slotNumber, slot);
+          },
+        ),
+        _slotActionButton(
+          text: _t(en: 'Sign File', zh: '签名文件'),
+          onPressed: () {
+            Navigator.pop(Get.context!);
+            _showFileSignDialog(slotNumber, slot);
+          },
+        ),
+        _slotActionButton(
+          text: _t(en: 'Verify File', zh: '验证文件'),
+          onPressed: () {
+            Navigator.pop(Get.context!);
+            _showFileVerifyDialog(slot);
+          },
+        ),
+      ],
+    ];
+    final dangerActions = <Widget>[
+      if (slot != null)
+        _slotActionButton(
+          text: _t(en: 'Clear Slot', zh: '清空槽'),
+          danger: true,
+          onPressed: () {
+            Navigator.pop(Get.context!);
+            _showDeleteDialog(slotNumber);
+          },
+        ),
+    ];
+
     Get.dialog(Dialog(
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -1502,149 +1790,25 @@ class _PivPageState extends State<PivPage>
               ],
               Padding(
                 padding: Spacing.all(16),
-                child: Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 12,
-                  runSpacing: 12,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (slot?.algorithm != AlgorithmType.x25519) ...[
-                      CustomizedButton.rounded(
-                        onPressed: () {
-                          Navigator.pop(Get.context!);
-                          _showGenerateDialog(slotNumber, selfSigned: false);
-                        },
-                        elevation: 0,
-                        padding: Spacing.xy(20, 16),
-                        backgroundColor: contentTheme.primary,
-                        child: CustomizedText.labelMedium('Generate CSR',
-                            color: contentTheme.onSecondary),
-                      ),
-                      CustomizedButton.rounded(
-                        onPressed: () {
-                          Navigator.pop(Get.context!);
-                          _showGenerateDialog(slotNumber, selfSigned: true);
-                        },
-                        elevation: 0,
-                        padding: Spacing.xy(20, 16),
-                        backgroundColor: contentTheme.primary,
-                        child: CustomizedText.labelMedium('Self-sign',
-                            color: contentTheme.onSecondary),
-                      ),
+                    _slotActionSection(
+                        _t(en: 'Provisioning', zh: '配置'), provisioningActions),
+                    if (exportActions.isNotEmpty) ...[
+                      Spacing.height(16),
+                      _slotActionSection(
+                          _t(en: 'Export', zh: '导出'), exportActions),
                     ],
-                    CustomizedButton.rounded(
-                      onPressed: () {
-                        Navigator.pop(Get.context!);
-                        _showGenerateKeyDialog(slotNumber);
-                      },
-                      elevation: 0,
-                      padding: Spacing.xy(20, 16),
-                      backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium('Generate Key',
-                          color: contentTheme.onPrimary),
-                    ),
-                    if (slot?.algorithm == AlgorithmType.x25519)
-                      CustomizedButton.rounded(
-                        onPressed: () {
-                          Navigator.pop(Get.context!);
-                          _showDeriveSecretDialog(slotNumber);
-                        },
-                        elevation: 0,
-                        padding: Spacing.xy(20, 16),
-                        backgroundColor: contentTheme.primary,
-                        child: CustomizedText.labelMedium('Derive Secret',
-                            color: contentTheme.onPrimary),
-                      ),
-                    CustomizedButton.rounded(
-                      onPressed: () async {
-                        // if (cachedManagementKey == null) {
-                        //   if (!await _showVerifyManagementKeyDialog()) {
-                        //     return;
-                        //   }
-                        // }
-                        Navigator.pop(Get.context!);
-                        _showImportDialog(slotNumber);
-                      },
-                      elevation: 0,
-                      padding: Spacing.xy(20, 16),
-                      backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium(S.of(context).pivImport,
-                          color: contentTheme.onPrimary),
-                    ),
-                    if (slot != null) ...[
-                      if (slot.algorithm != AlgorithmType.x25519)
-                        CustomizedButton.rounded(
-                          onPressed: () {
-                            Navigator.pop(Get.context!);
-                            _showSignVerifyDialog(slotNumber, slot);
-                          },
-                          elevation: 0,
-                          padding: Spacing.xy(20, 16),
-                          backgroundColor: contentTheme.primary,
-                          child: CustomizedText.labelMedium('Sign / Verify',
-                              color: contentTheme.onPrimary),
-                        ),
-                      if (slot.algorithm != AlgorithmType.x25519)
-                        CustomizedButton.rounded(
-                          onPressed: () {
-                            Navigator.pop(Get.context!);
-                            _showFileSignDialog(slotNumber, slot);
-                          },
-                          elevation: 0,
-                          padding: Spacing.xy(20, 16),
-                          backgroundColor: contentTheme.primary,
-                          child: CustomizedText.labelMedium(
-                              _t(en: 'Sign File', zh: '签名文件'),
-                              color: contentTheme.onPrimary),
-                        ),
-                      if (slot.algorithm != AlgorithmType.x25519)
-                        CustomizedButton.rounded(
-                          onPressed: () {
-                            Navigator.pop(Get.context!);
-                            _showFileVerifyDialog(slot);
-                          },
-                          elevation: 0,
-                          padding: Spacing.xy(20, 16),
-                          backgroundColor: contentTheme.primary,
-                          child: CustomizedText.labelMedium(
-                              _t(en: 'Verify File', zh: '验证文件'),
-                              color: contentTheme.onPrimary),
-                        ),
-                      CustomizedButton.rounded(
-                        onPressed: () {
-                          Navigator.pop(Get.context!);
-                          _showExportPublicKeyDialog(slot);
-                        },
-                        elevation: 0,
-                        padding: Spacing.xy(20, 16),
-                        backgroundColor: contentTheme.primary,
-                        child: CustomizedText.labelMedium('Export Public Key',
-                            color: contentTheme.onPrimary),
-                      ),
-                      if (slot.certBytes != null)
-                        CustomizedButton.rounded(
-                          onPressed: () {
-                            Navigator.pop(Get.context!);
-                            _showExportDialog(slot);
-                          },
-                          elevation: 0,
-                          padding: Spacing.xy(20, 16),
-                          backgroundColor: contentTheme.primary,
-                          child: CustomizedText.labelMedium(
-                              S.of(context).pivExportCertificate,
-                              color: contentTheme.onPrimary),
-                        ),
-                      CustomizedButton.rounded(
-                        onPressed: () {
-                          Navigator.pop(Get.context!);
-                          _showDeleteDialog(slotNumber);
-                        },
-                        elevation: 0,
-                        padding: Spacing.xy(20, 16),
-                        backgroundColor: contentTheme.danger,
-                        child: CustomizedText.labelMedium(
-                            S.of(context).pivDelete,
-                            color: contentTheme.onDanger),
-                      ),
+                    if (diagnosticActions.isNotEmpty) ...[
+                      Spacing.height(16),
+                      _slotActionSection(
+                          _t(en: 'Diagnostics', zh: '诊断'), diagnosticActions),
+                    ],
+                    if (dangerActions.isNotEmpty) ...[
+                      Spacing.height(16),
+                      _slotActionSection(
+                          _t(en: 'Danger Zone', zh: '危险操作'), dangerActions),
                     ],
                   ],
                 ),
@@ -2242,6 +2406,8 @@ class _PivPageState extends State<PivPage>
     Rx<bool> hasKey = false.obs;
     Rx<bool> selected = false.obs;
     Rx<String> parseMessage = ''.obs;
+    RxList<String> importWarnings = <String>[].obs;
+    RxList<String> importErrors = <String>[].obs;
     PinPolicy pinPolicy =
         slotNumber == '9C' ? PinPolicy.always : PinPolicy.once;
     TouchPolicy touchPolicy = TouchPolicy.never;
@@ -2264,6 +2430,67 @@ class _PivPageState extends State<PivPage>
     X509CertData? cert;
     Uint8List? certBytes;
 
+    bool certificateMatchesSelectedKey() {
+      if (certBytes == null || !hasKey.value) {
+        return true;
+      }
+      return _certificateMatchesPrivateKey(
+        certBytes: certBytes!,
+        ecPrivateKey: ecPrivateKey,
+        rsaPrivateKey: rsaPrivateKey,
+        edPrivateKey: edPrivateKey,
+      );
+    }
+
+    bool validateSelectedImport() {
+      if (importErrors.isNotEmpty) {
+        Prompts.showPrompt(importErrors.first, ContentThemeColor.danger);
+        return false;
+      }
+      return true;
+    }
+
+    void analyzeSelectedImport() {
+      importWarnings.clear();
+      importErrors.clear();
+
+      final algorithm = _selectedImportAlgorithm(
+        ecPrivateKey: ecPrivateKey,
+        rsaPrivateKey: rsaPrivateKey,
+        edPrivateKey: edPrivateKey,
+      );
+
+      if (_isCertificateOnlySlot(slotNumber) && hasKey.value) {
+        importErrors.add(S.of(context).pivRetiredSlotsCertificateOnly);
+      }
+      if (slotNumber != '9D' && algorithm == AlgorithmType.x25519) {
+        importErrors.add(S.of(context).pivX25519OnlyIn9D);
+      }
+      if (certBytes != null &&
+          hasKey.value &&
+          !certificateMatchesSelectedKey()) {
+        importErrors.add(S.of(context).pivCertificateDoesNotMatchPrivateKey);
+      }
+      if (certBytes != null && algorithm == AlgorithmType.x25519) {
+        importErrors.add(S.of(context).pivX25519CannotUseCertificate);
+      }
+
+      if (hasKey.value && _slotHasKey(slotNumber)) {
+        importWarnings.add(S.of(context).pivImportWillReplacePrivateKey);
+      }
+      if (certBytes != null && _slotHasCertificate(slotNumber)) {
+        importWarnings.add(S.of(context).pivImportWillReplaceCertificate);
+      }
+      if (certBytes != null && !hasKey.value && _slotHasKey(slotNumber)) {
+        importWarnings.add(S.of(context).pivCertificateOnlyKeepsPrivateKey);
+      }
+      if (certBytes == null &&
+          hasKey.value &&
+          _slotHasCertificate(slotNumber)) {
+        importWarnings.add(S.of(context).pivKeyOnlyKeepsCertificate);
+      }
+    }
+
     void nextStep() async {
       if (step.value == 0) {
         if (!authValidator.validateForm()) return;
@@ -2283,6 +2510,9 @@ class _PivPageState extends State<PivPage>
               ContentThemeColor.danger);
           return;
         }
+        if (!validateSelectedImport()) {
+          return;
+        }
         setState(() => step.value++);
         return;
       }
@@ -2291,19 +2521,14 @@ class _PivPageState extends State<PivPage>
         return;
       }
 
-      if (certBytes != null &&
-          hasKey.value &&
-          !_certificateMatchesPrivateKey(
-            certBytes: certBytes!,
-            ecPrivateKey: ecPrivateKey,
-            rsaPrivateKey: rsaPrivateKey,
-            edPrivateKey: edPrivateKey,
-          )) {
-        Prompts.showPrompt(
-            _t(
-                en: 'The certificate public key does not match the selected private key.',
-                zh: '证书公钥与所选私钥不匹配。'),
-            ContentThemeColor.danger);
+      if (!validateSelectedImport()) {
+        return;
+      }
+
+      if (hasKey.value &&
+          !await _confirmOverwriteKey(
+              slotNumber: slotNumber,
+              action: _t(en: 'Importing a private key', zh: '导入私钥'))) {
         return;
       }
 
@@ -2353,6 +2578,8 @@ class _PivPageState extends State<PivPage>
       cert = null;
       certBytes = null;
       parseMessage.value = '';
+      importWarnings.clear();
+      importErrors.clear();
     }
 
     void parsePem(Uint8List bytes) {
@@ -2434,6 +2661,7 @@ class _PivPageState extends State<PivPage>
             en: 'Unsupported file. Use PEM or DER certificate/private key files.',
             zh: '不支持的文件。请使用 PEM 或 DER 格式的证书/私钥文件。');
       }
+      analyzeSelectedImport();
     }
 
     String keySummary() {
@@ -2503,22 +2731,19 @@ class _PivPageState extends State<PivPage>
                         ),
                         if (controller.pinOnlyMode) ...[
                           Spacing.height(12),
-                          CheckboxListTile(
-                            value: usePinOnly,
-                            onChanged: (value) => setDialogState(
-                                () => usePinOnly = value ?? true),
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(_t(
-                                en: 'Use PIN-only management key',
-                                zh: '使用 PIN-only 管理密钥')),
+                          _buildManagementKeyAuthModeControl(
+                            usePinOnly: usePinOnly,
+                            onChanged: (value) =>
+                                setDialogState(() => usePinOnly = value),
                           ),
                         ],
-                        Spacing.height(18),
-                        _buildManagementKeyField(
-                          authValidator,
-                          'managementKey',
-                          enabled: !usePinOnly,
-                        ),
+                        if (!usePinOnly) ...[
+                          Spacing.height(18),
+                          _buildManagementKeyField(
+                            authValidator,
+                            'managementKey',
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -2580,6 +2805,25 @@ class _PivPageState extends State<PivPage>
                                   color: contentTheme.danger,
                                 ),
                               ),
+                            if (importErrors.isNotEmpty) ...[
+                              Spacing.height(8),
+                              for (final message in importErrors)
+                                CustomizedText.bodySmall(
+                                  message,
+                                  color: contentTheme.danger,
+                                  textAlign: TextAlign.center,
+                                ),
+                            ],
+                            if (importErrors.isEmpty &&
+                                importWarnings.isNotEmpty) ...[
+                              Spacing.height(8),
+                              for (final message in importWarnings)
+                                CustomizedText.bodySmall(
+                                  message,
+                                  color: contentTheme.warning,
+                                  textAlign: TextAlign.center,
+                                ),
+                            ],
                           ],
                         ),
                       ),
@@ -2652,27 +2896,27 @@ class _PivPageState extends State<PivPage>
                       if (certBytes != null && hasKey.value) ...[
                         Spacing.height(8),
                         CustomizedText.bodyMedium(
-                          _certificateMatchesPrivateKey(
-                            certBytes: certBytes!,
-                            ecPrivateKey: ecPrivateKey,
-                            rsaPrivateKey: rsaPrivateKey,
-                            edPrivateKey: edPrivateKey,
-                          )
+                          certificateMatchesSelectedKey()
                               ? _t(
                                   en: 'Certificate matches the private key',
                                   zh: '证书与私钥匹配')
                               : _t(
                                   en: 'Certificate does not match the private key',
                                   zh: '证书与私钥不匹配'),
-                          color: _certificateMatchesPrivateKey(
-                            certBytes: certBytes!,
-                            ecPrivateKey: ecPrivateKey,
-                            rsaPrivateKey: rsaPrivateKey,
-                            edPrivateKey: edPrivateKey,
-                          )
+                          color: certificateMatchesSelectedKey()
                               ? contentTheme.success
                               : contentTheme.danger,
                         ),
+                      ],
+                      if (importWarnings.isNotEmpty) ...[
+                        Spacing.height(12),
+                        for (final message in importWarnings) ...[
+                          CustomizedText.bodySmall(
+                            message,
+                            color: contentTheme.warning,
+                          ),
+                          Spacing.height(4),
+                        ],
                       ],
                       Spacing.height(8),
                       CustomizedText.bodyMedium(
@@ -2735,6 +2979,13 @@ class _PivPageState extends State<PivPage>
       if (!subjectValidator.validateForm()) return;
       if (!_validateManagementKeyInput(
           pinValidator, 'managementKey', usePinOnly)) {
+        return;
+      }
+      if (!await _confirmOverwriteKey(
+          slotNumber: slotNumber,
+          action: selfSigned
+              ? _t(en: 'Creating a self-signed certificate', zh: '创建自签证书')
+              : _t(en: 'Generating a CSR', zh: '生成 CSR'))) {
         return;
       }
 
@@ -2911,20 +3162,19 @@ class _PivPageState extends State<PivPage>
                             ),
                             if (controller.pinOnlyMode) ...[
                               Spacing.height(12),
-                              CheckboxListTile(
-                                value: usePinOnly,
+                              _buildManagementKeyAuthModeControl(
+                                usePinOnly: usePinOnly,
                                 onChanged: (value) =>
-                                    setState(() => usePinOnly = value ?? true),
-                                contentPadding: EdgeInsets.zero,
-                                title: Text('Use PIN-only management key'),
+                                    setState(() => usePinOnly = value),
                               ),
                             ],
-                            Spacing.height(18),
-                            _buildManagementKeyField(
-                              pinValidator,
-                              'managementKey',
-                              enabled: !usePinOnly,
-                            ),
+                            if (!usePinOnly) ...[
+                              Spacing.height(18),
+                              _buildManagementKeyField(
+                                pinValidator,
+                                'managementKey',
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -3091,7 +3341,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showGenerateKeyDialog(String slotNumber) {
-    AlgorithmType algorithm = AlgorithmType.eccp256;
+    final algorithm = AlgorithmType.x25519;
     PinPolicy pinPolicy =
         slotNumber == '9C' ? PinPolicy.always : PinPolicy.once;
     TouchPolicy touchPolicy = TouchPolicy.never;
@@ -3119,7 +3369,7 @@ class _PivPageState extends State<PivPage>
             children: [
               Padding(
                 padding: Spacing.all(16),
-                child: CustomizedText.labelLarge('Generate Key'),
+                child: CustomizedText.labelLarge('Generate X25519 Key'),
               ),
               Divider(height: 0, thickness: 1),
               Padding(
@@ -3139,42 +3389,19 @@ class _PivPageState extends State<PivPage>
                       ),
                       if (controller.pinOnlyMode) ...[
                         Spacing.height(12),
-                        CheckboxListTile(
-                          value: usePinOnly,
+                        _buildManagementKeyAuthModeControl(
+                          usePinOnly: usePinOnly,
                           onChanged: (value) =>
-                              setDialogState(() => usePinOnly = value ?? true),
-                          contentPadding: EdgeInsets.zero,
-                          title: Text('Use PIN-only management key'),
+                              setDialogState(() => usePinOnly = value),
                         ),
                       ],
-                      Spacing.height(18),
-                      _buildManagementKeyField(
-                        validator,
-                        'managementKey',
-                        enabled: !usePinOnly,
-                      ),
-                      Spacing.height(18),
-                      DropdownButtonFormField(
-                        initialValue: algorithm,
-                        items: [
-                          AlgorithmType.eccp256,
-                          AlgorithmType.eccp384,
-                          AlgorithmType.secp256k1,
-                          AlgorithmType.sm2,
-                          AlgorithmType.ed25519,
-                          AlgorithmType.x25519,
-                          AlgorithmType.rsa2048,
-                          AlgorithmType.rsa3072,
-                          AlgorithmType.rsa4096,
-                        ]
-                            .map((e) => DropdownMenuItem(
-                                value: e, child: Text(e.name.toUpperCase())))
-                            .toList(),
-                        onChanged: (value) =>
-                            setDialogState(() => algorithm = value!),
-                        decoration: InputDecoration(labelText: 'Algorithm'),
-                        dropdownColor: contentTheme.background,
-                      ),
+                      if (!usePinOnly) ...[
+                        Spacing.height(18),
+                        _buildManagementKeyField(
+                          validator,
+                          'managementKey',
+                        ),
+                      ],
                       Spacing.height(18),
                       DropdownButtonFormField(
                         initialValue: pinPolicy,
@@ -3232,6 +3459,13 @@ class _PivPageState extends State<PivPage>
                             validator, 'managementKey', usePinOnly)) {
                           return;
                         }
+                        if (!await _confirmOverwriteKey(
+                            slotNumber: slotNumber,
+                            action: _t(
+                                en: 'Generating an X25519 key',
+                                zh: '生成 X25519 密钥'))) {
+                          return;
+                        }
                         Get.context!.loaderOverlay.show();
                         try {
                           final ok = await controller.generateKey(
@@ -3243,13 +3477,13 @@ class _PivPageState extends State<PivPage>
                               validator.getController('managementKey')!.text,
                               usePinOnly);
                           if (!ok) {
-                            Prompts.showPrompt('Generate Key Failed',
+                            Prompts.showPrompt('Generate X25519 Key Failed',
                                 ContentThemeColor.danger);
                             return;
                           }
                           await controller.refreshData();
-                          Prompts.showPrompt(
-                              'Key Generated', ContentThemeColor.success);
+                          Prompts.showPrompt('X25519 Key Generated',
+                              ContentThemeColor.success);
                           Navigator.pop(Get.context!);
                         } finally {
                           Get.context!.loaderOverlay.hide();
@@ -3257,7 +3491,7 @@ class _PivPageState extends State<PivPage>
                       },
                       elevation: 0,
                       backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium('Generate',
+                      child: CustomizedText.labelMedium('Generate X25519',
                           color: contentTheme.onPrimary),
                     ),
                   ],
@@ -3577,50 +3811,133 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showDeleteDialog(String slotNumber) {
+    bool usePinOnly = controller.pinOnlyMode;
+    FormValidator validator = FormValidator();
+    validator.addField('pin',
+        required: true,
+        controller: TextEditingController(),
+        validators: [LengthValidator(min: 6, max: 8)]);
+    validator.addField('managementKey',
+        required: !usePinOnly,
+        controller: TextEditingController(),
+        validators: [
+          LengthValidator(exact: 48, required: !usePinOnly),
+          HexStringValidator(required: !usePinOnly)
+        ]);
+
     Get.dialog(Dialog(
-      child: SizedBox(
-        width: 400,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(S.of(context).delete),
-            ),
-            Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(
-                  S.of(context).pivDeleteSlot(slotNumber)),
-            ),
-            Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Row(
-                children: [
-                  CustomizedButton.rounded(
-                    onPressed: () => Get.back(),
-                    elevation: 0,
-                    backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).cancel,
-                        color: contentTheme.onSecondary),
-                  ),
-                  Spacing.width(12),
-                  CustomizedButton.rounded(
-                    onPressed: () async {
-                      await controller.delete(slotNumber);
-                      Get.back();
-                    },
-                    elevation: 0,
-                    backgroundColor: contentTheme.danger,
-                    child: CustomizedText.labelMedium(S.of(context).delete,
-                        color: contentTheme.onDanger),
-                  ),
-                ],
+      child: StatefulBuilder(
+        builder: (context, setDialogState) => SizedBox(
+          width: 460,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: Spacing.all(16),
+                child: CustomizedText.labelLarge(
+                    _t(en: 'Clear Slot $slotNumber', zh: '清空槽 $slotNumber')),
               ),
-            ),
-          ],
+              Divider(height: 0, thickness: 1),
+              Padding(
+                padding: Spacing.all(16),
+                child: Form(
+                  key: validator.formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomizedText.bodySmall(
+                        _t(
+                            en: 'This removes both the private key and certificate from this slot. Make sure you have another way to authenticate.',
+                            zh: '此操作会删除此槽中的私钥和证书。请确认您仍有其他认证方式。'),
+                        color: contentTheme.danger,
+                      ),
+                      Spacing.height(16),
+                      TextFormField(
+                        autofocus: true,
+                        onTap: SmartCard.eject,
+                        obscureText: true,
+                        controller: validator.getController('pin'),
+                        validator: validator.getValidator('pin'),
+                        decoration: InputDecoration(
+                            labelText: 'PIN', border: outlineInputBorder),
+                      ),
+                      if (controller.pinOnlyMode) ...[
+                        Spacing.height(12),
+                        _buildManagementKeyAuthModeControl(
+                          usePinOnly: usePinOnly,
+                          onChanged: (value) =>
+                              setDialogState(() => usePinOnly = value),
+                        ),
+                      ],
+                      if (!usePinOnly) ...[
+                        Spacing.height(16),
+                        _buildManagementKeyField(
+                          validator,
+                          'managementKey',
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              Divider(height: 0, thickness: 1),
+              Padding(
+                padding: Spacing.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    CustomizedButton.rounded(
+                      onPressed: () => Get.back(),
+                      elevation: 0,
+                      backgroundColor: contentTheme.secondary,
+                      child: CustomizedText.labelMedium(S.of(context).cancel,
+                          color: contentTheme.onSecondary),
+                    ),
+                    Spacing.width(12),
+                    CustomizedButton.rounded(
+                      onPressed: () async {
+                        if (!validator.validateForm()) return;
+                        if (!_validateManagementKeyInput(
+                            validator, 'managementKey', usePinOnly)) {
+                          return;
+                        }
+                        Get.context!.loaderOverlay.show();
+                        try {
+                          final ok = await controller.clearSlotAuthenticated(
+                            slot: slotNumber,
+                            pin: validator.getController('pin')!.text,
+                            managementKey:
+                                validator.getController('managementKey')!.text,
+                            usePinOnly: usePinOnly,
+                          );
+                          if (!ok) {
+                            Prompts.showPrompt(
+                                _t(
+                                    en: 'Clear slot failed. Make sure the firmware supports key deletion.',
+                                    zh: '清空槽失败。请确认固件支持删除私钥。'),
+                                ContentThemeColor.danger);
+                            return;
+                          }
+                          await controller.refreshData();
+                          Get.back();
+                          Prompts.showPrompt(_t(en: 'Slot cleared', zh: '槽已清空'),
+                              ContentThemeColor.success);
+                        } finally {
+                          Get.context!.loaderOverlay.hide();
+                        }
+                      },
+                      elevation: 0,
+                      backgroundColor: contentTheme.danger,
+                      child: CustomizedText.labelMedium(
+                          _t(en: 'Clear Slot', zh: '清空槽'),
+                          color: contentTheme.onDanger),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     ));

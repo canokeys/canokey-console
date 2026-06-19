@@ -89,8 +89,10 @@ class PivPinManagementCard extends StatelessWidget {
                 Spacing.height(16),
                 InfoItem(
                   iconData: LucideIcons.shieldCheck,
-                  title: 'PIN-only mode',
-                  value: pinOnlyMode ? S.of(context).on : S.of(context).off,
+                  title: S.of(context).pivManagementKeyAuthentication,
+                  value: pinOnlyMode
+                      ? S.of(context).pivPinProtectedKeyOnCard
+                      : S.of(context).pivManualManagementKey,
                   onTap: onTogglePinOnlyMode,
                 ),
                 Spacing.height(16),

@@ -35,6 +35,17 @@ fn gen_x590_meta(cert: X509Certificate<'_>) -> X509CertData {
         .subject_pki
         .parsed()
         .expect("cannot parse public key from X.509");
+    let public_key_algorithm = cert
+        .tbs_certificate
+        .subject_pki
+        .algorithm
+        .oid()
+        .to_id_string();
+    let public_key_size = match public_key_algorithm.as_str() {
+        // RFC 8410: id-X25519 and id-Ed25519 public keys are 32 octets.
+        "1.3.101.110" | "1.3.101.112" => 256,
+        _ => pk.key_size(),
+    };
     X509CertData {
         bytes: cert.as_ref().to_vec(),
         subject: cert.subject().to_string(),
@@ -44,13 +55,8 @@ fn gen_x590_meta(cert: X509Certificate<'_>) -> X509CertData {
         serial_number: format!("{:X}", cert.tbs_certificate.serial),
         signature_algorithm: cert.tbs_certificate.signature.algorithm.to_string(),
         signature_value: cert.signature_value.data.to_vec(),
-        public_key_algorithm: cert
-            .tbs_certificate
-            .subject_pki
-            .algorithm
-            .oid()
-            .to_id_string(),
-        public_key_size: pk.key_size(),
+        public_key_algorithm,
+        public_key_size,
     }
 }
 

@@ -215,6 +215,12 @@ class MessageLookup extends MessageLookupByLibrary {
           "卡认证（Card Authentication）",
         ),
         "pivCertificate": MessageLookupByLibrary.simpleMessage("证书"),
+        "pivCertificateDoesNotMatchPrivateKey":
+            MessageLookupByLibrary.simpleMessage("证书公钥与所选私钥不匹配。"),
+        "pivCertificateOnlyKeepsPrivateKey":
+            MessageLookupByLibrary.simpleMessage(
+          "只导入证书不会改变私钥。请确认该证书属于卡内已有私钥。",
+        ),
         "pivChangeManagementKey":
             MessageLookupByLibrary.simpleMessage("修改管理密钥"),
         "pivChangeManagementKeyPrompt": MessageLookupByLibrary.simpleMessage(
@@ -228,15 +234,27 @@ class MessageLookup extends MessageLookupByLibrary {
         "pivExportCertificate": MessageLookupByLibrary.simpleMessage("导出证书"),
         "pivGenerate": MessageLookupByLibrary.simpleMessage("生成"),
         "pivImport": MessageLookupByLibrary.simpleMessage("导入"),
+        "pivImportWillReplaceCertificate":
+            MessageLookupByLibrary.simpleMessage("本次导入会替换此槽中现有的证书。"),
+        "pivImportWillReplacePrivateKey":
+            MessageLookupByLibrary.simpleMessage("本次导入会替换此槽中现有的私钥。"),
+        "pivKeyOnlyKeepsCertificate": MessageLookupByLibrary.simpleMessage(
+          "只导入私钥会保留现有证书。如证书不再匹配，请替换或清空证书。",
+        ),
         "pivKeyManagement": MessageLookupByLibrary.simpleMessage(
           "密钥管理（Key Management）",
         ),
         "pivManagementKey": MessageLookupByLibrary.simpleMessage("管理密钥"),
+        "pivManagementKeyAuthentication":
+            MessageLookupByLibrary.simpleMessage("管理密钥认证"),
         "pivManagementKeyVerificationFailed":
             MessageLookupByLibrary.simpleMessage(
           "管理密钥验证失败",
         ),
+        "pivManualManagementKey":
+            MessageLookupByLibrary.simpleMessage("手动输入管理密钥"),
         "pivNewManagementKey": MessageLookupByLibrary.simpleMessage("新密钥"),
+        "pivNoCertificate": MessageLookupByLibrary.simpleMessage("无证书"),
         "pivNewPUK": MessageLookupByLibrary.simpleMessage("新 PUK"),
         "pivOldManagementKey": MessageLookupByLibrary.simpleMessage("当前密钥"),
         "pivOldPUK": MessageLookupByLibrary.simpleMessage("当前 PUK"),
@@ -244,6 +262,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "pivOriginGenerated": MessageLookupByLibrary.simpleMessage("内部生成"),
         "pivOriginImported": MessageLookupByLibrary.simpleMessage("外部导入"),
         "pivPinManagement": MessageLookupByLibrary.simpleMessage("管理 PIN"),
+        "pivPinProtectedKeyOnCard":
+            MessageLookupByLibrary.simpleMessage("卡内 PIN 保护密钥"),
         "pivPinPolicy": MessageLookupByLibrary.simpleMessage("PIN 策略"),
         "pivPinPolicyAlways": MessageLookupByLibrary.simpleMessage("总是验证"),
         "pivPinPolicyDefault": MessageLookupByLibrary.simpleMessage("默认"),
@@ -252,6 +272,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage("随机值"),
         "pivRetired1": MessageLookupByLibrary.simpleMessage("过期证书 1"),
         "pivRetired2": MessageLookupByLibrary.simpleMessage("过期证书 2"),
+        "pivRetiredSlotsCertificateOnly": MessageLookupByLibrary.simpleMessage(
+          "过期槽只应保存证书。请将私钥导入 9D，并把旧证书放在这里。",
+        ),
         "pivSignature": MessageLookupByLibrary.simpleMessage(
           "签名（Digital Signature）",
         ),
@@ -265,6 +288,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("默认值"),
         "pivVerifyManagementKey":
             MessageLookupByLibrary.simpleMessage("验证管理密钥"),
+        "pivX25519CannotUseCertificate":
+            MessageLookupByLibrary.simpleMessage("X25519 不能搭配证书使用。请只导入密钥。"),
+        "pivX25519OnlyIn9D":
+            MessageLookupByLibrary.simpleMessage("X25519 密钥只支持导入密钥管理槽 9D。"),
         "play": MessageLookupByLibrary.simpleMessage("播放"),
         "pollCanceled": MessageLookupByLibrary.simpleMessage("您没有选择任何 CanoKey"),
         "pollCanoKey":
