@@ -36,7 +36,10 @@ class WebAuthnController extends PollingController {
       webAuthnItems.clear();
 
       final cp = ClientPin(_ctap);
-      final cm = CredentialManagement(_ctap, cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(), pinToken);
+      final cm = CredentialManagement(
+          _ctap,
+          cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(),
+          pinToken);
       try {
         for (var rp in (await cm.enumerateRPs())) {
           for (var element in (await cm.enumerateCredentials(rp.rpIdHash))) {
@@ -70,21 +73,26 @@ class WebAuthnController extends PollingController {
         return;
       }
 
-      SmartCard.assertOK(await SmartCard.transceive('00A4040008A0000006472F0001'));
+      SmartCard.assertOK(
+          await SmartCard.transceive('00A4040008A0000006472F0001'));
       final cp = ClientPin(_ctap);
       try {
         await cp.changePin(pinToTry, newPin);
       } catch (e) {
         if (e is CtapError) {
           if (e.status == CtapStatusCode.ctap2ErrPinInvalid) {
-            Prompts.showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+            Prompts.showPrompt(
+                S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
           } else if (e.status == CtapStatusCode.ctap2ErrPinAuthBlocked) {
-            Prompts.showPrompt(S.of(Get.context!).webauthnPinAuthBlocked, ContentThemeColor.danger);
+            Prompts.showPrompt(S.of(Get.context!).webauthnPinAuthBlocked,
+                ContentThemeColor.danger);
           } else if (e.status == CtapStatusCode.ctap2ErrPinBlocked) {
-            Prompts.showPrompt(S.of(Get.context!).webauthnPinBlocked, ContentThemeColor.danger);
+            Prompts.showPrompt(S.of(Get.context!).webauthnPinBlocked,
+                ContentThemeColor.danger);
           } else {
             Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
           }
+          return;
         } else {
           rethrow;
         }
@@ -94,7 +102,9 @@ class WebAuthnController extends PollingController {
       log.i('Successfully changed PIN');
 
       Navigator.pop(Get.context!);
-      Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success, forceSnackBar: true);
+      Prompts.showPrompt(
+          S.of(Get.context!).pinChanged, ContentThemeColor.success,
+          forceSnackBar: true);
     });
   }
 
@@ -106,16 +116,23 @@ class WebAuthnController extends PollingController {
         return;
       }
 
-      SmartCard.assertOK(await SmartCard.transceive('00A4040008A0000006472F0001'));
+      SmartCard.assertOK(
+          await SmartCard.transceive('00A4040008A0000006472F0001'));
       final cp = ClientPin(_ctap);
-      final pinToken = await cp.getPinToken(pinToTry, permissions: [ClientPinPermission.credentialManagement]);
-      final cm = CredentialManagement(_ctap, cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(), pinToken);
+      final pinToken = await cp.getPinToken(pinToTry,
+          permissions: [ClientPinPermission.credentialManagement]);
+      final cm = CredentialManagement(
+          _ctap,
+          cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(),
+          pinToken);
       await cm.deleteCredential(credentialId);
       log.i('Successfully deleted credential');
 
       Navigator.pop(Get.context!);
-      Prompts.showPrompt(S.of(Get.context!).delete, ContentThemeColor.success, forceSnackBar: true);
-      webAuthnItems.removeWhere((element) => element.credentialId == credentialId);
+      Prompts.showPrompt(S.of(Get.context!).delete, ContentThemeColor.success,
+          forceSnackBar: true);
+      webAuthnItems
+          .removeWhere((element) => element.credentialId == credentialId);
       update();
     });
   }
@@ -142,8 +159,10 @@ class WebAuthnController extends PollingController {
     _ctap = await Ctap2.create(CtapTransimtter());
 
     // We do nothing if the device does not support credMgmt or clientPin
-    if (_ctap.info.options?['credMgmt'] != true || _ctap.info.options?['clientPin'] == null) {
-      Prompts.showPrompt(S.of(Get.context!).webauthnClientPinNotSupported, ContentThemeColor.danger);
+    if (_ctap.info.options?['credMgmt'] != true ||
+        _ctap.info.options?['clientPin'] == null) {
+      Prompts.showPrompt(S.of(Get.context!).webauthnClientPinNotSupported,
+          ContentThemeColor.danger);
       return null;
     }
 
@@ -192,7 +211,9 @@ class WebAuthnController extends PollingController {
         SmartCard.nfcState = NfcState.processWithInput;
         if (!await SmartCard.pollNfcOrWebUsb()) {
           Prompts.stopPromptAndroidPolling();
-          Prompts.showPrompt(S.of(Get.context!).noCard, ContentThemeColor.warning, level: 'W');
+          Prompts.showPrompt(
+              S.of(Get.context!).noCard, ContentThemeColor.warning,
+              level: 'W');
           return; // timeout, do not close the dialog
         }
         Prompts.stopPromptAndroidPolling();
@@ -203,7 +224,8 @@ class WebAuthnController extends PollingController {
           SmartCard.stopPollingNfc(withInput: true);
           log.e('_doGetPinToken failed', error: e);
           if (e.code == '500') {
-            Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger);
+            Prompts.showPrompt(
+                S.of(Get.context!).interrupted, ContentThemeColor.danger);
           }
         }
         if (pinToken != null) {
@@ -239,33 +261,46 @@ class WebAuthnController extends PollingController {
         SmartCard.nfcState = NfcState.processWithInput;
         if (!await SmartCard.pollNfcOrWebUsb()) {
           Prompts.stopPromptAndroidPolling();
-          Prompts.showPrompt(S.of(Get.context!).noCard, ContentThemeColor.warning, level: 'W');
+          Prompts.showPrompt(
+              S.of(Get.context!).noCard, ContentThemeColor.warning,
+              level: 'W');
           return; // timeout, do not close the dialog
         }
         Prompts.stopPromptAndroidPolling();
         try {
           // Set PIN and refresh by recreating Ctap2
-          String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
+          String resp =
+              await SmartCard.transceive('00A4040008A0000006472F0001');
           SmartCard.assertOK(resp);
           final cp = ClientPin(_ctap);
           await cp.setPin(pin);
+          // Update _ctap before continuing so later PIN-token operations see
+          // the authenticator's new clientPin state.
+          _ctap = await Ctap2.create(CtapTransimtter());
           log.i('setPin success');
         } on PlatformException catch (e) {
           SmartCard.stopPollingNfc(withInput: true);
           log.e('setPin failed', error: e);
           if (e.code == '500') {
-            Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger);
+            Prompts.showPrompt(
+                S.of(Get.context!).interrupted, ContentThemeColor.danger);
           }
+          return;
+        } catch (e, s) {
+          SmartCard.stopPollingNfc(withInput: true);
+          log.e('setPin failed', error: e, stackTrace: s);
+          Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
+          return;
         }
         await _setPinCache(sn, pin, savePin);
 
         // PIN set, close the dialog and prompt the user
         Navigator.pop(Get.context!);
-        Prompts.showPrompt(S.of(Get.context!).pinChanged, ContentThemeColor.success);
+        Prompts.showPrompt(
+            S.of(Get.context!).pinChanged, ContentThemeColor.success);
         // Since PIN has been cached, if error happens, we don't need to re-prompt
         SmartCard.nfcState = NfcState.processWithoutInput;
-        // Update _ctap
-        _ctap = await Ctap2.create(CtapTransimtter());
+        completer.complete(true);
       },
       onCancel: () async {
         SmartCard.nfcState = NfcState.idle;
@@ -280,14 +315,18 @@ class WebAuthnController extends PollingController {
       String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
       SmartCard.assertOK(resp);
       final cp = ClientPin(_ctap);
-      return await cp.getPinToken(pin, permissions: [ClientPinPermission.credentialManagement]);
+      return await cp.getPinToken(pin,
+          permissions: [ClientPinPermission.credentialManagement]);
     } on CtapError catch (e) {
       if (e.status == CtapStatusCode.ctap2ErrPinInvalid) {
-        Prompts.showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+        Prompts.showPrompt(
+            S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
       } else if (e.status == CtapStatusCode.ctap2ErrPinAuthBlocked) {
-        Prompts.showPrompt(S.of(Get.context!).webauthnPinAuthBlocked, ContentThemeColor.danger);
+        Prompts.showPrompt(S.of(Get.context!).webauthnPinAuthBlocked,
+            ContentThemeColor.danger);
       } else if (e.status == CtapStatusCode.ctap2ErrPinBlocked) {
-        Prompts.showPrompt(S.of(Get.context!).webauthnPinBlocked, ContentThemeColor.danger);
+        Prompts.showPrompt(
+            S.of(Get.context!).webauthnPinBlocked, ContentThemeColor.danger);
       } else {
         Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
       }
@@ -295,7 +334,8 @@ class WebAuthnController extends PollingController {
     }
   }
 
-  Future<void> _setPinCache(String sn, String pin, bool cachedInLocalStorage) async {
+  Future<void> _setPinCache(
+      String sn, String pin, bool cachedInLocalStorage) async {
     _localPinCache[sn] = pin;
     if (cachedInLocalStorage) {
       await LocalStorage.setPinCache(sn, _tag, pin);

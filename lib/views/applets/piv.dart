@@ -36,6 +36,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
+import 'package:platform_detector/platform_detector.dart';
 import 'package:pointycastle/asn1/primitives/asn1_bit_string.dart';
 import 'package:pointycastle/asn1/primitives/asn1_integer.dart';
 import 'package:pointycastle/asn1/primitives/asn1_null.dart';
@@ -358,11 +359,13 @@ class _PivPageState extends State<PivPage>
   Widget build(BuildContext context) {
     return Layout(
       title: 'PIV',
-      topActions: InkWell(
-        onTap: _refreshSlots,
-        child: Icon(LucideIcons.refreshCw,
-            size: 20, color: topBarTheme.onBackground),
-      ),
+      topActions: isWeb() || isIOSApp()
+          ? IconButton(
+              onPressed: _refreshSlots,
+              icon:
+                  Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
+            )
+          : Container(),
       child: GetBuilder(
         init: controller,
         builder: (_) {
