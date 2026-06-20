@@ -153,6 +153,7 @@ class _PivPageState extends State<PivPage>
     return switch (domainName) {
       'prime256v1' => AlgorithmType.eccp256,
       'secp384r1' => AlgorithmType.eccp384,
+      'secp521r1' => AlgorithmType.eccp521,
       'secp256k1' => AlgorithmType.secp256k1,
       _ => null,
     };
@@ -359,13 +360,25 @@ class _PivPageState extends State<PivPage>
   Widget build(BuildContext context) {
     return Layout(
       title: 'PIV',
-      topActions: isWeb() || isIOSApp()
-          ? IconButton(
+      topActions: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: _t(en: 'Algorithm IDs', zh: '算法 ID'),
+            onPressed: controller.polled && controller.extendedRetiredSlots
+                ? _showAlgorithmExtensionConfigDialog
+                : null,
+            icon: Icon(LucideIcons.settings, color: topBarTheme.onBackground),
+          ),
+          if (isWeb() || isIOSApp())
+            IconButton(
+              tooltip: _t(en: 'Refresh', zh: '刷新'),
               onPressed: _refreshSlots,
               icon:
                   Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
-            )
-          : Container(),
+            ),
+        ],
+      ),
       child: GetBuilder(
         init: controller,
         builder: (_) {
@@ -727,6 +740,249 @@ class _PivPageState extends State<PivPage>
           ),
         ),
       ],
+    );
+  }
+
+  void _showAlgorithmExtensionConfigDialog() {
+    final config = controller.algorithmExtensionConfig;
+    bool enabled = config.enabled;
+    bool usePinOnly = controller.pinOnlyMode;
+    final validator = FormValidator();
+    validator.addField('pin',
+        required: true,
+        controller: TextEditingController(),
+        validators: [LengthValidator(min: 6, max: 8)]);
+    validator.addField('managementKey',
+        required: !usePinOnly,
+        controller: TextEditingController(),
+        validators: [
+          LengthValidator(exact: 48, required: !usePinOnly),
+          HexStringValidator(required: !usePinOnly)
+        ]);
+
+    void addIdField(String name, int value) {
+      validator.addField(name,
+          required: true,
+          controller: TextEditingController(text: value.toString()),
+          validators: [IntValidator(min: 0, max: 255)]);
+    }
+
+    addIdField('ed25519', config.ed25519);
+    addIdField('rsa3072', config.rsa3072);
+    addIdField('rsa4096', config.rsa4096);
+    addIdField('x25519', config.x25519);
+    addIdField('secp256k1', config.secp256k1);
+    addIdField('secp521r1', config.secp521r1);
+    addIdField('sm2', config.sm2);
+
+    int idValue(String name) =>
+        int.parse(validator.getController(name)!.text.trim());
+
+    Get.dialog(Dialog(
+      child: StatefulBuilder(
+        builder: (context, setDialogState) => SizedBox(
+          width: 520,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: Spacing.all(16),
+                child: CustomizedText.labelLarge(
+                    _t(en: 'PIV Algorithm IDs', zh: 'PIV 算法 ID')),
+              ),
+              Divider(height: 0, thickness: 1),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: Spacing.all(16),
+                  child: Form(
+                    key: validator.formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildAlgorithmIdWarning(),
+                        Spacing.height(16),
+                        CheckboxListTile(
+                          value: enabled,
+                          onChanged: (value) =>
+                              setDialogState(() => enabled = value ?? enabled),
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(S.of(context).enabled),
+                          subtitle: Text(_t(
+                              en: 'Controls whether PIV extension algorithm IDs are accepted by the card.',
+                              zh: '控制卡片是否接受 PIV 扩展算法 ID。')),
+                        ),
+                        Spacing.height(12),
+                        TextFormField(
+                          autofocus: true,
+                          onTap: SmartCard.eject,
+                          obscureText: true,
+                          controller: validator.getController('pin'),
+                          validator: validator.getValidator('pin'),
+                          decoration: InputDecoration(
+                              labelText: 'PIN', border: outlineInputBorder),
+                        ),
+                        if (controller.pinOnlyMode) ...[
+                          Spacing.height(12),
+                          _buildManagementKeyAuthModeControl(
+                            usePinOnly: usePinOnly,
+                            onChanged: (value) =>
+                                setDialogState(() => usePinOnly = value),
+                          ),
+                        ],
+                        if (!usePinOnly) ...[
+                          Spacing.height(18),
+                          _buildManagementKeyField(validator, 'managementKey'),
+                        ],
+                        Spacing.height(18),
+                        Wrap(
+                          runSpacing: 12,
+                          spacing: 12,
+                          children: [
+                            _buildAlgorithmIdField(
+                                validator, 'ed25519', 'ED25519'),
+                            _buildAlgorithmIdField(
+                                validator, 'rsa3072', 'RSA3072'),
+                            _buildAlgorithmIdField(
+                                validator, 'rsa4096', 'RSA4096'),
+                            _buildAlgorithmIdField(
+                                validator, 'x25519', 'X25519'),
+                            _buildAlgorithmIdField(
+                                validator, 'secp256k1', 'SECP256K1'),
+                            _buildAlgorithmIdField(
+                                validator, 'secp521r1', 'SECP521R1'),
+                            _buildAlgorithmIdField(validator, 'sm2', 'SM2'),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Divider(height: 0, thickness: 1),
+              Padding(
+                padding: Spacing.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    CustomizedButton.rounded(
+                      onPressed: () => Get.back(),
+                      elevation: 0,
+                      backgroundColor: contentTheme.secondary,
+                      child: CustomizedText.labelMedium(S.of(context).cancel,
+                          color: contentTheme.onSecondary),
+                    ),
+                    Spacing.width(12),
+                    CustomizedButton.rounded(
+                      onPressed: () async {
+                        if (!validator.validateForm()) return;
+                        if (!_validateManagementKeyInput(
+                            validator, 'managementKey', usePinOnly)) {
+                          return;
+                        }
+                        final successMessage =
+                            S.of(context).successfullyChanged;
+                        final newConfig = PivAlgorithmExtensionConfig(
+                          enabled: enabled,
+                          ed25519: idValue('ed25519'),
+                          rsa3072: idValue('rsa3072'),
+                          rsa4096: idValue('rsa4096'),
+                          x25519: idValue('x25519'),
+                          secp256k1: idValue('secp256k1'),
+                          secp521r1: idValue('secp521r1'),
+                          sm2: idValue('sm2'),
+                        );
+                        Get.context!.loaderOverlay.show();
+                        try {
+                          final ok = await controller
+                              .changeAlgorithmExtensionConfigAuthenticated(
+                            config: newConfig,
+                            pin: validator.getController('pin')!.text,
+                            managementKey:
+                                validator.getController('managementKey')!.text,
+                            usePinOnly: usePinOnly,
+                          );
+                          if (!ok) {
+                            Prompts.showPrompt(
+                                _t(
+                                    en: 'Failed to update PIV algorithm IDs',
+                                    zh: '更新 PIV 算法 ID 失败'),
+                                ContentThemeColor.danger);
+                            return;
+                          }
+                          await controller.refreshData();
+                          Prompts.showPrompt(
+                              successMessage, ContentThemeColor.success);
+                          Get.back();
+                        } finally {
+                          Get.context!.loaderOverlay.hide();
+                        }
+                      },
+                      elevation: 0,
+                      backgroundColor: contentTheme.primary,
+                      child: CustomizedText.labelMedium(S.of(context).save,
+                          color: contentTheme.onPrimary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ));
+  }
+
+  Widget _buildAlgorithmIdField(
+      FormValidator validator, String field, String label) {
+    return SizedBox(
+      width: 150,
+      child: TextFormField(
+        onTap: SmartCard.eject,
+        controller: validator.getController(field),
+        validator: validator.getValidator(field),
+        decoration:
+            InputDecoration(labelText: label, border: outlineInputBorder),
+      ),
+    );
+  }
+
+  Widget _buildAlgorithmIdWarning() {
+    final warningColor = contentTheme.warning;
+    return Container(
+      width: double.infinity,
+      padding: Spacing.all(12),
+      decoration: BoxDecoration(
+        color: warningColor.withValues(alpha: 0.14),
+        border: Border.all(color: warningColor.withValues(alpha: 0.75)),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(LucideIcons.shieldAlert, color: warningColor, size: 22),
+          Spacing.width(10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomizedText.bodyMedium(
+                  _t(en: 'Modify With Caution', zh: '请谨慎修改'),
+                  fontWeight: 700,
+                  color: warningColor,
+                ),
+                Spacing.height(4),
+                CustomizedText.bodySmall(
+                  _t(
+                      en: 'These values control how the card recognizes PIV extension algorithms. Keep the defaults unless you know the client and firmware expect different IDs. Wrong values can make existing extended keys appear unsupported until the IDs are restored.',
+                      zh: '这些值会影响卡片如何识别 PIV 扩展算法。除非确认客户端和固件需要不同 ID，否则请保持默认值。错误的值可能导致已有扩展算法密钥显示为不支持，直到恢复正确 ID。'),
+                  color: contentTheme.onBackground,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -3210,6 +3466,7 @@ class _PivPageState extends State<PivPage>
                             items: [
                               AlgorithmType.eccp256,
                               AlgorithmType.eccp384,
+                              AlgorithmType.eccp521,
                               AlgorithmType.secp256k1,
                               AlgorithmType.sm2,
                               AlgorithmType.ed25519,

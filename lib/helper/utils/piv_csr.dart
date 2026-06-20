@@ -50,6 +50,7 @@ class PivPublicKey {
         );
       case AlgorithmType.eccp256:
       case AlgorithmType.eccp384:
+      case AlgorithmType.eccp521:
       case AlgorithmType.secp256k1:
       case AlgorithmType.sm2:
         final rawPublicKey = _childOctets(keyMap, 0x86);
@@ -91,6 +92,7 @@ class PivPublicKey {
         );
       case AlgorithmType.eccp256:
       case AlgorithmType.eccp384:
+      case AlgorithmType.eccp521:
       case AlgorithmType.secp256k1:
       case AlgorithmType.sm2:
         final rawPublicKey = _childOctets(keyMap, 0x86);
@@ -195,6 +197,8 @@ class PivPublicKey {
         return 'prime256v1';
       case AlgorithmType.eccp384:
         return 'secp384r1';
+      case AlgorithmType.eccp521:
+        return '1.3.132.0.35';
       case AlgorithmType.secp256k1:
         return 'secp256k1';
       case AlgorithmType.sm2:
@@ -286,6 +290,7 @@ class PivCsrBuilder {
         'sha256WithRSAEncryption',
       AlgorithmType.eccp256 => 'ecdsaWithSHA256',
       AlgorithmType.eccp384 => 'ecdsaWithSHA384',
+      AlgorithmType.eccp521 => 'ecdsaWithSHA512',
       AlgorithmType.secp256k1 => 'ecdsaWithSHA256',
       AlgorithmType.sm2 => '1.2.156.10197.1.501',
       AlgorithmType.ed25519 => 'curveEd25519',
@@ -306,6 +311,7 @@ class PivCsrBuilder {
       AlgorithmType algorithm, Uint8List signature) {
     if (algorithm == AlgorithmType.eccp256 ||
         algorithm == AlgorithmType.eccp384 ||
+        algorithm == AlgorithmType.eccp521 ||
         algorithm == AlgorithmType.secp256k1 ||
         algorithm == AlgorithmType.sm2) {
       if (signature.isNotEmpty && signature.first == 0x30) {

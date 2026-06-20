@@ -15,6 +15,7 @@ enum AlgorithmType {
   rsa4096(0x16),
   eccp256(0x11),
   eccp384(0x14),
+  eccp521(0x15),
   secp256k1(0x53),
   sm2(0x54),
   ed25519(0xE0),
@@ -46,6 +47,8 @@ enum AlgorithmType {
         return AlgorithmType.eccp256;
       case 0x14:
         return AlgorithmType.eccp384;
+      case 0x15:
+        return AlgorithmType.eccp521;
       case 0x53:
         return AlgorithmType.secp256k1;
       case 0x54:
@@ -60,6 +63,92 @@ enum AlgorithmType {
   }
 
   final int value;
+}
+
+class PivAlgorithmExtensionConfig {
+  final bool enabled;
+  final int ed25519;
+  final int rsa3072;
+  final int rsa4096;
+  final int x25519;
+  final int secp256k1;
+  final int sm2;
+  final int secp521r1;
+
+  const PivAlgorithmExtensionConfig({
+    required this.enabled,
+    required this.ed25519,
+    required this.rsa3072,
+    required this.rsa4096,
+    required this.x25519,
+    required this.secp256k1,
+    required this.sm2,
+    required this.secp521r1,
+  });
+
+  static const defaults = PivAlgorithmExtensionConfig(
+    enabled: true,
+    ed25519: 0xE0,
+    rsa3072: 0x05,
+    rsa4096: 0x16,
+    x25519: 0xE1,
+    secp256k1: 0x53,
+    sm2: 0x54,
+    secp521r1: 0x15,
+  );
+
+  List<int> encode() => [
+        enabled ? 0x01 : 0x00,
+        ed25519,
+        rsa3072,
+        rsa4096,
+        x25519,
+        secp256k1,
+        secp521r1,
+        sm2,
+      ];
+
+  Map<int, AlgorithmType> toAlgorithmMap() => {
+        ed25519: AlgorithmType.ed25519,
+        rsa3072: AlgorithmType.rsa3072,
+        rsa4096: AlgorithmType.rsa4096,
+        x25519: AlgorithmType.x25519,
+        secp256k1: AlgorithmType.secp256k1,
+        sm2: AlgorithmType.sm2,
+        secp521r1: AlgorithmType.eccp521,
+      };
+
+  int idFor(AlgorithmType algorithm) {
+    return switch (algorithm) {
+      AlgorithmType.ed25519 => ed25519,
+      AlgorithmType.rsa3072 => rsa3072,
+      AlgorithmType.rsa4096 => rsa4096,
+      AlgorithmType.x25519 => x25519,
+      AlgorithmType.secp256k1 => secp256k1,
+      AlgorithmType.sm2 => sm2,
+      AlgorithmType.eccp521 => secp521r1,
+      _ => algorithm.value,
+    };
+  }
+
+  static PivAlgorithmExtensionConfig decode(List<int> data) {
+    if (data.length < 7) {
+      throw ArgumentError(
+          'Invalid PIV algorithm extension config length: ${data.length}');
+    }
+    return PivAlgorithmExtensionConfig(
+      enabled: data[0] != 0x00,
+      ed25519: data[1],
+      rsa3072: data[2],
+      rsa4096: data[3],
+      x25519: data[4],
+      secp256k1: data[5],
+      sm2: data.length >= 8 ? data[7] : data[6],
+      secp521r1: data.length >= 8
+          ? data[6]
+          : PivAlgorithmExtensionConfig.defaults.secp521r1,
+    );
+  }
 }
 
 enum PinPolicy {
@@ -186,9 +275,18 @@ class SlotInfo {
       this.retriesCount,
       this.remainingCount);
 
-  static SlotInfo parse(int number, List<int> buf) {
+  static SlotInfo parse(
+    int number,
+    List<int> buf, {
+    PivAlgorithmExtensionConfig algorithmExtensionConfig =
+        PivAlgorithmExtensionConfig.defaults,
+  }) {
     Map map = TLV.parse(buf);
-    var algo = AlgorithmType.fromValue(map[0x01][0]);
+    final algoId = map[0x01][0] as int;
+    var algo = algorithmExtensionConfig.enabled
+        ? (algorithmExtensionConfig.toAlgorithmMap()[algoId] ??
+            AlgorithmType.fromValue(algoId))
+        : AlgorithmType.fromValue(algoId);
     var pinPolicy = PinPolicy.defaultPolicy;
     var touchPolicy = TouchPolicy.defaultPolicy;
     if (number != 0x80 && number != 0x81) {

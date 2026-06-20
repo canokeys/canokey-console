@@ -10,6 +10,7 @@ import 'package:pointycastle/asn1/primitives/asn1_sequence.dart';
 import 'package:pointycastle/asn1/pkcs/pkcs10/asn1_subject_public_key_info.dart';
 import 'package:pointycastle/digests/sha256.dart';
 import 'package:pointycastle/digests/sha384.dart';
+import 'package:pointycastle/digests/sha512.dart';
 import 'package:pointycastle/ecc/ecc_base.dart';
 import 'package:pointycastle/ecc/ecc_fp.dart' as ecc_fp;
 import 'package:pointycastle/signers/ecdsa_signer.dart';
@@ -55,6 +56,7 @@ class PivSignatureTest {
         return _verifyRsa(publicKey, data, signature);
       case AlgorithmType.eccp256:
       case AlgorithmType.eccp384:
+      case AlgorithmType.eccp521:
       case AlgorithmType.secp256k1:
         return _verifyEcdsa(publicKey, data, signature);
       case AlgorithmType.sm2:
@@ -167,6 +169,8 @@ class PivSignatureTest {
         return ECDomainParameters('prime256v1');
       case AlgorithmType.eccp384:
         return ECDomainParameters('secp384r1');
+      case AlgorithmType.eccp521:
+        return ECDomainParameters('secp521r1');
       case AlgorithmType.secp256k1:
         return ECDomainParameters('secp256k1');
       case AlgorithmType.sm2:
@@ -177,7 +181,11 @@ class PivSignatureTest {
   }
 
   static Digest _ecDigest(AlgorithmType algorithm) {
-    return algorithm == AlgorithmType.eccp384 ? SHA384Digest() : SHA256Digest();
+    return switch (algorithm) {
+      AlgorithmType.eccp384 => SHA384Digest(),
+      AlgorithmType.eccp521 => SHA512Digest(),
+      _ => SHA256Digest(),
+    };
   }
 }
 
