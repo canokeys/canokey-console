@@ -7,6 +7,7 @@ import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/canokey.dart';
+import 'package:canokey_console/views/applets/settings/dialogs/applet_switches_dialog.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/keymap_dialog.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/switch_dialog.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
@@ -31,6 +32,26 @@ class SettingsCard extends StatelessWidget with UIMixin {
       currentState: controller.key.keyboardKeymap,
       onConfirm: controller.changeKeyboardKeymap,
     );
+  }
+
+  void _showAppletSwitchesDialog(Set<Func> functionSet) {
+    AppletSwitchesDialog.show(
+      canokey: controller.key,
+      functionSet: functionSet,
+      onConfirm: controller.changeSwitches,
+    );
+  }
+
+  bool _hasAppletSwitches(Set<Func> functionSet) {
+    return (functionSet.contains(Func.nfcSwitch) &&
+            functionSet.contains(Func.ndefEnabled)) ||
+        (controller.key.featureSwitchesSupported &&
+            (functionSet.contains(Func.passSwitch) ||
+                functionSet.contains(Func.webAuthnSwitch) ||
+                functionSet.contains(Func.pivCcIdSwitch) ||
+                functionSet.contains(Func.pivNfcSwitch) ||
+                functionSet.contains(Func.openPgpCcIdSwitch) ||
+                functionSet.contains(Func.openPgpNfcSwitch)));
   }
 
   @override
@@ -129,17 +150,12 @@ class SettingsCard extends StatelessWidget with UIMixin {
                   ),
                   Spacing.height(16),
                 },
-                if (functionSet.contains(Func.ndefEnabled)) ...{
+                if (_hasAppletSwitches(functionSet)) ...{
                   InfoItem(
-                    iconData: LucideIcons.tag,
-                    title: S.of(context).settingsNDEF,
-                    value: controller.key.ndefEnabled
-                        ? S.of(context).on
-                        : S.of(context).off,
-                    onTap: () => _showChangeSwitchDialog(
-                        S.of(context).settingsNDEF,
-                        Func.ndefEnabled,
-                        controller.key.ndefEnabled),
+                    iconData: LucideIcons.settings2,
+                    title: S.of(context).settingsAppletSwitches,
+                    value: '',
+                    onTap: () => _showAppletSwitchesDialog(functionSet),
                   ),
                   Spacing.height(16),
                 },

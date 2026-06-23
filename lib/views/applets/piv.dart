@@ -14,6 +14,7 @@ import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
+import 'package:canokey_console/helper/widgets/applet_disabled_screen.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_card.dart';
 import 'package:canokey_console/helper/widgets/customized_container.dart';
@@ -382,6 +383,9 @@ class _PivPageState extends State<PivPage>
       child: GetBuilder(
         init: controller,
         builder: (_) {
+          if (controller.disabledMessage != null) {
+            return AppletDisabledScreen(message: controller.disabledMessage!);
+          }
           if (!controller.polled) {
             return Column(
                 mainAxisAlignment: MainAxisAlignment.center,

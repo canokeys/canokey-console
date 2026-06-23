@@ -1,6 +1,7 @@
 import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/openpgp_card.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
@@ -13,6 +14,7 @@ import 'package:logger/logger.dart';
 class OpenPgpController extends PollingController {
   final OpenPgpCardClient _client = OpenPgpCardClient();
   OpenPgpCardInfo? cardInfo;
+  String? disabledMessage;
 
   @override
   Logger get log => Logging.logger('OpenPGP:Controller');
@@ -20,6 +22,16 @@ class OpenPgpController extends PollingController {
   @override
   Future<void> doRefreshData() async {
     await SmartCard.process((String sn) async {
+      final switchStatus = await AppletSwitches.readStatus();
+      if (!switchStatus.openPgpEnabled) {
+        disabledMessage = AppletSwitches.disabledMessage('OpenPGP');
+        polled = false;
+        cardInfo = null;
+        update();
+        return;
+      }
+      disabledMessage = null;
+
       cardInfo = await _client.readCardInfo();
       polled = true;
       update();

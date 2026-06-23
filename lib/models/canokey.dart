@@ -43,6 +43,12 @@ enum Func {
   dynamicOathCapacity,
   dynamicWebAuthnCapacity,
   pinRetryConfig,
+  passSwitch,
+  openPgpCcIdSwitch,
+  openPgpNfcSwitch,
+  pivCcIdSwitch,
+  pivNfcSwitch,
+  webAuthnSwitch,
 }
 
 enum FunctionSetVersion {
@@ -130,6 +136,7 @@ class CanoKey {
   final String sn;
   final String chipId;
   final String firmwareVersion;
+  final String? coreCommit;
   final FunctionSetVersion functionSetVersion;
   final bool ledOn;
   final bool hotpOn;
@@ -142,6 +149,13 @@ class CanoKey {
   final bool autTouch;
   final int touchCacheTime;
   final bool nfcEnabled;
+  final bool passEnabled;
+  final bool openPgpCcIdEnabled;
+  final bool openPgpNfcEnabled;
+  final bool pivCcIdEnabled;
+  final bool pivNfcEnabled;
+  final bool webAuthnEnabled;
+  final bool featureSwitchesSupported;
   final StorageUsage? storageUsage;
   final KeyboardKeymapState? keyboardKeymap;
   WebAuthnSm2Config? webAuthnSm2Config;
@@ -151,6 +165,7 @@ class CanoKey {
       required this.sn,
       required this.chipId,
       required this.firmwareVersion,
+      this.coreCommit,
       required this.functionSetVersion,
       required this.ledOn,
       required this.hotpOn,
@@ -163,6 +178,13 @@ class CanoKey {
       required this.autTouch,
       required this.touchCacheTime,
       required this.nfcEnabled,
+      this.passEnabled = true,
+      this.openPgpCcIdEnabled = true,
+      this.openPgpNfcEnabled = true,
+      this.pivCcIdEnabled = true,
+      this.pivNfcEnabled = true,
+      this.webAuthnEnabled = true,
+      this.featureSwitchesSupported = false,
       this.storageUsage,
       this.keyboardKeymap,
       this.webAuthnSm2Config});
@@ -237,6 +259,12 @@ class CanoKey {
           Func.dynamicOathCapacity,
           Func.dynamicWebAuthnCapacity,
           Func.pinRetryConfig,
+          Func.passSwitch,
+          Func.openPgpCcIdSwitch,
+          Func.openPgpNfcSwitch,
+          Func.pivCcIdSwitch,
+          Func.pivNfcSwitch,
+          Func.webAuthnSwitch,
         };
     }
   }

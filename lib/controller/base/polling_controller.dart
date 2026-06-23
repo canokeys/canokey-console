@@ -11,6 +11,8 @@ abstract class PollingController extends Controller {
   Timer? _usbPollTimer, _webPollTimer;
   bool polled = false;
   bool _wasNfcConnection = false;
+  bool _ccidRefreshAttempted = false;
+  bool _ccidRefreshInProgress = false;
 
   Future<void> doRefreshData();
   Logger get log;
@@ -36,43 +38,33 @@ abstract class PollingController extends Controller {
     } else if (isDesktop()) {
       // Desktop platform: initial read and polling
       if (SmartCard.connectionType == ConnectionType.ccid) {
-        try {
-          refreshData();
-          polled = true; // We need to set polled to true here because PIN may be required in refreshData
-        } catch (e) {
-          log.w('Failed to read card on desktop platform', error: e);
-        }
+        await _refreshCcidOnce('desktop platform');
       }
-      _usbPollTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (SmartCard.connectionType == ConnectionType.ccid && !polled) {
-          refreshData();
-          polled = true; // We need to set polled to true here because PIN may be required in refreshData
+      _usbPollTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+        if (SmartCard.connectionType == ConnectionType.ccid) {
+          await _refreshCcidOnce('desktop platform');
         } else if (SmartCard.connectionType == ConnectionType.none) {
+          _ccidRefreshAttempted = false;
           polled = false;
           update();
         } else {
-          // Polled and connected to CCID, do nothing
+          // NFC/WebUSB are handled by their platform-specific flows.
         }
       });
     } else {
       // Initial read if USB connected and polling
       if (SmartCard.connectionType == ConnectionType.ccid) {
-        try {
-          refreshData();
-          polled = true; // We need to set polled to true here because PIN may be required in refreshData
-        } catch (e) {
-          log.w('Failed to read card on mobile platform', error: e);
-        }
+        await _refreshCcidOnce('mobile platform');
       }
       if (isAndroidApp()) {
         SmartCard.refreshHandler = refreshData;
         SmartCard.nfcState = NfcState.idle;
       }
-      _usbPollTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if ((!polled || _wasNfcConnection) && SmartCard.connectionType == ConnectionType.ccid) {
-          refreshData();
-          polled = true; // We need to set polled to true here because PIN may be required in refreshData
+      _usbPollTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+        if (SmartCard.connectionType == ConnectionType.ccid) {
+          await _refreshCcidOnce('mobile platform', force: _wasNfcConnection);
         } else if (SmartCard.connectionType == ConnectionType.none) {
+          _ccidRefreshAttempted = false;
           polled = false;
           update();
         }
@@ -104,5 +96,20 @@ abstract class PollingController extends Controller {
     await doRefreshData();
     _wasNfcConnection = SmartCard.connectionType == ConnectionType.nfc;
     log.t("wasNfcConnection = $_wasNfcConnection");
+  }
+
+  Future<void> _refreshCcidOnce(String platform, {bool force = false}) async {
+    if (_ccidRefreshInProgress || (_ccidRefreshAttempted && !force)) {
+      return;
+    }
+    _ccidRefreshAttempted = true;
+    _ccidRefreshInProgress = true;
+    try {
+      await refreshData();
+    } catch (e) {
+      log.w('Failed to read card on $platform', error: e);
+    } finally {
+      _ccidRefreshInProgress = false;
+    }
   }
 }

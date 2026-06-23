@@ -74,9 +74,9 @@ class OpenPgpPinManagementCard extends StatelessWidget {
 
   String _retryValue(int? remaining) {
     if (remaining == null) {
-      return '-';
+      return t(en: 'Retries: unknown', zh: '剩余次数：未知');
     }
-    return t(en: 'Retries left: $remaining', zh: '剩余尝试次数：$remaining');
+    return t(en: 'Retries: $remaining', zh: '剩余次数：$remaining');
   }
 
   Widget _actions(BuildContext context) {

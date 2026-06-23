@@ -41,8 +41,45 @@ class SettingsController extends PollingController with AdminApplet {
       }
 
       SmartCard.assertOK(
-          await SmartCard.transceive(_changeSwitchAPDUs[func][value]));
+          await SmartCard.transceive(_changeSwitchAPDU(func, value)));
       log.i('Successfully changed ${func.name}');
+      Navigator.pop(Get.context!);
+
+      Prompts.showPrompt(
+          S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
+          forceSnackBar: true);
+      await _refresh(sn);
+    });
+  }
+
+  Future<void> changeSwitches(Map<Func, bool> values) async {
+    if (values.isEmpty) {
+      Navigator.pop(Get.context!);
+      return;
+    }
+
+    await SmartCard.process((String sn) async {
+      if (!await authenticate(sn)) {
+        return;
+      }
+
+      final featureValues = <Func, bool>{};
+      for (final entry in values.entries) {
+        if (_featureSwitchBits.containsKey(entry.key)) {
+          featureValues[entry.key] = entry.value;
+        } else {
+          SmartCard.assertOK(await SmartCard.transceive(
+              _changeSwitchAPDU(entry.key, entry.value)));
+        }
+      }
+
+      if (featureValues.isNotEmpty) {
+        SmartCard.assertOK(await SmartCard.transceive(
+            _changeFeatureSwitchesAPDU(featureValues)));
+      }
+
+      log.i(
+          'Successfully changed switches: ${values.keys.map((e) => e.name).join(', ')}');
       Navigator.pop(Get.context!);
 
       Prompts.showPrompt(
@@ -172,6 +209,7 @@ class SettingsController extends PollingController with AdminApplet {
     SmartCard.assertOK(resp);
     String firmwareVersion =
         String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
+    String? coreCommit;
     resp = await SmartCard.transceive('0031010000');
     SmartCard.assertOK(resp);
     String model = String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
@@ -183,6 +221,9 @@ class SettingsController extends PollingController with AdminApplet {
     FunctionSetVersion functionSetVersion =
         CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
     final functionSet = CanoKey.functionSet(functionSetVersion);
+    if (functionSetVersion == FunctionSetVersion.v5) {
+      coreCommit = await _tryReadCoreCommit();
+    }
     bool ledOn = false;
     bool hotpOn = false;
     bool ndefReadonly = false;
@@ -194,44 +235,63 @@ class SettingsController extends PollingController with AdminApplet {
     bool autTouch = false;
     int cacheTime = 0;
     bool nfcEnabled = true;
+    bool passEnabled = true;
+    bool openPgpCcIdEnabled = true;
+    bool openPgpNfcEnabled = true;
+    bool pivCcIdEnabled = true;
+    bool pivNfcEnabled = true;
+    bool webAuthnEnabled = true;
+    bool featureSwitchesSupported = false;
     StorageUsage? storageUsage;
     KeyboardKeymapState? keyboardKeymap;
     resp = await SmartCard.transceive('0042000000');
     SmartCard.assertOK(resp);
+    final configData = SmartCard.dropSW(resp);
     switch (functionSetVersion) {
       case FunctionSetVersion.v1:
-        ledOn = resp.substring(0, 2) == '01';
-        hotpOn = resp.substring(2, 4) == '01';
-        ndefReadonly = resp.substring(4, 6) == '01';
-        sigTouch = resp.substring(6, 8) == '01';
-        decTouch = resp.substring(8, 10) == '01';
-        autTouch = resp.substring(10, 12) == '01';
-        cacheTime = int.parse(resp.substring(12, 14), radix: 16);
+        ledOn = configData.substring(0, 2) == '01';
+        hotpOn = configData.substring(2, 4) == '01';
+        ndefReadonly = configData.substring(4, 6) == '01';
+        sigTouch = configData.substring(6, 8) == '01';
+        decTouch = configData.substring(8, 10) == '01';
+        autTouch = configData.substring(10, 12) == '01';
+        cacheTime = int.parse(configData.substring(12, 14), radix: 16);
         break;
       case FunctionSetVersion.v2:
-        ledOn = resp.substring(0, 2) == '01';
-        hotpOn = resp.substring(2, 4) == '01';
-        ndefReadonly = resp.substring(4, 6) == '01';
-        ndefEnabled = resp.substring(6, 8) == '01';
-        webusbLandingEnabled = resp.substring(8, 10) == '01';
+        ledOn = configData.substring(0, 2) == '01';
+        hotpOn = configData.substring(2, 4) == '01';
+        ndefReadonly = configData.substring(4, 6) == '01';
+        ndefEnabled = configData.substring(6, 8) == '01';
+        webusbLandingEnabled = configData.substring(8, 10) == '01';
         break;
       case FunctionSetVersion.v3:
-        ledOn = resp.substring(0, 2) == '01';
-        hotpOn = resp.substring(2, 4) == '01';
-        ndefReadonly = resp.substring(4, 6) == '01';
-        ndefEnabled = resp.substring(6, 8) == '01';
-        webusbLandingEnabled = resp.substring(8, 10) == '01';
-        keyboardWithReturn = resp.substring(10, 12) == '01';
+        ledOn = configData.substring(0, 2) == '01';
+        hotpOn = configData.substring(2, 4) == '01';
+        ndefReadonly = configData.substring(4, 6) == '01';
+        ndefEnabled = configData.substring(6, 8) == '01';
+        webusbLandingEnabled = configData.substring(8, 10) == '01';
+        keyboardWithReturn = configData.substring(10, 12) == '01';
         break;
       case FunctionSetVersion.v4:
-        ledOn = resp.substring(0, 2) == '01';
-        ndefReadonly = resp.substring(4, 6) == '01';
-        ndefEnabled = resp.substring(6, 8) == '01';
-        webusbLandingEnabled = resp.substring(8, 10) == '01';
+        ledOn = configData.substring(0, 2) == '01';
+        ndefReadonly = configData.substring(4, 6) == '01';
+        ndefEnabled = configData.substring(6, 8) == '01';
+        webusbLandingEnabled = configData.substring(8, 10) == '01';
         break;
       case FunctionSetVersion.v5:
-        ledOn = resp.substring(0, 2) == '01';
-        webusbLandingEnabled = resp.substring(8, 10) == '01';
+        ledOn = configData.substring(0, 2) == '01';
+        webusbLandingEnabled = configData.substring(8, 10) == '01';
+        if (configData.length >= 12) {
+          featureSwitchesSupported = true;
+          final featureMask =
+              int.parse(configData.substring(10, 12), radix: 16);
+          passEnabled = featureMask & _featurePass != 0;
+          openPgpCcIdEnabled = featureMask & _featureOpenPgpCcId != 0;
+          openPgpNfcEnabled = featureMask & _featureOpenPgpNfc != 0;
+          pivCcIdEnabled = featureMask & _featurePivCcId != 0;
+          pivNfcEnabled = featureMask & _featurePivNfc != 0;
+          webAuthnEnabled = featureMask & _featureWebAuthn != 0;
+        }
         break;
     }
     if (functionSet.contains(Func.nfcSwitch)) {
@@ -266,6 +326,7 @@ class SettingsController extends PollingController with AdminApplet {
         sn: sn,
         chipId: chipId,
         firmwareVersion: firmwareVersion,
+        coreCommit: coreCommit,
         functionSetVersion: functionSetVersion,
         ledOn: ledOn,
         hotpOn: hotpOn,
@@ -278,6 +339,13 @@ class SettingsController extends PollingController with AdminApplet {
         autTouch: autTouch,
         touchCacheTime: cacheTime,
         nfcEnabled: nfcEnabled,
+        passEnabled: passEnabled,
+        openPgpCcIdEnabled: openPgpCcIdEnabled,
+        openPgpNfcEnabled: openPgpNfcEnabled,
+        pivCcIdEnabled: pivCcIdEnabled,
+        pivNfcEnabled: pivNfcEnabled,
+        webAuthnEnabled: webAuthnEnabled,
+        featureSwitchesSupported: featureSwitchesSupported,
         storageUsage: storageUsage,
         keyboardKeymap: keyboardKeymap);
 
@@ -291,6 +359,19 @@ class SettingsController extends PollingController with AdminApplet {
     polled = true;
 
     update();
+  }
+
+  Future<String?> _tryReadCoreCommit() async {
+    final resp = await SmartCard.transceive('0031020000');
+    if (!SmartCard.isOK(resp)) {
+      log.w('Failed to read canokey-core commit: $resp');
+      return null;
+    }
+    final data = SmartCard.dropSW(resp);
+    if (data.isEmpty) {
+      return null;
+    }
+    return String.fromCharCodes(hex.decode(data));
   }
 
   Future<List<AppletStorageUsage>> _tryReadAppletStorageUsage(
@@ -444,7 +525,52 @@ class SettingsController extends PollingController with AdminApplet {
     );
   }
 
-  final Map _changeSwitchAPDUs = {
+  static const int _featurePass = 1 << 0;
+  static const int _featureOpenPgpCcId = 1 << 1;
+  static const int _featureOpenPgpNfc = 1 << 2;
+  static const int _featurePivCcId = 1 << 3;
+  static const int _featurePivNfc = 1 << 4;
+  static const int _featureWebAuthn = 1 << 5;
+
+  static const Map<Func, int> _featureSwitchBits = {
+    Func.passSwitch: _featurePass,
+    Func.openPgpCcIdSwitch: _featureOpenPgpCcId,
+    Func.openPgpNfcSwitch: _featureOpenPgpNfc,
+    Func.pivCcIdSwitch: _featurePivCcId,
+    Func.pivNfcSwitch: _featurePivNfc,
+    Func.webAuthnSwitch: _featureWebAuthn,
+  };
+
+  int _currentFeatureMask() {
+    return (key.passEnabled ? _featurePass : 0) |
+        (key.openPgpCcIdEnabled ? _featureOpenPgpCcId : 0) |
+        (key.openPgpNfcEnabled ? _featureOpenPgpNfc : 0) |
+        (key.pivCcIdEnabled ? _featurePivCcId : 0) |
+        (key.pivNfcEnabled ? _featurePivNfc : 0) |
+        (key.webAuthnEnabled ? _featureWebAuthn : 0);
+  }
+
+  String _changeSwitchAPDU(Func func, bool value) {
+    final featureBit = _featureSwitchBits[func];
+    if (featureBit != null) {
+      final currentMask = _currentFeatureMask();
+      final newMask =
+          value ? currentMask | featureBit : currentMask & ~featureBit;
+      return '004006${newMask.toRadixString(16).padLeft(2, '0')}';
+    }
+    return _changeSwitchAPDUs[func]![value]!;
+  }
+
+  String _changeFeatureSwitchesAPDU(Map<Func, bool> values) {
+    var newMask = _currentFeatureMask();
+    for (final entry in values.entries) {
+      final bit = _featureSwitchBits[entry.key]!;
+      newMask = entry.value ? newMask | bit : newMask & ~bit;
+    }
+    return '004006${newMask.toRadixString(16).padLeft(2, '0')}';
+  }
+
+  final Map<Func, Map<bool, String>> _changeSwitchAPDUs = {
     Func.led: {true: '00400101', false: '00400100'},
     Func.hotp: {true: '00400301', false: '00400300'},
     Func.ndefEnabled: {true: '00400401', false: '00400400'},

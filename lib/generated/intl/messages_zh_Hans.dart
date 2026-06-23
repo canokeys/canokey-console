@@ -22,13 +22,15 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m0(min, max) => "新 PIN 的长度应当为 ${min} - ${max} 个字符。";
 
-  static String m1(name) => "您正在删除 ${name}，删除该项目后无法恢复！请确认相关服务的二步验证已经关闭。";
+  static String m1(applet) => "${applet} 已关闭，请先在设置中启用。";
 
-  static String m2(name) => "您要将 ${name} 设为触摸时的输出吗？请注意，该操作将会覆盖原有的触摸输出。";
+  static String m2(name) => "您正在删除 ${name}，删除该项目后无法恢复！请确认相关服务的二步验证已经关闭。";
 
-  static String m3(keyType) => "修改 ${keyType} 密钥的触摸设置";
+  static String m3(name) => "您要将 ${name} 设为触摸时的输出吗？请注意，该操作将会覆盖原有的触摸输出。";
 
-  static String m4(retries) => "PIN 输入错误，剩余重试次数：${retries}";
+  static String m4(keyType) => "修改 ${keyType} 密钥的触摸设置";
+
+  static String m5(retries) => "PIN 输入错误，剩余重试次数：${retries}";
 
   static String m6(slot) => "此操作将从您的 CanoKey 中删除 ${slot} 中的证书和密钥。请确保您有其他方式访问。";
 
@@ -53,6 +55,7 @@ class MessageLookup extends MessageLookupByLibrary {
           "CanoKey Console 是 CanoKey 开源安全密钥的管理工具。",
         ),
         "appletLocked": MessageLookupByLibrary.simpleMessage("该应用已被锁定"),
+        "appletDisabled": m1,
         "applets": MessageLookupByLibrary.simpleMessage("应用"),
         "beforeSourceLink": MessageLookupByLibrary.simpleMessage(
           "可在 GitHub 获得源代码：",
@@ -124,7 +127,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathCounter": MessageLookupByLibrary.simpleMessage("计数器初始值"),
         "oathCounterMustBeNumber":
             MessageLookupByLibrary.simpleMessage("请填写数字"),
-        "oathDelete": m1,
+        "oathDelete": m2,
         "oathDigits": MessageLookupByLibrary.simpleMessage("位数"),
         "oathDuplicated": MessageLookupByLibrary.simpleMessage("账户已存在"),
         "oathInputCode": MessageLookupByLibrary.simpleMessage("解锁 CanoKey"),
@@ -144,7 +147,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathSecret": MessageLookupByLibrary.simpleMessage("密钥"),
         "oathSetCode": MessageLookupByLibrary.simpleMessage("设置口令"),
         "oathSetDefault": MessageLookupByLibrary.simpleMessage("设为触摸输出"),
-        "oathSetDefaultPrompt": m2,
+        "oathSetDefaultPrompt": m3,
         "oathSlot": MessageLookupByLibrary.simpleMessage("口令槽"),
         "oathTooLong": MessageLookupByLibrary.simpleMessage("长度超限"),
         "oathType": MessageLookupByLibrary.simpleMessage("类型"),
@@ -157,7 +160,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "openpgpChangeAdminPin": MessageLookupByLibrary.simpleMessage(
           "修改 Admin PIN",
         ),
-        "openpgpChangeInteraction": m3,
+        "openpgpChangeInteraction": m4,
         "openpgpChangeTouchCacheTime": MessageLookupByLibrary.simpleMessage(
           "修改触摸缓存时间",
         ),
@@ -206,7 +209,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "pinIncorrect": MessageLookupByLibrary.simpleMessage("PIN 输入错误"),
         "pinInvalidLength": MessageLookupByLibrary.simpleMessage("长度错误"),
         "pinLength": MessageLookupByLibrary.simpleMessage("输入的 PIN 长度错误"),
-        "pinRetries": m4,
+        "pinRetries": m5,
         "pivAlgorithm": MessageLookupByLibrary.simpleMessage("当前密钥算法"),
         "pivAuthentication": MessageLookupByLibrary.simpleMessage(
           "认证（Authentication）",
@@ -305,10 +308,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "search": MessageLookupByLibrary.simpleMessage("搜索"),
         "seconds": MessageLookupByLibrary.simpleMessage("秒"),
         "settings": MessageLookupByLibrary.simpleMessage("设置"),
+        "settingsAppletSwitches": MessageLookupByLibrary.simpleMessage("应用开关"),
         "settingsChangeLanguage": MessageLookupByLibrary.simpleMessage("修改语言"),
         "settingsAppletStorageUsage":
             MessageLookupByLibrary.simpleMessage("各应用 Flash 用量"),
         "settingsChipId": MessageLookupByLibrary.simpleMessage("芯片 ID"),
+        "settingsCoreCommit": MessageLookupByLibrary.simpleMessage(
+          "Core Commit",
+        ),
         "settingsStorageFree": MessageLookupByLibrary.simpleMessage("可用"),
         "settingsClearPinCache":
             MessageLookupByLibrary.simpleMessage("清除已保存的 PIN"),
@@ -345,7 +352,16 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsNDEF": MessageLookupByLibrary.simpleMessage("NFC 标签模式 (NDEF)"),
         "settingsNDEFReadonly":
             MessageLookupByLibrary.simpleMessage("NFC 标签只读"),
+        "settingsOpenPgpCcId": MessageLookupByLibrary.simpleMessage(
+          "OpenPGP (CCID)",
+        ),
+        "settingsOpenPgpNfc": MessageLookupByLibrary.simpleMessage(
+          "OpenPGP (NFC)",
+        ),
         "settingsOtherSettings": MessageLookupByLibrary.simpleMessage("其他设置"),
+        "settingsPassApplet": MessageLookupByLibrary.simpleMessage("Pass"),
+        "settingsPivCcId": MessageLookupByLibrary.simpleMessage("PIV (CCID)"),
+        "settingsPivNfc": MessageLookupByLibrary.simpleMessage("PIV (NFC)"),
         "settingsResetAll": MessageLookupByLibrary.simpleMessage("重置 CanoKey"),
         "settingsResetAllPrompt": MessageLookupByLibrary.simpleMessage(
           "即将抹除全部数据。当您确认后，CanoKey 将会多次闪烁，请在每次看到闪烁时触摸，直到提示成功。",
@@ -372,6 +388,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsSN": MessageLookupByLibrary.simpleMessage("序号"),
         "settingsStartPage": MessageLookupByLibrary.simpleMessage("起始页"),
         "settingsStorageUsage": MessageLookupByLibrary.simpleMessage("存储用量"),
+        "settingsWebAuthnApplet":
+            MessageLookupByLibrary.simpleMessage("WebAuthn"),
         "settingsWebAuthnSm2Support": MessageLookupByLibrary.simpleMessage(
           "WebAuthn SM2",
         ),

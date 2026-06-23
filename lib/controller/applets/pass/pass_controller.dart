@@ -3,6 +3,7 @@ import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
+import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
@@ -17,6 +18,7 @@ class PassController extends PollingController with AdminApplet {
   PassSlot get slotShort => slots[0];
   PassSlot get slotLong => slots[1];
   bool hmacSha1Supported = false;
+  String? disabledMessage;
 
   @override
   Logger get log => Logging.logger('Pass:Controller');
@@ -40,6 +42,15 @@ class PassController extends PollingController with AdminApplet {
             S.current.passNotSupported, ContentThemeColor.danger);
         return;
       }
+      final switchStatus = await AppletSwitches.readStatus();
+      if (!switchStatus.passEnabled) {
+        disabledMessage = AppletSwitches.disabledMessage('Pass');
+        polled = false;
+        slots = [PassSlot.empty(), PassSlot.empty()];
+        update();
+        return;
+      }
+      disabledMessage = null;
       hmacSha1Supported = functionSet.contains(Func.passHmacSha1);
 
       if (!await authenticate(sn)) {

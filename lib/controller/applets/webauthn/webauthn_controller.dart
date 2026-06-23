@@ -4,6 +4,7 @@ import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
@@ -21,6 +22,7 @@ class WebAuthnController extends PollingController {
   late Ctap2 _ctap;
   final Map<String, String> _localPinCache = {};
   final List<WebAuthnItem> webAuthnItems = [];
+  String? disabledMessage;
 
   @override
   Logger get log => Logging.logger('WebAuthn:Controller');
@@ -28,6 +30,16 @@ class WebAuthnController extends PollingController {
   @override
   Future<void> doRefreshData() async {
     await SmartCard.process((String sn) async {
+      final switchStatus = await AppletSwitches.readStatus();
+      if (!switchStatus.webAuthnEnabled) {
+        disabledMessage = AppletSwitches.disabledMessage('WebAuthn');
+        polled = false;
+        webAuthnItems.clear();
+        update();
+        return;
+      }
+      disabledMessage = null;
+
       List<int>? pinToken = await _getPinToken(sn);
       if (pinToken == null) {
         return;

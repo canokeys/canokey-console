@@ -23,31 +23,34 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m0(min, max) =>
       "New PIN should be at least ${min} characters long. The maximum length is ${max}.";
 
-  static String m1(name) =>
-      "This action will delete the account ${name} from your CanoKey. Make sure 2FA has been disabled on the web service.";
+  static String m1(applet) =>
+      "${applet} is disabled. Enable it in Settings first.";
 
   static String m2(name) =>
+      "This action will delete the account ${name} from your CanoKey. Make sure 2FA has been disabled on the web service.";
+
+  static String m3(name) =>
       "Do you want to set the account ${name} as the default output when touching? Be careful, the original configuration will be overwritten.";
 
-  static String m3(keyType) => "Change ${keyType} Key\'s Touch Policy";
+  static String m4(keyType) => "Change ${keyType} Key\'s Touch Policy";
 
-  static String m4(retries) => "Incorrect PIN. ${retries} retries left.";
+  static String m5(retries) => "Incorrect PIN. ${retries} retries left.";
 
-  static String m5(min, max) =>
+  static String m6(min, max) =>
       "New PUK should be at least ${min} characters long. The maximum length is ${max}.";
 
-  static String m6(slot) =>
+  static String m7(slot) =>
       "This action will delete the slot ${slot} from your CanoKey. Make sure you have other ways to authenticate.";
 
-  static String m7(applet) =>
+  static String m8(applet) =>
       "This operation will RESET all data of ${applet}!";
 
-  static String m8(length) => "Need exact ${length} characters";
+  static String m9(length) => "Need exact ${length} characters";
 
-  static String m9(name) =>
+  static String m10(name) =>
       "This action will delete the account ${name} from your CanoKey. Make sure you have other ways to log in.";
 
-  static String m10(layout) => "Current: ${layout}";
+  static String m11(layout) => "Current: ${layout}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -66,6 +69,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "appletLocked": MessageLookupByLibrary.simpleMessage(
           "This applet has been locked.",
         ),
+        "appletDisabled": m1,
         "applets": MessageLookupByLibrary.simpleMessage("Applets"),
         "beforeSourceLink": MessageLookupByLibrary.simpleMessage(
           "Source code available on GitHub: ",
@@ -154,7 +158,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathCounterMustBeNumber": MessageLookupByLibrary.simpleMessage(
           "Not a number",
         ),
-        "oathDelete": m1,
+        "oathDelete": m2,
         "oathDigits": MessageLookupByLibrary.simpleMessage("Digits"),
         "oathDuplicated": MessageLookupByLibrary.simpleMessage(
           "Duplicated account",
@@ -181,7 +185,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "oathSetDefault": MessageLookupByLibrary.simpleMessage(
           "Set as Touch Output",
         ),
-        "oathSetDefaultPrompt": m2,
+        "oathSetDefaultPrompt": m3,
         "oathSlot": MessageLookupByLibrary.simpleMessage("Slot"),
         "oathTooLong": MessageLookupByLibrary.simpleMessage("Too long"),
         "oathType": MessageLookupByLibrary.simpleMessage("Type"),
@@ -197,7 +201,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "openpgpChangeAdminPin": MessageLookupByLibrary.simpleMessage(
           "Change Admin PIN",
         ),
-        "openpgpChangeInteraction": m3,
+        "openpgpChangeInteraction": m4,
         "openpgpChangeTouchCacheTime": MessageLookupByLibrary.simpleMessage(
           "Change Touch Cache Time",
         ),
@@ -263,7 +267,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "pinLength": MessageLookupByLibrary.simpleMessage(
           "The provided PIN is too short or too long.",
         ),
-        "pinRetries": m4,
+        "pinRetries": m5,
         "pivAlgorithm":
             MessageLookupByLibrary.simpleMessage("Current Algorithm"),
         "pivAuthentication":
@@ -287,9 +291,9 @@ class MessageLookup extends MessageLookupByLibrary {
           "New Management Key should be 24 bytes long. Please save it in a safe place.",
         ),
         "pivChangePUK": MessageLookupByLibrary.simpleMessage("Change PUK"),
-        "pivChangePUKPrompt": m5,
+        "pivChangePUKPrompt": m6,
         "pivDelete": MessageLookupByLibrary.simpleMessage("Delete"),
-        "pivDeleteSlot": m6,
+        "pivDeleteSlot": m7,
         "pivEmpty": MessageLookupByLibrary.simpleMessage("Empty"),
         "pivExport": MessageLookupByLibrary.simpleMessage("Export"),
         "pivExportCertificate": MessageLookupByLibrary.simpleMessage(
@@ -389,12 +393,17 @@ class MessageLookup extends MessageLookupByLibrary {
         "search": MessageLookupByLibrary.simpleMessage("Search"),
         "seconds": MessageLookupByLibrary.simpleMessage("seconds"),
         "settings": MessageLookupByLibrary.simpleMessage("Settings"),
+        "settingsAppletSwitches":
+            MessageLookupByLibrary.simpleMessage("Applet Switches"),
         "settingsChangeLanguage": MessageLookupByLibrary.simpleMessage(
           "Change Language",
         ),
         "settingsAppletStorageUsage":
             MessageLookupByLibrary.simpleMessage("Applet Flash Usage"),
         "settingsChipId": MessageLookupByLibrary.simpleMessage("Chip ID"),
+        "settingsCoreCommit": MessageLookupByLibrary.simpleMessage(
+          "Core Commit",
+        ),
         "settingsStorageFree": MessageLookupByLibrary.simpleMessage("Free"),
         "settingsClearPinCache": MessageLookupByLibrary.simpleMessage(
           "Clear Saved PINs",
@@ -424,7 +433,7 @@ class MessageLookup extends MessageLookupByLibrary {
         ),
         "settingsKeyboardLayout":
             MessageLookupByLibrary.simpleMessage("Keyboard Layout"),
-        "settingsKeyboardLayoutCurrent": m10,
+        "settingsKeyboardLayoutCurrent": m11,
         "settingsKeyboardLayoutCustom":
             MessageLookupByLibrary.simpleMessage("Custom layout"),
         "settingsKeyboardLayoutDefault":
@@ -442,15 +451,24 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsNDEFReadonly": MessageLookupByLibrary.simpleMessage(
           "NFC Tag Readonly",
         ),
+        "settingsOpenPgpCcId": MessageLookupByLibrary.simpleMessage(
+          "OpenPGP (CCID)",
+        ),
+        "settingsOpenPgpNfc": MessageLookupByLibrary.simpleMessage(
+          "OpenPGP (NFC)",
+        ),
         "settingsOtherSettings": MessageLookupByLibrary.simpleMessage(
           "Other Settings",
         ),
+        "settingsPassApplet": MessageLookupByLibrary.simpleMessage("Pass"),
+        "settingsPivCcId": MessageLookupByLibrary.simpleMessage("PIV (CCID)"),
+        "settingsPivNfc": MessageLookupByLibrary.simpleMessage("PIV (NFC)"),
         "settingsResetAll":
             MessageLookupByLibrary.simpleMessage("Reset CanoKey"),
         "settingsResetAllPrompt": MessageLookupByLibrary.simpleMessage(
           "All data will be erased. Once confirmed, the CanoKey will blink multiple times. Please touch it each time you see a blink until the success prompt appears.",
         ),
-        "settingsResetApplet": m7,
+        "settingsResetApplet": m8,
         "settingsResetConditionNotSatisfying":
             MessageLookupByLibrary.simpleMessage(
           "PIN has not been locked yet",
@@ -477,6 +495,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsStartPage": MessageLookupByLibrary.simpleMessage("Start Page"),
         "settingsStorageUsage":
             MessageLookupByLibrary.simpleMessage("Storage Usage"),
+        "settingsWebAuthnApplet":
+            MessageLookupByLibrary.simpleMessage("WebAuthn"),
         "settingsWebAuthnSm2Support": MessageLookupByLibrary.simpleMessage(
           "WebAuthn SM2",
         ),
@@ -489,7 +509,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "successfullyChanged": MessageLookupByLibrary.simpleMessage(
           "Successfully changed",
         ),
-        "validationExactLength": m8,
+        "validationExactLength": m9,
         "validationHexString": MessageLookupByLibrary.simpleMessage(
           "Please input a valid hexadecimal string.",
         ),
@@ -501,7 +521,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
           "This key does not support WebAuthn PIN.",
         ),
-        "webauthnDelete": m9,
+        "webauthnDelete": m10,
         "webauthnInputPinPrompt": MessageLookupByLibrary.simpleMessage(
           "Please input your WebAuthn PIN.",
         ),

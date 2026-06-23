@@ -1,6 +1,7 @@
 import 'package:canokey_console/controller/applets/pass/pass_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
+import 'package:canokey_console/helper/widgets/applet_disabled_screen.dart';
 import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
@@ -28,12 +29,16 @@ class _PassPageState extends State<PassPage> with UIMixin {
       topActions: isWeb() || isIOSApp()
           ? IconButton(
               onPressed: () => _controller.refreshData(),
-              icon: Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
+              icon:
+                  Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
             )
           : Container(),
       child: GetBuilder(
         init: _controller,
         builder: (_) {
+          if (_controller.disabledMessage != null) {
+            return AppletDisabledScreen(message: _controller.disabledMessage!);
+          }
           if (!_controller.polled) {
             return PollCanoKeyScreen();
           }
@@ -47,9 +52,17 @@ class _PassPageState extends State<PassPage> with UIMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Spacing.height(20),
-                    SlotCard(title: S.of(context).passSlotShort, slot: _controller.slotShort, slotIndex: PassController.short, controller: _controller),
+                    SlotCard(
+                        title: S.of(context).passSlotShort,
+                        slot: _controller.slotShort,
+                        slotIndex: PassController.short,
+                        controller: _controller),
                     Spacing.height(20),
-                    SlotCard(title: S.of(context).passSlotLong, slot: _controller.slotLong, slotIndex: PassController.long, controller: _controller),
+                    SlotCard(
+                        title: S.of(context).passSlotLong,
+                        slot: _controller.slotLong,
+                        slotIndex: PassController.long,
+                        controller: _controller),
                   ],
                 ),
               ),

@@ -1,6 +1,7 @@
 import 'package:canokey_console/controller/applets/openpgp/openpgp_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
+import 'package:canokey_console/helper/widgets/applet_disabled_screen.dart';
 import 'package:canokey_console/helper/widgets/change_pin_dialog.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
@@ -51,6 +52,9 @@ class _OpenPgpPageState extends State<OpenPgpPage> with UIMixin {
       child: GetBuilder(
         init: controller,
         builder: (_) {
+          if (controller.disabledMessage != null) {
+            return AppletDisabledScreen(message: controller.disabledMessage!);
+          }
           final info = controller.cardInfo;
           if (!controller.polled || info == null) {
             return PollCanoKeyScreen();

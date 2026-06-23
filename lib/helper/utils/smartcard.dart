@@ -375,7 +375,6 @@ class SmartCard {
           .firstWhereOrNull((name) => name.toLowerCase().contains("canokey"));
       if (name != null) {
         if (_ccidCard == null) {
-          log.i('New CanoKey (USB) detected: $name');
           try {
             _ccidCard = await Ccid().connect(name);
             var resp = await _ccidCard!.transceive('00A4040005F000000000');
@@ -387,6 +386,12 @@ class SmartCard {
             log.i(
                 'Successfully connected to CanoKey (USB). SN: $_currentSN. Connection Type updated to CCID.');
           } catch (e) {
+            if (_isNoCardReaderState(e)) {
+              _ccidCard = null;
+              _currentSN = '';
+              connectionType = ConnectionType.none;
+              return;
+            }
             log.e('Failed to connect to CanoKey (USB)', error: e);
             _ccidCard = null;
             _currentSN = '';
@@ -400,6 +405,13 @@ class SmartCard {
         connectionType = ConnectionType.none;
       }
     });
+  }
+
+  static bool _isNoCardReaderState(Object error) {
+    return error is PlatformException &&
+        (error.code == 'NO_CARD' ||
+            error.message == 'Failed to find a card' ||
+            error.message == 'Card is not connected');
   }
 
   static void onWebUSBDisconnected() {

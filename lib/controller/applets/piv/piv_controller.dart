@@ -7,6 +7,7 @@ import 'package:canokey_console/controller/base/base_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/tlv.dart';
+import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/utils/piv_csr.dart';
 import 'package:canokey_console/helper/utils/piv_signature.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
@@ -20,12 +21,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class PivController extends Controller {
-  bool polled = true;
+  bool polled = false;
   Map<int, SlotInfo> slots = {};
   bool extendedRetiredSlots = true;
   SlotInfo? pinInfo;
   SlotInfo? pukInfo;
   bool pinOnlyMode = false;
+  String? disabledMessage;
   PivAlgorithmExtensionConfig algorithmExtensionConfig =
       PivAlgorithmExtensionConfig.defaults;
 
@@ -40,6 +42,18 @@ class PivController extends Controller {
 
   Future<void> refreshData() async {
     await SmartCard.process((String sn) async {
+      final switchStatus = await AppletSwitches.readStatus();
+      if (!switchStatus.pivEnabled) {
+        disabledMessage = AppletSwitches.disabledMessage('PIV');
+        polled = false;
+        slots.clear();
+        pinInfo = null;
+        pukInfo = null;
+        update();
+        return;
+      }
+      disabledMessage = null;
+
       await _refreshCapabilities();
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       slots.clear();
@@ -71,6 +85,7 @@ class PivController extends Controller {
         slots[slot] = slotInfo;
       }
 
+      polled = true;
       update();
     });
   }

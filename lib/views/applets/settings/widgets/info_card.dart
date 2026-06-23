@@ -54,6 +54,13 @@ class InfoCard extends StatelessWidget with UIMixin {
                     iconData: LucideIcons.info,
                     title: S.of(context).settingsFirmwareVersion,
                     value: canokey.firmwareVersion),
+                if (canokey.coreCommit != null) ...[
+                  Spacing.height(16),
+                  InfoItem(
+                      iconData: LucideIcons.hash,
+                      title: S.of(context).settingsCoreCommit,
+                      value: canokey.coreCommit!),
+                ],
                 Spacing.height(16),
                 InfoItem(
                     iconData: LucideIcons.hash,

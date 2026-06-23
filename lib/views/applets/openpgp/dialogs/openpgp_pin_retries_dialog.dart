@@ -89,16 +89,19 @@ class _OpenPgpPinRetriesDialogState
           Padding(
             padding: Spacing.all(16),
             child: CustomizedText.labelLarge(
-              zh ? '设置 PIN 重试次数' : 'Set PIN Retries',
+              zh
+                  ? '设置 PIN/Reset/Admin PIN 重试次数'
+                  : 'Set PIN/Reset/Admin PIN Retries',
             ),
           ),
           Divider(height: 0, thickness: 1),
           Padding(
             padding: Spacing.all(16),
-            child: CustomizedText.bodyMedium(
+            child: CustomizedText.bodySmall(
               zh
-                  ? '设置每个凭据在锁定前允许的最大尝试次数。需要 Admin PIN 授权。'
-                  : 'Set the maximum allowed attempts before each credential is locked. Admin PIN is required.',
+                  ? '此操作会将 User PIN 重置为 123456，Admin PIN 重置为 12345678。'
+                  : 'This resets User PIN to 123456 and Admin PIN to 12345678.',
+              color: ContentThemeColor.danger.color,
             ),
           ),
           Divider(height: 0, thickness: 1),

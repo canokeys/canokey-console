@@ -224,6 +224,16 @@ class S {
     );
   }
 
+  /// `{applet} is disabled. Enable it in Settings first.`
+  String appletDisabled(Object applet) {
+    return Intl.message(
+      '$applet is disabled. Enable it in Settings first.',
+      name: 'appletDisabled',
+      desc: '',
+      args: [applet],
+    );
+  }
+
   /// `Incorrect PIN.`
   String get pinIncorrect {
     return Intl.message(
@@ -724,6 +734,16 @@ class S {
     );
   }
 
+  /// `canokey-core Commit`
+  String get settingsCoreCommit {
+    return Intl.message(
+      'Core Commit',
+      name: 'settingsCoreCommit',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Serial Number`
   String get settingsSN {
     return Intl.message(
@@ -804,6 +824,76 @@ class S {
     return Intl.message(
       'WebUSB prompt when plug-in',
       name: 'settingsWebUSB',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Applet Switches`
+  String get settingsAppletSwitches {
+    return Intl.message(
+      'Applet Switches',
+      name: 'settingsAppletSwitches',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pass`
+  String get settingsPassApplet {
+    return Intl.message(
+      'Pass',
+      name: 'settingsPassApplet',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `OpenPGP (CCID)`
+  String get settingsOpenPgpCcId {
+    return Intl.message(
+      'OpenPGP (CCID)',
+      name: 'settingsOpenPgpCcId',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `OpenPGP (NFC)`
+  String get settingsOpenPgpNfc {
+    return Intl.message(
+      'OpenPGP (NFC)',
+      name: 'settingsOpenPgpNfc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `PIV (CCID)`
+  String get settingsPivCcId {
+    return Intl.message(
+      'PIV (CCID)',
+      name: 'settingsPivCcId',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `PIV (NFC)`
+  String get settingsPivNfc {
+    return Intl.message(
+      'PIV (NFC)',
+      name: 'settingsPivNfc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `WebAuthn`
+  String get settingsWebAuthnApplet {
+    return Intl.message(
+      'WebAuthn',
+      name: 'settingsWebAuthnApplet',
       desc: '',
       args: [],
     );
