@@ -96,15 +96,6 @@ class FirmwareVersion implements Comparable<FirmwareVersion> {
   bool operator <(FirmwareVersion other) => compareTo(other) < 0;
 }
 
-class WebAuthnSm2Config {
-  final bool enabled; // encoding as a byte, 0x01: enabled, 0x00: disabled
-  final int curveId; // encoding as four bytes as big endian signed int
-  final int algoId; // encoding as four bytes as big endian signed int
-
-  WebAuthnSm2Config(
-      {required this.enabled, required this.curveId, required this.algoId});
-}
-
 class StorageUsage {
   final int usedKiB;
   final int totalKiB;
@@ -158,7 +149,6 @@ class CanoKey {
   final bool featureSwitchesSupported;
   final StorageUsage? storageUsage;
   final KeyboardKeymapState? keyboardKeymap;
-  WebAuthnSm2Config? webAuthnSm2Config;
 
   CanoKey(
       {required this.model,
@@ -186,15 +176,11 @@ class CanoKey {
       this.webAuthnEnabled = true,
       this.featureSwitchesSupported = false,
       this.storageUsage,
-      this.keyboardKeymap,
-      this.webAuthnSm2Config});
+      this.keyboardKeymap});
 
   Set<Func> getFunctionSet() {
     return functionSet(functionSetVersion);
   }
-
-  bool get canChangeWebAuthnSm2Enabled =>
-      functionSetVersion != FunctionSetVersion.v5;
 
   static Set<Func> functionSet(FunctionSetVersion functionSetVersion) {
     switch (functionSetVersion) {

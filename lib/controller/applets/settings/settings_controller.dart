@@ -11,7 +11,6 @@ import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/keyboard_keymap.dart';
 import 'package:convert/convert.dart';
-import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loader_overlay/loader_overlay.dart';
@@ -144,32 +143,6 @@ class SettingsController extends PollingController with AdminApplet {
       } else {
         Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
       }
-    });
-  }
-
-  Future<void> changeWebAuthnSm2Config(
-      bool enabled, int curveId, int algoId) async {
-    await SmartCard.process((String sn) async {
-      if (!await authenticate(sn)) {
-        return;
-      }
-      if (!key.getFunctionSet().contains(Func.webAuthnSm2Support)) {
-        Prompts.showPrompt(
-            S.of(Get.context!).notSupported, ContentThemeColor.warning);
-        return;
-      }
-
-      final cmdData = _encodeWebAuthnSm2Config(
-          key.functionSetVersion, enabled, curveId, algoId);
-      SmartCard.assertOK(await SmartCard.transceive(
-          '00120000${(cmdData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$cmdData'));
-      log.i('Successfully changed WebAuthn SM2 config');
-      Navigator.pop(Get.context!);
-
-      Prompts.showPrompt(
-          S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
-          forceSnackBar: true);
-      await _refresh(sn);
     });
   }
 
@@ -351,13 +324,6 @@ class SettingsController extends PollingController with AdminApplet {
         storageUsage: storageUsage,
         keyboardKeymap: keyboardKeymap);
 
-    if (key.getFunctionSet().contains(Func.webAuthnSm2Support)) {
-      resp = await SmartCard.transceive('0011000000');
-      SmartCard.assertOK(resp);
-      key.webAuthnSm2Config = _decodeWebAuthnSm2Config(
-          key.functionSetVersion, SmartCard.dropSW(resp));
-    }
-
     polled = true;
 
     update();
@@ -491,40 +457,6 @@ class SettingsController extends PollingController with AdminApplet {
       default:
         return false;
     }
-  }
-
-  String _encodeWebAuthnSm2Config(FunctionSetVersion functionSetVersion,
-      bool enabled, int curveId, int algoId) {
-    final attrData = hex.encode(Int32(curveId).toBytes().reversed.toList()) +
-        hex.encode(Int32(algoId).toBytes().reversed.toList());
-    if (functionSetVersion == FunctionSetVersion.v5) {
-      return attrData;
-    }
-    return (enabled ? '01' : '00') + attrData;
-  }
-
-  WebAuthnSm2Config _decodeWebAuthnSm2Config(
-      FunctionSetVersion functionSetVersion, String data) {
-    if (functionSetVersion == FunctionSetVersion.v5) {
-      if (data.length < 16) {
-        throw Exception(
-            'Invalid WebAuthn SM2 config length: ${data.length ~/ 2}');
-      }
-      return WebAuthnSm2Config(
-        enabled: true,
-        curveId: Int32.parseHex(data.substring(0, 8)).toInt(),
-        algoId: Int32.parseHex(data.substring(8, 16)).toInt(),
-      );
-    }
-    if (data.length < 18) {
-      throw Exception(
-          'Invalid WebAuthn SM2 config length: ${data.length ~/ 2}');
-    }
-    return WebAuthnSm2Config(
-      enabled: data.substring(0, 2) == '01',
-      curveId: Int32.parseHex(data.substring(2, 10)).toInt(),
-      algoId: Int32.parseHex(data.substring(10, 18)).toInt(),
-    );
   }
 
   static const int _featurePass = 1 << 0;

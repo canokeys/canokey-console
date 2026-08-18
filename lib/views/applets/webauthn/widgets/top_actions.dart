@@ -4,6 +4,7 @@ import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
+import 'package:canokey_console/views/applets/webauthn/dialogs/sm2_config_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
@@ -47,6 +48,27 @@ class TopActions extends StatelessWidget with UIMixin {
             ),
             Spacing.width(12),
           ]);
+          if (controller.supportsSm2Settings) {
+            widgets.insertAll(0, [
+              IconButton(
+                tooltip: S.of(context).settingsWebAuthnSm2Support,
+                onPressed: () async {
+                  final config = await controller.readSm2Config();
+                  if (config == null) {
+                    return;
+                  }
+                  await Sm2ConfigDialog.show(
+                    config: config,
+                    canChangeEnabled: true,
+                    onConfirm: controller.changeSm2Config,
+                  );
+                },
+                icon:
+                    Icon(LucideIcons.settings, color: topBarTheme.onBackground),
+              ),
+              Spacing.width(12),
+            ]);
+          }
         }
         return Row(children: widgets);
       },

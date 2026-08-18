@@ -8,7 +8,7 @@ import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
-import 'package:canokey_console/models/canokey.dart';
+import 'package:canokey_console/models/webauthn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

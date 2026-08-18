@@ -13,7 +13,6 @@ import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/reset_dialog.dart';
-import 'package:canokey_console/views/applets/settings/dialogs/sm2_config_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:platform_detector/platform_detector.dart';
@@ -89,26 +88,6 @@ class ActionCard extends StatelessWidget with UIMixin {
                       backgroundColor: contentTheme.primary,
                       borderRadiusAll: AppStyle.buttonRadius.medium,
                       child: CustomizedText.bodySmall(S.of(context).changePin,
-                          color: contentTheme.onPrimary),
-                    ),
-                  },
-                  // WebAuthn SM2
-                  if (functionSet.contains(Func.webAuthnSm2Support) &&
-                      controller.key.webAuthnSm2Config != null) ...{
-                    CustomizedButton(
-                      onPressed: () => Sm2ConfigDialog.show(
-                        config: controller.key.webAuthnSm2Config!,
-                        canChangeEnabled:
-                            controller.key.canChangeWebAuthnSm2Enabled,
-                        onConfirm: (enabled, curveId, algoId) => controller
-                            .changeWebAuthnSm2Config(enabled, curveId, algoId),
-                      ),
-                      elevation: 0,
-                      padding: Spacing.xy(20, 16),
-                      backgroundColor: contentTheme.primary,
-                      borderRadiusAll: AppStyle.buttonRadius.medium,
-                      child: CustomizedText.bodySmall(
-                          S.of(context).settingsWebAuthnSm2Support,
                           color: contentTheme.onPrimary),
                     ),
                   },
