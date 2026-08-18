@@ -9,6 +9,7 @@ import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/utils/piv_csr.dart';
+import 'package:canokey_console/helper/utils/piv_management_key.dart';
 import 'package:canokey_console/helper/utils/piv_signature.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
@@ -23,13 +24,54 @@ import 'package:get/get.dart';
 class PivController extends Controller {
   bool polled = false;
   Map<int, SlotInfo> slots = {};
-  bool extendedRetiredSlots = true;
+  final Map<int, Uint8List> certificateBytes = {};
+  final Map<int, X509CertData> certificates = {};
+  FirmwareVersion firmwareVersion = const FirmwareVersion(0, 0, 0);
+  FunctionSetVersion functionSetVersion = FunctionSetVersion.v1;
+  bool extendedRetiredSlots = false;
   SlotInfo? pinInfo;
   SlotInfo? pukInfo;
+  SlotInfo? managementKeyInfo;
   bool pinOnlyMode = false;
   String? disabledMessage;
   PivAlgorithmExtensionConfig algorithmExtensionConfig =
       PivAlgorithmExtensionConfig.defaults;
+
+  bool get supportsCurrentDevelopmentFeatures =>
+      functionSetVersion == FunctionSetVersion.v5;
+
+  bool get supportsMetadata =>
+      firmwareVersion.compareTo(const FirmwareVersion(2, 0, 0)) >= 0;
+
+  bool get supportsPinOnlyMode => supportsCurrentDevelopmentFeatures;
+
+  bool get supportsPinRetryConfig => supportsCurrentDevelopmentFeatures;
+
+  bool supportsAlgorithm(AlgorithmType algorithm) {
+    switch (algorithm) {
+      case AlgorithmType.eccp256:
+      case AlgorithmType.eccp384:
+      case AlgorithmType.rsa2048:
+        return true;
+      case AlgorithmType.eccp521:
+        return supportsCurrentDevelopmentFeatures &&
+            algorithmExtensionConfig.enabled;
+      case AlgorithmType.ed25519:
+      case AlgorithmType.rsa3072:
+      case AlgorithmType.rsa4096:
+      case AlgorithmType.x25519:
+      case AlgorithmType.secp256k1:
+      case AlgorithmType.sm2:
+        return supportsMetadata && algorithmExtensionConfig.enabled;
+      case AlgorithmType.pin:
+      case AlgorithmType.tdes:
+      case AlgorithmType.aes128:
+      case AlgorithmType.aes192:
+      case AlgorithmType.aes256:
+      case AlgorithmType.rsa1024:
+        return false;
+    }
+  }
 
   @override
   void onClose() {
@@ -43,12 +85,18 @@ class PivController extends Controller {
   Future<void> refreshData() async {
     await SmartCard.process((String sn) async {
       final switchStatus = await AppletSwitches.readStatus();
+      firmwareVersion = switchStatus.firmwareVersion;
+      functionSetVersion = switchStatus.functionSetVersion;
+      extendedRetiredSlots = supportsCurrentDevelopmentFeatures;
       if (!switchStatus.pivEnabled) {
         disabledMessage = AppletSwitches.disabledMessage('PIV');
         polled = false;
         slots.clear();
+        certificateBytes.clear();
+        certificates.clear();
         pinInfo = null;
         pukInfo = null;
+        managementKeyInfo = null;
         update();
         return;
       }
@@ -57,32 +105,42 @@ class PivController extends Controller {
       await _refreshCapabilities();
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       slots.clear();
-      pinInfo = await _readCredentialMetadata(0x80);
-      pukInfo = await _readCredentialMetadata(0x81);
-      pinOnlyMode = await _readPinOnlyModeInSession();
+      certificateBytes.clear();
+      certificates.clear();
+      pinInfo = supportsMetadata ? await _readCredentialMetadata(0x80) : null;
+      pukInfo = supportsMetadata ? await _readCredentialMetadata(0x81) : null;
+      managementKeyInfo =
+          supportsMetadata ? await _readCredentialMetadata(0x9B) : null;
+      pinOnlyMode =
+          supportsPinOnlyMode ? await _readPinOnlyModeInSession() : false;
       for (var slot in _keySlots) {
-        String resp = await _transceive('00F700${hex.encode([slot])}00');
-        if (_isMissingMetadataResponse(resp)) {
-          continue;
-        }
-        SmartCard.assertOK(resp);
-        List<int> metadata = hex.decode(SmartCard.dropSW(resp));
-        SlotInfo slotInfo = SlotInfo.parse(
-          slot,
-          metadata,
-          algorithmExtensionConfig: algorithmExtensionConfig,
-        );
-        if (_certDO.containsKey(slot)) {
-          resp = await _transceive(
-              '00CB3FFF055C035FC1${hex.encode([_certDO[slot]!])}00');
-          if (SmartCard.isOK(resp)) {
-            final bytes = hex.decode(resp.substring(16, resp.length - 4));
-            final cert = parseX509CertFromDer(der: bytes);
-            slotInfo.cert = cert;
-            slotInfo.certBytes = bytes;
+        SlotInfo? slotInfo;
+        if (supportsMetadata) {
+          final metadataResp =
+              await _transceive('00F700${hex.encode([slot])}00');
+          if (SmartCard.isOK(metadataResp) &&
+              !_isMissingMetadataResponse(metadataResp)) {
+            slotInfo = SlotInfo.parse(
+              slot,
+              hex.decode(SmartCard.dropSW(metadataResp)),
+              algorithmExtensionConfig: algorithmExtensionConfig,
+            );
+            slots[slot] = slotInfo;
           }
         }
-        slots[slot] = slotInfo;
+        if (_certDO.containsKey(slot)) {
+          final certResp = await _transceive(
+              '00CB3FFF055C035FC1${hex.encode([_certDO[slot]!])}00');
+          if (SmartCard.isOK(certResp)) {
+            final bytes = Uint8List.fromList(
+                hex.decode(certResp.substring(16, certResp.length - 4)));
+            final cert = parseX509CertFromDer(der: bytes);
+            certificateBytes[slot] = bytes;
+            certificates[slot] = cert;
+            slotInfo?.cert = cert;
+            slotInfo?.certBytes = bytes;
+          }
+        }
       }
 
       polled = true;
@@ -92,27 +150,18 @@ class PivController extends Controller {
 
   Future<void> _refreshCapabilities() async {
     try {
-      SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));
-      final resp = await SmartCard.transceive('0031000000');
-      SmartCard.assertOK(resp);
-      final firmwareVersion =
-          String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
-      extendedRetiredSlots =
-          CanoKey.functionSetFromFirmwareVersion(firmwareVersion) ==
-              FunctionSetVersion.v5;
-    } catch (_) {
-      // Reading firmware version can require admin applet state that the PIV
-      // page does not force. Keep the 3.1.0+ lazy-slot view when unknown.
-      extendedRetiredSlots = true;
-    }
-    try {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       final resp = await SmartCard.transceive('00EE010000');
       SmartCard.assertOK(resp);
       algorithmExtensionConfig = PivAlgorithmExtensionConfig.decode(
           hex.decode(SmartCard.dropSW(resp)));
     } catch (_) {
-      algorithmExtensionConfig = PivAlgorithmExtensionConfig.defaults;
+      final isLegacyV2 =
+          firmwareVersion.compareTo(const FirmwareVersion(2, 0, 0)) >= 0 &&
+              firmwareVersion.compareTo(const FirmwareVersion(3, 0, 0)) < 0;
+      algorithmExtensionConfig = isLegacyV2
+          ? PivAlgorithmExtensionConfig.legacyV2
+          : PivAlgorithmExtensionConfig.defaults;
     }
   }
 
@@ -188,15 +237,7 @@ class PivController extends Controller {
     final c = new Completer<bool>();
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
-      String resp = await SmartCard.transceive('0087039B047C028100');
-      SmartCard.assertOK(resp);
-      String challenge = resp.substring(8, resp.length - 4);
-      // first 8 bytes of tdes_ede3(24Byte_key, challenge)
-      String auth = hex.encode(
-          tdesEde3Enc(key: hex.decode(key), data: hex.decode(challenge))
-              .sublist(0, 8));
-      resp = await SmartCard.transceive('0087039B0C7C0A8208$auth');
-      c.complete(SmartCard.isOK(resp));
+      c.complete(await _authenticateManagementKey(key));
     });
     return c.future;
   }
@@ -207,8 +248,12 @@ class PivController extends Controller {
     String pin = '',
     bool usePinOnly = false,
     bool storeOnDevice = false,
+    TouchPolicy? touchPolicy,
   }) async {
     final c = Completer<bool>();
+    if ((usePinOnly || storeOnDevice) && !supportsPinOnlyMode) {
+      return false;
+    }
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       if ((usePinOnly || storeOnDevice) && !await _verifyPinInSession(pin)) {
@@ -220,7 +265,10 @@ class PivController extends Controller {
         c.complete(false);
         return;
       }
-      if (!await _setManagementKeyInSession(newKey)) {
+      if (!await _setManagementKeyInSession(
+        newKey,
+        touchPolicy: touchPolicy ?? managementKeyTouchPolicy,
+      )) {
         c.complete(false);
         return;
       }
@@ -442,6 +490,9 @@ class PivController extends Controller {
 
   Future<bool> setPinRetries(String pin, String managementKey, int pinRetries,
       int pukRetries, bool usePinOnly) async {
+    if (!supportsPinRetryConfig) {
+      return false;
+    }
     final c = Completer<bool>();
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
@@ -464,6 +515,9 @@ class PivController extends Controller {
 
   Future<bool> enablePinOnlyMode(
       String pin, String currentManagementKey) async {
+    if (!supportsPinOnlyMode) {
+      return false;
+    }
     final c = Completer<bool>();
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
@@ -478,7 +532,10 @@ class PivController extends Controller {
       final random = Random.secure();
       final newKey =
           hex.encode(List<int>.generate(24, (_) => random.nextInt(256)));
-      if (!await _setManagementKeyInSession(newKey)) {
+      if (!await _setManagementKeyInSession(
+        newKey,
+        touchPolicy: managementKeyTouchPolicy,
+      )) {
         c.complete(false);
         return;
       }
@@ -493,6 +550,9 @@ class PivController extends Controller {
 
   Future<bool> disablePinOnlyMode(String pin, String currentManagementKey,
       String newManagementKey, bool usePinOnly) async {
+    if (!supportsPinOnlyMode) {
+      return false;
+    }
     final c = Completer<bool>();
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
@@ -505,7 +565,10 @@ class PivController extends Controller {
         c.complete(false);
         return;
       }
-      if (!await _setManagementKeyInSession(newManagementKey)) {
+      if (!await _setManagementKeyInSession(
+        newManagementKey,
+        touchPolicy: managementKeyTouchPolicy,
+      )) {
         c.complete(false);
         return;
       }
@@ -875,6 +938,9 @@ class PivController extends Controller {
     required String managementKey,
     required bool usePinOnly,
   }) async {
+    if (!supportsCurrentDevelopmentFeatures) {
+      return false;
+    }
     final c = Completer<bool>();
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
@@ -893,6 +959,52 @@ class PivController extends Controller {
         return;
       }
       c.complete(await _importCertInSession(slot, Uint8List(0)));
+    });
+    return c.future;
+  }
+
+  Future<bool> moveKeyAuthenticated({
+    required String sourceSlot,
+    required String targetSlot,
+    required String pin,
+    required String managementKey,
+    required bool usePinOnly,
+  }) async {
+    if (!supportsCurrentDevelopmentFeatures) {
+      return false;
+    }
+    final c = Completer<bool>();
+    SmartCard.process((String sn) async {
+      SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
+      if (usePinOnly && !await _verifyPinInSession(pin)) {
+        c.complete(false);
+        return;
+      }
+      if (!await _authenticateManagementKeyOrPinOnly(
+          pin, managementKey, usePinOnly)) {
+        c.complete(false);
+        return;
+      }
+      final resp = await SmartCard.transceive(
+          '00F6${targetSlot.toUpperCase()}${sourceSlot.toUpperCase()}');
+      c.complete(SmartCard.isOK(resp));
+    });
+    return c.future;
+  }
+
+  Future<Uint8List?> attestKey(String slot) async {
+    if (!supportsCurrentDevelopmentFeatures) {
+      return null;
+    }
+    final c = Completer<Uint8List?>();
+    SmartCard.process((String sn) async {
+      SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
+      final resp = await _transceive('00F9${slot.toUpperCase()}0000');
+      if (!SmartCard.isOK(resp)) {
+        c.complete(null);
+        return;
+      }
+      c.complete(Uint8List.fromList(hex.decode(SmartCard.dropSW(resp))));
     });
     return c.future;
   }
@@ -1142,23 +1254,52 @@ class PivController extends Controller {
   }
 
   Future<bool> _authenticateManagementKey(String key) async {
-    if (key.length != 48) {
+    if (key.length != 48 || !RegExp(r'^[0-9a-fA-F]+$').hasMatch(key)) {
       return false;
     }
-    String resp = await SmartCard.transceive('0087039B047C028100');
+    final algorithm = managementKeyAlgorithm;
+    String resp = await SmartCard.transceive(
+        PivManagementKeyProtocol.authenticateRequest(algorithm));
     SmartCard.assertOK(resp);
-    String challenge = resp.substring(8, resp.length - 4);
-    String auth = hex.encode(
-        tdesEde3Enc(key: hex.decode(key), data: hex.decode(challenge))
-            .sublist(0, 8));
-    resp = await SmartCard.transceive('0087039B0C7C0A8208$auth');
+    final challenge = PivManagementKeyProtocol.parseChallenge(
+      hex.decode(SmartCard.dropSW(resp)),
+      algorithm,
+    );
+    final auth = PivManagementKeyProtocol.encryptChallenge(
+      algorithm: algorithm,
+      key: hex.decode(key),
+      challenge: challenge,
+    );
+    resp = await SmartCard.transceive(
+        PivManagementKeyProtocol.authenticateResponse(algorithm, auth));
     return SmartCard.isOK(resp);
   }
 
-  Future<bool> _setManagementKeyInSession(String key) async {
-    final resp = await SmartCard.transceive('00FFFFFF1B039B18$key');
+  Future<bool> _setManagementKeyInSession(
+    String key, {
+    required TouchPolicy touchPolicy,
+  }) async {
+    if (key.length != 48 || !RegExp(r'^[0-9a-fA-F]+$').hasMatch(key)) {
+      return false;
+    }
+    final resp = await SmartCard.transceive(
+      PivManagementKeyProtocol.setManagementKey(
+        algorithm: managementKeyAlgorithm,
+        key: key,
+        touchPolicy: touchPolicy,
+      ),
+    );
     return SmartCard.isOK(resp);
   }
+
+  AlgorithmType get managementKeyAlgorithm =>
+      managementKeyInfo?.algorithm ?? AlgorithmType.tdes;
+
+  TouchPolicy get managementKeyTouchPolicy =>
+      managementKeyInfo?.touchPolicy ?? TouchPolicy.never;
+
+  bool get supportsManagementKeyTouchPolicy =>
+      managementKeyAlgorithm == AlgorithmType.aes192;
 
   Future<bool> _readPinOnlyModeInSession() async {
     final data = await _getDataObject(_pivmanDataObject);

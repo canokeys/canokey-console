@@ -11,6 +11,7 @@ import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/models/webauthn.dart';
+import 'package:canokey_console/views/applets/webauthn/dialogs/force_pin_change_dialog.dart';
 import 'package:convert/convert.dart';
 import 'package:fido2/fido2.dart';
 import 'package:flutter/material.dart';
@@ -92,18 +93,7 @@ class WebAuthnController extends PollingController {
         await cp.changePin(pinToTry, newPin);
       } catch (e) {
         if (e is CtapError) {
-          if (e.status == CtapStatusCode.ctap2ErrPinInvalid) {
-            Prompts.showPrompt(
-                S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
-          } else if (e.status == CtapStatusCode.ctap2ErrPinAuthBlocked) {
-            Prompts.showPrompt(S.of(Get.context!).webauthnPinAuthBlocked,
-                ContentThemeColor.danger);
-          } else if (e.status == CtapStatusCode.ctap2ErrPinBlocked) {
-            Prompts.showPrompt(S.of(Get.context!).webauthnPinBlocked,
-                ContentThemeColor.danger);
-          } else {
-            Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
-          }
+          _showPinError(e.status);
           return;
         } else {
           rethrow;
@@ -186,6 +176,10 @@ class WebAuthnController extends PollingController {
     }
 
     assert(_ctap.info.options?['clientPin'] == true);
+
+    if (_ctap.info.forcePinChange == true) {
+      return _forceChangePin(sn);
+    }
 
     // Try local cache first
     if (_localPinCache.containsKey(sn)) {
@@ -330,19 +324,95 @@ class WebAuthnController extends PollingController {
       return await cp.getPinToken(pin,
           permissions: [ClientPinPermission.credentialManagement]);
     } on CtapError catch (e) {
-      if (e.status == CtapStatusCode.ctap2ErrPinInvalid) {
-        Prompts.showPrompt(
-            S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
-      } else if (e.status == CtapStatusCode.ctap2ErrPinAuthBlocked) {
-        Prompts.showPrompt(S.of(Get.context!).webauthnPinAuthBlocked,
-            ContentThemeColor.danger);
-      } else if (e.status == CtapStatusCode.ctap2ErrPinBlocked) {
-        Prompts.showPrompt(
-            S.of(Get.context!).webauthnPinBlocked, ContentThemeColor.danger);
-      } else {
-        Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
-      }
+      _showPinError(e.status);
       return null;
+    }
+  }
+
+  Future<List<int>?> _forceChangePin(String sn) async {
+    SmartCard.stopPollingNfc(withInput: true);
+    final completer = Completer<List<int>?>();
+    await ForcePinChangeDialog.show(
+      minPinLength: _ctap.info.minPinLength ?? 4,
+      onSubmit: (currentPin, newPin, savePin) async {
+        SmartCard.nfcState = NfcState.processWithInput;
+        if (!await SmartCard.pollNfcOrWebUsb()) {
+          Prompts.stopPromptAndroidPolling();
+          Prompts.showPrompt(
+              S.of(Get.context!).noCard, ContentThemeColor.warning,
+              level: 'W');
+          return false;
+        }
+        Prompts.stopPromptAndroidPolling();
+        try {
+          SmartCard.assertOK(
+              await SmartCard.transceive('00A4040008A0000006472F0001'));
+          final cp = ClientPin(_ctap);
+          await cp.changePin(currentPin, newPin);
+          _ctap = await Ctap2.create(CtapTransimtter());
+          final pinToken = await _doGetPinToken(newPin);
+          if (pinToken == null) {
+            await SmartCard.stopPollingNfc(withInput: true);
+            return false;
+          }
+          await _setPinCache(sn, newPin, savePin);
+          SmartCard.nfcState = NfcState.processWithoutInput;
+          if (!completer.isCompleted) {
+            completer.complete(pinToken);
+          }
+          Prompts.showPrompt(
+              S.of(Get.context!).pinChanged, ContentThemeColor.success);
+          return true;
+        } on CtapError catch (e) {
+          await SmartCard.stopPollingNfc(withInput: true);
+          _showPinError(e.status);
+          return false;
+        } on PlatformException catch (e) {
+          await SmartCard.stopPollingNfc(withInput: true);
+          log.e('force PIN change failed', error: e);
+          if (e.code == '500') {
+            Prompts.showPrompt(
+                S.of(Get.context!).interrupted, ContentThemeColor.danger);
+          } else {
+            Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
+          }
+          return false;
+        } catch (e, s) {
+          await SmartCard.stopPollingNfc(withInput: true);
+          log.e('force PIN change failed', error: e, stackTrace: s);
+          Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
+          return false;
+        }
+      },
+      onCancel: () {
+        SmartCard.nfcState = NfcState.idle;
+        if (!completer.isCompleted) {
+          completer.complete(null);
+        }
+      },
+    );
+    if (!completer.isCompleted) {
+      completer.complete(null);
+    }
+    return completer.future;
+  }
+
+  void _showPinError(CtapStatusCode status) {
+    if (status == CtapStatusCode.ctap2ErrPinInvalid) {
+      Prompts.showPrompt(
+          S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+    } else if (status == CtapStatusCode.ctap2ErrPinAuthBlocked) {
+      Prompts.showPrompt(
+          S.of(Get.context!).webauthnPinAuthBlocked, ContentThemeColor.danger);
+    } else if (status == CtapStatusCode.ctap2ErrPinBlocked) {
+      Prompts.showPrompt(
+          S.of(Get.context!).webauthnPinBlocked, ContentThemeColor.danger);
+    } else if (status == CtapStatusCode.ctap2ErrPinPolicyViolation) {
+      Prompts.showPrompt(
+          S.of(Get.context!).changePinPrompt(_ctap.info.minPinLength ?? 4, 63),
+          ContentThemeColor.danger);
+    } else {
+      Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
     }
   }
 

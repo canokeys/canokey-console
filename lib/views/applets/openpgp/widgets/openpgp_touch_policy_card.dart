@@ -11,14 +11,12 @@ class OpenPgpTouchPolicyCard extends StatelessWidget {
   final OpenPgpCardInfo info;
   final void Function(OpenPgpKeySlotInfo slot) onChange;
   final VoidCallback onChangeCacheTime;
-  final String Function({required String en, required String zh}) t;
 
   const OpenPgpTouchPolicyCard({
     super.key,
     required this.info,
     required this.onChange,
     required this.onChangeCacheTime,
-    required this.t,
   });
 
   @override
@@ -36,7 +34,7 @@ class OpenPgpTouchPolicyCard extends StatelessWidget {
             context,
             icon: LucideIcons.timer,
             title: S.of(context).openpgpUifCacheTime,
-            value: _cacheTimeLabel(),
+            value: _cacheTimeLabel(context),
             onTap: onChangeCacheTime,
             enabled: info.touchCacheTime != null,
           ),
@@ -50,7 +48,7 @@ class OpenPgpTouchPolicyCard extends StatelessWidget {
       context,
       icon: LucideIcons.keyRound,
       title: slot.type.label,
-      value: _touchPolicyLabel(slot.touchPolicy),
+      value: _touchPolicyLabel(context, slot.touchPolicy),
       onTap: () => onChange(slot),
       enabled: !slot.touchFixed &&
           OpenPgpTouchPolicy.writableValues.contains(slot.touchPolicy),
@@ -111,29 +109,29 @@ class OpenPgpTouchPolicyCard extends StatelessWidget {
     );
   }
 
-  String _cacheTimeLabel() {
+  String _cacheTimeLabel(BuildContext context) {
     final seconds = info.touchCacheTime;
     if (seconds == null) {
-      return t(en: 'Unsupported', zh: '不支持');
+      return S.of(context).notSupported;
     }
     if (seconds == 0) {
-      return t(en: '0 sec (off)', zh: '0 秒（不缓存）');
+      return S.of(context).openpgpTouchCacheOff;
     }
-    return '$seconds ${t(en: 'sec', zh: '秒')}';
+    return S.of(context).openpgpTouchCacheSeconds(seconds);
   }
 
-  String _touchPolicyLabel(OpenPgpTouchPolicy policy) {
+  String _touchPolicyLabel(BuildContext context, OpenPgpTouchPolicy policy) {
     switch (policy) {
       case OpenPgpTouchPolicy.off:
-        return t(en: 'No touch', zh: '无需触摸');
+        return S.of(context).openpgpTouchNone;
       case OpenPgpTouchPolicy.on:
-        return t(en: 'Requires touch', zh: '需要触摸');
+        return S.of(context).openpgpTouchRequired;
       case OpenPgpTouchPolicy.permanent:
-        return t(en: 'Permanent', zh: '永久开启');
+        return S.of(context).openpgpTouchPermanent;
       case OpenPgpTouchPolicy.cached:
-        return t(en: 'Cached touch', zh: '触摸缓存');
+        return S.of(context).openpgpTouchCached;
       case OpenPgpTouchPolicy.cachedPermanent:
-        return t(en: 'Permanent cached', zh: '永久缓存');
+        return S.of(context).openpgpTouchPermanentCached;
     }
   }
 }

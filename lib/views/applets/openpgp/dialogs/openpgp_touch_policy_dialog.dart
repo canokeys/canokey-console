@@ -21,13 +21,11 @@ class OpenPgpTouchPolicyDialog extends BaseDialog {
     OpenPgpTouchPolicy policy,
     String adminPin,
   ) onSubmit;
-  final String Function({required String en, required String zh}) t;
 
   const OpenPgpTouchPolicyDialog({
     super.key,
     required this.slot,
     required this.onSubmit,
-    required this.t,
   });
 
   static Future<void> show({
@@ -37,10 +35,9 @@ class OpenPgpTouchPolicyDialog extends BaseDialog {
       OpenPgpTouchPolicy policy,
       String adminPin,
     ) onSubmit,
-    required String Function({required String en, required String zh}) t,
   }) {
     return Get.dialog(
-      OpenPgpTouchPolicyDialog(slot: slot, onSubmit: onSubmit, t: t),
+      OpenPgpTouchPolicyDialog(slot: slot, onSubmit: onSubmit),
       barrierDismissible: false,
     );
   }
@@ -110,10 +107,7 @@ class _OpenPgpTouchPolicyDialogState
                     controlAffinity: ListTileControlAffinity.leading,
                     contentPadding: EdgeInsets.zero,
                     title: CustomizedText.bodyMedium(
-                      widget.t(
-                        en: 'I understand this makes touch permanently enabled for this key.',
-                        zh: '我确认永久启用后，此密钥的触摸策略无法再关闭。',
-                      ),
+                      S.of(context).openpgpPermanentTouchConfirmation,
                       color: ContentThemeColor.warning.color,
                     ),
                   ),
@@ -132,7 +126,7 @@ class _OpenPgpTouchPolicyDialogState
                 controller: _validator.getController('admin'),
                 validator: _validator.getValidator('admin'),
                 decoration: InputDecoration(
-                  labelText: 'Admin PIN',
+                  labelText: S.of(context).openpgpAdminPin,
                   border: _outlineInputBorder,
                   suffixIcon: IconButton(
                     icon: Icon(_showAdminPin.value

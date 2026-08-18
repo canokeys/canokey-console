@@ -65,7 +65,6 @@ class _OpenPgpSignaturePinPolicyDialogState
 
   @override
   Widget buildDialogContent() {
-    final zh = Localizations.localeOf(context).languageCode == 'zh';
     return Obx(
       () => Column(
         mainAxisSize: MainAxisSize.min,
@@ -74,7 +73,7 @@ class _OpenPgpSignaturePinPolicyDialogState
           Padding(
             padding: Spacing.all(16),
             child: CustomizedText.labelLarge(
-              zh ? '修改签名 PIN 策略' : 'Change Signature PIN Policy',
+              S.of(context).openpgpChangeSignaturePinPolicy,
             ),
           ),
           Divider(height: 0, thickness: 1),
@@ -89,9 +88,7 @@ class _OpenPgpSignaturePinPolicyDialogState
                   onChanged: (value) =>
                       _verifyForEverySignature.value = value ?? true,
                   title: CustomizedText.bodyMedium(
-                    zh
-                        ? '每次签名都验证 User PIN'
-                        : 'Verify User PIN for every signature',
+                    S.of(context).openpgpVerifyEverySignaturePrompt,
                   ),
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -102,7 +99,7 @@ class _OpenPgpSignaturePinPolicyDialogState
                   onChanged: (value) =>
                       _verifyForEverySignature.value = value ?? false,
                   title: CustomizedText.bodyMedium(
-                    zh ? '每次插入后只验证一次' : 'Verify once after card insertion',
+                    S.of(context).openpgpVerifyOnceAfterInsertionPrompt,
                   ),
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -121,7 +118,7 @@ class _OpenPgpSignaturePinPolicyDialogState
                 controller: _validator.getController('admin'),
                 validator: _validator.getValidator('admin'),
                 decoration: InputDecoration(
-                  labelText: 'Admin PIN',
+                  labelText: S.of(context).openpgpAdminPin,
                   border: _outlineInputBorder,
                   suffixIcon: IconButton(
                     icon: Icon(_showAdminPin.value

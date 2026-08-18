@@ -6,6 +6,7 @@ import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/openpgp_card.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/openpgp.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,6 +16,7 @@ class OpenPgpController extends PollingController {
   final OpenPgpCardClient _client = OpenPgpCardClient();
   OpenPgpCardInfo? cardInfo;
   String? disabledMessage;
+  bool supportsPinRetryConfig = false;
 
   @override
   Logger get log => Logging.logger('OpenPGP:Controller');
@@ -23,6 +25,8 @@ class OpenPgpController extends PollingController {
   Future<void> doRefreshData() async {
     await SmartCard.process((String sn) async {
       final switchStatus = await AppletSwitches.readStatus();
+      supportsPinRetryConfig =
+          switchStatus.functionSet.contains(Func.pinRetryConfig);
       if (!switchStatus.openPgpEnabled) {
         disabledMessage = AppletSwitches.disabledMessage('OpenPGP');
         polled = false;
@@ -63,6 +67,9 @@ class OpenPgpController extends PollingController {
 
   Future<void> setPinRetries(String adminPin, int userRetries, int resetRetries,
       int adminRetries) async {
+    if (!supportsPinRetryConfig) {
+      return;
+    }
     await _runPinOperation(() => _client.setPinRetries(
         adminPin, userRetries, resetRetries, adminRetries));
   }

@@ -14,7 +14,11 @@ import 'package:flutter/material.dart';
 class PivPinManagementCard extends StatelessWidget {
   final SlotInfo? pinInfo;
   final SlotInfo? pukInfo;
+  final AlgorithmType managementKeyAlgorithm;
+  final TouchPolicy managementKeyTouchPolicy;
   final bool pinOnlyMode;
+  final bool supportsPinOnlyMode;
+  final bool supportsPinRetryConfig;
   final bool canUnblockPin;
   final double flexSpacing;
   final ContentTheme contentTheme;
@@ -25,13 +29,16 @@ class PivPinManagementCard extends StatelessWidget {
   final VoidCallback onSetPinRetries;
   final VoidCallback onTogglePinOnlyMode;
   final String Function(SlotInfo? info) credentialRetryValue;
-  final String Function({required String en, required String zh}) t;
 
   const PivPinManagementCard({
     super.key,
     required this.pinInfo,
     required this.pukInfo,
+    required this.managementKeyAlgorithm,
+    required this.managementKeyTouchPolicy,
     required this.pinOnlyMode,
+    required this.supportsPinOnlyMode,
+    required this.supportsPinRetryConfig,
     required this.canUnblockPin,
     required this.flexSpacing,
     required this.contentTheme,
@@ -42,7 +49,6 @@ class PivPinManagementCard extends StatelessWidget {
     required this.onSetPinRetries,
     required this.onTogglePinOnlyMode,
     required this.credentialRetryValue,
-    required this.t,
   });
 
   @override
@@ -89,13 +95,22 @@ class PivPinManagementCard extends StatelessWidget {
                 Spacing.height(16),
                 InfoItem(
                   iconData: LucideIcons.shieldCheck,
-                  title: S.of(context).pivManagementKeyAuthentication,
-                  value: pinOnlyMode
-                      ? S.of(context).pivPinProtectedKeyOnCard
-                      : S.of(context).pivManualManagementKey,
-                  onTap: onTogglePinOnlyMode,
+                  title: S.of(context).pivManagementKey,
+                  value:
+                      '${managementKeyAlgorithm.name.toUpperCase()} · ${_touchPolicyLabel(context)}',
                 ),
                 Spacing.height(16),
+                if (supportsPinOnlyMode) ...[
+                  InfoItem(
+                    iconData: LucideIcons.shieldCheck,
+                    title: S.of(context).pivManagementKeyAuthentication,
+                    value: pinOnlyMode
+                        ? S.of(context).pivPinProtectedKeyOnCard
+                        : S.of(context).pivManualManagementKey,
+                    onTap: onTogglePinOnlyMode,
+                  ),
+                  Spacing.height(16),
+                ],
                 Wrap(
                   spacing: 12,
                   runSpacing: 12,
@@ -104,15 +119,14 @@ class PivPinManagementCard extends StatelessWidget {
                         context, S.of(context).changePin, onChangePin),
                     _actionButton(
                         context, S.of(context).pivChangePUK, onChangePuk),
-                    _actionButton(context, t(en: 'Unblock PIN', zh: '解锁 PIN'),
-                        onUnblockPin,
+                    _actionButton(
+                        context, S.of(context).pivUnblockPin, onUnblockPin,
                         enabled: canUnblockPin),
                     _actionButton(context, S.of(context).pivChangeManagementKey,
                         onChangeManagementKey),
-                    _actionButton(
-                        context,
-                        t(en: 'Set PIN/PUK Retries', zh: '设置 PIN/PUK 重试次数'),
-                        onSetPinRetries),
+                    if (supportsPinRetryConfig)
+                      _actionButton(context, S.of(context).pivSetPinPukRetries,
+                          onSetPinRetries),
                   ],
                 ),
               ],
@@ -121,6 +135,16 @@ class PivPinManagementCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _touchPolicyLabel(BuildContext context) {
+    final value = switch (managementKeyTouchPolicy) {
+      TouchPolicy.defaultPolicy => S.of(context).pivTouchPolicyDefault,
+      TouchPolicy.never => S.of(context).pivTouchPolicyNever,
+      TouchPolicy.always => S.of(context).pivTouchPolicyAlways,
+      TouchPolicy.cached => S.of(context).pivTouchPolicyCached,
+    };
+    return '${S.of(context).pivTouchPolicy}: $value';
   }
 
   Widget _actionButton(

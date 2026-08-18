@@ -54,7 +54,6 @@ class _OpenPgpResetCodeDialogState
 
   @override
   Widget buildDialogContent() {
-    final zh = Localizations.localeOf(context).languageCode == 'zh';
     return Obx(
       () => Column(
         mainAxisSize: MainAxisSize.min,
@@ -63,16 +62,14 @@ class _OpenPgpResetCodeDialogState
           Padding(
             padding: Spacing.all(16),
             child: CustomizedText.labelLarge(
-              zh ? '设置 Reset Code' : 'Set Reset Code',
+              S.of(context).openpgpSetResetCode,
             ),
           ),
           Divider(height: 0, thickness: 1),
           Padding(
             padding: Spacing.all(16),
             child: CustomizedText.bodyMedium(
-              zh
-                  ? 'Reset Code 长度必须为 8 到 64 个字符，需要 Admin PIN 授权。'
-                  : 'Reset Code length must be between 8 and 64 characters. Admin PIN is required.',
+              S.of(context).openpgpSetResetCodePrompt,
             ),
           ),
           Divider(height: 0, thickness: 1),
@@ -84,13 +81,13 @@ class _OpenPgpResetCodeDialogState
                 children: [
                   _field(
                     name: 'admin',
-                    label: zh ? 'Admin PIN' : 'Admin PIN',
+                    label: S.of(context).openpgpAdminPin,
                     showValue: _showAdminPin,
                   ),
                   Spacing.height(16),
                   _field(
                     name: 'reset',
-                    label: zh ? 'Reset Code' : 'Reset Code',
+                    label: S.of(context).openpgpResetCode,
                     showValue: _showResetCode,
                   ),
                 ],

@@ -5,6 +5,7 @@ import 'package:convert/convert.dart';
 import 'package:get/get.dart';
 
 class AppletSwitchStatus {
+  final FirmwareVersion firmwareVersion;
   final FunctionSetVersion functionSetVersion;
   final Set<Func> functionSet;
   final bool featureSwitchesSupported;
@@ -16,6 +17,7 @@ class AppletSwitchStatus {
   final bool webAuthnEnabled;
 
   const AppletSwitchStatus({
+    required this.firmwareVersion,
     required this.functionSetVersion,
     required this.functionSet,
     required this.featureSwitchesSupported,
@@ -55,6 +57,7 @@ class AppletSwitches {
     SmartCard.assertOK(firmwareResp);
     final firmwareVersion =
         String.fromCharCodes(hex.decode(SmartCard.dropSW(firmwareResp)));
+    final parsedFirmwareVersion = FirmwareVersion.parse(firmwareVersion);
     final functionSetVersion =
         CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
     final functionSet = CanoKey.functionSet(functionSetVersion);
@@ -84,6 +87,7 @@ class AppletSwitches {
     }
 
     return AppletSwitchStatus(
+      firmwareVersion: parsedFirmwareVersion,
       functionSetVersion: functionSetVersion,
       functionSet: functionSet,
       featureSwitchesSupported: featureSwitchesSupported,

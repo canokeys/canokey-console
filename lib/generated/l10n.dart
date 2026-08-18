@@ -28,9 +28,10 @@ class S {
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name = (locale.countryCode?.isEmpty ?? false)
-        ? locale.languageCode
-        : locale.toString();
+    final name =
+        (locale.countryCode?.isEmpty ?? false)
+            ? locale.languageCode
+            : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -734,7 +735,7 @@ class S {
     );
   }
 
-  /// `canokey-core Commit`
+  /// `Core Commit`
   String get settingsCoreCommit {
     return Intl.message(
       'Core Commit',
@@ -841,12 +842,7 @@ class S {
 
   /// `Pass`
   String get settingsPassApplet {
-    return Intl.message(
-      'Pass',
-      name: 'settingsPassApplet',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Pass', name: 'settingsPassApplet', desc: '', args: []);
   }
 
   /// `OpenPGP (CCID)`
@@ -2079,6 +2075,1876 @@ class S {
     return Intl.message(
       'Key-only import leaves the existing certificate in place. Replace or clear the certificate if it no longer matches.',
       name: 'pivKeyOnlyKeepsCertificate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Refresh`
+  String get refresh {
+    return Intl.message('Refresh', name: 'refresh', desc: '', args: []);
+  }
+
+  /// `Enable`
+  String get enable {
+    return Intl.message('Enable', name: 'enable', desc: '', args: []);
+  }
+
+  /// `Disable`
+  String get disable {
+    return Intl.message('Disable', name: 'disable', desc: '', args: []);
+  }
+
+  /// `Select`
+  String get select {
+    return Intl.message('Select', name: 'select', desc: '', args: []);
+  }
+
+  /// `Next`
+  String get next {
+    return Intl.message('Next', name: 'next', desc: '', args: []);
+  }
+
+  /// `Back`
+  String get back {
+    return Intl.message('Back', name: 'back', desc: '', args: []);
+  }
+
+  /// `Copy`
+  String get copy {
+    return Intl.message('Copy', name: 'copy', desc: '', args: []);
+  }
+
+  /// `Saved`
+  String get fileSaved {
+    return Intl.message('Saved', name: 'fileSaved', desc: '', args: []);
+  }
+
+  /// `Failed to save file`
+  String get fileSaveFailed {
+    return Intl.message(
+      'Failed to save file',
+      name: 'fileSaveFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save failed: {error}`
+  String fileSaveFailedWithError(Object error) {
+    return Intl.message(
+      'Save failed: $error',
+      name: 'fileSaveFailedWithError',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `Authentication slot. Use a signing-capable key for login.`
+  String get pivSlotAuthenticationHint {
+    return Intl.message(
+      'Authentication slot. Use a signing-capable key for login.',
+      name: 'pivSlotAuthenticationHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Digital signature slot. PIN policy defaults to always.`
+  String get pivSlotSignatureHint {
+    return Intl.message(
+      'Digital signature slot. PIN policy defaults to always.',
+      name: 'pivSlotSignatureHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Key management slot. X25519 can derive shared secrets only.`
+  String get pivSlotKeyManagementHint {
+    return Intl.message(
+      'Key management slot. X25519 can derive shared secrets only.',
+      name: 'pivSlotKeyManagementHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Card authentication slot. PIN may be unnecessary for some uses.`
+  String get pivSlotCardAuthenticationHint {
+    return Intl.message(
+      'Card authentication slot. PIN may be unnecessary for some uses.',
+      name: 'pivSlotCardAuthenticationHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Retired key management slot for old encryption certificates.`
+  String get pivSlotRetiredHint {
+    return Intl.message(
+      'Retired key management slot for old encryption certificates.',
+      name: 'pivSlotRetiredHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `CSR and certificates are disabled for X25519.`
+  String get pivX25519CertificateDisabled {
+    return Intl.message(
+      'CSR and certificates are disabled for X25519.',
+      name: 'pivX25519CertificateDisabled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Check client compatibility before using this algorithm.`
+  String get pivExtendedAlgorithmCompatibilityWarning {
+    return Intl.message(
+      'Check client compatibility before using this algorithm.',
+      name: 'pivExtendedAlgorithmCompatibilityWarning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Overwrite Key`
+  String get pivOverwriteKey {
+    return Intl.message(
+      'Overwrite Key',
+      name: 'pivOverwriteKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{action} will replace the private key in slot {slot}. Existing authentication or signing that depends on this key may stop working.`
+  String pivOverwriteKeyPrompt(Object action, Object slot) {
+    return Intl.message(
+      '$action will replace the private key in slot $slot. Existing authentication or signing that depends on this key may stop working.',
+      name: 'pivOverwriteKeyPrompt',
+      desc: '',
+      args: [action, slot],
+    );
+  }
+
+  /// `Overwrite`
+  String get pivOverwrite {
+    return Intl.message('Overwrite', name: 'pivOverwrite', desc: '', args: []);
+  }
+
+  /// `Algorithm IDs`
+  String get pivAlgorithmIds {
+    return Intl.message(
+      'Algorithm IDs',
+      name: 'pivAlgorithmIds',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unblock PIN`
+  String get pivUnblockPin {
+    return Intl.message(
+      'Unblock PIN',
+      name: 'pivUnblockPin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter the current PUK and set a new PIN.`
+  String get pivUnblockPinPrompt {
+    return Intl.message(
+      'Enter the current PUK and set a new PIN.',
+      name: 'pivUnblockPinPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Retries: unknown`
+  String get pivRetriesUnknown {
+    return Intl.message(
+      'Retries: unknown',
+      name: 'pivRetriesUnknown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Retries: {remaining}/{total}`
+  String pivRetries(Object remaining, Object total) {
+    return Intl.message(
+      'Retries: $remaining/$total',
+      name: 'pivRetries',
+      desc: '',
+      args: [remaining, total],
+    );
+  }
+
+  /// `Use the PIN to unlock the management key stored on this card.`
+  String get pivPinProtectedManagementKeyDescription {
+    return Intl.message(
+      'Use the PIN to unlock the management key stored on this card.',
+      name: 'pivPinProtectedManagementKeyDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter the 24-byte management key for this operation.`
+  String get pivManualManagementKeyDescription {
+    return Intl.message(
+      'Enter the 24-byte management key for this operation.',
+      name: 'pivManualManagementKeyDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `PIV Algorithm IDs`
+  String get pivAlgorithmIdsTitle {
+    return Intl.message(
+      'PIV Algorithm IDs',
+      name: 'pivAlgorithmIdsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Controls whether PIV extension algorithm IDs are accepted by the card.`
+  String get pivAlgorithmIdsPrompt {
+    return Intl.message(
+      'Controls whether PIV extension algorithm IDs are accepted by the card.',
+      name: 'pivAlgorithmIdsPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to update PIV algorithm IDs`
+  String get pivAlgorithmIdsUpdateFailed {
+    return Intl.message(
+      'Failed to update PIV algorithm IDs',
+      name: 'pivAlgorithmIdsUpdateFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Modify With Caution`
+  String get pivModifyWithCaution {
+    return Intl.message(
+      'Modify With Caution',
+      name: 'pivModifyWithCaution',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `These values control how the card recognizes PIV extension algorithms. Keep the defaults unless you know the client and firmware expect different IDs. Wrong values can make existing extended keys appear unsupported until the IDs are restored.`
+  String get pivAlgorithmIdsWarning {
+    return Intl.message(
+      'These values control how the card recognizes PIV extension algorithms. Keep the defaults unless you know the client and firmware expect different IDs. Wrong values can make existing extended keys appear unsupported until the IDs are restored.',
+      name: 'pivAlgorithmIdsWarning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Set PIN/PUK Retries`
+  String get pivSetPinPukRetries {
+    return Intl.message(
+      'Set PIN/PUK Retries',
+      name: 'pivSetPinPukRetries',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This resets PIN to 123456 and PUK to 12345678.`
+  String get pivSetPinPukRetriesPrompt {
+    return Intl.message(
+      'This resets PIN to 123456 and PUK to 12345678.',
+      name: 'pivSetPinPukRetriesPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `PIN retries`
+  String get pivPinRetries {
+    return Intl.message(
+      'PIN retries',
+      name: 'pivPinRetries',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `PUK retries`
+  String get pivPukRetries {
+    return Intl.message(
+      'PUK retries',
+      name: 'pivPukRetries',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Set retries failed`
+  String get pivSetRetriesFailed {
+    return Intl.message(
+      'Set retries failed',
+      name: 'pivSetRetriesFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `PIN/PUK retries set. PIN and PUK were reset.`
+  String get pivSetRetriesSuccess {
+    return Intl.message(
+      'PIN/PUK retries set. PIN and PUK were reset.',
+      name: 'pivSetRetriesSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use PIN-Protected Management Key`
+  String get pivEnablePinProtectedManagementKey {
+    return Intl.message(
+      'Use PIN-Protected Management Key',
+      name: 'pivEnablePinProtectedManagementKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `A random management key will be set and stored on the card, protected by PIN.`
+  String get pivEnablePinProtectedManagementKeyPrompt {
+    return Intl.message(
+      'A random management key will be set and stored on the card, protected by PIN.',
+      name: 'pivEnablePinProtectedManagementKeyPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to store a PIN-protected management key`
+  String get pivEnablePinProtectedManagementKeyFailed {
+    return Intl.message(
+      'Failed to store a PIN-protected management key',
+      name: 'pivEnablePinProtectedManagementKeyFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Management key is now PIN-protected`
+  String get pivEnablePinProtectedManagementKeySuccess {
+    return Intl.message(
+      'Management key is now PIN-protected',
+      name: 'pivEnablePinProtectedManagementKeySuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Return to Manual Management Key`
+  String get pivDisablePinProtectedManagementKey {
+    return Intl.message(
+      'Return to Manual Management Key',
+      name: 'pivDisablePinProtectedManagementKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `A new management key will be set before the PIN-protected copy is cleared.`
+  String get pivDisablePinProtectedManagementKeyPrompt {
+    return Intl.message(
+      'A new management key will be set before the PIN-protected copy is cleared.',
+      name: 'pivDisablePinProtectedManagementKeyPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to return to manual management key`
+  String get pivDisablePinProtectedManagementKeyFailed {
+    return Intl.message(
+      'Failed to return to manual management key',
+      name: 'pivDisablePinProtectedManagementKeyFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manual management key is now required`
+  String get pivDisablePinProtectedManagementKeySuccess {
+    return Intl.message(
+      'Manual management key is now required',
+      name: 'pivDisablePinProtectedManagementKeySuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Store the new management key on this card`
+  String get pivStoreManagementKeyOnCard {
+    return Intl.message(
+      'Store the new management key on this card',
+      name: 'pivStoreManagementKeyOnCard',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `When enabled, future management operations can authenticate with PIN.`
+  String get pivStoreManagementKeyOnCardPrompt {
+    return Intl.message(
+      'When enabled, future management operations can authenticate with PIN.',
+      name: 'pivStoreManagementKeyOnCardPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Retired {index}`
+  String pivRetiredSlot(Object index) {
+    return Intl.message(
+      'Retired $index',
+      name: 'pivRetiredSlot',
+      desc: '',
+      args: [index],
+    );
+  }
+
+  /// `Download Attestation`
+  String get pivDownloadAttestation {
+    return Intl.message(
+      'Download Attestation',
+      name: 'pivDownloadAttestation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Generate CSR`
+  String get pivGenerateCsr {
+    return Intl.message(
+      'Generate CSR',
+      name: 'pivGenerateCsr',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Self-sign`
+  String get pivSelfSign {
+    return Intl.message('Self-sign', name: 'pivSelfSign', desc: '', args: []);
+  }
+
+  /// `Generate X25519 Key`
+  String get pivGenerateX25519Key {
+    return Intl.message(
+      'Generate X25519 Key',
+      name: 'pivGenerateX25519Key',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Export Public Key`
+  String get pivExportPublicKey {
+    return Intl.message(
+      'Export Public Key',
+      name: 'pivExportPublicKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Derive Secret`
+  String get pivDeriveSecret {
+    return Intl.message(
+      'Derive Secret',
+      name: 'pivDeriveSecret',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sign / Verify`
+  String get pivSignVerify {
+    return Intl.message(
+      'Sign / Verify',
+      name: 'pivSignVerify',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No public key available`
+  String get pivNoPublicKeyAvailable {
+    return Intl.message(
+      'No public key available',
+      name: 'pivNoPublicKeyAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Algorithm: {algorithm}`
+  String pivAlgorithmValue(Object algorithm) {
+    return Intl.message(
+      'Algorithm: $algorithm',
+      name: 'pivAlgorithmValue',
+      desc: '',
+      args: [algorithm],
+    );
+  }
+
+  /// `Sign / Verify Test`
+  String get pivSignVerifyTest {
+    return Intl.message(
+      'Sign / Verify Test',
+      name: 'pivSignVerifyTest',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Message`
+  String get pivMessage {
+    return Intl.message('Message', name: 'pivMessage', desc: '', args: []);
+  }
+
+  /// `Signature (hex)`
+  String get pivSignatureHex {
+    return Intl.message(
+      'Signature (hex)',
+      name: 'pivSignatureHex',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Verify Result`
+  String get pivVerifyResult {
+    return Intl.message(
+      'Verify Result',
+      name: 'pivVerifyResult',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sign / verify failed`
+  String get pivSignVerifyFailed {
+    return Intl.message(
+      'Sign / verify failed',
+      name: 'pivSignVerifyFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sign and Verify`
+  String get pivSignAndVerify {
+    return Intl.message(
+      'Sign and Verify',
+      name: 'pivSignAndVerify',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sign File`
+  String get pivSignFile {
+    return Intl.message('Sign File', name: 'pivSignFile', desc: '', args: []);
+  }
+
+  /// `Verify File`
+  String get pivVerifyFile {
+    return Intl.message(
+      'Verify File',
+      name: 'pivVerifyFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Clear Slot`
+  String get pivClearSlot {
+    return Intl.message('Clear Slot', name: 'pivClearSlot', desc: '', args: []);
+  }
+
+  /// `Move Key`
+  String get pivMoveKey {
+    return Intl.message('Move Key', name: 'pivMoveKey', desc: '', args: []);
+  }
+
+  /// `Public Key`
+  String get pivPublicKey {
+    return Intl.message('Public Key', name: 'pivPublicKey', desc: '', args: []);
+  }
+
+  /// `Signature Algorithm`
+  String get pivSignatureAlgorithm {
+    return Intl.message(
+      'Signature Algorithm',
+      name: 'pivSignatureAlgorithm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `SHA-256 Fingerprint`
+  String get pivSha256Fingerprint {
+    return Intl.message(
+      'SHA-256 Fingerprint',
+      name: 'pivSha256Fingerprint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Certificate Size`
+  String get pivCertificateSize {
+    return Intl.message(
+      'Certificate Size',
+      name: 'pivCertificateSize',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Subject`
+  String get pivCertificateSubject {
+    return Intl.message(
+      'Subject',
+      name: 'pivCertificateSubject',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Issuer`
+  String get pivCertificateIssuer {
+    return Intl.message(
+      'Issuer',
+      name: 'pivCertificateIssuer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Serial`
+  String get pivCertificateSerial {
+    return Intl.message(
+      'Serial',
+      name: 'pivCertificateSerial',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Valid from`
+  String get pivCertificateValidFrom {
+    return Intl.message(
+      'Valid from',
+      name: 'pivCertificateValidFrom',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Valid to`
+  String get pivCertificateValidTo {
+    return Intl.message(
+      'Valid to',
+      name: 'pivCertificateValidTo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Provisioning`
+  String get pivProvisioning {
+    return Intl.message(
+      'Provisioning',
+      name: 'pivProvisioning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Diagnostics`
+  String get pivDiagnostics {
+    return Intl.message(
+      'Diagnostics',
+      name: 'pivDiagnostics',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Danger Zone`
+  String get pivDangerZone {
+    return Intl.message(
+      'Danger Zone',
+      name: 'pivDangerZone',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Creates a detached raw signature for the selected file.`
+  String get pivSignFilePrompt {
+    return Intl.message(
+      'Creates a detached raw signature for the selected file.',
+      name: 'pivSignFilePrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No file selected`
+  String get pivNoFileSelected {
+    return Intl.message(
+      'No file selected',
+      name: 'pivNoFileSelected',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select a file first.`
+  String get pivSelectFileFirst {
+    return Intl.message(
+      'Select a file first.',
+      name: 'pivSelectFileFirst',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `File signing failed`
+  String get pivFileSigningFailed {
+    return Intl.message(
+      'File signing failed',
+      name: 'pivFileSigningFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sign`
+  String get pivSign {
+    return Intl.message('Sign', name: 'pivSign', desc: '', args: []);
+  }
+
+  /// `Verify File Signature`
+  String get pivVerifyFileSignature {
+    return Intl.message(
+      'Verify File Signature',
+      name: 'pivVerifyFileSignature',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Verifies a detached raw signature against this slot public key.`
+  String get pivVerifyFileSignaturePrompt {
+    return Intl.message(
+      'Verifies a detached raw signature against this slot public key.',
+      name: 'pivVerifyFileSignaturePrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `File`
+  String get pivFile {
+    return Intl.message('File', name: 'pivFile', desc: '', args: []);
+  }
+
+  /// `Signature`
+  String get pivSignatureFile {
+    return Intl.message(
+      'Signature',
+      name: 'pivSignatureFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Signature verified`
+  String get pivSignatureVerified {
+    return Intl.message(
+      'Signature verified',
+      name: 'pivSignatureVerified',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select a file and signature first.`
+  String get pivSelectFileAndSignatureFirst {
+    return Intl.message(
+      'Select a file and signature first.',
+      name: 'pivSelectFileAndSignatureFirst',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Signature verification failed`
+  String get pivSignatureVerificationFailed {
+    return Intl.message(
+      'Signature verification failed',
+      name: 'pivSignatureVerificationFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Verify`
+  String get pivVerify {
+    return Intl.message('Verify', name: 'pivVerify', desc: '', args: []);
+  }
+
+  /// `Not selected`
+  String get pivNotSelected {
+    return Intl.message(
+      'Not selected',
+      name: 'pivNotSelected',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select a certificate or private key first.`
+  String get pivSelectCertificateOrKeyFirst {
+    return Intl.message(
+      'Select a certificate or private key first.',
+      name: 'pivSelectCertificateOrKeyFirst',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Importing a private key`
+  String get pivImportingPrivateKey {
+    return Intl.message(
+      'Importing a private key',
+      name: 'pivImportingPrivateKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import failed`
+  String get pivImportFailed {
+    return Intl.message(
+      'Import failed',
+      name: 'pivImportFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import succeeded`
+  String get pivImportSucceeded {
+    return Intl.message(
+      'Import succeeded',
+      name: 'pivImportSucceeded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unsupported file. Use PEM or DER certificate/private key files.`
+  String get pivUnsupportedImportFile {
+    return Intl.message(
+      'Unsupported file. Use PEM or DER certificate/private key files.',
+      name: 'pivUnsupportedImportFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Verify PIN and Management Key`
+  String get pivVerifyPinAndManagementKey {
+    return Intl.message(
+      'Verify PIN and Management Key',
+      name: 'pivVerifyPinAndManagementKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select File`
+  String get pivSelectFile {
+    return Intl.message(
+      'Select File',
+      name: 'pivSelectFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Click to select a PEM or DER certificate/key`
+  String get pivSelectFilePrompt {
+    return Intl.message(
+      'Click to select a PEM or DER certificate/key',
+      name: 'pivSelectFilePrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `(Make sure the file contains a plaintext key or a certificate)`
+  String get pivSelectFileHint {
+    return Intl.message(
+      '(Make sure the file contains a plaintext key or a certificate)',
+      name: 'pivSelectFileHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `PIN and Touch Policy`
+  String get pivPinAndTouchPolicy {
+    return Intl.message(
+      'PIN and Touch Policy',
+      name: 'pivPinAndTouchPolicy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Review`
+  String get pivReview {
+    return Intl.message('Review', name: 'pivReview', desc: '', args: []);
+  }
+
+  /// `Private Key`
+  String get pivPrivateKey {
+    return Intl.message(
+      'Private Key',
+      name: 'pivPrivateKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Certificate Key`
+  String get pivCertificateKey {
+    return Intl.message(
+      'Certificate Key',
+      name: 'pivCertificateKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Certificate matches the private key`
+  String get pivCertificateMatchesPrivateKey {
+    return Intl.message(
+      'Certificate matches the private key',
+      name: 'pivCertificateMatchesPrivateKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Certificate does not match the private key`
+  String get pivCertificateMismatchPrivateKey {
+    return Intl.message(
+      'Certificate does not match the private key',
+      name: 'pivCertificateMismatchPrivateKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Creating a self-signed certificate`
+  String get pivCreatingSelfSignedCertificate {
+    return Intl.message(
+      'Creating a self-signed certificate',
+      name: 'pivCreatingSelfSignedCertificate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Generating a CSR`
+  String get pivGeneratingCsr {
+    return Intl.message(
+      'Generating a CSR',
+      name: 'pivGeneratingCsr',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create Certificate Failed`
+  String get pivCreateCertificateFailed {
+    return Intl.message(
+      'Create Certificate Failed',
+      name: 'pivCreateCertificateFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Certificate Created`
+  String get pivCertificateCreated {
+    return Intl.message(
+      'Certificate Created',
+      name: 'pivCertificateCreated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Generate CSR Failed`
+  String get pivGenerateCsrFailed {
+    return Intl.message(
+      'Generate CSR Failed',
+      name: 'pivGenerateCsrFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `CSR Generated`
+  String get pivCsrGenerated {
+    return Intl.message(
+      'CSR Generated',
+      name: 'pivCsrGenerated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Self-sign Certificate`
+  String get pivSelfSignCertificate {
+    return Intl.message(
+      'Self-sign Certificate',
+      name: 'pivSelfSignCertificate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create Certificate`
+  String get pivCreateCertificate {
+    return Intl.message(
+      'Create Certificate',
+      name: 'pivCreateCertificate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Key Options`
+  String get pivKeyOptions {
+    return Intl.message(
+      'Key Options',
+      name: 'pivKeyOptions',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Certificate Subject`
+  String get pivCertificateSubjectStep {
+    return Intl.message(
+      'Certificate Subject',
+      name: 'pivCertificateSubjectStep',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `CSR Subject`
+  String get pivCsrSubject {
+    return Intl.message(
+      'CSR Subject',
+      name: 'pivCsrSubject',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Common Name`
+  String get pivCommonName {
+    return Intl.message(
+      'Common Name',
+      name: 'pivCommonName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Organization`
+  String get pivOrganization {
+    return Intl.message(
+      'Organization',
+      name: 'pivOrganization',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Organizational Unit`
+  String get pivOrganizationalUnit {
+    return Intl.message(
+      'Organizational Unit',
+      name: 'pivOrganizationalUnit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Country Code`
+  String get pivCountryCode {
+    return Intl.message(
+      'Country Code',
+      name: 'pivCountryCode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `DNS SANs, comma separated`
+  String get pivDnsSans {
+    return Intl.message(
+      'DNS SANs, comma separated',
+      name: 'pivDnsSans',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Validity Days`
+  String get pivValidityDays {
+    return Intl.message(
+      'Validity Days',
+      name: 'pivValidityDays',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Self-signed certificates are for local testing and compatibility depends on the client.`
+  String get pivSelfSignedCertificateWarning {
+    return Intl.message(
+      'Self-signed certificates are for local testing and compatibility depends on the client.',
+      name: 'pivSelfSignedCertificateWarning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `CSR generation signs the request with the new key on the card.`
+  String get pivCsrGenerationPrompt {
+    return Intl.message(
+      'CSR generation signs the request with the new key on the card.',
+      name: 'pivCsrGenerationPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Generating an X25519 key`
+  String get pivGeneratingX25519Key {
+    return Intl.message(
+      'Generating an X25519 key',
+      name: 'pivGeneratingX25519Key',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Generate X25519 Key Failed`
+  String get pivGenerateX25519KeyFailed {
+    return Intl.message(
+      'Generate X25519 Key Failed',
+      name: 'pivGenerateX25519KeyFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `X25519 Key Generated`
+  String get pivX25519KeyGenerated {
+    return Intl.message(
+      'X25519 Key Generated',
+      name: 'pivX25519KeyGenerated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Generate X25519`
+  String get pivGenerateX25519 {
+    return Intl.message(
+      'Generate X25519',
+      name: 'pivGenerateX25519',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Peer Public Key (32-byte hex)`
+  String get pivPeerPublicKey {
+    return Intl.message(
+      'Peer Public Key (32-byte hex)',
+      name: 'pivPeerPublicKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Derive Secret Failed`
+  String get pivDeriveSecretFailed {
+    return Intl.message(
+      'Derive Secret Failed',
+      name: 'pivDeriveSecretFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Derive`
+  String get pivDerive {
+    return Intl.message('Derive', name: 'pivDerive', desc: '', args: []);
+  }
+
+  /// `Shared Secret`
+  String get pivSharedSecret {
+    return Intl.message(
+      'Shared Secret',
+      name: 'pivSharedSecret',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Secret Copied`
+  String get pivSecretCopied {
+    return Intl.message(
+      'Secret Copied',
+      name: 'pivSecretCopied',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `CSR Copied`
+  String get pivCsrCopied {
+    return Intl.message('CSR Copied', name: 'pivCsrCopied', desc: '', args: []);
+  }
+
+  /// `A self-signed certificate was written to slot {slot}.`
+  String pivCertificateWritten(Object slot) {
+    return Intl.message(
+      'A self-signed certificate was written to slot $slot.',
+      name: 'pivCertificateWritten',
+      desc: '',
+      args: [slot],
+    );
+  }
+
+  /// `Certificate Copied`
+  String get pivCertificateCopied {
+    return Intl.message(
+      'Certificate Copied',
+      name: 'pivCertificateCopied',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copy PEM`
+  String get pivCopyPem {
+    return Intl.message('Copy PEM', name: 'pivCopyPem', desc: '', args: []);
+  }
+
+  /// `Save PEM`
+  String get pivSavePem {
+    return Intl.message('Save PEM', name: 'pivSavePem', desc: '', args: []);
+  }
+
+  /// `Attestation is unavailable. The device must have an F9 attestation key and certificate.`
+  String get pivAttestationUnavailable {
+    return Intl.message(
+      'Attestation is unavailable. The device must have an F9 attestation key and certificate.',
+      name: 'pivAttestationUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No empty destination slot is available.`
+  String get pivNoEmptyDestinationSlot {
+    return Intl.message(
+      'No empty destination slot is available.',
+      name: 'pivNoEmptyDestinationSlot',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Move Key from {sourceSlot}`
+  String pivMoveKeyFrom(Object sourceSlot) {
+    return Intl.message(
+      'Move Key from $sourceSlot',
+      name: 'pivMoveKeyFrom',
+      desc: '',
+      args: [sourceSlot],
+    );
+  }
+
+  /// `Only the private key is moved. Certificates remain in their current slots.`
+  String get pivMoveKeyPrompt {
+    return Intl.message(
+      'Only the private key is moved. Certificates remain in their current slots.',
+      name: 'pivMoveKeyPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Destination slot`
+  String get pivDestinationSlot {
+    return Intl.message(
+      'Destination slot',
+      name: 'pivDestinationSlot',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Key move failed. The destination must not contain a key.`
+  String get pivMoveKeyFailed {
+    return Intl.message(
+      'Key move failed. The destination must not contain a key.',
+      name: 'pivMoveKeyFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Key moved`
+  String get pivKeyMoved {
+    return Intl.message('Key moved', name: 'pivKeyMoved', desc: '', args: []);
+  }
+
+  /// `Clear Slot {slot}`
+  String pivClearSlotTitle(Object slot) {
+    return Intl.message(
+      'Clear Slot $slot',
+      name: 'pivClearSlotTitle',
+      desc: '',
+      args: [slot],
+    );
+  }
+
+  /// `This removes both the private key and certificate from this slot. Make sure you have another way to authenticate.`
+  String get pivClearSlotPrompt {
+    return Intl.message(
+      'This removes both the private key and certificate from this slot. Make sure you have another way to authenticate.',
+      name: 'pivClearSlotPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Clear slot failed. Make sure the firmware supports key deletion.`
+  String get pivClearSlotFailed {
+    return Intl.message(
+      'Clear slot failed. Make sure the firmware supports key deletion.',
+      name: 'pivClearSlotFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Slot cleared`
+  String get pivSlotCleared {
+    return Intl.message(
+      'Slot cleared',
+      name: 'pivSlotCleared',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `PIN: {policy}`
+  String pivPinPolicyChip(Object policy) {
+    return Intl.message(
+      'PIN: $policy',
+      name: 'pivPinPolicyChip',
+      desc: '',
+      args: [policy],
+    );
+  }
+
+  /// `Touch: {policy}`
+  String pivTouchPolicyChip(Object policy) {
+    return Intl.message(
+      'Touch: $policy',
+      name: 'pivTouchPolicyChip',
+      desc: '',
+      args: [policy],
+    );
+  }
+
+  /// `At least {min} characters`
+  String validationAtLeastCharacters(Object min) {
+    return Intl.message(
+      'At least $min characters',
+      name: 'validationAtLeastCharacters',
+      desc: '',
+      args: [min],
+    );
+  }
+
+  /// `At most {max} characters`
+  String validationAtMostCharacters(Object max) {
+    return Intl.message(
+      'At most $max characters',
+      name: 'validationAtMostCharacters',
+      desc: '',
+      args: [max],
+    );
+  }
+
+  /// `PIN confirmation does not match`
+  String get pinConfirmationMismatch {
+    return Intl.message(
+      'PIN confirmation does not match',
+      name: 'pinConfirmationMismatch',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `User PIN length must be between 6 and 64 characters.`
+  String get openpgpUserPinLength {
+    return Intl.message(
+      'User PIN length must be between 6 and 64 characters.',
+      name: 'openpgpUserPinLength',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Current Admin PIN`
+  String get openpgpCurrentAdminPin {
+    return Intl.message(
+      'Current Admin PIN',
+      name: 'openpgpCurrentAdminPin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New Admin PIN`
+  String get openpgpNewAdminPin {
+    return Intl.message(
+      'New Admin PIN',
+      name: 'openpgpNewAdminPin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Admin PIN length must be between 8 and 64 characters.`
+  String get openpgpAdminPinLength {
+    return Intl.message(
+      'Admin PIN length must be between 8 and 64 characters.',
+      name: 'openpgpAdminPinLength',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Imported`
+  String get openpgpKeyImported {
+    return Intl.message(
+      'Imported',
+      name: 'openpgpKeyImported',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Empty`
+  String get openpgpKeyEmpty {
+    return Intl.message('Empty', name: 'openpgpKeyEmpty', desc: '', args: []);
+  }
+
+  /// `Touch: Off`
+  String get openpgpTouchOffLabel {
+    return Intl.message(
+      'Touch: Off',
+      name: 'openpgpTouchOffLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Touch: On`
+  String get openpgpTouchOnLabel {
+    return Intl.message(
+      'Touch: On',
+      name: 'openpgpTouchOnLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Touch: Permanent`
+  String get openpgpTouchPermanentLabel {
+    return Intl.message(
+      'Touch: Permanent',
+      name: 'openpgpTouchPermanentLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Touch: Cached`
+  String get openpgpTouchCachedLabel {
+    return Intl.message(
+      'Touch: Cached',
+      name: 'openpgpTouchCachedLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Touch: Permanent cached`
+  String get openpgpTouchPermanentCachedLabel {
+    return Intl.message(
+      'Touch: Permanent cached',
+      name: 'openpgpTouchPermanentCachedLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `0 sec (off)`
+  String get openpgpTouchCacheOff {
+    return Intl.message(
+      '0 sec (off)',
+      name: 'openpgpTouchCacheOff',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{seconds} sec`
+  String openpgpTouchCacheSeconds(Object seconds) {
+    return Intl.message(
+      '$seconds sec',
+      name: 'openpgpTouchCacheSeconds',
+      desc: '',
+      args: [seconds],
+    );
+  }
+
+  /// `No touch`
+  String get openpgpTouchNone {
+    return Intl.message(
+      'No touch',
+      name: 'openpgpTouchNone',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Requires touch`
+  String get openpgpTouchRequired {
+    return Intl.message(
+      'Requires touch',
+      name: 'openpgpTouchRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Permanent`
+  String get openpgpTouchPermanent {
+    return Intl.message(
+      'Permanent',
+      name: 'openpgpTouchPermanent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cached touch`
+  String get openpgpTouchCached {
+    return Intl.message(
+      'Cached touch',
+      name: 'openpgpTouchCached',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Permanent cached`
+  String get openpgpTouchPermanentCached {
+    return Intl.message(
+      'Permanent cached',
+      name: 'openpgpTouchPermanentCached',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reset Code`
+  String get openpgpResetCode {
+    return Intl.message(
+      'Reset Code',
+      name: 'openpgpResetCode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Signature PIN`
+  String get openpgpSignaturePin {
+    return Intl.message(
+      'Signature PIN',
+      name: 'openpgpSignaturePin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Verify every signature`
+  String get openpgpVerifyEverySignature {
+    return Intl.message(
+      'Verify every signature',
+      name: 'openpgpVerifyEverySignature',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Verify once after insertion`
+  String get openpgpVerifyOnceAfterInsertion {
+    return Intl.message(
+      'Verify once after insertion',
+      name: 'openpgpVerifyOnceAfterInsertion',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Retries: unknown`
+  String get openpgpRetriesUnknown {
+    return Intl.message(
+      'Retries: unknown',
+      name: 'openpgpRetriesUnknown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Retries: {remaining}`
+  String openpgpRetries(Object remaining) {
+    return Intl.message(
+      'Retries: $remaining',
+      name: 'openpgpRetries',
+      desc: '',
+      args: [remaining],
+    );
+  }
+
+  /// `Unblock User PIN`
+  String get openpgpUnblockUserPin {
+    return Intl.message(
+      'Unblock User PIN',
+      name: 'openpgpUnblockUserPin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Set Reset Code`
+  String get openpgpSetResetCode {
+    return Intl.message(
+      'Set Reset Code',
+      name: 'openpgpSetResetCode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Set PIN Retries`
+  String get openpgpSetPinRetries {
+    return Intl.message(
+      'Set PIN Retries',
+      name: 'openpgpSetPinRetries',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Signature PIN Policy`
+  String get openpgpSignaturePinPolicy {
+    return Intl.message(
+      'Signature PIN Policy',
+      name: 'openpgpSignaturePinPolicy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `I understand this makes touch permanently enabled for this key.`
+  String get openpgpPermanentTouchConfirmation {
+    return Intl.message(
+      'I understand this makes touch permanently enabled for this key.',
+      name: 'openpgpPermanentTouchConfirmation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Set Touch Cache Time`
+  String get openpgpSetTouchCacheTime {
+    return Intl.message(
+      'Set Touch Cache Time',
+      name: 'openpgpSetTouchCacheTime',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Set how long one touch confirmation can be reused. 0 means every operation needs a new touch. Admin PIN is required.`
+  String get openpgpSetTouchCacheTimePrompt {
+    return Intl.message(
+      'Set how long one touch confirmation can be reused. 0 means every operation needs a new touch. Admin PIN is required.',
+      name: 'openpgpSetTouchCacheTimePrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cache seconds`
+  String get openpgpCacheSeconds {
+    return Intl.message(
+      'Cache seconds',
+      name: 'openpgpCacheSeconds',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reset Code must be between 8 and 64 characters. Admin PIN is required.`
+  String get openpgpSetResetCodePrompt {
+    return Intl.message(
+      'Reset Code must be between 8 and 64 characters. Admin PIN is required.',
+      name: 'openpgpSetResetCodePrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Change Signature PIN Policy`
+  String get openpgpChangeSignaturePinPolicy {
+    return Intl.message(
+      'Change Signature PIN Policy',
+      name: 'openpgpChangeSignaturePinPolicy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Verify User PIN for every signature`
+  String get openpgpVerifyEverySignaturePrompt {
+    return Intl.message(
+      'Verify User PIN for every signature',
+      name: 'openpgpVerifyEverySignaturePrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Verify once after card insertion`
+  String get openpgpVerifyOnceAfterInsertionPrompt {
+    return Intl.message(
+      'Verify once after card insertion',
+      name: 'openpgpVerifyOnceAfterInsertionPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Set PIN/Reset/Admin PIN Retries`
+  String get openpgpSetPinRetriesTitle {
+    return Intl.message(
+      'Set PIN/Reset/Admin PIN Retries',
+      name: 'openpgpSetPinRetriesTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This resets User PIN to 123456 and Admin PIN to 12345678.`
+  String get openpgpSetPinRetriesPrompt {
+    return Intl.message(
+      'This resets User PIN to 123456 and Admin PIN to 12345678.',
+      name: 'openpgpSetPinRetriesPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `User PIN`
+  String get openpgpUserPin {
+    return Intl.message('User PIN', name: 'openpgpUserPin', desc: '', args: []);
+  }
+
+  /// `Admin PIN`
+  String get openpgpAdminPin {
+    return Intl.message(
+      'Admin PIN',
+      name: 'openpgpAdminPin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use Admin PIN`
+  String get openpgpUseAdminPin {
+    return Intl.message(
+      'Use Admin PIN',
+      name: 'openpgpUseAdminPin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use Reset Code`
+  String get openpgpUseResetCode {
+    return Intl.message(
+      'Use Reset Code',
+      name: 'openpgpUseResetCode',
       desc: '',
       args: [],
     );

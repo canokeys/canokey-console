@@ -97,6 +97,17 @@ class PivAlgorithmExtensionConfig {
     secp521r1: 0x15,
   );
 
+  static const legacyV2 = PivAlgorithmExtensionConfig(
+    enabled: true,
+    ed25519: 0x22,
+    rsa3072: 0x50,
+    rsa4096: 0x51,
+    x25519: 0x52,
+    secp256k1: 0x53,
+    sm2: 0x54,
+    secp521r1: 0x15,
+  );
+
   List<int> encode() => [
         enabled ? 0x01 : 0x00,
         ed25519,

@@ -33,17 +33,13 @@ class OpenPgpPage extends StatefulWidget {
 class _OpenPgpPageState extends State<OpenPgpPage> with UIMixin {
   final OpenPgpController controller = Get.put(OpenPgpController());
 
-  String _t({required String en, required String zh}) {
-    return Localizations.localeOf(context).languageCode == 'zh' ? zh : en;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Layout(
       title: 'OpenPGP',
       topActions: isWeb() || isIOSApp()
           ? IconButton(
-              tooltip: 'Refresh',
+              tooltip: S.of(context).refresh,
               icon:
                   Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
               onPressed: controller.refreshData,
@@ -67,6 +63,7 @@ class _OpenPgpPageState extends State<OpenPgpPage> with UIMixin {
                 Spacing.height(20),
                 OpenPgpPinManagementCard(
                   pinState: info.pinState,
+                  supportsPinRetryConfig: controller.supportsPinRetryConfig,
                   onChangeUserPin: _showChangeUserPin,
                   onChangeAdminPin: _showChangeAdminPin,
                   onUnblockPin: () => OpenPgpUnblockPinDialog.show(
@@ -86,10 +83,9 @@ class _OpenPgpPageState extends State<OpenPgpPage> with UIMixin {
                     pinState: info.pinState,
                     onSubmit: controller.setSignaturePinPolicy,
                   ),
-                  t: _t,
                 ),
                 Spacing.height(20),
-                OpenPgpCardInfoCard(info: info, t: _t),
+                OpenPgpCardInfoCard(info: info),
                 Spacing.height(20),
                 OpenPgpKeySlotsCard(info: info),
                 Spacing.height(20),
@@ -98,13 +94,11 @@ class _OpenPgpPageState extends State<OpenPgpPage> with UIMixin {
                   onChange: (slot) => OpenPgpTouchPolicyDialog.show(
                     slot: slot,
                     onSubmit: controller.setTouchPolicy,
-                    t: _t,
                   ),
                   onChangeCacheTime: () => OpenPgpTouchCacheTimeDialog.show(
                     currentSeconds: info.touchCacheTime,
                     onSubmit: controller.setTouchCacheTime,
                   ),
-                  t: _t,
                 ),
                 Spacing.height(20),
               ],
@@ -120,10 +114,7 @@ class _OpenPgpPageState extends State<OpenPgpPage> with UIMixin {
       title: S.of(context).changePin,
       oldValueLabel: S.of(context).oldPin,
       newValueLabel: S.of(context).newPin,
-      prompt: _t(
-        en: 'User PIN length must be between 6 and 64 characters.',
-        zh: 'User PIN 长度必须为 6 到 64 个字符。',
-      ),
+      prompt: S.of(context).openpgpUserPinLength,
       validators: [LengthValidator(min: 6, max: 64)],
       onSubmit: controller.changeUserPin,
     );
@@ -132,12 +123,9 @@ class _OpenPgpPageState extends State<OpenPgpPage> with UIMixin {
   void _showChangeAdminPin() {
     ChangePinDialog.show(
       title: S.of(context).openpgpChangeAdminPin,
-      oldValueLabel: _t(en: 'Current Admin PIN', zh: '当前 Admin PIN'),
-      newValueLabel: _t(en: 'New Admin PIN', zh: '新 Admin PIN'),
-      prompt: _t(
-        en: 'Admin PIN length must be between 8 and 64 characters.',
-        zh: 'Admin PIN 长度必须为 8 到 64 个字符。',
-      ),
+      oldValueLabel: S.of(context).openpgpCurrentAdminPin,
+      newValueLabel: S.of(context).openpgpNewAdminPin,
+      prompt: S.of(context).openpgpAdminPinLength,
       validators: [LengthValidator(min: 8, max: 64)],
       onSubmit: controller.changeAdminPin,
     );

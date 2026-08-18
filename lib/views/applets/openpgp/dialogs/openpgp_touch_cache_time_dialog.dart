@@ -63,7 +63,6 @@ class _OpenPgpTouchCacheTimeDialogState
 
   @override
   Widget buildDialogContent() {
-    final zh = Localizations.localeOf(context).languageCode == 'zh';
     return Obx(
       () => Column(
         mainAxisSize: MainAxisSize.min,
@@ -72,16 +71,14 @@ class _OpenPgpTouchCacheTimeDialogState
           Padding(
             padding: Spacing.all(16),
             child: CustomizedText.labelLarge(
-              zh ? '设置触摸缓存时间' : 'Set Touch Cache Time',
+              S.of(context).openpgpSetTouchCacheTime,
             ),
           ),
           Divider(height: 0, thickness: 1),
           Padding(
             padding: Spacing.all(16),
             child: CustomizedText.bodyMedium(
-              zh
-                  ? '设置一次触摸确认可复用多久。0 表示每次操作都需要重新触摸。需要 Admin PIN 授权。'
-                  : 'Set how long one touch confirmation can be reused. 0 means every operation needs a new touch. Admin PIN is required.',
+              S.of(context).openpgpSetTouchCacheTimePrompt,
               maxLines: 4,
             ),
           ),
@@ -99,7 +96,7 @@ class _OpenPgpTouchCacheTimeDialogState
                     controller: _validator.getController('admin'),
                     validator: _validator.getValidator('admin'),
                     decoration: InputDecoration(
-                      labelText: 'Admin PIN',
+                      labelText: S.of(context).openpgpAdminPin,
                       border: _outlineInputBorder,
                       suffixIcon: IconButton(
                         icon: Icon(_showAdminPin.value
@@ -115,7 +112,7 @@ class _OpenPgpTouchCacheTimeDialogState
                     controller: _validator.getController('seconds'),
                     validator: _validator.getValidator('seconds'),
                     decoration: InputDecoration(
-                      labelText: zh ? '缓存秒数' : 'Cache seconds',
+                      labelText: S.of(context).openpgpCacheSeconds,
                       border: _outlineInputBorder,
                     ),
                   ),

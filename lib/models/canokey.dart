@@ -56,7 +56,7 @@ enum FunctionSetVersion {
   v2, // led, hotp, ndef enabled/readonly, webusb landing page
   v3, // led, hotp, ndef enabled/readonly, webusb landing page, hotp return switch
   v4, // led, ndef enabled/readonly, webusb landing page, nfc switch
-  v5, // CanoKey Core 3.1.0 capabilities without NFC/NDEF
+  v5, // CanoKey Core 3.1.0 capabilities
 }
 
 class FirmwareVersion implements Comparable<FirmwareVersion> {
@@ -250,6 +250,10 @@ class CanoKey {
           ..._baseAdminFunctions,
           Func.led,
           Func.webusbLandingPage,
+          Func.ndefEnabled,
+          Func.ndefReadonly,
+          Func.resetNdef,
+          Func.nfcSwitch,
           Func.resetWebAuthn,
           Func.resetPass,
           Func.webAuthnSm2Support,

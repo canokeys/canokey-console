@@ -8,7 +8,7 @@ import Foundation
 import audioplayers_darwin
 import ccid
 import device_info_plus
-import file_picker
+import file_picker_darwin
 import file_saver
 import flutter_webrtc
 import mobile_scanner

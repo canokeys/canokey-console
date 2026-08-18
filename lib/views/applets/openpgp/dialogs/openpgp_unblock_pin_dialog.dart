@@ -70,7 +70,6 @@ class _OpenPgpUnblockPinDialogState
 
   @override
   Widget buildDialogContent() {
-    final zh = Localizations.localeOf(context).languageCode == 'zh';
     return Obx(
       () => Column(
         mainAxisSize: MainAxisSize.min,
@@ -78,8 +77,8 @@ class _OpenPgpUnblockPinDialogState
         children: [
           Padding(
             padding: Spacing.all(16),
-            child: CustomizedText.labelLarge(
-                zh ? '解锁 User PIN' : 'Unblock User PIN'),
+            child:
+                CustomizedText.labelLarge(S.of(context).openpgpUnblockUserPin),
           ),
           Divider(height: 0, thickness: 1),
           Padding(
@@ -93,7 +92,7 @@ class _OpenPgpUnblockPinDialogState
                   groupValue: _useAdminPin.value,
                   onChanged: (value) => _useAdminPin.value = value!,
                   title: CustomizedText.bodyMedium(
-                    zh ? '使用 Admin PIN' : 'Use Admin PIN',
+                    S.of(context).openpgpUseAdminPin,
                   ),
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -103,7 +102,7 @@ class _OpenPgpUnblockPinDialogState
                   groupValue: _useAdminPin.value,
                   onChanged: (value) => _useAdminPin.value = value!,
                   title: CustomizedText.bodyMedium(
-                    zh ? '使用 Reset Code' : 'Use Reset Code',
+                    S.of(context).openpgpUseResetCode,
                   ),
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -119,7 +118,9 @@ class _OpenPgpUnblockPinDialogState
                 children: [
                   _field(
                     name: 'secret',
-                    label: _useAdminPin.value ? 'Admin PIN' : 'Reset Code',
+                    label: _useAdminPin.value
+                        ? S.of(context).openpgpAdminPin
+                        : S.of(context).openpgpResetCode,
                     showValue: _showSecret,
                   ),
                   Spacing.height(16),

@@ -8,13 +8,7 @@ import 'package:flutter/material.dart';
 
 class OpenPgpCardInfoCard extends StatelessWidget {
   final OpenPgpCardInfo info;
-  final String Function({required String en, required String zh}) t;
-
-  const OpenPgpCardInfoCard({
-    super.key,
-    required this.info,
-    required this.t,
-  });
+  const OpenPgpCardInfoCard({super.key, required this.info});
 
   @override
   Widget build(BuildContext context) {

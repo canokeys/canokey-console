@@ -80,7 +80,6 @@ class _OpenPgpPinRetriesDialogState
 
   @override
   Widget buildDialogContent() {
-    final zh = Localizations.localeOf(context).languageCode == 'zh';
     return Obx(
       () => Column(
         mainAxisSize: MainAxisSize.min,
@@ -89,18 +88,14 @@ class _OpenPgpPinRetriesDialogState
           Padding(
             padding: Spacing.all(16),
             child: CustomizedText.labelLarge(
-              zh
-                  ? '设置 PIN/Reset/Admin PIN 重试次数'
-                  : 'Set PIN/Reset/Admin PIN Retries',
+              S.of(context).openpgpSetPinRetriesTitle,
             ),
           ),
           Divider(height: 0, thickness: 1),
           Padding(
             padding: Spacing.all(16),
             child: CustomizedText.bodySmall(
-              zh
-                  ? '此操作会将 User PIN 重置为 123456，Admin PIN 重置为 12345678。'
-                  : 'This resets User PIN to 123456 and Admin PIN to 12345678.',
+              S.of(context).openpgpSetPinRetriesPrompt,
               color: ContentThemeColor.danger.color,
             ),
           ),
@@ -113,11 +108,11 @@ class _OpenPgpPinRetriesDialogState
                 children: [
                   _adminPinField(),
                   Spacing.height(16),
-                  _numberField('user', 'User PIN'),
+                  _numberField('user', S.of(context).openpgpUserPin),
                   Spacing.height(16),
-                  _numberField('reset', 'Reset Code'),
+                  _numberField('reset', S.of(context).openpgpResetCode),
                   Spacing.height(16),
-                  _numberField('adminRetries', 'Admin PIN'),
+                  _numberField('adminRetries', S.of(context).openpgpAdminPin),
                 ],
               ),
             ),
@@ -175,7 +170,7 @@ class _OpenPgpPinRetriesDialogState
       controller: _validator.getController('admin'),
       validator: _validator.getValidator('admin'),
       decoration: InputDecoration(
-        labelText: 'Admin PIN',
+        labelText: S.of(context).openpgpAdminPin,
         border: _outlineInputBorder,
         suffixIcon: IconButton(
           icon: Icon(

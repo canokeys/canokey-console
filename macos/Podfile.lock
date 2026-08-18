@@ -1,35 +1,22 @@
 PODS:
-  - flutter_webrtc (1.4.0):
-    - FlutterMacOS
-    - WebRTC-SDK (= 144.7559.01)
   - FlutterMacOS (1.0.0)
   - rust_lib_canokey_console (0.0.1):
     - FlutterMacOS
-  - WebRTC-SDK (144.7559.01)
 
 DEPENDENCIES:
-  - flutter_webrtc (from `Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - rust_lib_canokey_console (from `Flutter/ephemeral/.symlinks/plugins/rust_lib_canokey_console/macos`)
 
-SPEC REPOS:
-  trunk:
-    - WebRTC-SDK
-
 EXTERNAL SOURCES:
-  flutter_webrtc:
-    :path: Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
   rust_lib_canokey_console:
     :path: Flutter/ephemeral/.symlinks/plugins/rust_lib_canokey_console/macos
 
 SPEC CHECKSUMS:
-  flutter_webrtc: f1fb1a00c6080461bb2bc6caa5b93d07ddb68466
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   rust_lib_canokey_console: a4a9152dbbc3183d4ddfe4c79a57f3de31203bd3
-  WebRTC-SDK: ab9b5319e458c2bfebdc92b3600740da35d5630d
 
 PODFILE CHECKSUM: 9ebaf0ce3d369aaa26a9ea0e159195ed94724cf3
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.17.0

@@ -10,6 +10,7 @@ class PivSlotListItem extends StatelessWidget {
   final String title;
   final String slotNumber;
   final SlotInfo? slot;
+  final bool hasCertificate;
   final VoidCallback onTap;
 
   const PivSlotListItem({
@@ -17,16 +18,15 @@ class PivSlotListItem extends StatelessWidget {
     required this.title,
     required this.slotNumber,
     required this.slot,
+    required this.hasCertificate,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final hasCertificate = slot?.certBytes != null;
     final certificateLabel = hasCertificate
         ? S.of(context).pivCertificate
         : S.of(context).pivNoCertificate;
-    final locale = Localizations.localeOf(context).languageCode;
 
     return InkWell(
       onTap: onTap,
@@ -47,24 +47,22 @@ class PivSlotListItem extends StatelessWidget {
                 runSpacing: 6,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  SizedBox(
-                    width: 190,
-                    child: CustomizedText.bodyMedium(
-                      '$title - $slotNumber',
-                      fontSize: 15,
-                      fontWeight: 600,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  CustomizedText.bodyMedium(
+                    '$title - $slotNumber',
+                    fontSize: 15,
+                    fontWeight: 600,
+                    softWrap: true,
                   ),
-                  if (slot == null)
-                    _chip(context, S.of(context).pivEmpty, muted: true)
-                  else ...[
+                  if (slot == null) ...[
+                    _chip(context, S.of(context).pivEmpty, muted: true),
+                    if (hasCertificate) _chip(context, certificateLabel),
+                  ] else ...[
                     _chip(context, slot!.algorithm.name.toUpperCase()),
                     _chip(context, certificateLabel, muted: !hasCertificate),
-                    _chip(context, _pinPolicyLabel(slot!.pinPolicy, locale),
+                    _chip(context, _pinPolicyLabel(context, slot!.pinPolicy),
                         muted: true),
-                    _chip(context, _touchPolicyLabel(slot!.touchPolicy, locale),
+                    _chip(
+                        context, _touchPolicyLabel(context, slot!.touchPolicy),
                         muted: true),
                   ],
                 ],
@@ -105,25 +103,23 @@ class PivSlotListItem extends StatelessWidget {
     );
   }
 
-  String _pinPolicyLabel(PinPolicy policy, String locale) {
-    final prefix = 'PIN';
+  String _pinPolicyLabel(BuildContext context, PinPolicy policy) {
     final value = switch (policy) {
-      PinPolicy.defaultPolicy => locale == 'zh' ? '默认' : 'Default',
-      PinPolicy.never => locale == 'zh' ? '免验' : 'Never',
-      PinPolicy.once => locale == 'zh' ? '一次' : 'Once',
-      PinPolicy.always => locale == 'zh' ? '每次' : 'Always',
+      PinPolicy.defaultPolicy => S.of(context).pivPinPolicyDefault,
+      PinPolicy.never => S.of(context).pivPinPolicyNever,
+      PinPolicy.once => S.of(context).pivPinPolicyOnce,
+      PinPolicy.always => S.of(context).pivPinPolicyAlways,
     };
-    return '$prefix: $value';
+    return S.of(context).pivPinPolicyChip(value);
   }
 
-  String _touchPolicyLabel(TouchPolicy policy, String locale) {
-    final prefix = locale == 'zh' ? '触摸' : 'Touch';
+  String _touchPolicyLabel(BuildContext context, TouchPolicy policy) {
     final value = switch (policy) {
-      TouchPolicy.defaultPolicy => locale == 'zh' ? '默认' : 'Default',
-      TouchPolicy.never => locale == 'zh' ? '免触摸' : 'Never',
-      TouchPolicy.always => locale == 'zh' ? '每次' : 'Always',
-      TouchPolicy.cached => locale == 'zh' ? '缓存' : 'Cached',
+      TouchPolicy.defaultPolicy => S.of(context).pivTouchPolicyDefault,
+      TouchPolicy.never => S.of(context).pivTouchPolicyNever,
+      TouchPolicy.always => S.of(context).pivTouchPolicyAlways,
+      TouchPolicy.cached => S.of(context).pivTouchPolicyCached,
     };
-    return '$prefix: $value';
+    return S.of(context).pivTouchPolicyChip(value);
   }
 }

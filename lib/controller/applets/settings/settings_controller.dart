@@ -280,6 +280,8 @@ class SettingsController extends PollingController with AdminApplet {
         break;
       case FunctionSetVersion.v5:
         ledOn = configData.substring(0, 2) == '01';
+        ndefReadonly = configData.substring(4, 6) == '01';
+        ndefEnabled = configData.substring(6, 8) == '01';
         webusbLandingEnabled = configData.substring(8, 10) == '01';
         if (configData.length >= 12) {
           featureSwitchesSupported = true;

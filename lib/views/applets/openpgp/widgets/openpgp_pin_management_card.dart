@@ -18,7 +18,7 @@ class OpenPgpPinManagementCard extends StatelessWidget {
   final VoidCallback onSetResetCode;
   final VoidCallback onSetPinRetries;
   final VoidCallback onSetSignaturePinPolicy;
-  final String Function({required String en, required String zh}) t;
+  final bool supportsPinRetryConfig;
 
   const OpenPgpPinManagementCard({
     super.key,
@@ -29,7 +29,7 @@ class OpenPgpPinManagementCard extends StatelessWidget {
     required this.onSetResetCode,
     required this.onSetPinRetries,
     required this.onSetSignaturePinPolicy,
-    required this.t,
+    required this.supportsPinRetryConfig,
   });
 
   @override
@@ -42,28 +42,28 @@ class OpenPgpPinManagementCard extends StatelessWidget {
         children: [
           InfoItem(
             iconData: LucideIcons.user,
-            title: 'User PIN',
-            value: _retryValue(pinState.userRetries),
+            title: S.of(context).openpgpUserPin,
+            value: _retryValue(context, pinState.userRetries),
           ),
           Spacing.height(16),
           InfoItem(
             iconData: LucideIcons.shieldCheck,
-            title: 'Admin PIN',
-            value: _retryValue(pinState.adminRetries),
+            title: S.of(context).openpgpAdminPin,
+            value: _retryValue(context, pinState.adminRetries),
           ),
           Spacing.height(16),
           InfoItem(
             iconData: LucideIcons.keyRound,
-            title: t(en: 'Reset Code', zh: 'Reset Code'),
-            value: _retryValue(pinState.resetRetries),
+            title: S.of(context).openpgpResetCode,
+            value: _retryValue(context, pinState.resetRetries),
           ),
           Spacing.height(16),
           InfoItem(
             iconData: LucideIcons.fileLock,
-            title: t(en: 'Signature PIN', zh: '签名 PIN'),
+            title: S.of(context).openpgpSignaturePin,
             value: pinState.signaturePinForced
-                ? t(en: 'Verify every signature', zh: '每次签名都验证')
-                : t(en: 'Verify once after insertion', zh: '插入后验证一次'),
+                ? S.of(context).openpgpVerifyEverySignature
+                : S.of(context).openpgpVerifyOnceAfterInsertion,
           ),
           Spacing.height(16),
           _actions(context),
@@ -72,23 +72,23 @@ class OpenPgpPinManagementCard extends StatelessWidget {
     );
   }
 
-  String _retryValue(int? remaining) {
+  String _retryValue(BuildContext context, int? remaining) {
     if (remaining == null) {
-      return t(en: 'Retries: unknown', zh: '剩余次数：未知');
+      return S.of(context).openpgpRetriesUnknown;
     }
-    return t(en: 'Retries: $remaining', zh: '剩余次数：$remaining');
+    return S.of(context).openpgpRetries(remaining);
   }
 
   Widget _actions(BuildContext context) {
     final actions = [
       _Action(S.of(context).changePin, onChangeUserPin),
       _Action(S.of(context).openpgpChangeAdminPin, onChangeAdminPin),
-      _Action(t(en: 'Unblock User PIN', zh: '解锁 User PIN'), onUnblockPin,
+      _Action(S.of(context).openpgpUnblockUserPin, onUnblockPin,
           enabled: pinState.userRetries == 0),
-      _Action(t(en: 'Set Reset Code', zh: '设置 Reset Code'), onSetResetCode),
-      _Action(t(en: 'Set PIN Retries', zh: '设置 PIN 重试次数'), onSetPinRetries),
-      _Action(t(en: 'Signature PIN Policy', zh: '签名 PIN 策略'),
-          onSetSignaturePinPolicy),
+      _Action(S.of(context).openpgpSetResetCode, onSetResetCode),
+      if (supportsPinRetryConfig)
+        _Action(S.of(context).openpgpSetPinRetries, onSetPinRetries),
+      _Action(S.of(context).openpgpSignaturePinPolicy, onSetSignaturePinPolicy),
     ];
 
     return Wrap(

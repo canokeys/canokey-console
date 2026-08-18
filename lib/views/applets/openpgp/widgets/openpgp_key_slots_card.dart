@@ -58,8 +58,8 @@ class OpenPgpKeySlotsCard extends StatelessWidget {
                 _chip(
                   context,
                   slot.hasKey
-                      ? _t(context, en: 'Imported', zh: '已导入')
-                      : _t(context, en: 'Empty', zh: '空'),
+                      ? S.of(context).openpgpKeyImported
+                      : S.of(context).openpgpKeyEmpty,
                   muted: !slot.hasKey,
                 ),
                 _chip(context, _touchPolicyLabel(context, slot.touchPolicy),
@@ -113,19 +113,15 @@ class OpenPgpKeySlotsCard extends StatelessWidget {
   String _touchPolicyLabel(BuildContext context, OpenPgpTouchPolicy policy) {
     switch (policy) {
       case OpenPgpTouchPolicy.off:
-        return _t(context, en: 'Touch: Off', zh: '触摸：关闭');
+        return S.of(context).openpgpTouchOffLabel;
       case OpenPgpTouchPolicy.on:
-        return _t(context, en: 'Touch: On', zh: '触摸：开启');
+        return S.of(context).openpgpTouchOnLabel;
       case OpenPgpTouchPolicy.permanent:
-        return _t(context, en: 'Touch: Permanent', zh: '触摸：永久开启');
+        return S.of(context).openpgpTouchPermanentLabel;
       case OpenPgpTouchPolicy.cached:
-        return _t(context, en: 'Touch: Cached', zh: '触摸：缓存');
+        return S.of(context).openpgpTouchCachedLabel;
       case OpenPgpTouchPolicy.cachedPermanent:
-        return _t(context, en: 'Touch: Permanent cached', zh: '触摸：永久缓存');
+        return S.of(context).openpgpTouchPermanentCachedLabel;
     }
-  }
-
-  String _t(BuildContext context, {required String en, required String zh}) {
-    return Localizations.localeOf(context).languageCode == 'zh' ? zh : en;
   }
 }
