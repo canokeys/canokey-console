@@ -1,4 +1,5 @@
 import 'package:canokey_console/views/applets/oath/oath_page.dart';
+import 'package:canokey_console/views/applets/ndef/ndef_page.dart';
 import 'package:canokey_console/views/applets/openpgp/openpgp_page.dart';
 import 'package:canokey_console/views/applets/pass/pass_page.dart';
 import 'package:canokey_console/views/applets/piv.dart';
@@ -17,9 +18,16 @@ List<GetPage<dynamic>> getPageRoute() {
     GetPage(name: '/applets/pass', page: () => const PassPage()),
     GetPage(name: '/applets/piv', page: () => const PivPage()),
     GetPage(name: '/applets/openpgp', page: () => const OpenPgpPage()),
+    GetPage(name: '/applets/ndef', page: () => const NdefPage()),
 
     GetPage(name: '/settings', page: () => const SettingsPage()),
   ];
 
-  return routes.map((e) => GetPage(name: e.name, page: e.page, middlewares: e.middlewares, transition: Transition.noTransition)).toList();
+  return routes
+      .map((e) => GetPage(
+          name: e.name,
+          page: e.page,
+          middlewares: e.middlewares,
+          transition: Transition.noTransition))
+      .toList();
 }

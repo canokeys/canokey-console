@@ -35,7 +35,8 @@ class StartPageDialog extends StatelessWidget with UIMixin {
     }
   }
 
-  Widget _buildStartPageItem(BuildContext context, RxString startPage, String path) {
+  Widget _buildStartPageItem(
+      BuildContext context, RxString startPage, String path) {
     return RadioListTile(
       dense: true,
       contentPadding: Spacing.x(16),
@@ -67,10 +68,12 @@ class StartPageDialog extends StatelessWidget with UIMixin {
                   children: [
                     _buildStartPageItem(context, startPage, '/'),
                     _buildStartPageItem(context, startPage, '/applets/oath'),
-                    _buildStartPageItem(context, startPage, '/applets/webauthn'),
+                    _buildStartPageItem(
+                        context, startPage, '/applets/webauthn'),
                     _buildStartPageItem(context, startPage, '/applets/pass'),
                     _buildStartPageItem(context, startPage, '/applets/piv'),
                     _buildStartPageItem(context, startPage, '/applets/openpgp'),
+                    _buildStartPageItem(context, startPage, '/applets/ndef'),
                   ],
                 )),
             Divider(height: 0, thickness: 1),
@@ -84,7 +87,8 @@ class StartPageDialog extends StatelessWidget with UIMixin {
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
+                    child: CustomizedText.labelMedium(S.of(context).cancel,
+                        color: contentTheme.onSecondary),
                   ),
                   Spacing.width(16),
                   CustomizedButton.rounded(
@@ -95,7 +99,8 @@ class StartPageDialog extends StatelessWidget with UIMixin {
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(S.of(context).confirm, color: contentTheme.onPrimary),
+                    child: CustomizedText.labelMedium(S.of(context).confirm,
+                        color: contentTheme.onPrimary),
                   ),
                 ],
               ),

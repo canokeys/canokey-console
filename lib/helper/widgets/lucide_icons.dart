@@ -8,14 +8,20 @@ class LucideIcons {
 
   static const IconData arrowDownAZ =
       IconData(58389, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData arrowDown =
+      IconData(57410, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData arrowRightCircle =
       IconData(57466, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData bellRing =
       IconData(57892, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData binary =
+      IconData(57842, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData clock =
       IconData(57479, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData copy =
       IconData(57502, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData contact =
+      IconData(57500, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData cornerDownLeft =
       IconData(57505, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData cpu =
@@ -26,6 +32,8 @@ class LucideIcons {
       IconData(57514, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData fileLock =
       IconData(58142, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData fileText =
+      IconData(57548, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData globe =
       IconData(57576, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData hash =
@@ -44,6 +52,8 @@ class LucideIcons {
       IconData(57598, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData lightbulb =
       IconData(57794, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData link =
+      IconData(57602, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData lock =
       IconData(57611, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData menu =
@@ -52,12 +62,20 @@ class LucideIcons {
       IconData(57526, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData nfc =
       IconData(58307, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData package =
+      IconData(57641, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData phone =
+      IconData(57651, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData pencil =
+      IconData(57849, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData pin =
       IconData(57945, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData plus =
       IconData(57661, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData refreshCw =
       IconData(57669, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData save =
+      IconData(57677, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData search =
       IconData(57681, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData settings =
@@ -70,10 +88,18 @@ class LucideIcons {
       IconData(57855, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData tag =
       IconData(57727, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData text =
+      IconData(57733, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData timer =
       IconData(57824, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData trash2 =
+      IconData(57742, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData arrowUp =
+      IconData(57418, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData uploadCloud =
       IconData(57489, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData user =
       IconData(57759, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData wifi =
+      IconData(57774, fontFamily: _fontFamily, fontPackage: _fontPackage);
 }

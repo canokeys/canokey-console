@@ -915,6 +915,816 @@ class S {
     );
   }
 
+  /// `NFC tag content`
+  String get ndefTagContent {
+    return Intl.message(
+      'NFC tag content',
+      name: 'ndefTagContent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configure the records shared when another device scans this CanoKey.`
+  String get ndefTagContentDescription {
+    return Intl.message(
+      'Configure the records shared when another device scans this CanoKey.',
+      name: 'ndefTagContentDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Records`
+  String get ndefRecords {
+    return Intl.message('Records', name: 'ndefRecords', desc: '', args: []);
+  }
+
+  /// `Add record`
+  String get ndefAddRecord {
+    return Intl.message(
+      'Add record',
+      name: 'ndefAddRecord',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `URI`
+  String get ndefUri {
+    return Intl.message('URI', name: 'ndefUri', desc: '', args: []);
+  }
+
+  /// `Text`
+  String get ndefText {
+    return Intl.message('Text', name: 'ndefText', desc: '', args: []);
+  }
+
+  /// `URI`
+  String get ndefUriValue {
+    return Intl.message('URI', name: 'ndefUriValue', desc: '', args: []);
+  }
+
+  /// `Text content`
+  String get ndefTextValue {
+    return Intl.message(
+      'Text content',
+      name: 'ndefTextValue',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Language code`
+  String get ndefLanguage {
+    return Intl.message(
+      'Language code',
+      name: 'ndefLanguage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Text encoding`
+  String get ndefEncoding {
+    return Intl.message(
+      'Text encoding',
+      name: 'ndefEncoding',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a URI with a scheme, such as https:// or mailto:.`
+  String get ndefInvalidUri {
+    return Intl.message(
+      'Enter a URI with a scheme, such as https:// or mailto:.',
+      name: 'ndefInvalidUri',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a valid language code, such as en or zh-Hans.`
+  String get ndefInvalidLanguage {
+    return Intl.message(
+      'Enter a valid language code, such as en or zh-Hans.',
+      name: 'ndefInvalidLanguage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Edit record`
+  String get ndefEditRecord {
+    return Intl.message(
+      'Edit record',
+      name: 'ndefEditRecord',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Move up`
+  String get ndefMoveUp {
+    return Intl.message('Move up', name: 'ndefMoveUp', desc: '', args: []);
+  }
+
+  /// `Move down`
+  String get ndefMoveDown {
+    return Intl.message('Move down', name: 'ndefMoveDown', desc: '', args: []);
+  }
+
+  /// `No NDEF records`
+  String get ndefNoRecords {
+    return Intl.message(
+      'No NDEF records',
+      name: 'ndefNoRecords',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add a URI or text record to make the tag discoverable.`
+  String get ndefNoRecordsDescription {
+    return Intl.message(
+      'Add a URI or text record to make the tag discoverable.',
+      name: 'ndefNoRecordsDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Capacity`
+  String get ndefCapacity {
+    return Intl.message('Capacity', name: 'ndefCapacity', desc: '', args: []);
+  }
+
+  /// `{used} of {total} bytes`
+  String ndefBytesUsed(Object used, Object total) {
+    return Intl.message(
+      '$used of $total bytes',
+      name: 'ndefBytesUsed',
+      desc: '',
+      args: [used, total],
+    );
+  }
+
+  /// `Writable`
+  String get ndefWritable {
+    return Intl.message('Writable', name: 'ndefWritable', desc: '', args: []);
+  }
+
+  /// `Read-only`
+  String get ndefReadOnlyStatus {
+    return Intl.message(
+      'Read-only',
+      name: 'ndefReadOnlyStatus',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The NDEF tag is read-only.`
+  String get ndefReadOnly {
+    return Intl.message(
+      'The NDEF tag is read-only.',
+      name: 'ndefReadOnly',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Writing is disabled. Turn off NFC Tag Readonly in Settings to edit these records.`
+  String get ndefReadOnlyDescription {
+    return Intl.message(
+      'Writing is disabled. Turn off NFC Tag Readonly in Settings to edit these records.',
+      name: 'ndefReadOnlyDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The stored message is not valid NDEF data. Reset NDEF in Settings before editing it.`
+  String get ndefInvalidMessage {
+    return Intl.message(
+      'The stored message is not valid NDEF data. Reset NDEF in Settings before editing it.',
+      name: 'ndefInvalidMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The message exceeds the NDEF capacity.`
+  String get ndefCapacityExceeded {
+    return Intl.message(
+      'The message exceeds the NDEF capacity.',
+      name: 'ndefCapacityExceeded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `NDEF records saved`
+  String get ndefSaved {
+    return Intl.message(
+      'NDEF records saved',
+      name: 'ndefSaved',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save to CanoKey`
+  String get ndefSaveToKey {
+    return Intl.message(
+      'Save to CanoKey',
+      name: 'ndefSaveToKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unsaved changes`
+  String get ndefUnsavedChanges {
+    return Intl.message(
+      'Unsaved changes',
+      name: 'ndefUnsavedChanges',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Record type`
+  String get ndefRecordType {
+    return Intl.message(
+      'Record type',
+      name: 'ndefRecordType',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Smart Poster`
+  String get ndefSmartPoster {
+    return Intl.message(
+      'Smart Poster',
+      name: 'ndefSmartPoster',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `MIME`
+  String get ndefMime {
+    return Intl.message('MIME', name: 'ndefMime', desc: '', args: []);
+  }
+
+  /// `Wi-Fi`
+  String get ndefWifi {
+    return Intl.message('Wi-Fi', name: 'ndefWifi', desc: '', args: []);
+  }
+
+  /// `Bluetooth Classic`
+  String get ndefBluetoothClassic {
+    return Intl.message(
+      'Bluetooth Classic',
+      name: 'ndefBluetoothClassic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Bluetooth Low Energy`
+  String get ndefBluetoothLowEnergy {
+    return Intl.message(
+      'Bluetooth Low Energy',
+      name: 'ndefBluetoothLowEnergy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Absolute URI`
+  String get ndefAbsoluteUri {
+    return Intl.message(
+      'Absolute URI',
+      name: 'ndefAbsoluteUri',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `External type`
+  String get ndefExternal {
+    return Intl.message(
+      'External type',
+      name: 'ndefExternal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `AAR`
+  String get ndefAndroidApplication {
+    return Intl.message(
+      'AAR',
+      name: 'ndefAndroidApplication',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Device Information`
+  String get ndefDeviceInformation {
+    return Intl.message(
+      'Device Information',
+      name: 'ndefDeviceInformation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Signature`
+  String get ndefSignature {
+    return Intl.message('Signature', name: 'ndefSignature', desc: '', args: []);
+  }
+
+  /// `Connection Handover`
+  String get ndefHandover {
+    return Intl.message(
+      'Connection Handover',
+      name: 'ndefHandover',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Custom record`
+  String get ndefCustom {
+    return Intl.message(
+      'Custom record',
+      name: 'ndefCustom',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Phone`
+  String get ndefPhone {
+    return Intl.message('Phone', name: 'ndefPhone', desc: '', args: []);
+  }
+
+  /// `Contact`
+  String get ndefContact {
+    return Intl.message('Contact', name: 'ndefContact', desc: '', args: []);
+  }
+
+  /// `Other`
+  String get ndefOther {
+    return Intl.message('Other', name: 'ndefOther', desc: '', args: []);
+  }
+
+  /// `Phone number`
+  String get ndefPhoneNumber {
+    return Intl.message(
+      'Phone number',
+      name: 'ndefPhoneNumber',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Name`
+  String get ndefContactName {
+    return Intl.message('Name', name: 'ndefContactName', desc: '', args: []);
+  }
+
+  /// `Email (optional)`
+  String get ndefContactEmail {
+    return Intl.message(
+      'Email (optional)',
+      name: 'ndefContactEmail',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Organization (optional)`
+  String get ndefContactOrganization {
+    return Intl.message(
+      'Organization (optional)',
+      name: 'ndefContactOrganization',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a valid phone number.`
+  String get ndefInvalidPhoneNumber {
+    return Intl.message(
+      'Enter a valid phone number.',
+      name: 'ndefInvalidPhoneNumber',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a valid email address.`
+  String get ndefInvalidEmail {
+    return Intl.message(
+      'Enter a valid email address.',
+      name: 'ndefInvalidEmail',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Record ID (optional, hex)`
+  String get ndefRecordId {
+    return Intl.message(
+      'Record ID (optional, hex)',
+      name: 'ndefRecordId',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Optional hexadecimal bytes`
+  String get ndefOptionalHex {
+    return Intl.message(
+      'Optional hexadecimal bytes',
+      name: 'ndefOptionalHex',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Title (optional)`
+  String get ndefSmartPosterTitle {
+    return Intl.message(
+      'Title (optional)',
+      name: 'ndefSmartPosterTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Suggested action`
+  String get ndefSmartPosterAction {
+    return Intl.message(
+      'Suggested action',
+      name: 'ndefSmartPosterAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Open`
+  String get ndefSmartPosterActionOpen {
+    return Intl.message(
+      'Open',
+      name: 'ndefSmartPosterActionOpen',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save`
+  String get ndefSmartPosterActionSave {
+    return Intl.message(
+      'Save',
+      name: 'ndefSmartPosterActionSave',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Edit`
+  String get ndefSmartPosterActionEdit {
+    return Intl.message(
+      'Edit',
+      name: 'ndefSmartPosterActionEdit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `MIME type`
+  String get ndefMimeType {
+    return Intl.message('MIME type', name: 'ndefMimeType', desc: '', args: []);
+  }
+
+  /// `Network password`
+  String get ndefWifiPassword {
+    return Intl.message(
+      'Network password',
+      name: 'ndefWifiPassword',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Authentication`
+  String get ndefWifiAuthentication {
+    return Intl.message(
+      'Authentication',
+      name: 'ndefWifiAuthentication',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Encryption`
+  String get ndefWifiEncryption {
+    return Intl.message(
+      'Encryption',
+      name: 'ndefWifiEncryption',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `MAC address`
+  String get ndefMacAddress {
+    return Intl.message(
+      'MAC address',
+      name: 'ndefMacAddress',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Device name (optional)`
+  String get ndefDeviceName {
+    return Intl.message(
+      'Device name (optional)',
+      name: 'ndefDeviceName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Address type`
+  String get ndefBluetoothAddressType {
+    return Intl.message(
+      'Address type',
+      name: 'ndefBluetoothAddressType',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Public`
+  String get ndefBluetoothPublicAddress {
+    return Intl.message(
+      'Public',
+      name: 'ndefBluetoothPublicAddress',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Random`
+  String get ndefBluetoothRandomAddress {
+    return Intl.message(
+      'Random',
+      name: 'ndefBluetoothRandomAddress',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Type name`
+  String get ndefTypeName {
+    return Intl.message('Type name', name: 'ndefTypeName', desc: '', args: []);
+  }
+
+  /// `Handover record type`
+  String get ndefHandoverType {
+    return Intl.message(
+      'Handover record type',
+      name: 'ndefHandoverType',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `External type name`
+  String get ndefExternalType {
+    return Intl.message(
+      'External type name',
+      name: 'ndefExternalType',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Android package name`
+  String get ndefAndroidPackage {
+    return Intl.message(
+      'Android package name',
+      name: 'ndefAndroidPackage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Vendor`
+  String get ndefDeviceVendor {
+    return Intl.message('Vendor', name: 'ndefDeviceVendor', desc: '', args: []);
+  }
+
+  /// `Model`
+  String get ndefDeviceModel {
+    return Intl.message('Model', name: 'ndefDeviceModel', desc: '', args: []);
+  }
+
+  /// `Unique name (optional)`
+  String get ndefDeviceUniqueName {
+    return Intl.message(
+      'Unique name (optional)',
+      name: 'ndefDeviceUniqueName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Version (optional)`
+  String get ndefDeviceVersion {
+    return Intl.message(
+      'Version (optional)',
+      name: 'ndefDeviceVersion',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Payload`
+  String get ndefPayload {
+    return Intl.message('Payload', name: 'ndefPayload', desc: '', args: []);
+  }
+
+  /// `Payload encoding`
+  String get ndefPayloadEncoding {
+    return Intl.message(
+      'Payload encoding',
+      name: 'ndefPayloadEncoding',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Text`
+  String get ndefPayloadText {
+    return Intl.message('Text', name: 'ndefPayloadText', desc: '', args: []);
+  }
+
+  /// `Hex`
+  String get ndefPayloadHex {
+    return Intl.message('Hex', name: 'ndefPayloadHex', desc: '', args: []);
+  }
+
+  /// `The payload cannot be converted between UTF-8 text and hexadecimal bytes.`
+  String get ndefPayloadConversionFailed {
+    return Intl.message(
+      'The payload cannot be converted between UTF-8 text and hexadecimal bytes.',
+      name: 'ndefPayloadConversionFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a valid MIME type, such as text/plain.`
+  String get ndefInvalidMimeType {
+    return Intl.message(
+      'Enter a valid MIME type, such as text/plain.',
+      name: 'ndefInvalidMimeType',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a lowercase external type, such as example.com:record.`
+  String get ndefInvalidExternalType {
+    return Intl.message(
+      'Enter a lowercase external type, such as example.com:record.',
+      name: 'ndefInvalidExternalType',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a valid Android package name, such as com.example.app.`
+  String get ndefInvalidPackageName {
+    return Intl.message(
+      'Enter a valid Android package name, such as com.example.app.',
+      name: 'ndefInvalidPackageName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a MAC address such as AA:BB:CC:DD:EE:FF.`
+  String get ndefInvalidMacAddress {
+    return Intl.message(
+      'Enter a MAC address such as AA:BB:CC:DD:EE:FF.',
+      name: 'ndefInvalidMacAddress',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a UUID in canonical form.`
+  String get ndefInvalidUuid {
+    return Intl.message(
+      'Enter a UUID in canonical form.',
+      name: 'ndefInvalidUuid',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The ndef library rejected this record: {error}`
+  String ndefInvalidRecord(Object error) {
+    return Intl.message(
+      'The ndef library rejected this record: $error',
+      name: 'ndefInvalidRecord',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `This field is required.`
+  String get ndefRequiredField {
+    return Intl.message(
+      'This field is required.',
+      name: 'ndefRequiredField',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This TNF requires an empty type name.`
+  String get ndefTnfRequiresEmptyType {
+    return Intl.message(
+      'This TNF requires an empty type name.',
+      name: 'ndefTnfRequiresEmptyType',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Empty`
+  String get ndefTnfEmpty {
+    return Intl.message('Empty', name: 'ndefTnfEmpty', desc: '', args: []);
+  }
+
+  /// `NFC Forum well-known`
+  String get ndefTnfWellKnown {
+    return Intl.message(
+      'NFC Forum well-known',
+      name: 'ndefTnfWellKnown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Media (MIME)`
+  String get ndefTnfMedia {
+    return Intl.message(
+      'Media (MIME)',
+      name: 'ndefTnfMedia',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Absolute URI`
+  String get ndefTnfAbsoluteUri {
+    return Intl.message(
+      'Absolute URI',
+      name: 'ndefTnfAbsoluteUri',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `NFC Forum external`
+  String get ndefTnfExternal {
+    return Intl.message(
+      'NFC Forum external',
+      name: 'ndefTnfExternal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unknown`
+  String get ndefTnfUnknown {
+    return Intl.message('Unknown', name: 'ndefTnfUnknown', desc: '', args: []);
+  }
+
   /// `Reset OpenPGP`
   String get settingsResetOpenPGP {
     return Intl.message(

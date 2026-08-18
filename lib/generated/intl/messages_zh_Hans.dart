@@ -26,52 +26,56 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m2(error) => "保存失败：${error}";
 
-  static String m3(name) => "您正在删除 ${name}，删除该项目后无法恢复！请确认相关服务的二步验证已经关闭。";
+  static String m3(used, total) => "已使用 ${used} / ${total} 字节";
 
-  static String m4(name) => "您要将 ${name} 设为触摸时的输出吗？请注意，该操作将会覆盖原有的触摸输出。";
+  static String m4(error) => "ndef 库拒绝了此记录：${error}";
 
-  static String m5(keyType) => "修改 ${keyType} 密钥的触摸设置";
+  static String m5(name) => "您正在删除 ${name}，删除该项目后无法恢复！请确认相关服务的二步验证已经关闭。";
 
-  static String m6(remaining) => "剩余次数：${remaining}";
+  static String m6(name) => "您要将 ${name} 设为触摸时的输出吗？请注意，该操作将会覆盖原有的触摸输出。";
 
-  static String m7(seconds) => "${seconds} 秒";
+  static String m7(keyType) => "修改 ${keyType} 密钥的触摸设置";
 
-  static String m8(retries) => "PIN 输入错误，剩余重试次数：${retries}";
+  static String m8(remaining) => "剩余次数：${remaining}";
 
-  static String m9(algorithm) => "算法：${algorithm}";
+  static String m9(seconds) => "${seconds} 秒";
 
-  static String m10(slot) => "自签证书已写入 ${slot} 槽。";
+  static String m10(retries) => "PIN 输入错误，剩余重试次数：${retries}";
 
-  static String m11(min, max) => "新 PUK 的长度应当为 ${min} - ${max} 个字符。";
+  static String m11(algorithm) => "算法：${algorithm}";
 
-  static String m12(slot) => "清空槽 ${slot}";
+  static String m12(slot) => "自签证书已写入 ${slot} 槽。";
 
-  static String m13(slot) => "此操作将从您的 CanoKey 中删除 ${slot} 中的证书和密钥。请确保您有其他方式访问。";
+  static String m13(min, max) => "新 PUK 的长度应当为 ${min} - ${max} 个字符。";
 
-  static String m14(sourceSlot) => "移动 ${sourceSlot} 中的密钥";
+  static String m14(slot) => "清空槽 ${slot}";
 
-  static String m15(action, slot) =>
+  static String m15(slot) => "此操作将从您的 CanoKey 中删除 ${slot} 中的证书和密钥。请确保您有其他方式访问。";
+
+  static String m16(sourceSlot) => "移动 ${sourceSlot} 中的密钥";
+
+  static String m17(action, slot) =>
       "${action} 将替换 ${slot} 槽中的私钥。依赖此密钥的认证或签名可能会失效。";
 
-  static String m16(policy) => "PIN：${policy}";
+  static String m18(policy) => "PIN：${policy}";
 
-  static String m17(index) => "过期证书 ${index}";
+  static String m19(index) => "过期证书 ${index}";
 
-  static String m18(remaining, total) => "剩余次数：${remaining}/${total}";
+  static String m20(remaining, total) => "剩余次数：${remaining}/${total}";
 
-  static String m19(policy) => "触摸：${policy}";
+  static String m21(policy) => "触摸：${policy}";
 
-  static String m20(layout) => "当前：${layout}";
+  static String m22(layout) => "当前：${layout}";
 
-  static String m21(applet) => "该操作将抹除 ${applet} 的全部数据！";
+  static String m23(applet) => "该操作将抹除 ${applet} 的全部数据！";
 
-  static String m22(min) => "至少 ${min} 个字符";
+  static String m24(min) => "至少 ${min} 个字符";
 
-  static String m23(max) => "最多 ${max} 个字符";
+  static String m25(max) => "最多 ${max} 个字符";
 
-  static String m24(length) => "需要 ${length} 个字符";
+  static String m26(length) => "需要 ${length} 个字符";
 
-  static String m25(name) => "您正在删除 ${name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。";
+  static String m27(name) => "您正在删除 ${name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -131,6 +135,127 @@ class MessageLookup extends MessageLookupByLibrary {
     "iosPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "请点击刷新按钮并点击您的 CanoKey 或将其插入 USB 接口",
     ),
+    "ndefAbsoluteUri": MessageLookupByLibrary.simpleMessage("绝对 URI"),
+    "ndefAddRecord": MessageLookupByLibrary.simpleMessage("添加记录"),
+    "ndefAndroidApplication": MessageLookupByLibrary.simpleMessage("AAR"),
+    "ndefAndroidPackage": MessageLookupByLibrary.simpleMessage("Android 包名"),
+    "ndefBluetoothAddressType": MessageLookupByLibrary.simpleMessage("地址类型"),
+    "ndefBluetoothClassic": MessageLookupByLibrary.simpleMessage("经典蓝牙"),
+    "ndefBluetoothLowEnergy": MessageLookupByLibrary.simpleMessage("低功耗蓝牙"),
+    "ndefBluetoothPublicAddress": MessageLookupByLibrary.simpleMessage("公共地址"),
+    "ndefBluetoothRandomAddress": MessageLookupByLibrary.simpleMessage("随机地址"),
+    "ndefBytesUsed": m3,
+    "ndefCapacity": MessageLookupByLibrary.simpleMessage("容量"),
+    "ndefCapacityExceeded": MessageLookupByLibrary.simpleMessage(
+      "消息超出 NDEF 容量。",
+    ),
+    "ndefContact": MessageLookupByLibrary.simpleMessage("联系人"),
+    "ndefContactEmail": MessageLookupByLibrary.simpleMessage("邮箱（可选）"),
+    "ndefContactName": MessageLookupByLibrary.simpleMessage("姓名"),
+    "ndefContactOrganization": MessageLookupByLibrary.simpleMessage("组织（可选）"),
+    "ndefCustom": MessageLookupByLibrary.simpleMessage("自定义记录"),
+    "ndefDeviceInformation": MessageLookupByLibrary.simpleMessage("设备信息"),
+    "ndefDeviceModel": MessageLookupByLibrary.simpleMessage("型号"),
+    "ndefDeviceName": MessageLookupByLibrary.simpleMessage("设备名称（可选）"),
+    "ndefDeviceUniqueName": MessageLookupByLibrary.simpleMessage("唯一名称（可选）"),
+    "ndefDeviceVendor": MessageLookupByLibrary.simpleMessage("厂商"),
+    "ndefDeviceVersion": MessageLookupByLibrary.simpleMessage("版本（可选）"),
+    "ndefEditRecord": MessageLookupByLibrary.simpleMessage("编辑记录"),
+    "ndefEncoding": MessageLookupByLibrary.simpleMessage("文本编码"),
+    "ndefExternal": MessageLookupByLibrary.simpleMessage("外部类型"),
+    "ndefExternalType": MessageLookupByLibrary.simpleMessage("外部类型名称"),
+    "ndefHandover": MessageLookupByLibrary.simpleMessage("连接切换"),
+    "ndefHandoverType": MessageLookupByLibrary.simpleMessage("切换记录类型"),
+    "ndefInvalidEmail": MessageLookupByLibrary.simpleMessage("请输入有效的邮箱地址。"),
+    "ndefInvalidExternalType": MessageLookupByLibrary.simpleMessage(
+      "请输入小写外部类型，例如 example.com:record。",
+    ),
+    "ndefInvalidLanguage": MessageLookupByLibrary.simpleMessage(
+      "请输入有效的语言代码，例如 en 或 zh-Hans。",
+    ),
+    "ndefInvalidMacAddress": MessageLookupByLibrary.simpleMessage(
+      "请输入类似 AA:BB:CC:DD:EE:FF 的 MAC 地址。",
+    ),
+    "ndefInvalidMessage": MessageLookupByLibrary.simpleMessage(
+      "存储的数据不是有效的 NDEF 消息。请先在设置中重置 NDEF，再进行编辑。",
+    ),
+    "ndefInvalidMimeType": MessageLookupByLibrary.simpleMessage(
+      "请输入有效的 MIME 类型，例如 text/plain。",
+    ),
+    "ndefInvalidPackageName": MessageLookupByLibrary.simpleMessage(
+      "请输入有效的 Android 包名，例如 com.example.app。",
+    ),
+    "ndefInvalidPhoneNumber": MessageLookupByLibrary.simpleMessage(
+      "请输入有效的电话号码。",
+    ),
+    "ndefInvalidRecord": m4,
+    "ndefInvalidUri": MessageLookupByLibrary.simpleMessage(
+      "请输入带协议的 URI，例如 https:// 或 mailto:。",
+    ),
+    "ndefInvalidUuid": MessageLookupByLibrary.simpleMessage("请输入标准格式的 UUID。"),
+    "ndefLanguage": MessageLookupByLibrary.simpleMessage("语言代码"),
+    "ndefMacAddress": MessageLookupByLibrary.simpleMessage("MAC 地址"),
+    "ndefMime": MessageLookupByLibrary.simpleMessage("MIME"),
+    "ndefMimeType": MessageLookupByLibrary.simpleMessage("MIME 类型"),
+    "ndefMoveDown": MessageLookupByLibrary.simpleMessage("下移"),
+    "ndefMoveUp": MessageLookupByLibrary.simpleMessage("上移"),
+    "ndefNoRecords": MessageLookupByLibrary.simpleMessage("没有 NDEF 记录"),
+    "ndefNoRecordsDescription": MessageLookupByLibrary.simpleMessage(
+      "添加 URI 或文本记录，使其他设备可以读取该标签。",
+    ),
+    "ndefOptionalHex": MessageLookupByLibrary.simpleMessage("可选的十六进制字节"),
+    "ndefOther": MessageLookupByLibrary.simpleMessage("其他"),
+    "ndefPayload": MessageLookupByLibrary.simpleMessage("载荷"),
+    "ndefPayloadConversionFailed": MessageLookupByLibrary.simpleMessage(
+      "载荷无法在 UTF-8 文本与十六进制字节之间转换。",
+    ),
+    "ndefPayloadEncoding": MessageLookupByLibrary.simpleMessage("载荷编码"),
+    "ndefPayloadHex": MessageLookupByLibrary.simpleMessage("十六进制"),
+    "ndefPayloadText": MessageLookupByLibrary.simpleMessage("文本"),
+    "ndefPhone": MessageLookupByLibrary.simpleMessage("电话"),
+    "ndefPhoneNumber": MessageLookupByLibrary.simpleMessage("电话号码"),
+    "ndefReadOnly": MessageLookupByLibrary.simpleMessage("NDEF 标签当前为只读。"),
+    "ndefReadOnlyDescription": MessageLookupByLibrary.simpleMessage(
+      "当前无法写入。请先在设置中关闭“NFC 标签只读”。",
+    ),
+    "ndefReadOnlyStatus": MessageLookupByLibrary.simpleMessage("只读"),
+    "ndefRecordId": MessageLookupByLibrary.simpleMessage("记录 ID（可选，十六进制）"),
+    "ndefRecordType": MessageLookupByLibrary.simpleMessage("记录类型"),
+    "ndefRecords": MessageLookupByLibrary.simpleMessage("记录"),
+    "ndefRequiredField": MessageLookupByLibrary.simpleMessage("此项为必填项。"),
+    "ndefSaveToKey": MessageLookupByLibrary.simpleMessage("保存到 CanoKey"),
+    "ndefSaved": MessageLookupByLibrary.simpleMessage("NDEF 记录已保存"),
+    "ndefSignature": MessageLookupByLibrary.simpleMessage("签名"),
+    "ndefSmartPoster": MessageLookupByLibrary.simpleMessage("智能海报"),
+    "ndefSmartPosterAction": MessageLookupByLibrary.simpleMessage("建议操作"),
+    "ndefSmartPosterActionEdit": MessageLookupByLibrary.simpleMessage("编辑"),
+    "ndefSmartPosterActionOpen": MessageLookupByLibrary.simpleMessage("打开"),
+    "ndefSmartPosterActionSave": MessageLookupByLibrary.simpleMessage("保存"),
+    "ndefSmartPosterTitle": MessageLookupByLibrary.simpleMessage("标题（可选）"),
+    "ndefTagContent": MessageLookupByLibrary.simpleMessage("NFC 标签内容"),
+    "ndefTagContentDescription": MessageLookupByLibrary.simpleMessage(
+      "配置其他设备扫描 CanoKey 时读取到的记录。",
+    ),
+    "ndefText": MessageLookupByLibrary.simpleMessage("文本"),
+    "ndefTextValue": MessageLookupByLibrary.simpleMessage("文本内容"),
+    "ndefTnfAbsoluteUri": MessageLookupByLibrary.simpleMessage("绝对 URI"),
+    "ndefTnfEmpty": MessageLookupByLibrary.simpleMessage("空记录"),
+    "ndefTnfExternal": MessageLookupByLibrary.simpleMessage("NFC Forum 外部类型"),
+    "ndefTnfMedia": MessageLookupByLibrary.simpleMessage("媒体类型 (MIME)"),
+    "ndefTnfRequiresEmptyType": MessageLookupByLibrary.simpleMessage(
+      "此 TNF 要求类型名称为空。",
+    ),
+    "ndefTnfUnknown": MessageLookupByLibrary.simpleMessage("未知类型"),
+    "ndefTnfWellKnown": MessageLookupByLibrary.simpleMessage("NFC Forum 已知类型"),
+    "ndefTypeName": MessageLookupByLibrary.simpleMessage("类型名称"),
+    "ndefUnsavedChanges": MessageLookupByLibrary.simpleMessage("有尚未保存的修改"),
+    "ndefUri": MessageLookupByLibrary.simpleMessage("URI"),
+    "ndefUriValue": MessageLookupByLibrary.simpleMessage("URI"),
+    "ndefWifi": MessageLookupByLibrary.simpleMessage("Wi-Fi"),
+    "ndefWifiAuthentication": MessageLookupByLibrary.simpleMessage("认证方式"),
+    "ndefWifiEncryption": MessageLookupByLibrary.simpleMessage("加密方式"),
+    "ndefWifiPassword": MessageLookupByLibrary.simpleMessage("网络密码"),
+    "ndefWritable": MessageLookupByLibrary.simpleMessage("可写"),
     "networkError": MessageLookupByLibrary.simpleMessage(
       "CanoKey 繁忙，请重新插拔并稍后再试",
     ),
@@ -162,7 +287,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "oathCopy": MessageLookupByLibrary.simpleMessage("复制"),
     "oathCounter": MessageLookupByLibrary.simpleMessage("计数器初始值"),
     "oathCounterMustBeNumber": MessageLookupByLibrary.simpleMessage("请填写数字"),
-    "oathDelete": m3,
+    "oathDelete": m5,
     "oathDigits": MessageLookupByLibrary.simpleMessage("位数"),
     "oathDuplicated": MessageLookupByLibrary.simpleMessage("账户已存在"),
     "oathInputCode": MessageLookupByLibrary.simpleMessage("解锁 CanoKey"),
@@ -182,7 +307,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "oathSecret": MessageLookupByLibrary.simpleMessage("密钥"),
     "oathSetCode": MessageLookupByLibrary.simpleMessage("设置口令"),
     "oathSetDefault": MessageLookupByLibrary.simpleMessage("设为触摸输出"),
-    "oathSetDefaultPrompt": m4,
+    "oathSetDefaultPrompt": m6,
     "oathSlot": MessageLookupByLibrary.simpleMessage("口令槽"),
     "oathTooLong": MessageLookupByLibrary.simpleMessage("长度超限"),
     "oathType": MessageLookupByLibrary.simpleMessage("类型"),
@@ -200,7 +325,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "openpgpChangeAdminPin": MessageLookupByLibrary.simpleMessage(
       "修改 Admin PIN",
     ),
-    "openpgpChangeInteraction": m5,
+    "openpgpChangeInteraction": m7,
     "openpgpChangeSignaturePinPolicy": MessageLookupByLibrary.simpleMessage(
       "修改签名 PIN 策略",
     ),
@@ -222,7 +347,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "openpgpPubkeyUrl": MessageLookupByLibrary.simpleMessage("公钥 URL"),
     "openpgpResetCode": MessageLookupByLibrary.simpleMessage("Reset Code"),
-    "openpgpRetries": m6,
+    "openpgpRetries": m8,
     "openpgpRetriesUnknown": MessageLookupByLibrary.simpleMessage("剩余次数：未知"),
     "openpgpSN": MessageLookupByLibrary.simpleMessage("序列号"),
     "openpgpSetPinRetries": MessageLookupByLibrary.simpleMessage("设置 PIN 重试次数"),
@@ -250,7 +375,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "签名 PIN 策略",
     ),
     "openpgpTouchCacheOff": MessageLookupByLibrary.simpleMessage("0 秒（不缓存）"),
-    "openpgpTouchCacheSeconds": m7,
+    "openpgpTouchCacheSeconds": m9,
     "openpgpTouchCached": MessageLookupByLibrary.simpleMessage("触摸缓存"),
     "openpgpTouchCachedLabel": MessageLookupByLibrary.simpleMessage("触摸：缓存"),
     "openpgpTouchNone": MessageLookupByLibrary.simpleMessage("无需触摸"),
@@ -327,7 +452,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pinIncorrect": MessageLookupByLibrary.simpleMessage("PIN 输入错误"),
     "pinInvalidLength": MessageLookupByLibrary.simpleMessage("长度错误"),
     "pinLength": MessageLookupByLibrary.simpleMessage("输入的 PIN 长度错误"),
-    "pinRetries": m8,
+    "pinRetries": m10,
     "pivAlgorithm": MessageLookupByLibrary.simpleMessage("当前密钥算法"),
     "pivAlgorithmIds": MessageLookupByLibrary.simpleMessage("算法 ID"),
     "pivAlgorithmIdsPrompt": MessageLookupByLibrary.simpleMessage(
@@ -340,7 +465,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivAlgorithmIdsWarning": MessageLookupByLibrary.simpleMessage(
       "这些值会影响卡片如何识别 PIV 扩展算法。除非确认客户端和固件需要不同 ID，否则请保持默认值。错误的值可能导致已有扩展算法密钥显示为不支持，直到恢复正确 ID。",
     ),
-    "pivAlgorithmValue": m9,
+    "pivAlgorithmValue": m11,
     "pivAttestationUnavailable": MessageLookupByLibrary.simpleMessage(
       "无法生成证明证书。设备必须已配置 F9 证明密钥和证书。",
     ),
@@ -372,13 +497,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivCertificateSubjectStep": MessageLookupByLibrary.simpleMessage("证书主题"),
     "pivCertificateValidFrom": MessageLookupByLibrary.simpleMessage("生效时间"),
     "pivCertificateValidTo": MessageLookupByLibrary.simpleMessage("失效时间"),
-    "pivCertificateWritten": m10,
+    "pivCertificateWritten": m12,
     "pivChangeManagementKey": MessageLookupByLibrary.simpleMessage("修改管理密钥"),
     "pivChangeManagementKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "新管理密钥的长度应当为 24 字节。请妥善保管管理密钥，否则您将无法管理 PIV 应用。",
     ),
     "pivChangePUK": MessageLookupByLibrary.simpleMessage("修改 PUK"),
-    "pivChangePUKPrompt": m11,
+    "pivChangePUKPrompt": m13,
     "pivClearSlot": MessageLookupByLibrary.simpleMessage("清空槽"),
     "pivClearSlotFailed": MessageLookupByLibrary.simpleMessage(
       "清空槽失败。请确认固件支持删除私钥。",
@@ -386,7 +511,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivClearSlotPrompt": MessageLookupByLibrary.simpleMessage(
       "此操作会删除此槽中的私钥和证书。请确认您仍有其他认证方式。",
     ),
-    "pivClearSlotTitle": m12,
+    "pivClearSlotTitle": m14,
     "pivCommonName": MessageLookupByLibrary.simpleMessage("通用名称"),
     "pivCopyPem": MessageLookupByLibrary.simpleMessage("复制 PEM"),
     "pivCountryCode": MessageLookupByLibrary.simpleMessage("国家代码"),
@@ -405,7 +530,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivCsrSubject": MessageLookupByLibrary.simpleMessage("CSR 主题"),
     "pivDangerZone": MessageLookupByLibrary.simpleMessage("危险操作"),
     "pivDelete": MessageLookupByLibrary.simpleMessage("删除"),
-    "pivDeleteSlot": m13,
+    "pivDeleteSlot": m15,
     "pivDerive": MessageLookupByLibrary.simpleMessage("派生"),
     "pivDeriveSecret": MessageLookupByLibrary.simpleMessage("派生共享密钥"),
     "pivDeriveSecretFailed": MessageLookupByLibrary.simpleMessage("派生共享密钥失败"),
@@ -488,7 +613,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivMoveKeyFailed": MessageLookupByLibrary.simpleMessage(
       "移动密钥失败。目标槽必须不包含密钥。",
     ),
-    "pivMoveKeyFrom": m14,
+    "pivMoveKeyFrom": m16,
     "pivMoveKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "仅移动私钥；证书会保留在原来的槽中。",
     ),
@@ -510,13 +635,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivOriginImported": MessageLookupByLibrary.simpleMessage("外部导入"),
     "pivOverwrite": MessageLookupByLibrary.simpleMessage("覆盖"),
     "pivOverwriteKey": MessageLookupByLibrary.simpleMessage("覆盖密钥"),
-    "pivOverwriteKeyPrompt": m15,
+    "pivOverwriteKeyPrompt": m17,
     "pivPeerPublicKey": MessageLookupByLibrary.simpleMessage("对端公钥（32 字节十六进制）"),
     "pivPinAndTouchPolicy": MessageLookupByLibrary.simpleMessage("PIN 和触摸策略"),
     "pivPinManagement": MessageLookupByLibrary.simpleMessage("管理 PIN"),
     "pivPinPolicy": MessageLookupByLibrary.simpleMessage("PIN 策略"),
     "pivPinPolicyAlways": MessageLookupByLibrary.simpleMessage("总是验证"),
-    "pivPinPolicyChip": m16,
+    "pivPinPolicyChip": m18,
     "pivPinPolicyDefault": MessageLookupByLibrary.simpleMessage("默认"),
     "pivPinPolicyNever": MessageLookupByLibrary.simpleMessage("从不验证"),
     "pivPinPolicyOnce": MessageLookupByLibrary.simpleMessage("会话内验证一次"),
@@ -533,11 +658,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage("随机值"),
     "pivRetired1": MessageLookupByLibrary.simpleMessage("过期证书 1"),
     "pivRetired2": MessageLookupByLibrary.simpleMessage("过期证书 2"),
-    "pivRetiredSlot": m17,
+    "pivRetiredSlot": m19,
     "pivRetiredSlotsCertificateOnly": MessageLookupByLibrary.simpleMessage(
       "过期槽只应保存证书。请将私钥导入 9D，并把旧证书放在这里。",
     ),
-    "pivRetries": m18,
+    "pivRetries": m20,
     "pivRetriesUnknown": MessageLookupByLibrary.simpleMessage("剩余次数：未知"),
     "pivReview": MessageLookupByLibrary.simpleMessage("确认"),
     "pivSavePem": MessageLookupByLibrary.simpleMessage("保存 PEM"),
@@ -618,7 +743,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivTouchPolicy": MessageLookupByLibrary.simpleMessage("触摸策略"),
     "pivTouchPolicyAlways": MessageLookupByLibrary.simpleMessage("总是验证"),
     "pivTouchPolicyCached": MessageLookupByLibrary.simpleMessage("缓存 15 秒"),
-    "pivTouchPolicyChip": m19,
+    "pivTouchPolicyChip": m21,
     "pivTouchPolicyDefault": MessageLookupByLibrary.simpleMessage("默认"),
     "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("从不验证"),
     "pivUnblockPin": MessageLookupByLibrary.simpleMessage("解锁 PIN"),
@@ -688,7 +813,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "请输入您的管理应用 PIN（默认值为 123456）。请注意，该 PIN 与其他应用的 PIN 无关。",
     ),
     "settingsKeyboardLayout": MessageLookupByLibrary.simpleMessage("键盘布局"),
-    "settingsKeyboardLayoutCurrent": m20,
+    "settingsKeyboardLayoutCurrent": m22,
     "settingsKeyboardLayoutCustom": MessageLookupByLibrary.simpleMessage(
       "自定义布局",
     ),
@@ -718,7 +843,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsResetAllPrompt": MessageLookupByLibrary.simpleMessage(
       "即将抹除全部数据。当您确认后，CanoKey 将会多次闪烁，请在每次看到闪烁时触摸，直到提示成功。",
     ),
-    "settingsResetApplet": m21,
+    "settingsResetApplet": m23,
     "settingsResetConditionNotSatisfying": MessageLookupByLibrary.simpleMessage(
       "PIN 尚未锁定",
     ),
@@ -748,9 +873,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "storageFull": MessageLookupByLibrary.simpleMessage("CanoKey 存储空间不足"),
     "successfullyChanged": MessageLookupByLibrary.simpleMessage("修改成功"),
-    "validationAtLeastCharacters": m22,
-    "validationAtMostCharacters": m23,
-    "validationExactLength": m24,
+    "validationAtLeastCharacters": m24,
+    "validationAtMostCharacters": m25,
+    "validationExactLength": m26,
     "validationHexString": MessageLookupByLibrary.simpleMessage("请输入十六进制字符串"),
     "viewUserId": MessageLookupByLibrary.simpleMessage("查看用户 ID"),
     "warning": MessageLookupByLibrary.simpleMessage("警告"),
@@ -760,7 +885,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
       "该密钥不支持 WebAuthn PIN。",
     ),
-    "webauthnDelete": m25,
+    "webauthnDelete": m27,
     "webauthnInputPinPrompt": MessageLookupByLibrary.simpleMessage(
       "请输入您的 WebAuthn PIN。",
     ),

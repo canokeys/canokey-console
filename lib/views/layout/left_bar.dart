@@ -41,7 +41,8 @@ class LeftBar extends StatefulWidget {
   _LeftBarState createState() => _LeftBarState();
 }
 
-class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, UIMixin {
+class _LeftBarState extends State<LeftBar>
+    with SingleTickerProviderStateMixin, UIMixin {
   final ThemeCustomizer customizer = ThemeCustomizer.instance;
 
   bool isCondensed = false;
@@ -71,7 +72,10 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  InkWell(child: Image.asset('assets/images/logo/logo_icon_dark.png', height: widget.isCondensed ? 24 : 32)),
+                  InkWell(
+                      child: Image.asset(
+                          'assets/images/logo/logo_icon_dark.png',
+                          height: widget.isCondensed ? 24 : 32)),
                   if (!widget.isCondensed)
                     Flexible(
                       fit: FlexFit.loose,
@@ -82,7 +86,11 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
                       fit: FlexFit.loose,
                       child: CustomizedText.labelLarge(
                         "CanoKey",
-                        style: GoogleFonts.raleway(fontSize: 24, fontWeight: FontWeight.w800, color: contentTheme.primary, letterSpacing: 1),
+                        style: GoogleFonts.raleway(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: contentTheme.primary,
+                            letterSpacing: 1),
                         maxLines: 1,
                       ),
                     )
@@ -126,6 +134,12 @@ class _LeftBarState extends State<LeftBar> with SingleTickerProviderStateMixin, 
                     isCondensed: isCondensed,
                     route: '/applets/openpgp',
                   ),
+                  NavigationItem(
+                    iconData: LucideIcons.nfc,
+                    title: 'NDEF',
+                    isCondensed: isCondensed,
+                    route: '/applets/ndef',
+                  ),
                   labelWidget(S.of(context).other),
                   NavigationItem(
                     iconData: LucideIcons.settings,
@@ -165,7 +179,12 @@ class NavigationItem extends StatefulWidget {
   final bool isCondensed;
   final String? route;
 
-  const NavigationItem({super.key, this.iconData, required this.title, this.isCondensed = false, this.route});
+  const NavigationItem(
+      {super.key,
+      this.iconData,
+      required this.title,
+      this.isCondensed = false,
+      this.route});
 
   @override
   _NavigationItemState createState() => _NavigationItemState();
@@ -193,21 +212,32 @@ class _NavigationItemState extends State<NavigationItem> with UIMixin {
         },
         child: CustomizedContainer.transparent(
           margin: Spacing.fromLTRB(16, 0, 16, 8),
-          color: isActive || isHover ? leftBarTheme.activeItemBackground : Colors.transparent,
+          color: isActive || isHover
+              ? leftBarTheme.activeItemBackground
+              : Colors.transparent,
           padding: Spacing.xy(8, 8),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               if (widget.iconData != null)
                 Center(
-                  child: Icon(widget.iconData, color: (isHover || isActive) ? leftBarTheme.activeItemColor : leftBarTheme.onBackground, size: 20),
+                  child: Icon(widget.iconData,
+                      color: (isHover || isActive)
+                          ? leftBarTheme.activeItemColor
+                          : leftBarTheme.onBackground,
+                      size: 20),
                 ),
-              if (!widget.isCondensed) Flexible(fit: FlexFit.loose, child: Spacing.width(16)),
+              if (!widget.isCondensed)
+                Flexible(fit: FlexFit.loose, child: Spacing.width(16)),
               if (!widget.isCondensed)
                 Expanded(
                   flex: 3,
                   child: CustomizedText.labelLarge(widget.title,
-                      overflow: TextOverflow.clip, maxLines: 1, color: isActive || isHover ? leftBarTheme.activeItemColor : leftBarTheme.onBackground),
+                      overflow: TextOverflow.clip,
+                      maxLines: 1,
+                      color: isActive || isHover
+                          ? leftBarTheme.activeItemColor
+                          : leftBarTheme.onBackground),
                 )
             ],
           ),
