@@ -32,7 +32,7 @@ class _PassPageState extends State<PassPage> with UIMixin {
               icon:
                   Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
             )
-          : Container(),
+          : null,
       child: GetBuilder(
         init: _controller,
         builder: (_) {

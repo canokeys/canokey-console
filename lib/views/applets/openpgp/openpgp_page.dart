@@ -44,7 +44,7 @@ class _OpenPgpPageState extends State<OpenPgpPage> with UIMixin {
                   Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
               onPressed: controller.refreshData,
             )
-          : Container(),
+          : null,
       child: GetBuilder(
         init: controller,
         builder: (_) {

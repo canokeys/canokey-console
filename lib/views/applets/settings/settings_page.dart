@@ -35,7 +35,7 @@ class _SettingsPageState extends State<SettingsPage>
               onPressed: () => _controller.refreshData(),
               icon: Icon(Icons.refresh, color: topBarTheme.onBackground),
             )
-          : Container(),
+          : null,
       child: GetBuilder(
         init: _controller,
         builder: (_) {

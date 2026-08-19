@@ -26,7 +26,6 @@ class _StarterScreenState extends State<StarterScreen>
   @override
   Widget build(BuildContext context) {
     return Layout(
-        topActions: Container(),
         title: S.of(context).homeScreenTitle,
         child: GetBuilder<StarterController>(
             init: controller,

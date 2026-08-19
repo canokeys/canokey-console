@@ -10,26 +10,28 @@ import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:platform_detector/platform_detector.dart';
 
 class TopActions extends StatelessWidget with UIMixin {
+  static const double _actionWidth = 32;
+
   final OathController controller;
+  final Widget? leading;
   final VoidCallback onQrScan;
   final VoidCallback onScreenCapture;
   final VoidCallback onManualAdd;
 
-  TopActions({super.key, required this.controller, required this.onQrScan, required this.onScreenCapture, required this.onManualAdd});
+  const TopActions(
+      {super.key,
+      required this.controller,
+      this.leading,
+      required this.onQrScan,
+      required this.onScreenCapture,
+      required this.onManualAdd});
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> widgets = [];
-
-    if (isWeb() || isIOSApp()) {
-      widgets.add(IconButton(
-        onPressed: controller.refreshData,
-        icon: Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
-      ));
-    }
+    List<Widget> widgets = [if (leading != null) leading!];
 
     if (controller.polled) {
-      widgets.insertAll(0, [
+      widgets.addAll([
         PopupMenuButton(
           offset: const Offset(0, 10),
           position: PopupMenuPosition.under,
@@ -40,7 +42,8 @@ class TopActions extends StatelessWidget with UIMixin {
                 padding: Spacing.xy(16, 8),
                 height: 10,
                 onTap: onQrScan,
-                child: CustomizedText.bodySmall(S.of(context).oathAddByScanning),
+                child:
+                    CustomizedText.bodySmall(S.of(context).oathAddByScanning),
               ),
             if (isWeb() || isDesktop()) // Use screen to capture the QR code
               PopupMenuItem(
@@ -58,7 +61,6 @@ class TopActions extends StatelessWidget with UIMixin {
             ),
           ],
         ),
-        Spacing.width(12),
         if (controller.version != OathVersion.legacy) ...{
           IconButton(
             onPressed: () {
@@ -75,11 +77,23 @@ class TopActions extends StatelessWidget with UIMixin {
             },
             icon: Icon(LucideIcons.lock, color: topBarTheme.onBackground),
           ),
-          Spacing.width(12),
         }
       ]);
     }
 
-    return Row(children: widgets);
+    if (isWeb() || isIOSApp()) {
+      widgets.add(IconButton(
+        onPressed: controller.refreshData,
+        icon: Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
+      ));
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final widget in widgets)
+          SizedBox(width: _actionWidth, height: 40, child: widget),
+      ],
+    );
   }
 }

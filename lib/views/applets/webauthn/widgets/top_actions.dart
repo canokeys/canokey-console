@@ -2,7 +2,6 @@ import 'package:canokey_console/controller/applets/webauthn/webauthn_controller.
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
-import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/views/applets/webauthn/dialogs/sm2_config_dialog.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +29,8 @@ class TopActions extends StatelessWidget with UIMixin {
         }
 
         if (controller.polled) {
-          widgets.insertAll(0, [
+          widgets.insert(
+            0,
             IconButton(
               onPressed: () {
                 InputPinDialog.show(
@@ -46,10 +46,10 @@ class TopActions extends StatelessWidget with UIMixin {
               },
               icon: Icon(LucideIcons.lock, color: topBarTheme.onBackground),
             ),
-            Spacing.width(12),
-          ]);
+          );
           if (controller.supportsSm2Settings) {
-            widgets.insertAll(0, [
+            widgets.insert(
+              0,
               IconButton(
                 tooltip: S.of(context).settingsWebAuthnSm2Support,
                 onPressed: () async {
@@ -66,11 +66,10 @@ class TopActions extends StatelessWidget with UIMixin {
                 icon:
                     Icon(LucideIcons.settings, color: topBarTheme.onBackground),
               ),
-              Spacing.width(12),
-            ]);
+            );
           }
         }
-        return Row(children: widgets);
+        return Row(mainAxisSize: MainAxisSize.min, children: widgets);
       },
     );
   }

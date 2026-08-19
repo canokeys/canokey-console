@@ -61,6 +61,7 @@ class _WebAuthnPageState extends State<WebAuthnPage>
     return Layout(
       title: 'WebAuthn',
       topActions: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Obx(() => IconButton(
                 onPressed: () =>
@@ -72,7 +73,6 @@ class _WebAuthnPageState extends State<WebAuthnPage>
                   color: topBarTheme.onBackground,
                 ),
               )),
-          Spacing.width(12),
           TopActions(controller: controller),
         ],
       ),

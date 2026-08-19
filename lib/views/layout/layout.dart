@@ -30,15 +30,49 @@ class Layout extends StatelessWidget {
           init: controller,
           builder: (_) {
             if (notSupported) return notSupportedScreen();
-            return screenMT.isMobile ? mobileScreen() : largeScreen();
+            return screenMT.isMobile ? mobileScreen(context) : largeScreen();
           });
     });
   }
 
-  Widget mobileScreen() {
+  Widget mobileScreen(BuildContext context) {
     return Scaffold(
       key: controller.scaffoldKey,
-      appBar: AppBar(elevation: 0, centerTitle: true, title: CustomizedText.titleMedium(title), actions: [topActions!, Spacing.width(20)]),
+      appBar: AppBar(
+        elevation: 0,
+        centerTitle: true,
+        leadingWidth: 48,
+        titleSpacing: 8,
+        title: CustomizedText.titleMedium(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        actions: topActions == null
+            ? null
+            : [
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Theme(
+                    data: Theme.of(context).copyWith(
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    child: IconButtonTheme(
+                      data: IconButtonThemeData(
+                        style: IconButton.styleFrom(
+                          minimumSize: const Size.square(48),
+                          maximumSize: const Size.square(48),
+                          padding: const EdgeInsets.all(8),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                      child: topActions!,
+                    ),
+                  ),
+                ),
+              ],
+      ),
       drawer: LeftBar(),
       body: SingleChildScrollView(key: controller.scrollKey, child: child),
     );
@@ -47,7 +81,10 @@ class Layout extends StatelessWidget {
   Widget notSupportedScreen() {
     return Scaffold(
       key: controller.scaffoldKey,
-      appBar: AppBar(elevation: 0, centerTitle: true, title: CustomizedText.titleMedium('CanoKey Console')),
+      appBar: AppBar(
+          elevation: 0,
+          centerTitle: true,
+          title: CustomizedText.titleMedium('CanoKey Console')),
       body: SingleChildScrollView(
           key: controller.scrollKey,
           child: Column(
@@ -59,7 +96,8 @@ class Layout extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(S.of(Get.context!).browserNotSupported, style: TextStyle(fontSize: 18.0)),
+                  Text(S.of(Get.context!).browserNotSupported,
+                      style: TextStyle(fontSize: 18.0)),
                 ],
               ),
             ],
@@ -81,9 +119,17 @@ class Layout extends StatelessWidget {
                 right: 0,
                 left: 0,
                 bottom: 0,
-                child: SingleChildScrollView(padding: Spacing.fromLTRB(0, 58 + flexSpacing, 0, flexSpacing), key: controller.scrollKey, child: child),
+                child: SingleChildScrollView(
+                    padding:
+                        Spacing.fromLTRB(0, 58 + flexSpacing, 0, flexSpacing),
+                    key: controller.scrollKey,
+                    child: child),
               ),
-              Positioned(top: 0, left: 0, right: 0, child: TopBar(actions: topActions)),
+              Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: TopBar(actions: topActions)),
             ],
           )),
         ],
@@ -92,6 +138,7 @@ class Layout extends StatelessWidget {
   }
 
   static bool hasSidebar() {
-    return ScreenMedia.getTypeFromWidth(MediaQuery.of(Get.context!).size.width).isMobile;
+    return ScreenMedia.getTypeFromWidth(MediaQuery.of(Get.context!).size.width)
+        .isMobile;
   }
 }

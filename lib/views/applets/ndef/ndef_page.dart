@@ -40,7 +40,7 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
                     color: topBarTheme.onBackground),
               ),
             )
-          : const SizedBox.shrink(),
+          : null,
       child: GetBuilder<NdefController>(
         init: _controller,
         builder: (_) {
