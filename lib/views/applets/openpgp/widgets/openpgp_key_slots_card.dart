@@ -45,15 +45,11 @@ class OpenPgpKeySlotsCard extends StatelessWidget {
               runSpacing: 6,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                SizedBox(
-                  width: 190,
-                  child: CustomizedText.bodyMedium(
-                    slot.type.label,
-                    fontSize: 15,
-                    fontWeight: 600,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                CustomizedText.bodyMedium(
+                  slot.type.label,
+                  fontSize: 15,
+                  fontWeight: 600,
+                  softWrap: true,
                 ),
                 _chip(
                   context,
