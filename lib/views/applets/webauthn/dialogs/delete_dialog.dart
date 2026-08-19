@@ -19,6 +19,9 @@ class WebAuthnDeleteDialog extends BaseDialog with UIMixin {
     required this.onDelete,
   });
 
+  @override
+  bool get managesOwnScrolling => true;
+
   static Future<void> show(WebAuthnItem item, Function onDelete) {
     return Get.dialog(WebAuthnDeleteDialog(item: item, onDelete: onDelete), barrierDismissible: false);
   }

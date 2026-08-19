@@ -8,6 +8,8 @@ import 'package:get/get.dart';
 
 abstract class BaseDialog extends StatefulWidget {
   const BaseDialog({super.key});
+
+  bool get managesOwnScrolling => false;
 }
 
 abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
@@ -37,12 +39,20 @@ abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
 
   @override
   Widget build(BuildContext context) {
+    final content = buildDialogContent();
     return Dialog(
       child: SizedBox(
         width: 400,
         child: Stack(
           children: [
-            buildDialogContent(),
+            if (widget.managesOwnScrolling)
+              content
+            else
+              SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: content,
+              ),
             Positioned.fill(
               child: Obx(
                 () => !_showPolling.value

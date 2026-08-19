@@ -8,6 +8,7 @@ import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
+import 'package:canokey_console/helper/widgets/keyboard_safe_dialog.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:convert/convert.dart';
@@ -32,7 +33,7 @@ class ManagementKeyDialog extends StatelessWidget with UIMixin {
     validator.addField('old', required: true, controller: TextEditingController(), validators: [LengthValidator(exact: 48), HexStringValidator()]);
     validator.addField('new', required: true, controller: TextEditingController(), validators: [LengthValidator(exact: 48), HexStringValidator()]);
 
-    return Dialog(
+    return KeyboardSafeDialog(
       child: SizedBox(
         width: 400,
         child: Column(

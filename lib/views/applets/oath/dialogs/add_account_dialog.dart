@@ -37,6 +37,9 @@ class AddAccountDialog extends BaseDialog with UIMixin {
     this.initialDigits,
   });
 
+  @override
+  bool get managesOwnScrolling => true;
+
   static Future<void> show(
     Function(String name, String secretHex, OathType type, OathAlgorithm algo, int digits, bool touch, int initValue) onAddAccount, {
     String? initialIssuer,

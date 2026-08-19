@@ -21,6 +21,7 @@ import 'package:canokey_console/helper/widgets/customized_container.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/field_validator.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
+import 'package:canokey_console/helper/widgets/keyboard_safe_dialog.dart';
 import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
@@ -477,7 +478,7 @@ class _PivPageState extends State<PivPage>
         controller: TextEditingController(),
         validators: validators);
 
-    Get.dialog(Dialog(
+    Get.dialog(KeyboardSafeDialog(
       child: SizedBox(
         width: 400,
         child: Column(
@@ -964,7 +965,7 @@ class _PivPageState extends State<PivPage>
             text: (controller.pukInfo?.retriesCount ?? 3).toString()),
         validators: [IntValidator(min: 1, max: 15)]);
 
-    Get.dialog(Dialog(
+    Get.dialog(KeyboardSafeDialog(
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
           width: 460,
@@ -1116,7 +1117,7 @@ class _PivPageState extends State<PivPage>
         controller: TextEditingController(),
         validators: [LengthValidator(exact: 48), HexStringValidator()]);
 
-    Get.dialog(Dialog(
+    Get.dialog(KeyboardSafeDialog(
       child: SizedBox(
         width: 460,
         child: Column(
@@ -1231,7 +1232,7 @@ class _PivPageState extends State<PivPage>
         controller: TextEditingController(),
         validators: [LengthValidator(exact: 48), HexStringValidator()]);
 
-    Get.dialog(Dialog(
+    Get.dialog(KeyboardSafeDialog(
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
           width: 460,
@@ -1385,7 +1386,7 @@ class _PivPageState extends State<PivPage>
         controller: TextEditingController(),
         validators: [LengthValidator(exact: 48), HexStringValidator()]);
 
-    Get.dialog(Dialog(
+    Get.dialog(KeyboardSafeDialog(
       child: SizedBox(
         width: 400,
         child: Column(
@@ -1504,7 +1505,7 @@ class _PivPageState extends State<PivPage>
         controller: TextEditingController(),
         validators: [LengthValidator(exact: 48), HexStringValidator()]);
 
-    Get.dialog(Dialog(
+    Get.dialog(KeyboardSafeDialog(
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
           width: 460,
@@ -2216,7 +2217,7 @@ class _PivPageState extends State<PivPage>
     final signature = ''.obs;
     final verifyResult = ''.obs;
 
-    Get.dialog(Dialog(
+    Get.dialog(KeyboardSafeDialog(
       child: SizedBox(
         width: 560,
         child: Column(
@@ -2366,7 +2367,7 @@ class _PivPageState extends State<PivPage>
     final selectedFileName = ''.obs;
     Uint8List? selectedBytes;
 
-    Get.dialog(Dialog(
+    Get.dialog(KeyboardSafeDialog(
       child: Obx(
         () => SizedBox(
           width: 520,
@@ -3321,7 +3322,8 @@ class _PivPageState extends State<PivPage>
                 ),
               ),
               Divider(height: 0, thickness: 1),
-              Stepper(
+              Flexible(
+                child: Stepper(
                 currentStep: step.value,
                 onStepContinue: nextStep,
                 onStepCancel: prevStep,
@@ -3569,6 +3571,7 @@ class _PivPageState extends State<PivPage>
                     ),
                   ),
                 ],
+                ),
               ),
             ],
           ),
@@ -3596,7 +3599,7 @@ class _PivPageState extends State<PivPage>
           HexStringValidator(required: !usePinOnly)
         ]);
 
-    Get.dialog(Dialog(
+    Get.dialog(KeyboardSafeDialog(
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
           width: 460,
@@ -3755,7 +3758,7 @@ class _PivPageState extends State<PivPage>
         controller: TextEditingController(),
         validators: [LengthValidator(exact: 64), HexStringValidator()]);
 
-    Get.dialog(Dialog(
+    Get.dialog(KeyboardSafeDialog(
       child: SizedBox(
         width: 520,
         child: Column(
@@ -4110,7 +4113,7 @@ class _PivPageState extends State<PivPage>
       ],
     );
 
-    Get.dialog(Dialog(
+    Get.dialog(KeyboardSafeDialog(
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
           width: 460,
@@ -4277,7 +4280,7 @@ class _PivPageState extends State<PivPage>
           HexStringValidator(required: !usePinOnly)
         ]);
 
-    Get.dialog(Dialog(
+    Get.dialog(KeyboardSafeDialog(
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
           width: 460,

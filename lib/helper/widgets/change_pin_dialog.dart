@@ -6,6 +6,7 @@ import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/field_validator.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
+import 'package:canokey_console/helper/widgets/keyboard_safe_dialog.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -60,7 +61,7 @@ class _ChangePinDialogState extends State<ChangePinDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return KeyboardSafeDialog(
       child: SizedBox(
         width: 400,
         child: Column(
@@ -100,7 +101,6 @@ class _ChangePinDialogState extends State<ChangePinDialog> {
                         ),
                         Spacing.height(16),
                         TextFormField(
-                          autofocus: true,
                           onTap: SmartCard.eject,
                           obscureText: !showNewPin.value,
                           controller: _validator.getController('new'),

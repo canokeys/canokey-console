@@ -22,6 +22,9 @@ class NdefRecordDialog extends BaseDialog {
     required this.defaultLanguage,
   });
 
+  @override
+  bool get managesOwnScrolling => true;
+
   static Future<NDEFRecord?> show({
     NDEFRecord? record,
     required String defaultLanguage,

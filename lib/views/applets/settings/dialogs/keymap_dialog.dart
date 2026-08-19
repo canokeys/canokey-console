@@ -19,6 +19,9 @@ class KeymapDialog extends BaseDialog with UIMixin {
     required this.onConfirm,
   });
 
+  @override
+  bool get managesOwnScrolling => true;
+
   static Future<void> show({
     required KeyboardKeymapState? currentState,
     required Function(KeyboardKeymapPreset) onConfirm,

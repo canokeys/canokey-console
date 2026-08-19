@@ -15,6 +15,9 @@ class SetDefaultDialog extends BaseDialog with UIMixin {
 
   const SetDefaultDialog({super.key, required this.name, required this.onSetDefault});
 
+  @override
+  bool get managesOwnScrolling => true;
+
   static Future<void> show({required String name, required Function(int slot, bool withEnter) onSetDefault}) {
     return Get.dialog(SetDefaultDialog(name: name, onSetDefault: onSetDefault), barrierDismissible: false);
   }
