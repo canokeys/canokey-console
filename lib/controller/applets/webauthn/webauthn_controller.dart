@@ -256,7 +256,7 @@ class WebAuthnController extends PollingController with AdminApplet {
 
     // Finally, prompt user
     // When using NFC, we need to finish NFC before showing the dialog
-    SmartCard.stopPollingNfc(withInput: true);
+    await SmartCard.stopPollingNfc(withInput: true);
     final completer = Completer<List<int>?>();
     InputPinDialog.show(
       title: S.of(Get.context!).webauthnInputPinTitle,
@@ -279,7 +279,7 @@ class WebAuthnController extends PollingController with AdminApplet {
         try {
           pinToken = await _doGetPinToken(pin);
         } on PlatformException catch (e) {
-          SmartCard.stopPollingNfc(withInput: true);
+          await SmartCard.stopPollingNfc(withInput: true);
           log.e('_doGetPinToken failed', error: e);
           if (e.code == '500') {
             Prompts.showPrompt(
@@ -306,7 +306,7 @@ class WebAuthnController extends PollingController with AdminApplet {
 
   Future<bool> _setPin(String sn) async {
     // When using NFC, we need to stop polling before showing the dialog
-    SmartCard.stopPollingNfc(withInput: true);
+    await SmartCard.stopPollingNfc(withInput: true);
     final completer = Completer<bool>();
     InputPinDialog.show(
       title: S.of(Get.context!).webauthnSetPinTitle,
@@ -337,7 +337,7 @@ class WebAuthnController extends PollingController with AdminApplet {
           _ctap = await Ctap2.create(CtapTransimtter());
           log.i('setPin success');
         } on PlatformException catch (e) {
-          SmartCard.stopPollingNfc(withInput: true);
+          await SmartCard.stopPollingNfc(withInput: true);
           log.e('setPin failed', error: e);
           if (e.code == '500') {
             Prompts.showPrompt(
@@ -345,7 +345,7 @@ class WebAuthnController extends PollingController with AdminApplet {
           }
           return;
         } catch (e, s) {
-          SmartCard.stopPollingNfc(withInput: true);
+          await SmartCard.stopPollingNfc(withInput: true);
           log.e('setPin failed', error: e, stackTrace: s);
           Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
           return;
@@ -382,7 +382,7 @@ class WebAuthnController extends PollingController with AdminApplet {
   }
 
   Future<List<int>?> _forceChangePin(String sn) async {
-    SmartCard.stopPollingNfc(withInput: true);
+    await SmartCard.stopPollingNfc(withInput: true);
     final completer = Completer<List<int>?>();
     await ForcePinChangeDialog.show(
       minPinLength: _ctap.info.minPinLength ?? 4,

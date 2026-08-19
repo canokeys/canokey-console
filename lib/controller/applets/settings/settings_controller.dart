@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:canokey_console/controller/base/admin.dart';
 import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/utils/app_loader_overlay.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
@@ -13,7 +14,6 @@ import 'package:canokey_console/models/keyboard_keymap.dart';
 import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:loader_overlay/loader_overlay.dart';
 import 'package:logger/logger.dart';
 
 class SettingsController extends PollingController with AdminApplet {
@@ -126,9 +126,9 @@ class SettingsController extends PollingController with AdminApplet {
   void resetCanokey() {
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));
-      Get.context!.loaderOverlay.show();
+      AppLoaderOverlay.show();
       String resp = await SmartCard.transceive('00500000055245534554');
-      Get.context!.loaderOverlay.hide();
+      AppLoaderOverlay.hide();
       Navigator.pop(Get.context!);
       if (resp == '9000') {
         Prompts.showPrompt(

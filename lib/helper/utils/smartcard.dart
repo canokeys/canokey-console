@@ -8,6 +8,7 @@ import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:ccid/ccid.dart'
     if (dart.library.html) 'package:canokey_console/helper/ccid_dummy.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:get/get.dart';
 import 'package:platform_detector/platform_detector.dart';
@@ -237,6 +238,10 @@ class SmartCard {
           return true;
       }
     } else {
+      if (isIOSApp()) {
+        FocusManager.instance.primaryFocus?.unfocus();
+        await SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
+      }
       await FlutterNfcKit.poll(
           iosAlertMessage: S.of(Get.context!).iosAlertMessage);
       return true;

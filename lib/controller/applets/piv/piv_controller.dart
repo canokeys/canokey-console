@@ -18,7 +18,6 @@ import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/piv.dart';
 import 'package:canokey_console/src/rust/api/crypto.dart';
 import 'package:convert/convert.dart';
-import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
@@ -1142,12 +1141,11 @@ class PivController extends PollingController {
   }
 
   Uint8List _shaDigest(Uint8List data, int bits) {
-    final digest = switch (bits) {
-      384 => crypto.sha384,
-      512 => crypto.sha512,
-      _ => crypto.sha256,
+    return switch (bits) {
+      384 => sha384Digest(data: data),
+      512 => sha512Digest(data: data),
+      _ => sha256Digest(data: data),
     };
-    return Uint8List.fromList(digest.convert(data).bytes);
   }
 
   Uint8List _sm2Digest(Uint8List data, PivPublicKey? publicKey) {
@@ -1155,7 +1153,7 @@ class PivController extends PollingController {
     if (point == null || point.length != 65 || point.first != 0x04) {
       throw ArgumentError('Invalid SM2 public key');
     }
-    return PivSm2.digest(data, point);
+    return sm2MessageDigest(data: data, publicKey: point);
   }
 
   Uint8List _parseAuthenticateSignature(List<int> data) {

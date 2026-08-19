@@ -81,6 +81,7 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
 
   void _onSubmit() async {
     if (_validator.validateForm()) {
+      FocusManager.instance.primaryFocus?.unfocus();
       await widget.onSubmit(_validator.getController('pin')!.text, _savePin.value);
     }
   }

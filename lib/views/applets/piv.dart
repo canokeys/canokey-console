@@ -9,6 +9,7 @@ import 'package:canokey_console/controller/applets/piv/piv_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
+import 'package:canokey_console/helper/utils/app_loader_overlay.dart';
 import 'package:canokey_console/helper/utils/piv_signature.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/shadow.dart';
@@ -31,13 +32,11 @@ import 'package:canokey_console/views/applets/piv/widgets/piv_pin_management_car
 import 'package:canokey_console/views/applets/piv/widgets/piv_slot_list_item.dart';
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:convert/convert.dart';
-import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:loader_overlay/loader_overlay.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:platform_detector/platform_detector.dart';
 import 'package:pointycastle/asn1/primitives/asn1_bit_string.dart';
@@ -45,6 +44,7 @@ import 'package:pointycastle/asn1/primitives/asn1_integer.dart';
 import 'package:pointycastle/asn1/primitives/asn1_null.dart';
 import 'package:pointycastle/asn1/primitives/asn1_object_identifier.dart';
 import 'package:pointycastle/asn1/primitives/asn1_sequence.dart';
+import 'package:share_plus/share_plus.dart';
 
 class PivPage extends StatefulWidget {
   const PivPage({super.key});
@@ -65,9 +65,22 @@ class _PivPageState extends State<PivPage>
   }) async {
     final l10n = S.of(context);
     try {
+      final fileBytes = Uint8List.fromList(bytes);
+      if (isMobile()) {
+        final box = context.findRenderObject() as RenderBox?;
+        final result = await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile.fromData(fileBytes, mimeType: mimeType.type)],
+            fileNameOverrides: ['$name.$extension'],
+            sharePositionOrigin:
+                box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+          ),
+        );
+        return result.status == ShareResultStatus.success;
+      }
       final path = await FileSaver.instance.saveAs(
         name: name,
-        bytes: Uint8List.fromList(bytes),
+        bytes: fileBytes,
         fileExtension: extension,
         mimeType: mimeType,
       );
@@ -88,7 +101,7 @@ class _PivPageState extends State<PivPage>
   }
 
   String _sha256Fingerprint(List<int> bytes) {
-    final digest = sha256.convert(bytes).bytes;
+    final digest = sha256Digest(data: bytes);
     return digest
         .map((byte) => byte.toRadixString(16).padLeft(2, '0').toUpperCase())
         .join(':');
@@ -843,7 +856,7 @@ class _PivPageState extends State<PivPage>
                           secp521r1: idValue('secp521r1'),
                           sm2: idValue('sm2'),
                         );
-                        Get.context!.loaderOverlay.show();
+                        AppLoaderOverlay.show();
                         try {
                           final ok = await controller
                               .changeAlgorithmExtensionConfigAuthenticated(
@@ -864,7 +877,7 @@ class _PivPageState extends State<PivPage>
                               successMessage, ContentThemeColor.success);
                           Get.back();
                         } finally {
-                          Get.context!.loaderOverlay.hide();
+                          AppLoaderOverlay.hide();
                         }
                       },
                       elevation: 0,
@@ -1060,7 +1073,7 @@ class _PivPageState extends State<PivPage>
                             validator, 'managementKey', usePinOnly)) {
                           return;
                         }
-                        Get.context!.loaderOverlay.show();
+                        AppLoaderOverlay.show();
                         try {
                           final ok = await controller.setPinRetries(
                             validator.getController('pin')!.text,
@@ -1081,7 +1094,7 @@ class _PivPageState extends State<PivPage>
                               ContentThemeColor.success);
                           Get.back();
                         } finally {
-                          Get.context!.loaderOverlay.hide();
+                          AppLoaderOverlay.hide();
                         }
                       },
                       elevation: 0,
@@ -1170,7 +1183,7 @@ class _PivPageState extends State<PivPage>
                   CustomizedButton.rounded(
                     onPressed: () async {
                       if (!validator.validateForm()) return;
-                      Get.context!.loaderOverlay.show();
+                      AppLoaderOverlay.show();
                       try {
                         final ok = await controller.enablePinOnlyMode(
                           validator.getController('pin')!.text,
@@ -1189,7 +1202,7 @@ class _PivPageState extends State<PivPage>
                             ContentThemeColor.success);
                         Get.back();
                       } finally {
-                        Get.context!.loaderOverlay.hide();
+                        AppLoaderOverlay.hide();
                       }
                     },
                     elevation: 0,
@@ -1328,7 +1341,7 @@ class _PivPageState extends State<PivPage>
                             validator, 'currentManagementKey', usePinOnly)) {
                           return;
                         }
-                        Get.context!.loaderOverlay.show();
+                        AppLoaderOverlay.show();
                         try {
                           final ok = await controller.disablePinOnlyMode(
                             validator.getController('pin')!.text,
@@ -1352,7 +1365,7 @@ class _PivPageState extends State<PivPage>
                               ContentThemeColor.success);
                           Get.back();
                         } finally {
-                          Get.context!.loaderOverlay.hide();
+                          AppLoaderOverlay.hide();
                         }
                       },
                       elevation: 0,
@@ -1641,7 +1654,7 @@ class _PivPageState extends State<PivPage>
                             validator, 'old', usePinOnly)) {
                           return;
                         }
-                        Get.context!.loaderOverlay.show();
+                        AppLoaderOverlay.show();
                         try {
                           final ok = await controller.changeManagementKey(
                             validator.getController('old')!.text,
@@ -1665,7 +1678,7 @@ class _PivPageState extends State<PivPage>
                               S.of(Get.context!).successfullyChanged,
                               ContentThemeColor.success);
                         } finally {
-                          Get.context!.loaderOverlay.hide();
+                          AppLoaderOverlay.hide();
                         }
                       },
                       elevation: 0,
@@ -2286,7 +2299,7 @@ class _PivPageState extends State<PivPage>
                   CustomizedButton.rounded(
                     onPressed: () async {
                       if (!validator.validateForm()) return;
-                      Get.context!.loaderOverlay.show();
+                      AppLoaderOverlay.show();
                       try {
                         final result = await controller.signData(
                           slotNumber,
@@ -2302,7 +2315,7 @@ class _PivPageState extends State<PivPage>
                         }
                         signature.value = hex.encode(result);
                       } finally {
-                        Get.context!.loaderOverlay.hide();
+                        AppLoaderOverlay.hide();
                       }
                     },
                     elevation: 0,
@@ -2413,7 +2426,7 @@ class _PivPageState extends State<PivPage>
                               ContentThemeColor.danger);
                           return;
                         }
-                        Get.context!.loaderOverlay.show();
+                        AppLoaderOverlay.show();
                         try {
                           final signature = await controller.signData(
                             slotNumber,
@@ -2437,7 +2450,7 @@ class _PivPageState extends State<PivPage>
                             Get.back();
                           }
                         } finally {
-                          Get.context!.loaderOverlay.hide();
+                          AppLoaderOverlay.hide();
                         }
                       },
                       elevation: 0,
@@ -2731,7 +2744,7 @@ class _PivPageState extends State<PivPage>
         return;
       }
 
-      Get.context!.loaderOverlay.show();
+      AppLoaderOverlay.show();
       try {
         final importSuccess = await controller.importAuthenticated(
           slot: slotNumber,
@@ -2756,7 +2769,7 @@ class _PivPageState extends State<PivPage>
             S.current.pivImportSucceeded, ContentThemeColor.success);
         Navigator.pop(Get.context!);
       } finally {
-        Get.context!.loaderOverlay.hide();
+        AppLoaderOverlay.hide();
       }
     }
 
@@ -3194,7 +3207,7 @@ class _PivPageState extends State<PivPage>
           .where((e) => e.isNotEmpty)
           .toList();
 
-      Get.context!.loaderOverlay.show();
+      AppLoaderOverlay.show();
       try {
         if (selfSigned) {
           final validityDays = int.tryParse(subjectValidator
@@ -3247,7 +3260,7 @@ class _PivPageState extends State<PivPage>
           _showCsrResultDialog(slotNumber, csr);
         }
       } finally {
-        Get.context!.loaderOverlay.hide();
+        AppLoaderOverlay.hide();
       }
     }
 
@@ -3662,7 +3675,7 @@ class _PivPageState extends State<PivPage>
                             action: S.of(context).pivGeneratingX25519Key)) {
                           return;
                         }
-                        Get.context!.loaderOverlay.show();
+                        AppLoaderOverlay.show();
                         try {
                           final ok = await controller.generateKey(
                               slotNumber,
@@ -3683,7 +3696,7 @@ class _PivPageState extends State<PivPage>
                               ContentThemeColor.success);
                           Navigator.pop(Get.context!);
                         } finally {
-                          Get.context!.loaderOverlay.hide();
+                          AppLoaderOverlay.hide();
                         }
                       },
                       elevation: 0,
@@ -3849,7 +3862,7 @@ class _PivPageState extends State<PivPage>
   }
 
   Future<void> _downloadAttestation(String slotNumber) async {
-    Get.context!.loaderOverlay.show();
+    AppLoaderOverlay.show();
     try {
       final certificate = await controller.attestKey(slotNumber);
       if (certificate == null || certificate.isEmpty) {
@@ -3865,7 +3878,7 @@ class _PivPageState extends State<PivPage>
         bytes: certificate,
       );
     } finally {
-      Get.context!.loaderOverlay.hide();
+      AppLoaderOverlay.hide();
     }
   }
 
@@ -4013,7 +4026,7 @@ class _PivPageState extends State<PivPage>
                                 validator, 'managementKey', usePinOnly)) {
                           return;
                         }
-                        Get.context!.loaderOverlay.show();
+                        AppLoaderOverlay.show();
                         try {
                           final ok = await controller.moveKeyAuthenticated(
                             sourceSlot: sourceSlot,
@@ -4040,7 +4053,7 @@ class _PivPageState extends State<PivPage>
                             ContentThemeColor.success,
                           );
                         } finally {
-                          Get.context!.loaderOverlay.hide();
+                          AppLoaderOverlay.hide();
                         }
                       },
                       elevation: 0,
@@ -4150,7 +4163,7 @@ class _PivPageState extends State<PivPage>
                             validator, 'managementKey', usePinOnly)) {
                           return;
                         }
-                        Get.context!.loaderOverlay.show();
+                        AppLoaderOverlay.show();
                         try {
                           final ok = await controller.clearSlotAuthenticated(
                             slot: slotNumber,
@@ -4169,7 +4182,7 @@ class _PivPageState extends State<PivPage>
                           Prompts.showPrompt(S.current.pivSlotCleared,
                               ContentThemeColor.success);
                         } finally {
-                          Get.context!.loaderOverlay.hide();
+                          AppLoaderOverlay.hide();
                         }
                       },
                       elevation: 0,

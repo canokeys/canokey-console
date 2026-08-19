@@ -2,9 +2,8 @@ import 'dart:typed_data';
 
 import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/models/piv.dart';
+import 'package:canokey_console/src/rust/api/crypto.dart';
 import 'package:convert/convert.dart';
-import 'package:pointycastle/export.dart'
-    show AESEngine, BlockCipher, DESedeEngine, KeyParameter;
 
 class PivManagementKeyProtocol {
   const PivManagementKeyProtocol._();
@@ -45,16 +44,11 @@ class PivManagementKeyProtocol {
     if (challenge.length != blockLength(algorithm)) {
       throw ArgumentError('Invalid management key challenge length');
     }
-    final BlockCipher cipher = switch (algorithm) {
-      AlgorithmType.tdes => DESedeEngine(),
-      AlgorithmType.aes192 => AESEngine(),
-      _ =>
-        throw ArgumentError('Unsupported management key algorithm: $algorithm'),
-    };
-    cipher.init(true, KeyParameter(Uint8List.fromList(key)));
-    final output = Uint8List(challenge.length);
-    cipher.processBlock(Uint8List.fromList(challenge), 0, output, 0);
-    return output;
+    return encryptPivManagementKeyChallenge(
+      algorithm: algorithm.value,
+      key: key,
+      challenge: challenge,
+    );
   }
 
   static String authenticateResponse(

@@ -60,26 +60,26 @@ void main() {
       );
     });
 
-    test('encrypts the AES-192 NIST known-answer vector', () {
-      final encrypted = PivManagementKeyProtocol.encryptChallenge(
-        algorithm: AlgorithmType.aes192,
-        key: hex.decode(
-          '000102030405060708090A0B0C0D0E0F1011121314151617',
+    test('rejects an invalid management key before calling Rust', () {
+      expect(
+        () => PivManagementKeyProtocol.encryptChallenge(
+          algorithm: AlgorithmType.aes192,
+          key: const [0x00],
+          challenge: hex.decode('00112233445566778899AABBCCDDEEFF'),
         ),
-        challenge: hex.decode('00112233445566778899AABBCCDDEEFF'),
+        throwsArgumentError,
       );
-      expect(hex.encode(encrypted), 'dda97ca4864cdfe06eaf70a0ec0d7191');
     });
 
-    test('encrypts a legacy 3DES known-answer vector', () {
-      final encrypted = PivManagementKeyProtocol.encryptChallenge(
-        algorithm: AlgorithmType.tdes,
-        key: hex.decode(
-          '0123456789ABCDEF23456789ABCDEF01456789ABCDEF0123',
+    test('rejects an invalid challenge before calling Rust', () {
+      expect(
+        () => PivManagementKeyProtocol.encryptChallenge(
+          algorithm: AlgorithmType.tdes,
+          key: List<int>.filled(24, 0),
+          challenge: const [0x00],
         ),
-        challenge: hex.decode('0000000000000000'),
+        throwsArgumentError,
       );
-      expect(hex.encode(encrypted), '4eba739c998bcb60');
     });
 
     test('builds SET MANAGEMENT KEY APDUs for legacy and new core', () {

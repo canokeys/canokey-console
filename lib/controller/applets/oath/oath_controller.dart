@@ -361,7 +361,7 @@ class OathController extends PollingController {
 
     // Finally, prompt user
     // When using NFC, we need to finish NFC before showing the dialog
-    SmartCard.stopPollingNfc(withInput: true);
+    await SmartCard.stopPollingNfc(withInput: true);
     final completer = Completer<bool>();
     InputPinDialog.show(
       title: S.of(Get.context!).oathInputCode,
@@ -383,7 +383,7 @@ class OathController extends PollingController {
         try {
           verified = await _verifyCode(code);
         } on PlatformException catch (e) {
-          SmartCard.stopPollingNfc(withInput: true);
+          await SmartCard.stopPollingNfc(withInput: true);
           log.e('_verifyCode failed', error: e);
           if (e.code == '500') {
             Prompts.showPrompt(

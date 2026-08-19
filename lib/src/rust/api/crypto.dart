@@ -6,10 +6,44 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `gen_x590_meta`
+// These functions are ignored because they are not marked as `pub`: `copy_unsigned_integer`, `fixed_width_signature`, `gen_x590_meta`, `verify_ed25519_signature`, `verify_k256_signature`, `verify_p256_signature`, `verify_p384_signature`, `verify_p521_signature`, `verify_rsa_signature`, `verify_sm2_signature`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `DerSignature`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `decode_value`, `encode_value`, `value_len`
 
 Uint8List tdesEde3Enc({required List<int> key, required List<int> data}) =>
     RustLib.instance.api.crateApiCryptoTdesEde3Enc(key: key, data: data);
+
+Uint8List encryptPivManagementKeyChallenge(
+        {required int algorithm,
+        required List<int> key,
+        required List<int> challenge}) =>
+    RustLib.instance.api.crateApiCryptoEncryptPivManagementKeyChallenge(
+        algorithm: algorithm, key: key, challenge: challenge);
+
+Uint8List sha256Digest({required List<int> data}) =>
+    RustLib.instance.api.crateApiCryptoSha256Digest(data: data);
+
+Uint8List sha384Digest({required List<int> data}) =>
+    RustLib.instance.api.crateApiCryptoSha384Digest(data: data);
+
+Uint8List sha512Digest({required List<int> data}) =>
+    RustLib.instance.api.crateApiCryptoSha512Digest(data: data);
+
+Uint8List sm2MessageDigest(
+        {required List<int> data, required List<int> publicKey}) =>
+    RustLib.instance.api
+        .crateApiCryptoSm2MessageDigest(data: data, publicKey: publicKey);
+
+bool verifyPivSignature(
+        {required int algorithm,
+        required List<int> publicKey,
+        required List<int> data,
+        required List<int> signature}) =>
+    RustLib.instance.api.crateApiCryptoVerifyPivSignature(
+        algorithm: algorithm,
+        publicKey: publicKey,
+        data: data,
+        signature: signature);
 
 X509CertData parseX509CertFromPem({required String pem}) =>
     RustLib.instance.api.crateApiCryptoParseX509CertFromPem(pem: pem);

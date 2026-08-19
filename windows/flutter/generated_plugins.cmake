@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   file_saver
   flutter_webrtc
   sentry_flutter
+  share_plus
   url_launcher_windows
 )
 
