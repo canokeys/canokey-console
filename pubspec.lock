@@ -332,11 +332,10 @@ packages:
   fido2:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "660514c48c76011ffa3b8236d9416a5e0c22133a"
-      resolved-ref: "660514c48c76011ffa3b8236d9416a5e0c22133a"
-      url: "https://github.com/nfcim/fido2.git"
-    source: git
+      name: fido2
+      sha256: "4b7638a7d87099a2700de28586d116075bc3b97f02666ce62e8f1bb70aa675b8"
+      url: "https://pub.dev"
+    source: hosted
     version: "1.2.0"
   file:
     dependency: transitive
