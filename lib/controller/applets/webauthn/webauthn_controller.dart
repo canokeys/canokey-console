@@ -67,7 +67,8 @@ class WebAuthnController extends PollingController with AdminApplet {
           pinToken);
       try {
         for (var rp in (await cm.enumerateRPs())) {
-          for (var element in (await cm.enumerateCredentials(rp.rpIdHash))) {
+          for (var element
+              in (await cm.enumerateCredentialsMetadataOnly(rp.rpIdHash))) {
             webAuthnItems.add(WebAuthnItem(
               rpId: rp.rp.id,
               userName: element.user.name ?? '<unknown>',

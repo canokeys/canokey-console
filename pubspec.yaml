@@ -37,7 +37,10 @@ dependencies:
   mobile_scanner: ^7.1.3
   ndef: ^0.4.0
   flutter_webrtc: ^1.2.1
-  fido2: ^1.1.0
+  fido2:
+    git:
+      url: https://github.com/nfcim/fido2.git
+      ref: 3e6f4e30b1ee524e96bc7800ff33f7c1f0eabd04
   ccid:
     path: third_party/ccid
   device_info_plus: ^13.1.0
