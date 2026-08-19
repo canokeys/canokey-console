@@ -40,7 +40,7 @@ dependencies:
   fido2:
     git:
       url: https://github.com/nfcim/fido2.git
-      ref: 3e6f4e30b1ee524e96bc7800ff33f7c1f0eabd04
+      ref: 660514c48c76011ffa3b8236d9416a5e0c22133a
   ccid:
     path: third_party/ccid
   device_info_plus: ^13.1.0

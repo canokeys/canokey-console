@@ -333,8 +333,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "3e6f4e30b1ee524e96bc7800ff33f7c1f0eabd04"
-      resolved-ref: "3e6f4e30b1ee524e96bc7800ff33f7c1f0eabd04"
+      ref: "660514c48c76011ffa3b8236d9416a5e0c22133a"
+      resolved-ref: "660514c48c76011ffa3b8236d9416a5e0c22133a"
       url: "https://github.com/nfcim/fido2.git"
     source: git
     version: "1.2.0"
