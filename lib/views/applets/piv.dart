@@ -21,6 +21,7 @@ import 'package:canokey_console/helper/widgets/customized_container.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/field_validator.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
+import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
@@ -53,25 +54,7 @@ class PivPage extends StatefulWidget {
 
 class _PivPageState extends State<PivPage>
     with SingleTickerProviderStateMixin, UIMixin {
-  late PivController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = Get.put(PivController());
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshSlots();
-    });
-  }
-
-  Future<void> _refreshSlots() async {
-    Get.context!.loaderOverlay.show();
-    try {
-      await controller.refreshData();
-    } finally {
-      Get.context!.loaderOverlay.hide();
-    }
-  }
+  final PivController controller = Get.put(PivController());
 
   Future<bool> _savePivFile({
     required String name,
@@ -350,19 +333,17 @@ class _PivPageState extends State<PivPage>
         builder: (_) => Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              tooltip: S.of(context).pivAlgorithmIds,
-              onPressed: controller.polled && controller.extendedRetiredSlots
-                  ? _showAlgorithmExtensionConfigDialog
-                  : null,
-              color: topBarTheme.onBackground,
-              disabledColor: topBarTheme.onBackground.withValues(alpha: 0.38),
-              icon: Icon(LucideIcons.settings),
-            ),
+            if (controller.polled && controller.extendedRetiredSlots)
+              IconButton(
+                tooltip: S.of(context).pivAlgorithmIds,
+                onPressed: _showAlgorithmExtensionConfigDialog,
+                color: topBarTheme.onBackground,
+                icon: Icon(LucideIcons.settings),
+              ),
             if (isWeb() || isIOSApp())
               IconButton(
                 tooltip: S.of(context).refresh,
-                onPressed: _refreshSlots,
+                onPressed: controller.refreshData,
                 color: topBarTheme.onBackground,
                 icon: Icon(LucideIcons.refreshCw),
               ),
@@ -376,18 +357,7 @@ class _PivPageState extends State<PivPage>
             return AppletDisabledScreen(message: controller.disabledMessage!);
           }
           if (!controller.polled) {
-            return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Spacing.height(MediaQuery.of(context).size.height / 2 - 120),
-                  Center(
-                      child: Padding(
-                    padding: Spacing.horizontal(36),
-                    child: CustomizedText.bodyMedium(S.of(context).pollCanoKey,
-                        fontSize: 24),
-                  ))
-                ]);
+            return const PollCanoKeyScreen();
           }
 
           return Column(

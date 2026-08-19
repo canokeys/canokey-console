@@ -3,11 +3,12 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:basic_utils/basic_utils.dart';
-import 'package:canokey_console/controller/base/base_controller.dart';
+import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/helper/utils/applet_switches.dart';
+import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/piv_csr.dart';
 import 'package:canokey_console/helper/utils/piv_management_key.dart';
 import 'package:canokey_console/helper/utils/piv_signature.dart';
@@ -20,9 +21,9 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:logger/logger.dart';
 
-class PivController extends Controller {
-  bool polled = false;
+class PivController extends PollingController {
   Map<int, SlotInfo> slots = {};
   final Map<int, Uint8List> certificateBytes = {};
   final Map<int, X509CertData> certificates = {};
@@ -36,6 +37,9 @@ class PivController extends Controller {
   String? disabledMessage;
   PivAlgorithmExtensionConfig algorithmExtensionConfig =
       PivAlgorithmExtensionConfig.defaults;
+
+  @override
+  Logger get log => Logging.logger('PIV:Controller');
 
   bool get supportsCurrentDevelopmentFeatures =>
       functionSetVersion == FunctionSetVersion.v5;
@@ -74,15 +78,7 @@ class PivController extends Controller {
   }
 
   @override
-  void onClose() {
-    try {
-      ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
-      ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
-      // ignore: empty_catches
-    } catch (e) {}
-  }
-
-  Future<void> refreshData() async {
+  Future<void> doRefreshData() async {
     await SmartCard.process((String sn) async {
       final switchStatus = await AppletSwitches.readStatus();
       firmwareVersion = switchStatus.firmwareVersion;
