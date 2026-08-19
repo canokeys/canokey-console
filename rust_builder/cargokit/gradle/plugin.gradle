@@ -2,7 +2,9 @@
 /// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
 
 import java.nio.file.Paths
+import javax.inject.Inject
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.gradle.process.ExecOperations
 
 CargoKitPlugin.file = buildscript.sourceFile
 
@@ -14,6 +16,9 @@ class CargoKitExtension {
 }
 
 abstract class CargoKitBuildTask extends DefaultTask {
+
+    @Inject
+    abstract ExecOperations getExecOperations()
 
     @Input
     String buildMode
@@ -60,12 +65,12 @@ abstract class CargoKitBuildTask extends DefaultTask {
         def rootProjectDir = project.rootProject.projectDir
         
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
-            project.exec {
-                commandLine 'chmod', '+x', path
+            if (!path.toFile().setExecutable(true)) {
+                throw new GradleException("Unable to make CargoKit build script executable: ${path}")
             }
         }
         
-        project.exec {
+        execOperations.exec {
             executable path
             args "build-gradle"
             environment "CARGOKIT_ROOT_PROJECT_DIR", rootProjectDir
@@ -88,20 +93,19 @@ class CargoKitPlugin implements Plugin<Project> {
 
     static String file;
 
-    private Plugin findFlutterPlugin(Project rootProject) {
-        _findFlutterPlugin(rootProject.childProjects)
+    private Project findFlutterAppProject(Project rootProject) {
+        _findFlutterAppProject(rootProject.childProjects)
     }
 
-   private Plugin _findFlutterPlugin(Map projects) {
-        for (project in projects) {
-            for (plugin in project.value.getPlugins()) {
-                if (plugin.class.name == "FlutterPlugin") {
-                    return plugin;
-                }
+   private Project _findFlutterAppProject(Map projects) {
+        for (entry in projects) {
+            def candidate = entry.value
+            if (candidate.plugins.hasPlugin("dev.flutter.flutter-gradle-plugin")) {
+                return candidate
             }
-            def plugin = _findFlutterPlugin(project.value.childProjects);
-            if (plugin != null) {
-                return plugin;
+            def flutterProject = _findFlutterAppProject(candidate.childProjects);
+            if (flutterProject != null) {
+                return flutterProject;
             }
         }
         return null;
@@ -109,20 +113,17 @@ class CargoKitPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        def plugin = findFlutterPlugin(project.rootProject);
+        def flutterProject = findFlutterAppProject(project.rootProject);
 
         project.extensions.create("cargokit", CargoKitExtension)
 
-        if (plugin == null) {
-            print("Flutter plugin not found, CargoKit plugin will not be applied.")
-            return;
+        if (flutterProject == null) {
+            throw new GradleException("Flutter app project not found; CargoKit cannot build the Rust library.")
         }
 
         def cargoBuildDir = "${project.buildDir}/build"
         
-        // Determine if the project is an application or library
-        def isApplication = plugin.project.plugins.hasPlugin('com.android.application')
-        def variants = isApplication ? plugin.project.android.applicationVariants : plugin.project.android.libraryVariants
+        def variants = flutterProject.android.applicationVariants
 
         variants.all { variant ->
 
@@ -132,13 +133,17 @@ class CargoKitPlugin implements Plugin<Project> {
             def jniLibs = project.android.sourceSets.maybeCreate(buildType).jniLibs;
             jniLibs.srcDir(new File(cargoOutputDir))
 
-            def platforms = plugin.getTargetPlatforms().collect()
+            def configuredPlatforms = flutterProject.findProperty("target-platform")
+            def platforms = configuredPlatforms != null
+                ? configuredPlatforms.toString().split(",").toList()
+                : ["android-arm", "android-arm64", "android-x64"]
 
             // Same thing addFlutterDependencies does in flutter.gradle
             if (buildType == "debug") {
                 platforms.add("android-x86")
                 platforms.add("android-x64")
             }
+            platforms = platforms.unique()
 
             // The task name depends on plugin properties, which are not available
             // at this point
@@ -149,7 +154,7 @@ class CargoKitPlugin implements Plugin<Project> {
                     return
                 }
 
-                if (plugin.project.android.ndkVersion == null) {
+                if (flutterProject.android.ndkVersion == null) {
                     throw new GradleException("Please set 'android.ndkVersion' in 'app/build.gradle'.")
                 }
 
@@ -157,10 +162,10 @@ class CargoKitPlugin implements Plugin<Project> {
                     buildMode = variant.buildType.name
                     buildDir = cargoBuildDir
                     outputDir = cargoOutputDir
-                    ndkVersion = plugin.project.android.ndkVersion
-                    sdkDirectory = plugin.project.android.sdkDirectory
-                    minSdkVersion = plugin.project.android.defaultConfig.minSdkVersion.apiLevel as int
-                    compileSdkVersion = plugin.project.android.compileSdkVersion.substring(8) as int
+                    ndkVersion = flutterProject.android.ndkVersion
+                    sdkDirectory = flutterProject.android.sdkDirectory
+                    minSdkVersion = flutterProject.android.defaultConfig.minSdkVersion.apiLevel as int
+                    compileSdkVersion = flutterProject.android.compileSdkVersion.substring(8) as int
                     targetPlatforms = platforms
                     pluginFile = CargoKitPlugin.file
                 }
