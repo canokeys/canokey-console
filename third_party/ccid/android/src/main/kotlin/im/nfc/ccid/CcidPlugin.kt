@@ -29,27 +29,53 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             if (intent.action == ACTION_USB_PERMISSION) {
                 synchronized(this) {
                     val device: UsbDevice? = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
-                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                        device?.apply {
-                            val reader = readers[intent.getStringExtra("name")]
-                            if (reader == null) {
-                                Log.e(TAG, "Reader not found")
-                                return
-                            }
-                            val ccid = connectToInterface(device, reader.interfaceIdx)
-                            if (ccid != null) {
-                                readers[reader.name] = reader.copy(ccid = ccid, result = null)
-                                reader.result!!.success(null)
-                            } else {
-                                reader.result!!.error(
-                                    "CCID_READER_CONNECT_ERROR",
-                                    "Failed to connect",
-                                    null
-                                )
-                            }
-                        }
-                    } else {
+                    val name = intent.getStringExtra("name")
+                    if (name == null) {
+                        Log.e(TAG, "Reader name missing from permission result")
+                        return
+                    }
+                    val reader = readers[name]
+                    if (reader == null) {
+                        Log.e(TAG, "Reader not found")
+                        return
+                    }
+                    if (device == null) {
+                        readers[name] = reader.copy(result = null)
+                        reader.result?.error("CCID_READER_NOT_FOUND", "Reader not found", null)
+                        return
+                    }
+                    if (!intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                         Log.d(TAG, "permission denied for device $device")
+                        readers[name] = reader.copy(result = null)
+                        reader.result?.error(
+                            "CCID_USB_PERMISSION_DENIED",
+                            "USB permission denied",
+                            null
+                        )
+                        return
+                    }
+
+                    val ccid = try {
+                        connectToInterface(device, reader.interfaceIdx)
+                    } catch (error: Exception) {
+                        Log.e(TAG, "Failed to connect", error)
+                        readers[name] = reader.copy(result = null)
+                        reader.result?.error(
+                            "CCID_READER_CONNECT_ERROR",
+                            error.message ?: "Failed to connect",
+                            null
+                        )
+                        return
+                    }
+                    readers[name] = reader.copy(ccid = ccid, result = null)
+                    if (ccid != null) {
+                        reader.result?.success(null)
+                    } else {
+                        reader.result?.error(
+                            "CCID_READER_CONNECT_ERROR",
+                            "Failed to connect",
+                            null
+                        )
                     }
                 }
             }
@@ -57,6 +83,15 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 synchronized(this) {
                     val device: UsbDevice? = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
                     device?.let { detachedDevice ->
+                        readers.values
+                            .filter { it.deviceName == detachedDevice.deviceName }
+                            .forEach {
+                                it.result?.error(
+                                    "CCID_READER_NOT_FOUND",
+                                    "Reader disconnected",
+                                    null
+                                )
+                            }
                         readers.entries.removeIf { (_, reader) ->
                             reader.deviceName == detachedDevice.deviceName
                         }
@@ -194,6 +229,10 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
 
         if (!usbManager.hasPermission(device)) {
+            if (reader.result != null) {
+                result.error("CCID_READER_CONNECT_IN_PROGRESS", "Connection already in progress", null)
+                return
+            }
             // Request permission
             readers[name] = reader.copy(result = result)
             val intent = Intent(ACTION_USB_PERMISSION)

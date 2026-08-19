@@ -10,7 +10,8 @@ import 'package:get/get.dart';
 import 'package:platform_detector/platform_detector.dart';
 
 class Prompts {
-  static late SnackbarController _snackbarController;
+  static SnackbarController? _pollingSnackbarController;
+  static int _promptGeneration = 0;
 
   static String getPinFailureResult(String resp) {
     resp = resp.toUpperCase();
@@ -56,6 +57,7 @@ class Prompts {
 
   static void showPrompt(String content, ContentThemeColor selectedColor,
       {String level = 'E', bool forceSnackBar = false}) {
+    final generation = ++_promptGeneration;
     Color backgroundColor = selectedColor.color;
     Color color = selectedColor.onColor;
 
@@ -70,7 +72,9 @@ class Prompts {
       ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
       ScaffoldMessenger.of(Get.context!).showMaterialBanner(banner);
       Timer(Duration(seconds: 3), () {
-        ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
+        if (generation == _promptGeneration) {
+          ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
+        }
       });
     } else {
       try {
@@ -80,7 +84,9 @@ class Prompts {
         Get.find<RxString>(tag: 'dialog_error').value = content;
         Get.find<RxString>(tag: 'dialog_error_level').value = level;
         Timer(Duration(seconds: 3), () {
-          Get.find<RxString>(tag: 'dialog_error').value = '';
+          if (generation == _promptGeneration) {
+            Get.find<RxString>(tag: 'dialog_error').value = '';
+          }
         });
       } catch (e) {
         // log.d('Failed to find a dialog', error: e);
@@ -99,11 +105,29 @@ class Prompts {
     }
   }
 
+  static void dismissTransientPrompt() {
+    _promptGeneration++;
+    try {
+      Get.find<RxString>(tag: 'dialog_error').value = '';
+    } catch (_) {
+      // There is no active dialog prompt.
+    }
+    try {
+      final messenger = ScaffoldMessenger.maybeOf(Get.context!);
+      messenger?.removeCurrentSnackBar();
+      messenger?.hideCurrentMaterialBanner();
+    } catch (_) {
+      // The navigator may not have an active scaffold yet.
+    }
+  }
+
   static void promptAndroidPolling() {
+    dismissTransientPrompt();
     try {
       Get.find<RxBool>(tag: 'dialog_polling').value = true;
     } catch (e) {
-      _snackbarController = Get.snackbar(
+      _pollingSnackbarController?.close();
+      _pollingSnackbarController = Get.snackbar(
         S.of(Get.context!).androidAlertTitle,
         S.of(Get.context!).readingAlertMessage,
         icon: SpinKitRipple(color: Colors.tealAccent, size: 32.0),
@@ -122,7 +146,8 @@ class Prompts {
       // ignore: empty_catches
     }
     try {
-      _snackbarController.close();
+      _pollingSnackbarController?.close();
+      _pollingSnackbarController = null;
     } catch (e) {
       // ignore: empty_catches
     }

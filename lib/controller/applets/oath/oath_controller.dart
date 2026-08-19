@@ -376,6 +376,7 @@ class OathController extends PollingController {
           Prompts.showPrompt(
               S.of(Get.context!).noCard, ContentThemeColor.warning,
               level: 'W');
+          return;
         }
         Prompts.stopPromptAndroidPolling();
         bool verified = false;

@@ -4,18 +4,26 @@ import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_style.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/shadow.dart';
+import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_card.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
+import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/reset_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:platform_detector/platform_detector.dart';
+
+bool shouldBlockFactoryReset({
+  required bool mobile,
+  required ConnectionType connectionType,
+}) {
+  return mobile && connectionType != ConnectionType.ccid;
+}
 
 class ActionCard extends StatelessWidget with UIMixin {
   final SettingsController controller;
@@ -122,7 +130,9 @@ class ActionCard extends StatelessWidget with UIMixin {
                     functionSet.contains(Func.factoryReset)) ...{
                   CustomizedButton(
                     onPressed: () {
-                      if (isMobile()) {
+                      if (shouldBlockFactoryReset(
+                          mobile: isMobile(),
+                          connectionType: SmartCard.connectionType)) {
                         Prompts.showPrompt(S.of(context).notSupportedInNFC,
                             ContentThemeColor.info);
                       } else {

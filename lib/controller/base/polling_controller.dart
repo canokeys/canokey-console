@@ -13,6 +13,8 @@ abstract class PollingController extends Controller {
   bool _wasNfcConnection = false;
   bool _ccidRefreshAttempted = false;
   bool _ccidRefreshInProgress = false;
+  bool _closed = false;
+  Future<void> Function()? _registeredRefreshHandler;
 
   Future<void> doRefreshData();
   Logger get log;
@@ -20,6 +22,7 @@ abstract class PollingController extends Controller {
   @override
   void onReady() async {
     super.onReady();
+    _closed = false;
 
     if (isWeb()) {
       // Web platform: initial read and polling
@@ -28,6 +31,7 @@ abstract class PollingController extends Controller {
       } catch (e) {
         log.w('Failed to read card on web platform', error: e);
       }
+      if (_closed) return;
       _webPollTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (SmartCard.connectionType == ConnectionType.none) {
           polled = false;
@@ -40,6 +44,7 @@ abstract class PollingController extends Controller {
       if (SmartCard.connectionType == ConnectionType.ccid) {
         await _refreshCcidOnce('desktop platform');
       }
+      if (_closed) return;
       _usbPollTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
         if (SmartCard.connectionType == ConnectionType.ccid) {
           await _refreshCcidOnce('desktop platform');
@@ -56,9 +61,14 @@ abstract class PollingController extends Controller {
       if (SmartCard.connectionType == ConnectionType.ccid) {
         await _refreshCcidOnce('mobile platform');
       }
+      if (_closed) return;
       if (isAndroidApp()) {
-        SmartCard.refreshHandler = refreshData;
-        SmartCard.nfcState = NfcState.idle;
+        final handler = refreshData;
+        _registeredRefreshHandler = handler;
+        SmartCard.refreshHandler = handler;
+        SmartCard.nfcState = SmartCard.connectionType == ConnectionType.ccid
+            ? NfcState.mute
+            : NfcState.idle;
       }
       _usbPollTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
         if (SmartCard.connectionType == ConnectionType.ccid) {
@@ -70,8 +80,10 @@ abstract class PollingController extends Controller {
         }
         if (isAndroidApp()) {
           if (SmartCard.connectionType == ConnectionType.ccid) {
-            log.t('USB connected. Set nfcState to mute.');
-            SmartCard.nfcState = NfcState.mute;
+            if (SmartCard.nfcState != NfcState.mute) {
+              log.t('USB connected. Set nfcState to mute.');
+              SmartCard.nfcState = NfcState.mute;
+            }
           } else if (SmartCard.nfcState == NfcState.mute) {
             log.t('USB disconnected. Set nfcState to idle.');
             SmartCard.nfcState = NfcState.idle;
@@ -83,13 +95,19 @@ abstract class PollingController extends Controller {
 
   @override
   void onClose() {
+    _closed = true;
+    _usbPollTimer?.cancel();
+    _webPollTimer?.cancel();
+    final handler = _registeredRefreshHandler;
+    if (handler != null && identical(SmartCard.refreshHandler, handler)) {
+      SmartCard.refreshHandler = null;
+    }
     try {
       ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
       ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
-      _usbPollTimer?.cancel();
-      _webPollTimer?.cancel();
       // ignore: empty_catches
     } catch (e) {}
+    super.onClose();
   }
 
   Future<void> refreshData() async {
@@ -99,7 +117,9 @@ abstract class PollingController extends Controller {
   }
 
   Future<void> _refreshCcidOnce(String platform, {bool force = false}) async {
-    if (_ccidRefreshInProgress || (_ccidRefreshAttempted && !force)) {
+    if (_closed ||
+        _ccidRefreshInProgress ||
+        (_ccidRefreshAttempted && !force)) {
       return;
     }
     _ccidRefreshAttempted = true;
