@@ -2810,16 +2810,6 @@ class S {
     );
   }
 
-  /// `Retired slots accept certificates only. Import the private key into 9D, then place old certificates here.`
-  String get pivRetiredSlotsCertificateOnly {
-    return Intl.message(
-      'Retired slots accept certificates only. Import the private key into 9D, then place old certificates here.',
-      name: 'pivRetiredSlotsCertificateOnly',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `X25519 keys are only supported in the key management slot 9D.`
   String get pivX25519OnlyIn9D {
     return Intl.message(
@@ -2990,10 +2980,10 @@ class S {
     );
   }
 
-  /// `Retired key management slot for old encryption certificates.`
+  /// `Retired key management slot for old decryption keys and certificates.`
   String get pivSlotRetiredHint {
     return Intl.message(
-      'Retired key management slot for old encryption certificates.',
+      'Retired key management slot for old decryption keys and certificates.',
       name: 'pivSlotRetiredHint',
       desc: '',
       args: [],
@@ -3380,21 +3370,11 @@ class S {
     );
   }
 
-  /// `Derive Secret`
-  String get pivDeriveSecret {
+  /// `Sign Message`
+  String get pivSignMessage {
     return Intl.message(
-      'Derive Secret',
-      name: 'pivDeriveSecret',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Sign / Verify`
-  String get pivSignVerify {
-    return Intl.message(
-      'Sign / Verify',
-      name: 'pivSignVerify',
+      'Sign Message',
+      name: 'pivSignMessage',
       desc: '',
       args: [],
     );
@@ -3420,16 +3400,6 @@ class S {
     );
   }
 
-  /// `Sign / Verify Test`
-  String get pivSignVerifyTest {
-    return Intl.message(
-      'Sign / Verify Test',
-      name: 'pivSignVerifyTest',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Message`
   String get pivMessage {
     return Intl.message('Message', name: 'pivMessage', desc: '', args: []);
@@ -3445,31 +3415,11 @@ class S {
     );
   }
 
-  /// `Verify Result`
-  String get pivVerifyResult {
+  /// `Message signing failed`
+  String get pivMessageSigningFailed {
     return Intl.message(
-      'Verify Result',
-      name: 'pivVerifyResult',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Sign / verify failed`
-  String get pivSignVerifyFailed {
-    return Intl.message(
-      'Sign / verify failed',
-      name: 'pivSignVerifyFailed',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Sign and Verify`
-  String get pivSignAndVerify {
-    return Intl.message(
-      'Sign and Verify',
-      name: 'pivSignAndVerify',
+      'Message signing failed',
+      name: 'pivMessageSigningFailed',
       desc: '',
       args: [],
     );
@@ -4110,51 +4060,6 @@ class S {
     return Intl.message(
       'Generate X25519',
       name: 'pivGenerateX25519',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Peer Public Key (32-byte hex)`
-  String get pivPeerPublicKey {
-    return Intl.message(
-      'Peer Public Key (32-byte hex)',
-      name: 'pivPeerPublicKey',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Derive Secret Failed`
-  String get pivDeriveSecretFailed {
-    return Intl.message(
-      'Derive Secret Failed',
-      name: 'pivDeriveSecretFailed',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Derive`
-  String get pivDerive {
-    return Intl.message('Derive', name: 'pivDerive', desc: '', args: []);
-  }
-
-  /// `Shared Secret`
-  String get pivSharedSecret {
-    return Intl.message(
-      'Shared Secret',
-      name: 'pivSharedSecret',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Secret Copied`
-  String get pivSecretCopied {
-    return Intl.message(
-      'Secret Copied',
-      name: 'pivSecretCopied',
       desc: '',
       args: [],
     );

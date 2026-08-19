@@ -202,6 +202,14 @@ enum PinPolicy {
   final int value;
 }
 
+PinPolicy recommendedPivPinPolicy(String slotNumber) {
+  return switch (slotNumber.toUpperCase()) {
+    '9C' => PinPolicy.always,
+    '9E' => PinPolicy.never,
+    _ => PinPolicy.once,
+  };
+}
+
 enum TouchPolicy {
   defaultPolicy(0x00),
   never(0x01),

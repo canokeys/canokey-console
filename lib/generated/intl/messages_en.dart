@@ -672,11 +672,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivDangerZone": MessageLookupByLibrary.simpleMessage("Danger Zone"),
     "pivDelete": MessageLookupByLibrary.simpleMessage("Delete"),
     "pivDeleteSlot": m15,
-    "pivDerive": MessageLookupByLibrary.simpleMessage("Derive"),
-    "pivDeriveSecret": MessageLookupByLibrary.simpleMessage("Derive Secret"),
-    "pivDeriveSecretFailed": MessageLookupByLibrary.simpleMessage(
-      "Derive Secret Failed",
-    ),
     "pivDestinationSlot": MessageLookupByLibrary.simpleMessage(
       "Destination slot",
     ),
@@ -787,6 +782,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Enter the 24-byte management key for this operation.",
     ),
     "pivMessage": MessageLookupByLibrary.simpleMessage("Message"),
+    "pivMessageSigningFailed": MessageLookupByLibrary.simpleMessage(
+      "Message signing failed",
+    ),
     "pivModifyWithCaution": MessageLookupByLibrary.simpleMessage(
       "Modify With Caution",
     ),
@@ -827,9 +825,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivOverwrite": MessageLookupByLibrary.simpleMessage("Overwrite"),
     "pivOverwriteKey": MessageLookupByLibrary.simpleMessage("Overwrite Key"),
     "pivOverwriteKeyPrompt": m17,
-    "pivPeerPublicKey": MessageLookupByLibrary.simpleMessage(
-      "Peer Public Key (32-byte hex)",
-    ),
     "pivPinAndTouchPolicy": MessageLookupByLibrary.simpleMessage(
       "PIN and Touch Policy",
     ),
@@ -856,16 +851,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivRetired1": MessageLookupByLibrary.simpleMessage("Retired 1"),
     "pivRetired2": MessageLookupByLibrary.simpleMessage("Retired 2"),
     "pivRetiredSlot": m19,
-    "pivRetiredSlotsCertificateOnly": MessageLookupByLibrary.simpleMessage(
-      "Retired slots accept certificates only. Import the private key into 9D, then place old certificates here.",
-    ),
     "pivRetries": m20,
     "pivRetriesUnknown": MessageLookupByLibrary.simpleMessage(
       "Retries: unknown",
     ),
     "pivReview": MessageLookupByLibrary.simpleMessage("Review"),
     "pivSavePem": MessageLookupByLibrary.simpleMessage("Save PEM"),
-    "pivSecretCopied": MessageLookupByLibrary.simpleMessage("Secret Copied"),
     "pivSelectCertificateOrKeyFirst": MessageLookupByLibrary.simpleMessage(
       "Select a certificate or private key first.",
     ),
@@ -904,20 +895,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivSha256Fingerprint": MessageLookupByLibrary.simpleMessage(
       "SHA-256 Fingerprint",
     ),
-    "pivSharedSecret": MessageLookupByLibrary.simpleMessage("Shared Secret"),
     "pivSign": MessageLookupByLibrary.simpleMessage("Sign"),
-    "pivSignAndVerify": MessageLookupByLibrary.simpleMessage("Sign and Verify"),
     "pivSignFile": MessageLookupByLibrary.simpleMessage("Sign File"),
     "pivSignFilePrompt": MessageLookupByLibrary.simpleMessage(
       "Creates a detached raw signature for the selected file.",
     ),
-    "pivSignVerify": MessageLookupByLibrary.simpleMessage("Sign / Verify"),
-    "pivSignVerifyFailed": MessageLookupByLibrary.simpleMessage(
-      "Sign / verify failed",
-    ),
-    "pivSignVerifyTest": MessageLookupByLibrary.simpleMessage(
-      "Sign / Verify Test",
-    ),
+    "pivSignMessage": MessageLookupByLibrary.simpleMessage("Sign Message"),
     "pivSignature": MessageLookupByLibrary.simpleMessage("Digital Signature"),
     "pivSignatureAlgorithm": MessageLookupByLibrary.simpleMessage(
       "Signature Algorithm",
@@ -941,7 +924,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Key management slot. X25519 can derive shared secrets only.",
     ),
     "pivSlotRetiredHint": MessageLookupByLibrary.simpleMessage(
-      "Retired key management slot for old encryption certificates.",
+      "Retired key management slot for old decryption keys and certificates.",
     ),
     "pivSlotSignatureHint": MessageLookupByLibrary.simpleMessage(
       "Digital signature slot. PIN policy defaults to always.",
@@ -986,7 +969,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivVerifyPinAndManagementKey": MessageLookupByLibrary.simpleMessage(
       "Verify PIN and Management Key",
     ),
-    "pivVerifyResult": MessageLookupByLibrary.simpleMessage("Verify Result"),
     "pivX25519CannotUseCertificate": MessageLookupByLibrary.simpleMessage(
       "X25519 cannot be used with certificates. Import the key without a certificate.",
     ),

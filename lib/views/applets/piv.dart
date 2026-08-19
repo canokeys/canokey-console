@@ -250,13 +250,6 @@ class _PivPageState extends State<PivPage>
         .containsKey(int.parse(slotNumber, radix: 16));
   }
 
-  bool _isCertificateOnlySlot(String slotNumber) {
-    return slotNumber != '9A' &&
-        slotNumber != '9C' &&
-        slotNumber != '9D' &&
-        slotNumber != '9E';
-  }
-
   Future<bool> _confirmOverwriteKey({
     required String slotNumber,
     required String action,
@@ -1850,20 +1843,12 @@ class _PivPageState extends State<PivPage>
         ),
     ];
     final diagnosticActions = <Widget>[
-      if (slot?.algorithm == AlgorithmType.x25519)
-        _slotActionButton(
-          text: S.of(context).pivDeriveSecret,
-          onPressed: () {
-            Navigator.pop(Get.context!);
-            _showDeriveSecretDialog(slotNumber);
-          },
-        ),
       if (slot != null && slot.algorithm != AlgorithmType.x25519) ...[
         _slotActionButton(
-          text: S.of(context).pivSignVerify,
+          text: S.of(context).pivSignMessage,
           onPressed: () {
             Navigator.pop(Get.context!);
-            _showSignVerifyDialog(slotNumber, slot);
+            _showMessageSignDialog(slotNumber, slot);
           },
         ),
         _slotActionButton(
@@ -2205,7 +2190,7 @@ class _PivPageState extends State<PivPage>
                 ]))));
   }
 
-  void _showSignVerifyDialog(String slotNumber, SlotInfo slot) {
+  void _showMessageSignDialog(String slotNumber, SlotInfo slot) {
     FormValidator validator = FormValidator();
     validator.addField('pin',
         required: true,
@@ -2215,7 +2200,6 @@ class _PivPageState extends State<PivPage>
         required: true,
         controller: TextEditingController(text: 'hello canokey'));
     final signature = ''.obs;
-    final verifyResult = ''.obs;
 
     Get.dialog(KeyboardSafeDialog(
       child: SizedBox(
@@ -2226,7 +2210,7 @@ class _PivPageState extends State<PivPage>
           children: [
             Padding(
               padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(S.of(context).pivSignVerifyTest),
+              child: CustomizedText.labelLarge(S.of(context).pivSignMessage),
             ),
             Divider(height: 0, thickness: 1),
             Padding(
@@ -2279,25 +2263,6 @@ class _PivPageState extends State<PivPage>
                                   child: SelectableText(signature.value),
                                 ),
                               ),
-                              Spacing.height(16),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: CustomizedText.bodyMedium(
-                                  S.of(context).pivVerifyResult,
-                                  fontWeight: 600,
-                                ),
-                              ),
-                              Spacing.height(8),
-                              Container(
-                                width: double.infinity,
-                                padding: Spacing.all(12),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                      color: contentTheme.cardBorder),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: SelectableText(verifyResult.value),
-                              ),
                             ],
                           )),
                   ],
@@ -2323,7 +2288,7 @@ class _PivPageState extends State<PivPage>
                       if (!validator.validateForm()) return;
                       Get.context!.loaderOverlay.show();
                       try {
-                        final result = await controller.signAndVerify(
+                        final result = await controller.signData(
                           slotNumber,
                           slot,
                           validator.getController('pin')!.text,
@@ -2331,22 +2296,18 @@ class _PivPageState extends State<PivPage>
                               validator.getController('message')!.text)),
                         );
                         if (result == null) {
-                          Prompts.showPrompt(S.current.pivSignVerifyFailed,
+                          Prompts.showPrompt(S.current.pivMessageSigningFailed,
                               ContentThemeColor.danger);
                           return;
                         }
-                        signature.value = hex.encode(result.signature);
-                        verifyResult.value = result.verified
-                            ? S.current.pivSignatureVerified
-                            : S.current.pivSignatureVerificationFailed;
+                        signature.value = hex.encode(result);
                       } finally {
                         Get.context!.loaderOverlay.hide();
                       }
                     },
                     elevation: 0,
                     backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(
-                        S.of(context).pivSignAndVerify,
+                    child: CustomizedText.labelMedium(S.of(context).pivSign,
                         color: contentTheme.onPrimary),
                   ),
                 ],
@@ -2648,8 +2609,7 @@ class _PivPageState extends State<PivPage>
     Rx<String> parseMessage = ''.obs;
     RxList<String> importWarnings = <String>[].obs;
     RxList<String> importErrors = <String>[].obs;
-    PinPolicy pinPolicy =
-        slotNumber == '9C' ? PinPolicy.always : PinPolicy.once;
+    PinPolicy pinPolicy = recommendedPivPinPolicy(slotNumber);
     TouchPolicy touchPolicy = TouchPolicy.never;
     bool usePinOnly = controller.pinOnlyMode;
     FormValidator authValidator = FormValidator();
@@ -2705,9 +2665,6 @@ class _PivPageState extends State<PivPage>
             '${_algorithmLabel(algorithm)}: ${S.of(context).notSupported}');
       }
 
-      if (_isCertificateOnlySlot(slotNumber) && hasKey.value) {
-        importErrors.add(S.of(context).pivRetiredSlotsCertificateOnly);
-      }
       if (slotNumber != '9D' && algorithm == AlgorithmType.x25519) {
         importErrors.add(S.of(context).pivX25519OnlyIn9D);
       }
@@ -3167,8 +3124,7 @@ class _PivPageState extends State<PivPage>
   void _showGenerateDialog(String slotNumber, {required bool selfSigned}) {
     Rx<int> step = 0.obs;
     AlgorithmType algorithm = AlgorithmType.eccp256;
-    PinPolicy pinPolicy =
-        slotNumber == '9C' ? PinPolicy.always : PinPolicy.once;
+    PinPolicy pinPolicy = recommendedPivPinPolicy(slotNumber);
     TouchPolicy touchPolicy = TouchPolicy.never;
     bool usePinOnly = controller.pinOnlyMode;
     FormValidator pinValidator = FormValidator();
@@ -3582,8 +3538,7 @@ class _PivPageState extends State<PivPage>
 
   void _showGenerateKeyDialog(String slotNumber) {
     final algorithm = AlgorithmType.x25519;
-    PinPolicy pinPolicy =
-        slotNumber == '9C' ? PinPolicy.always : PinPolicy.once;
+    PinPolicy pinPolicy = recommendedPivPinPolicy(slotNumber);
     TouchPolicy touchPolicy = TouchPolicy.never;
     bool usePinOnly = controller.pinOnlyMode;
     FormValidator validator = FormValidator();
@@ -3742,166 +3697,6 @@ class _PivPageState extends State<PivPage>
               ),
             ],
           ),
-        ),
-      ),
-    ));
-  }
-
-  void _showDeriveSecretDialog(String slotNumber) {
-    FormValidator validator = FormValidator();
-    validator.addField('pin',
-        required: true,
-        controller: TextEditingController(),
-        validators: [LengthValidator(min: 6, max: 8)]);
-    validator.addField('peerPublicKey',
-        required: true,
-        controller: TextEditingController(),
-        validators: [LengthValidator(exact: 64), HexStringValidator()]);
-
-    Get.dialog(KeyboardSafeDialog(
-      child: SizedBox(
-        width: 520,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(S.of(context).pivDeriveSecret),
-            ),
-            Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Form(
-                key: validator.formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      autofocus: true,
-                      onTap: SmartCard.eject,
-                      obscureText: true,
-                      controller: validator.getController('pin'),
-                      validator: validator.getValidator('pin'),
-                      decoration: InputDecoration(
-                          labelText: 'PIN', border: outlineInputBorder),
-                    ),
-                    Spacing.height(18),
-                    TextFormField(
-                      onTap: SmartCard.eject,
-                      controller: validator.getController('peerPublicKey'),
-                      validator: validator.getValidator('peerPublicKey'),
-                      decoration: InputDecoration(
-                          labelText: S.of(context).pivPeerPublicKey,
-                          border: outlineInputBorder),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  CustomizedButton.rounded(
-                    onPressed: () => Get.back(),
-                    elevation: 0,
-                    backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).cancel,
-                        color: contentTheme.onSecondary),
-                  ),
-                  Spacing.width(12),
-                  CustomizedButton.rounded(
-                    onPressed: () async {
-                      if (!validator.validateForm()) return;
-                      Get.context!.loaderOverlay.show();
-                      try {
-                        final secret = await controller.deriveX25519Secret(
-                            slotNumber,
-                            validator.getController('pin')!.text,
-                            Uint8List.fromList(hex.decode(validator
-                                .getController('peerPublicKey')!
-                                .text)));
-                        if (secret == null) {
-                          Prompts.showPrompt(S.current.pivDeriveSecretFailed,
-                              ContentThemeColor.danger);
-                          return;
-                        }
-                        Navigator.pop(Get.context!);
-                        _showSecretResultDialog(secret);
-                      } finally {
-                        Get.context!.loaderOverlay.hide();
-                      }
-                    },
-                    elevation: 0,
-                    backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(S.of(context).pivDerive,
-                        color: contentTheme.onPrimary),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    ));
-  }
-
-  void _showSecretResultDialog(Uint8List secret) {
-    final text = hex.encode(secret);
-    Get.dialog(Dialog(
-      child: SizedBox(
-        width: 520,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(S.of(context).pivSharedSecret),
-            ),
-            Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: TextFormField(
-                initialValue: text,
-                readOnly: true,
-                minLines: 2,
-                maxLines: 4,
-                style: TextStyle(fontFamily: 'monospace', fontSize: 12),
-                decoration: InputDecoration(border: outlineInputBorder),
-              ),
-            ),
-            Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  CustomizedButton.rounded(
-                    onPressed: () async {
-                      await Clipboard.setData(ClipboardData(text: text));
-                      Prompts.showPrompt(
-                          S.current.pivSecretCopied, ContentThemeColor.success);
-                    },
-                    elevation: 0,
-                    backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(S.of(context).copy,
-                        color: contentTheme.onPrimary),
-                  ),
-                  Spacing.width(12),
-                  CustomizedButton.rounded(
-                    onPressed: () => Get.back(),
-                    elevation: 0,
-                    backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).close,
-                        color: contentTheme.onSecondary),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     ));

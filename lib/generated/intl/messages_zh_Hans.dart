@@ -59,7 +59,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m18(policy) => "PIN：${policy}";
 
-  static String m19(index) => "过期证书 ${index}";
+  static String m19(index) => "退役密钥 ${index}";
 
   static String m20(remaining, total) => "剩余次数：${remaining}/${total}";
 
@@ -531,9 +531,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivDangerZone": MessageLookupByLibrary.simpleMessage("危险操作"),
     "pivDelete": MessageLookupByLibrary.simpleMessage("删除"),
     "pivDeleteSlot": m15,
-    "pivDerive": MessageLookupByLibrary.simpleMessage("派生"),
-    "pivDeriveSecret": MessageLookupByLibrary.simpleMessage("派生共享密钥"),
-    "pivDeriveSecretFailed": MessageLookupByLibrary.simpleMessage("派生共享密钥失败"),
     "pivDestinationSlot": MessageLookupByLibrary.simpleMessage("目标槽"),
     "pivDiagnostics": MessageLookupByLibrary.simpleMessage("诊断"),
     "pivDisablePinProtectedManagementKey": MessageLookupByLibrary.simpleMessage(
@@ -608,6 +605,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "为本次操作输入 24 字节管理密钥。",
     ),
     "pivMessage": MessageLookupByLibrary.simpleMessage("消息"),
+    "pivMessageSigningFailed": MessageLookupByLibrary.simpleMessage("消息签名失败"),
     "pivModifyWithCaution": MessageLookupByLibrary.simpleMessage("请谨慎修改"),
     "pivMoveKey": MessageLookupByLibrary.simpleMessage("移动密钥"),
     "pivMoveKeyFailed": MessageLookupByLibrary.simpleMessage(
@@ -636,7 +634,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivOverwrite": MessageLookupByLibrary.simpleMessage("覆盖"),
     "pivOverwriteKey": MessageLookupByLibrary.simpleMessage("覆盖密钥"),
     "pivOverwriteKeyPrompt": m17,
-    "pivPeerPublicKey": MessageLookupByLibrary.simpleMessage("对端公钥（32 字节十六进制）"),
     "pivPinAndTouchPolicy": MessageLookupByLibrary.simpleMessage("PIN 和触摸策略"),
     "pivPinManagement": MessageLookupByLibrary.simpleMessage("管理 PIN"),
     "pivPinPolicy": MessageLookupByLibrary.simpleMessage("PIN 策略"),
@@ -656,17 +653,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivPublicKey": MessageLookupByLibrary.simpleMessage("公钥"),
     "pivPukRetries": MessageLookupByLibrary.simpleMessage("PUK 重试次数"),
     "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage("随机值"),
-    "pivRetired1": MessageLookupByLibrary.simpleMessage("过期证书 1"),
-    "pivRetired2": MessageLookupByLibrary.simpleMessage("过期证书 2"),
+    "pivRetired1": MessageLookupByLibrary.simpleMessage("退役密钥 1"),
+    "pivRetired2": MessageLookupByLibrary.simpleMessage("退役密钥 2"),
     "pivRetiredSlot": m19,
-    "pivRetiredSlotsCertificateOnly": MessageLookupByLibrary.simpleMessage(
-      "过期槽只应保存证书。请将私钥导入 9D，并把旧证书放在这里。",
-    ),
     "pivRetries": m20,
     "pivRetriesUnknown": MessageLookupByLibrary.simpleMessage("剩余次数：未知"),
     "pivReview": MessageLookupByLibrary.simpleMessage("确认"),
     "pivSavePem": MessageLookupByLibrary.simpleMessage("保存 PEM"),
-    "pivSecretCopied": MessageLookupByLibrary.simpleMessage("共享密钥已复制"),
     "pivSelectCertificateOrKeyFirst": MessageLookupByLibrary.simpleMessage(
       "请先选择证书或私钥。",
     ),
@@ -697,16 +690,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "PIN/PUK 重试次数已设置，PIN 和 PUK 已重置。",
     ),
     "pivSha256Fingerprint": MessageLookupByLibrary.simpleMessage("SHA-256 指纹"),
-    "pivSharedSecret": MessageLookupByLibrary.simpleMessage("共享密钥"),
     "pivSign": MessageLookupByLibrary.simpleMessage("签名"),
-    "pivSignAndVerify": MessageLookupByLibrary.simpleMessage("签名并验证"),
     "pivSignFile": MessageLookupByLibrary.simpleMessage("签名文件"),
     "pivSignFilePrompt": MessageLookupByLibrary.simpleMessage(
       "为所选文件生成分离式原始签名。",
     ),
-    "pivSignVerify": MessageLookupByLibrary.simpleMessage("签名 / 验证"),
-    "pivSignVerifyFailed": MessageLookupByLibrary.simpleMessage("签名 / 验证失败"),
-    "pivSignVerifyTest": MessageLookupByLibrary.simpleMessage("签名 / 验证测试"),
+    "pivSignMessage": MessageLookupByLibrary.simpleMessage("签名消息"),
     "pivSignature": MessageLookupByLibrary.simpleMessage(
       "签名（Digital Signature）",
     ),
@@ -728,7 +717,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "密钥管理槽。X25519 只能用于派生共享密钥。",
     ),
     "pivSlotRetiredHint": MessageLookupByLibrary.simpleMessage(
-      "过期密钥管理槽，用于旧加密证书。",
+      "退役密钥管理槽，用于保存旧解密私钥及其证书。",
     ),
     "pivSlotSignatureHint": MessageLookupByLibrary.simpleMessage(
       "数字签名槽。PIN 策略默认总是验证。",
@@ -765,7 +754,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivVerifyPinAndManagementKey": MessageLookupByLibrary.simpleMessage(
       "验证 PIN 和管理密钥",
     ),
-    "pivVerifyResult": MessageLookupByLibrary.simpleMessage("验证结果"),
     "pivX25519CannotUseCertificate": MessageLookupByLibrary.simpleMessage(
       "X25519 不能搭配证书使用。请只导入密钥。",
     ),

@@ -600,16 +600,6 @@ class PivController extends PollingController {
     return c.future;
   }
 
-  Future<PivSignVerifyResult?> signAndVerify(
-      String slot, SlotInfo slotInfo, String pin, Uint8List data) async {
-    final signature = await signData(slot, slotInfo, pin, data);
-    if (signature == null) {
-      return null;
-    }
-    final verified = await verifySignature(slotInfo, data, signature);
-    return PivSignVerifyResult(signature: signature, verified: verified);
-  }
-
   Future<Uint8List?> signData(
       String slot, SlotInfo slotInfo, String pin, Uint8List data) async {
     final publicKey = publicKeyForSlot(slotInfo);
@@ -1504,14 +1494,4 @@ class PivController extends PollingController {
   static const int _pivmanProtectedDataTag = 0x88;
   static const int _pivmanProtectedKeyTag = 0x89;
   static const int _pivmanManagementKeyProtectedFlag = 0x02;
-}
-
-class PivSignVerifyResult {
-  final Uint8List signature;
-  final bool verified;
-
-  const PivSignVerifyResult({
-    required this.signature,
-    required this.verified,
-  });
 }
