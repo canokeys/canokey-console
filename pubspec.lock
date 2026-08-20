@@ -144,7 +144,7 @@ packages:
       path: "third_party/ccid"
       relative: true
     source: path
-    version: "0.1.8"
+    version: "0.1.9"
   characters:
     dependency: transitive
     description:

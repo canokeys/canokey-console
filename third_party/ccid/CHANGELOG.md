@@ -1,4 +1,4 @@
-## Unreleased
+## 0.1.9
 
 * Run Android CCID I/O off the Flutter platform thread and serialize operations.
 * Complete pending callbacks on permission denial, disconnect, and plugin teardown.

@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'ccid'
-  s.version          = '0.1.6'
+  s.version          = '0.1.9'
   s.summary          = 'Flutter CCID Plugin.'
   s.description      = <<-DESC
 A Flutter plugin for CCID support on iOS and macOS.
