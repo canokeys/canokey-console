@@ -23,6 +23,7 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var context: Context
     private lateinit var usbManager: UsbManager
     private var readers = mutableMapOf<String, Reader>()
+    private var nextPermissionRequestCode = 0
 
     private val usbReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -39,15 +40,20 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         Log.e(TAG, "Reader not found")
                         return
                     }
+                    val pendingResult = reader.result
+                    if (pendingResult == null) {
+                        Log.d(TAG, "Ignoring stale USB permission result for $name")
+                        return
+                    }
                     if (device == null) {
                         readers[name] = reader.copy(result = null)
-                        reader.result?.error("CCID_READER_NOT_FOUND", "Reader not found", null)
+                        pendingResult.error("CCID_READER_NOT_FOUND", "Reader not found", null)
                         return
                     }
                     if (!intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                         Log.d(TAG, "permission denied for device $device")
                         readers[name] = reader.copy(result = null)
-                        reader.result?.error(
+                        pendingResult.error(
                             "CCID_USB_PERMISSION_DENIED",
                             "USB permission denied",
                             null
@@ -60,7 +66,7 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     } catch (error: Exception) {
                         Log.e(TAG, "Failed to connect", error)
                         readers[name] = reader.copy(result = null)
-                        reader.result?.error(
+                        pendingResult.error(
                             "CCID_READER_CONNECT_ERROR",
                             error.message ?: "Failed to connect",
                             null
@@ -69,9 +75,9 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     }
                     readers[name] = reader.copy(ccid = ccid, result = null)
                     if (ccid != null) {
-                        reader.result?.success(null)
+                        pendingResult.success(null)
                     } else {
-                        reader.result?.error(
+                        pendingResult.error(
                             "CCID_READER_CONNECT_ERROR",
                             "Failed to connect",
                             null
@@ -143,7 +149,13 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     result.error("CCID_READER_NOT_FOUND", "Reader not found", null)
                     return
                 }
-                readers[name] = reader.copy(ccid = null)
+                reader.result?.error(
+                    "CCID_READER_CONNECT_CANCELLED",
+                    "Connection cancelled",
+                    null
+                )
+                readers[name] = reader.copy(ccid = null, result = null)
+                result.success(null)
             }
 
             else -> {
@@ -240,14 +252,39 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             intent.setPackage(context.packageName)
             val pendingIntent = PendingIntent.getBroadcast(
                 context,
-                0,
+                nextPermissionRequestCode++,
                 intent,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
+                PendingIntent.FLAG_ONE_SHOT or
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            PendingIntent.FLAG_MUTABLE
+                        } else {
+                            0
+                        }
             )
-            usbManager.requestPermission(device, pendingIntent)
+            try {
+                usbManager.requestPermission(device, pendingIntent)
+            } catch (error: Exception) {
+                readers[name] = reader
+                Log.e(TAG, "Failed to request USB permission", error)
+                result.error(
+                    "CCID_USB_PERMISSION_ERROR",
+                    error.message ?: "Failed to request USB permission",
+                    null
+                )
+            }
             return
         } else {
-            val ccid = connectToInterface(device, reader.interfaceIdx)
+            val ccid = try {
+                connectToInterface(device, reader.interfaceIdx)
+            } catch (error: Exception) {
+                Log.e(TAG, "Failed to connect", error)
+                result.error(
+                    "CCID_READER_CONNECT_ERROR",
+                    error.message ?: "Failed to connect",
+                    null
+                )
+                return
+            }
             if (ccid != null) {
                 readers[name] = reader.copy(ccid = ccid)
                 result.success(null)
