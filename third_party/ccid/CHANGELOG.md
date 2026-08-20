@@ -1,3 +1,12 @@
+## Unreleased
+
+* Run Android CCID I/O off the Flutter platform thread and serialize operations.
+* Complete pending callbacks on permission denial, disconnect, and plugin teardown.
+* Release Android USB interfaces and validate USB descriptor and response lengths.
+* Serialize CryptoTokenKit sessions and handle disconnect/reconnect without stale callbacks.
+* Validate native method arguments and APDU hex strings instead of crashing.
+* Keep the desktop PC/SC context alive until the final connected card disconnects.
+
 ## 0.1.8
 
 * Improve compatibility

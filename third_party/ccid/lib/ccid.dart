@@ -21,7 +21,7 @@ class CcidCard {
 
   CcidCard(this.reader);
 
-  /// Send APDU command [cpadu]
+  /// Send APDU command [capdu]
   ///
   /// Returns the response APDU
   Future<String?> transceive(String capdu) {

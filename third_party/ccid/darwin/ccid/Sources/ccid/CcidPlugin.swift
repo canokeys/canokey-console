@@ -7,17 +7,15 @@ import CryptoTokenKit
 
 extension String {
     var hexadecimal: Data? {
+        guard !isEmpty && count.isMultiple(of: 2) else { return nil }
         var data = Data(capacity: count / 2)
-
-        let regex = try! NSRegularExpression(pattern: "[0-9a-f]{1,2}", options: .caseInsensitive)
-        regex.enumerateMatches(in: self, range: NSRange(startIndex..., in: self)) { match, _, _ in
-            let byteString = (self as NSString).substring(with: match!.range)
-            let num = UInt8(byteString, radix: 16)!
-            data.append(num)
+        var index = startIndex
+        while index < endIndex {
+            let nextIndex = self.index(index, offsetBy: 2)
+            guard let byte = UInt8(self[index..<nextIndex], radix: 16) else { return nil }
+            data.append(byte)
+            index = nextIndex
         }
-
-        guard data.count > 0 else { return nil }
-
         return data
     }
 }
@@ -78,7 +76,10 @@ public class CcidPlugin: NSObject, FlutterPlugin {
             result(manager?.slotNames ?? [])
 
         case "connect":
-            let reader = call.arguments as! String
+            guard let reader = call.arguments as? String else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "Reader name is required", details: nil))
+                return
+            }
             let manager = TKSmartCardSlotManager.default
             if let slot = manager?.slotNamed(reader) {
                 if let card = slot.makeSmartCard() {
@@ -93,10 +94,13 @@ public class CcidPlugin: NSObject, FlutterPlugin {
             }
 
         case "transceive":
-            let args = call.arguments as! [String: Any?]
-            let reader = args["reader"] as! String
-            let capdu = args["capdu"] as! String
-            let capduData = capdu.hexadecimal!
+            guard let args = call.arguments as? [String: Any?],
+                  let reader = args["reader"] as? String,
+                  let capdu = args["capdu"] as? String,
+                  let capduData = capdu.hexadecimal else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "A valid reader and CAPDU are required", details: nil))
+                return
+            }
             guard let card = cards[reader] else {
                 result(FlutterError(code: "NO_CARD", message: "Card is not connected", details: nil))
                 return
@@ -110,6 +114,7 @@ public class CcidPlugin: NSObject, FlutterPlugin {
                 run: {
                     func finish(_ response: Any?) {
                         DispatchQueue.main.async {
+                            guard !completion.isCompleted else { return }
                             card.endSession()
                             completion.complete(response)
                             self.finishTransceive(reader: reader, generation: generation)
@@ -145,7 +150,10 @@ public class CcidPlugin: NSObject, FlutterPlugin {
             enqueueTransceive(reader: reader, transceive: transceive)
 
         case "disconnect":
-            let reader = call.arguments as! String
+            guard let reader = call.arguments as? String else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "Reader name is required", details: nil))
+                return
+            }
             cards.removeValue(forKey: reader)
             resetTransceives(reader: reader, message: "Card was disconnected")
             result(nil)
