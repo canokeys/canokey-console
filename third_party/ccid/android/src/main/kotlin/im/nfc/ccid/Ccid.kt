@@ -2,9 +2,11 @@ package im.nfc.ccid
 
 import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbEndpoint
+import android.hardware.usb.UsbInterface
 
 class Ccid(
     private val usbDeviceConnection: UsbDeviceConnection,
+    private val usbInterface: UsbInterface,
     private val bulkIn: UsbEndpoint,
     private val bulkOut: UsbEndpoint
 ) {
@@ -35,6 +37,11 @@ class Ccid(
             0x00, 0x00, 0x00
         )
         sendCcidPcToRdrMessage(command)
+    }
+
+    fun close() {
+        usbDeviceConnection.releaseInterface(usbInterface)
+        usbDeviceConnection.close()
     }
 
     fun xfrBlock(apdu: ByteArray): ByteArray {

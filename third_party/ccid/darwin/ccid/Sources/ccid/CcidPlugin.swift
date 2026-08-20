@@ -29,14 +29,36 @@ extension Data {
 }
 
 public class CcidPlugin: NSObject, FlutterPlugin {
+    private final class TransceiveCompletion {
+        private var completed = false
+        private let result: FlutterResult
+
+        init(result: @escaping FlutterResult) {
+            self.result = result
+        }
+
+        var isCompleted: Bool {
+            return completed
+        }
+
+        func complete(_ response: Any?) {
+            guard !completed else { return }
+            completed = true
+            result(response)
+        }
+    }
+
     private struct PendingTransceive {
+        let generation: Int
+        let card: TKSmartCard
+        let completion: TransceiveCompletion
         let run: () -> Void
-        let cancel: () -> Void
     }
 
     var cards: [String: TKSmartCard] = [:]
     private var pendingTransceives: [String: [PendingTransceive]] = [:]
-    private var activeTransceiveReaders: Set<String> = []
+    private var activeTransceives: [String: PendingTransceive] = [:]
+    private var connectionGenerations: [String: Int] = [:]
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         #if os(iOS)
@@ -60,6 +82,7 @@ public class CcidPlugin: NSObject, FlutterPlugin {
             let manager = TKSmartCardSlotManager.default
             if let slot = manager?.slotNamed(reader) {
                 if let card = slot.makeSmartCard() {
+                    resetTransceives(reader: reader, message: "Card was reconnected")
                     cards[reader] = card
                     result(nil)
                 } else {
@@ -78,44 +101,53 @@ public class CcidPlugin: NSObject, FlutterPlugin {
                 result(FlutterError(code: "NO_CARD", message: "Card is not connected", details: nil))
                 return
             }
-            enqueueTransceive(
-                reader: reader,
+            let generation = connectionGenerations[reader, default: 0]
+            let completion = TransceiveCompletion(result: result)
+            let transceive = PendingTransceive(
+                generation: generation,
+                card: card,
+                completion: completion,
                 run: {
                     func finish(_ response: Any?) {
-                        card.endSession()
                         DispatchQueue.main.async {
-                            result(response)
-                            self.startNextTransceive(reader: reader)
+                            card.endSession()
+                            completion.complete(response)
+                            self.finishTransceive(reader: reader, generation: generation)
                         }
                     }
 
                     card.beginSession { (success, error) in
-                        if !success {
-                            DispatchQueue.main.async {
-                                result(FlutterError(code: "BEGIN_SESSION_ERROR", message: error?.localizedDescription, details: nil))
-                                self.startNextTransceive(reader: reader)
+                        DispatchQueue.main.async {
+                            guard !completion.isCompleted else {
+                                if success {
+                                    card.endSession()
+                                }
+                                return
                             }
-                            return
-                        }
-                        card.transmit(capduData) { (rapdu, error) in
-                            if let rapdu = rapdu {
-                                finish(rapdu.hexadecimal)
-                            } else {
-                                finish(FlutterError(code: "TRANSMIT_ERROR", message: error?.localizedDescription, details: nil))
+                            if !success {
+                                completion.complete(
+                                    FlutterError(code: "BEGIN_SESSION_ERROR", message: error?.localizedDescription, details: nil)
+                                )
+                                self.finishTransceive(reader: reader, generation: generation)
+                                return
+                            }
+                            card.transmit(capduData) { (rapdu, error) in
+                                if let rapdu = rapdu {
+                                    finish(rapdu.hexadecimal)
+                                } else {
+                                    finish(FlutterError(code: "TRANSMIT_ERROR", message: error?.localizedDescription, details: nil))
+                                }
                             }
                         }
                     }
-                },
-                cancel: {
-                    result(FlutterError(code: "NO_CARD", message: "Card was disconnected", details: nil))
                 }
             )
+            enqueueTransceive(reader: reader, transceive: transceive)
 
         case "disconnect":
             let reader = call.arguments as! String
             cards.removeValue(forKey: reader)
-            let cancelledTransceives = pendingTransceives.removeValue(forKey: reader) ?? []
-            cancelledTransceives.forEach { $0.cancel() }
+            resetTransceives(reader: reader, message: "Card was disconnected")
             result(nil)
 
         default:
@@ -125,30 +157,53 @@ public class CcidPlugin: NSObject, FlutterPlugin {
 
     private func enqueueTransceive(
         reader: String,
-        run: @escaping () -> Void,
-        cancel: @escaping () -> Void
+        transceive: PendingTransceive
     ) {
-        pendingTransceives[reader, default: []].append(
-            PendingTransceive(run: run, cancel: cancel)
-        )
-        if !activeTransceiveReaders.contains(reader) {
+        pendingTransceives[reader, default: []].append(transceive)
+        if activeTransceives[reader] == nil {
             startNextTransceive(reader: reader)
         }
     }
 
     private func startNextTransceive(reader: String) {
+        guard activeTransceives[reader] == nil else { return }
         guard var queue = pendingTransceives[reader], !queue.isEmpty else {
-            activeTransceiveReaders.remove(reader)
             return
         }
 
-        activeTransceiveReaders.insert(reader)
         let transceive = queue.removeFirst()
         if queue.isEmpty {
             pendingTransceives.removeValue(forKey: reader)
         } else {
             pendingTransceives[reader] = queue
         }
+        guard transceive.generation == connectionGenerations[reader, default: 0] else {
+            transceive.completion.complete(
+                FlutterError(code: "NO_CARD", message: "Card connection changed", details: nil)
+            )
+            startNextTransceive(reader: reader)
+            return
+        }
+        activeTransceives[reader] = transceive
         transceive.run()
+    }
+
+    private func finishTransceive(reader: String, generation: Int) {
+        guard activeTransceives[reader]?.generation == generation else { return }
+        activeTransceives.removeValue(forKey: reader)
+        startNextTransceive(reader: reader)
+    }
+
+    private func resetTransceives(reader: String, message: String) {
+        connectionGenerations[reader, default: 0] += 1
+        let error = FlutterError(code: "NO_CARD", message: message, details: nil)
+
+        let cancelledTransceives = pendingTransceives.removeValue(forKey: reader) ?? []
+        cancelledTransceives.forEach { $0.completion.complete(error) }
+
+        if let activeTransceive = activeTransceives.removeValue(forKey: reader) {
+            activeTransceive.card.endSession()
+            activeTransceive.completion.complete(error)
+        }
     }
 }
