@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'ccid.dart';
 import 'ccid_platform_interface.dart';
 
+const _maxCapduHexLength = 2 * 1024 * 1024;
+
 /// An implementation of [CcidPlatform] that uses dart_pcsc.
 class PcscCcid extends CcidPlatform {
   final context = Context(Scope.user);
@@ -72,6 +74,9 @@ class PcscCcid extends CcidPlatform {
   @override
   Future<String?> transceive(String reader, String capdu) {
     return _serialize(() async {
+      if (!_isValidCapdu(capdu)) {
+        throw ArgumentError('Expected a bounded hex APDU', 'capdu');
+      }
       final card = readerCardMap[reader];
       if (card == null) {
         throw StateError('Card not connected');
@@ -80,6 +85,16 @@ class PcscCcid extends CcidPlatform {
       final rapdu = await card.transmit(apdu);
       return hex.encode(rapdu);
     });
+  }
+
+  bool _isValidCapdu(String capdu) {
+    return capdu.isNotEmpty &&
+        capdu.length.isEven &&
+        capdu.length <= _maxCapduHexLength &&
+        capdu.codeUnits.every((code) =>
+            (code >= 0x30 && code <= 0x39) ||
+            (code >= 0x41 && code <= 0x46) ||
+            (code >= 0x61 && code <= 0x66));
   }
 
   @override
@@ -92,11 +107,8 @@ class PcscCcid extends CcidPlatform {
         }
       } finally {
         if (readerCardMap.isEmpty && _initialized) {
-          try {
-            await context.release();
-          } finally {
-            _initialized = false;
-          }
+          await context.release();
+          _initialized = false;
         }
       }
     });

@@ -12,8 +12,12 @@ class Ccid(
 ) {
     private var currentSeq = 0.toByte()
     private var closed = false
+    var maxApduLength = MAX_CAPDU_LENGTH
+        private set
 
+    @Synchronized
     fun iccPowerOn(): ByteArray {
+        if (closed) throw CcidException("Reader is closed")
         val seq = currentSeq++
         val command = byteArrayOf(
             MESSAGE_TYPE_PC_TO_RDR_ICCPOWERON,
@@ -28,7 +32,9 @@ class Ccid(
         return response.data
     }
 
+    @Synchronized
     fun iccPowerOff() {
+        if (closed) throw CcidException("Reader is closed")
         val seq = currentSeq++
         val command = byteArrayOf(
             MESSAGE_TYPE_PC_TO_RDR_ICCPOWEROFF,
@@ -114,13 +120,26 @@ class Ccid(
                         ((rawDescriptors[byteIndex + 29].toInt() and 0xff) shl 8) or
                         ((rawDescriptors[byteIndex + 30].toInt() and 0xff) shl 16) or
                         ((rawDescriptors[byteIndex + 31].toInt() and 0xff) shl 24)
+                val dwMaxMessageLength = (rawDescriptors[byteIndex + 44].toLong() and 0xff) or
+                        ((rawDescriptors[byteIndex + 45].toLong() and 0xff) shl 8) or
+                        ((rawDescriptors[byteIndex + 46].toLong() and 0xff) shl 16) or
+                        ((rawDescriptors[byteIndex + 47].toLong() and 0xff) shl 24)
+                if (dwMaxMessageLength <= HEADER_SIZE) {
+                    throw CcidException("Invalid maximum CCID message length")
+                }
                 val levelOfExchange = when ((dwFeatures shr 16) and 0xFF) {
                     0x01 -> LevelOfExchange.TPDU
                     0x02 -> LevelOfExchange.ShortAPDU
                     0x04 -> LevelOfExchange.ExtendedAPDU
                     else -> throw CcidException("Unknown level of exchange")
                 }
-                return CcidDescriptor(dwProtocols.toByte(), levelOfExchange, dwMaxIFSD)
+                maxApduLength = minOf(
+                    dwMaxMessageLength - HEADER_SIZE,
+                    MAX_CAPDU_LENGTH.toLong()
+                ).toInt()
+                return CcidDescriptor(
+                    dwProtocols.toByte(), levelOfExchange, dwMaxIFSD, dwMaxMessageLength
+                )
             }
 
             byteIndex += descriptorLength
@@ -211,7 +230,8 @@ class Ccid(
 
     companion object {
         private const val HEADER_SIZE = 10
-        private const val CCID_DESCRIPTOR_MIN_LENGTH = 44
+        private const val CCID_DESCRIPTOR_MIN_LENGTH = 48
+        private const val MAX_CAPDU_LENGTH = 1024 * 1024
         private const val USB_TIMEOUT = 5000
 
         private const val MESSAGE_TYPE_PC_TO_RDR_ICCPOWERON = 0x62.toByte()

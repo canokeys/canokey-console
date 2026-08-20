@@ -46,9 +46,29 @@ public class CcidPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    private final class SmartCardSession {
+        let card: TKSmartCard
+        private var began = false
+        private var ended = false
+
+        init(card: TKSmartCard) {
+            self.card = card
+        }
+
+        func markBegan() {
+            began = true
+        }
+
+        func endIfNeeded() {
+            guard began && !ended else { return }
+            ended = true
+            card.endSession()
+        }
+    }
+
     private struct PendingTransceive {
         let generation: Int
-        let card: TKSmartCard
+        let session: SmartCardSession
         let completion: TransceiveCompletion
         let run: () -> Void
     }
@@ -97,6 +117,7 @@ public class CcidPlugin: NSObject, FlutterPlugin {
             guard let args = call.arguments as? [String: Any?],
                   let reader = args["reader"] as? String,
                   let capdu = args["capdu"] as? String,
+                  capdu.utf8.count <= Self.maxCapduHexLength,
                   let capduData = capdu.hexadecimal else {
                 result(FlutterError(code: "INVALID_ARGUMENT", message: "A valid reader and CAPDU are required", details: nil))
                 return
@@ -107,15 +128,19 @@ public class CcidPlugin: NSObject, FlutterPlugin {
             }
             let generation = connectionGenerations[reader, default: 0]
             let completion = TransceiveCompletion(result: result)
+            let session = SmartCardSession(card: card)
             let transceive = PendingTransceive(
                 generation: generation,
-                card: card,
+                session: session,
                 completion: completion,
                 run: {
                     func finish(_ response: Any?) {
                         DispatchQueue.main.async {
-                            guard !completion.isCompleted else { return }
-                            card.endSession()
+                            guard !completion.isCompleted else {
+                                session.endIfNeeded()
+                                return
+                            }
+                            session.endIfNeeded()
                             completion.complete(response)
                             self.finishTransceive(reader: reader, generation: generation)
                         }
@@ -123,10 +148,11 @@ public class CcidPlugin: NSObject, FlutterPlugin {
 
                     card.beginSession { (success, error) in
                         DispatchQueue.main.async {
+                            if success {
+                                session.markBegan()
+                            }
                             guard !completion.isCompleted else {
-                                if success {
-                                    card.endSession()
-                                }
+                                session.endIfNeeded()
                                 return
                             }
                             if !success {
@@ -210,8 +236,10 @@ public class CcidPlugin: NSObject, FlutterPlugin {
         cancelledTransceives.forEach { $0.completion.complete(error) }
 
         if let activeTransceive = activeTransceives.removeValue(forKey: reader) {
-            activeTransceive.card.endSession()
+            activeTransceive.session.endIfNeeded()
             activeTransceive.completion.complete(error)
         }
     }
+
+    private static let maxCapduHexLength = 2 * 1024 * 1024
 }

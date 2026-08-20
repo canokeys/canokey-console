@@ -19,6 +19,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
 
 
 /** CcidPlugin */
@@ -104,7 +105,7 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler {
                     readers.values
                         .filter { it.deviceName == detachedDevice.deviceName }
                         .mapNotNull { it.ccid }
-                        .forEach { ccid -> ioExecutor.execute { ccid.close() } }
+                        .forEach(::closeAsync)
                     readers.entries.removeIf { (_, reader) ->
                         reader.deviceName == detachedDevice.deviceName
                     }
@@ -167,6 +168,14 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler {
                     result.error("CCID_READER_NOT_CONNECTED", "Reader not connected", null)
                     return
                 }
+                if (capdu.length / 2 > ccid.maxApduLength) {
+                    result.error(
+                        "CCID_INVALID_ARGUMENT",
+                        "CAPDU exceeds the reader's maximum message length",
+                        null
+                    )
+                    return
+                }
                 val pendingTransceive = PendingTransceive(reader.id, result)
                 pendingTransceives.add(pendingTransceive)
                 ioExecutor.execute {
@@ -213,7 +222,7 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler {
                     "CCID_READER_DISCONNECTED",
                     "Reader disconnected"
                 )
-                reader.ccid?.let { ccid -> ioExecutor.execute { ccid.close() } }
+                reader.ccid?.let(::closeAsync)
                 readers[name] = reader.copy(ccid = null)
                 result.success(null)
             }
@@ -239,7 +248,7 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler {
         }
         pendingTransceives.clear()
         readers.values.mapNotNull { it.ccid }.forEach { ccid ->
-            ioExecutor.execute { ccid.close() }
+            closeAsync(ccid)
         }
         readers.clear()
         ioExecutor.shutdown()
@@ -281,7 +290,7 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler {
         readers.values
             .filter { it.id !in newReaderIds }
             .mapNotNull { it.ccid }
-            .forEach { ccid -> ioExecutor.execute { ccid.close() } }
+            .forEach(::closeAsync)
         pendingConnections.keys
             .filter { it !in newReaderIds }
             .forEach { readerId ->
@@ -378,12 +387,12 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler {
 
             mainHandler.post {
                 if (!pendingConnections.remove(reader.id, pendingConnection)) {
-                    ccid?.close()
+                    ccid?.let(::closeAsync)
                     return@post
                 }
                 val readerEntry = readers.entries.firstOrNull { it.value.id == reader.id }
                 if (readerEntry == null) {
-                    ccid?.close()
+                    ccid?.let(::closeAsync)
                     pendingConnection.result.error(
                         "CCID_READER_NOT_FOUND", "Reader disconnected", null
                     )
@@ -479,7 +488,16 @@ class CcidPlugin : FlutterPlugin, MethodCallHandler {
     }
 
     private fun String.isValidHex(): Boolean {
-        return isNotEmpty() && length % 2 == 0 && all { it.isDigit() || it.lowercaseChar() in 'a'..'f' }
+        return isNotEmpty() && length % 2 == 0 &&
+                all { it in '0'..'9' || it.lowercaseChar() in 'a'..'f' }
+    }
+
+    private fun closeAsync(ccid: Ccid) {
+        try {
+            ioExecutor.execute { ccid.close() }
+        } catch (_: RejectedExecutionException) {
+            Thread({ ccid.close() }, "ccid-usb-close").start()
+        }
     }
 
     private fun cancelTransceives(
