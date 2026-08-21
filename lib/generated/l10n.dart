@@ -3000,6 +3000,16 @@ class S {
     );
   }
 
+  /// `CSR, self-signed certificates, and attestation are unavailable for this algorithm.`
+  String get pivPostQuantumCertificateGenerationDisabled {
+    return Intl.message(
+      'CSR, self-signed certificates, and attestation are unavailable for this algorithm.',
+      name: 'pivPostQuantumCertificateGenerationDisabled',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Check client compatibility before using this algorithm.`
   String get pivExtendedAlgorithmCompatibilityWarning {
     return Intl.message(
@@ -3355,6 +3365,46 @@ class S {
     return Intl.message(
       'Generate X25519 Key',
       name: 'pivGenerateX25519Key',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Generate Key`
+  String get pivGenerateKey {
+    return Intl.message(
+      'Generate Key',
+      name: 'pivGenerateKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Generating a {algorithm} key`
+  String pivGeneratingKey(Object algorithm) {
+    return Intl.message(
+      'Generating a $algorithm key',
+      name: 'pivGeneratingKey',
+      desc: '',
+      args: [algorithm],
+    );
+  }
+
+  /// `Generate Key Failed`
+  String get pivGenerateKeyFailed {
+    return Intl.message(
+      'Generate Key Failed',
+      name: 'pivGenerateKeyFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Key Generated`
+  String get pivKeyGenerated {
+    return Intl.message(
+      'Key Generated',
+      name: 'pivKeyGenerated',
       desc: '',
       args: [],
     );

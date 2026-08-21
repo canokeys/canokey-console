@@ -244,23 +244,25 @@ fn copy_unsigned_integer(integer: &[u8], output: &mut [u8]) -> Option<()> {
     Some(())
 }
 
+fn x509_public_key_size(parsed_key_size: usize, encoded_key_length: usize) -> usize {
+    if parsed_key_size == 0 {
+        encoded_key_length * 8
+    } else {
+        parsed_key_size
+    }
+}
+
 fn gen_x590_meta(cert: X509Certificate<'_>) -> X509CertData {
-    let pk = cert
-        .tbs_certificate
-        .subject_pki
-        .parsed()
-        .expect("cannot parse public key from X.509");
+    let subject_pki = &cert.tbs_certificate.subject_pki;
     let public_key_algorithm = cert
         .tbs_certificate
         .subject_pki
         .algorithm
         .oid()
         .to_id_string();
-    let public_key_size = match public_key_algorithm.as_str() {
-        // RFC 8410: id-X25519 and id-Ed25519 public keys are 32 octets.
-        "1.3.101.110" | "1.3.101.112" => 256,
-        _ => pk.key_size(),
-    };
+    let parsed_key_size = subject_pki.parsed().map_or(0, |key| key.key_size());
+    let public_key_size =
+        x509_public_key_size(parsed_key_size, subject_pki.subject_public_key.data.len());
     X509CertData {
         bytes: cert.as_ref().to_vec(),
         subject: cert.subject().to_string(),
@@ -475,5 +477,14 @@ mod tests {
             b"modified".to_vec(),
             signature.to_bytes().to_vec(),
         ));
+    }
+
+    #[test]
+    fn reports_unknown_public_key_size_from_spki_bits() {
+        let key = x509_parser::public_key::PublicKey::Unknown(&[0; 1952]);
+
+        assert_eq!(key.key_size(), 0);
+        assert_eq!(x509_public_key_size(key.key_size(), 1952), 15616);
+        assert_eq!(x509_public_key_size(256, 65), 256);
     }
 }

@@ -57,7 +57,7 @@ class PivSlotListItem extends StatelessWidget {
                     _chip(context, S.of(context).pivEmpty, muted: true),
                     if (hasCertificate) _chip(context, certificateLabel),
                   ] else ...[
-                    _chip(context, slot!.algorithm.name.toUpperCase()),
+                    _chip(context, slot!.algorithm.label),
                     _chip(context, certificateLabel, muted: !hasCertificate),
                     _chip(context, _pinPolicyLabel(context, slot!.pinPolicy),
                         muted: true),

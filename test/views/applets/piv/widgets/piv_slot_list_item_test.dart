@@ -70,10 +70,30 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Card Authentication - 9E'), findsOneWidget);
-    expect(find.text('RSA2048'), findsOneWidget);
+    expect(find.text('RSA 2048'), findsOneWidget);
     expect(find.text('Certificate'), findsOneWidget);
     expect(find.text('PIN: Always'), findsOneWidget);
     expect(find.text('Touch: Cached for 15 seconds'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('uses standard post-quantum algorithm names', (tester) async {
+    final slot = SlotInfo(
+      0x9E,
+      AlgorithmType.mldsa65,
+      PinPolicy.never,
+      TouchPolicy.never,
+      Origin.generated,
+      const [],
+      false,
+      0,
+      0,
+    );
+
+    await tester.pumpWidget(buildItem(width: 420, slot: slot));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ML-DSA-65'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

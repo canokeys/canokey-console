@@ -68,6 +68,9 @@ class PivPublicKey {
               rawPublicKey, 'curveEd25519'),
           rawPublicKey: rawPublicKey,
         );
+      case AlgorithmType.mldsa65:
+      case AlgorithmType.mlkem768:
+        return _postQuantumPublicKey(algorithm, keyMap);
       case AlgorithmType.x25519:
         return PivPublicKey(
           algorithm: algorithm,
@@ -118,6 +121,9 @@ class PivPublicKey {
               _montgomerySubjectPublicKeyInfo(keyMap, 'curveX25519'),
           rawPublicKey: _childOctets(keyMap, 0x86),
         );
+      case AlgorithmType.mldsa65:
+      case AlgorithmType.mlkem768:
+        return _postQuantumPublicKey(algorithm, keyMap);
       default:
         throw ArgumentError('Unsupported public key algorithm: $algorithm');
     }
@@ -196,6 +202,27 @@ class PivPublicKey {
       ..add(ASN1BitString(stringValues: publicKey));
 
     return subjectPublicKeyInfo.encode();
+  }
+
+  static PivPublicKey _postQuantumPublicKey(
+      AlgorithmType algorithm, Map keyMap) {
+    final publicKey = _childOctets(keyMap, 0x86);
+    final oid = switch (algorithm) {
+      AlgorithmType.mldsa65 => '2.16.840.1.101.3.4.3.18',
+      AlgorithmType.mlkem768 => '2.16.840.1.101.3.4.4.2',
+      _ =>
+        throw ArgumentError('Unsupported post-quantum algorithm: $algorithm'),
+    };
+    final algorithmIdentifier = ASN1Sequence()
+      ..add(ASN1ObjectIdentifier.fromIdentifierString(oid));
+    final subjectPublicKeyInfo = ASN1Sequence()
+      ..add(algorithmIdentifier)
+      ..add(ASN1BitString(stringValues: publicKey));
+    return PivPublicKey(
+      algorithm: algorithm,
+      encodedSubjectPublicKeyInfo: subjectPublicKeyInfo.encode(),
+      rawPublicKey: publicKey,
+    );
   }
 
   static String _curveName(AlgorithmType algorithm) {
@@ -301,6 +328,7 @@ class PivCsrBuilder {
       AlgorithmType.secp256k1 => 'ecdsaWithSHA256',
       AlgorithmType.sm2 => '1.2.156.10197.1.501',
       AlgorithmType.ed25519 => 'curveEd25519',
+      AlgorithmType.mldsa65 => '2.16.840.1.101.3.4.3.18',
       _ => throw ArgumentError('Unsupported CSR algorithm: $algorithm'),
     };
 

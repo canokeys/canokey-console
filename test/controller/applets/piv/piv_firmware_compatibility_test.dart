@@ -22,6 +22,8 @@ void main() {
       expect(controller.supportsPinOnlyMode, isTrue);
       expect(controller.supportsPinRetryConfig, isTrue);
       expect(controller.supportsAlgorithm(AlgorithmType.eccp521), isTrue);
+      expect(controller.supportsAlgorithm(AlgorithmType.mldsa65), isTrue);
+      expect(controller.supportsAlgorithm(AlgorithmType.mlkem768), isTrue);
     }
   });
 
@@ -32,6 +34,8 @@ void main() {
       expect(controller.supportsPinOnlyMode, isFalse);
       expect(controller.supportsPinRetryConfig, isFalse);
       expect(controller.supportsAlgorithm(AlgorithmType.eccp521), isFalse);
+      expect(controller.supportsAlgorithm(AlgorithmType.mldsa65), isFalse);
+      expect(controller.supportsAlgorithm(AlgorithmType.mlkem768), isFalse);
     }
   });
 
@@ -54,6 +58,8 @@ void main() {
     expect(config.idFor(AlgorithmType.rsa3072), 0x50);
     expect(config.idFor(AlgorithmType.rsa4096), 0x51);
     expect(config.idFor(AlgorithmType.x25519), 0x52);
+    expect(config.idFor(AlgorithmType.mldsa65), 0xE2);
+    expect(config.idFor(AlgorithmType.mlkem768), 0xE3);
   });
 
   test('rejects current development commands before contacting old firmware',

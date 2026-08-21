@@ -19,7 +19,9 @@ enum AlgorithmType {
   secp256k1(0x53),
   sm2(0x54),
   ed25519(0xE0),
-  x25519(0xE1);
+  x25519(0xE1),
+  mldsa65(0xE2),
+  mlkem768(0xE3);
 
   const AlgorithmType(this.value);
 
@@ -57,12 +59,31 @@ enum AlgorithmType {
         return AlgorithmType.ed25519;
       case 0xE1:
         return AlgorithmType.x25519;
+      case 0xE2:
+        return AlgorithmType.mldsa65;
+      case 0xE3:
+        return AlgorithmType.mlkem768;
       default:
         throw ArgumentError('Invalid algorithm value: $value');
     }
   }
 
   final int value;
+
+  String get label => switch (this) {
+        AlgorithmType.eccp256 => 'ECC P-256',
+        AlgorithmType.eccp384 => 'ECC P-384',
+        AlgorithmType.eccp521 => 'ECC P-521',
+        AlgorithmType.secp256k1 => 'secp256k1',
+        AlgorithmType.sm2 => 'SM2',
+        AlgorithmType.ed25519 => 'Ed25519',
+        AlgorithmType.rsa2048 => 'RSA 2048',
+        AlgorithmType.rsa3072 => 'RSA 3072',
+        AlgorithmType.rsa4096 => 'RSA 4096',
+        AlgorithmType.mldsa65 => 'ML-DSA-65',
+        AlgorithmType.mlkem768 => 'ML-KEM-768',
+        _ => name.toUpperCase(),
+      };
 }
 
 class PivAlgorithmExtensionConfig {
@@ -74,6 +95,8 @@ class PivAlgorithmExtensionConfig {
   final int secp256k1;
   final int sm2;
   final int secp521r1;
+  final int mldsa65;
+  final int mlkem768;
 
   const PivAlgorithmExtensionConfig({
     required this.enabled,
@@ -84,6 +107,8 @@ class PivAlgorithmExtensionConfig {
     required this.secp256k1,
     required this.sm2,
     required this.secp521r1,
+    required this.mldsa65,
+    required this.mlkem768,
   });
 
   static const defaults = PivAlgorithmExtensionConfig(
@@ -95,6 +120,8 @@ class PivAlgorithmExtensionConfig {
     secp256k1: 0x53,
     sm2: 0x54,
     secp521r1: 0x15,
+    mldsa65: 0xE2,
+    mlkem768: 0xE3,
   );
 
   static const legacyV2 = PivAlgorithmExtensionConfig(
@@ -106,6 +133,8 @@ class PivAlgorithmExtensionConfig {
     secp256k1: 0x53,
     sm2: 0x54,
     secp521r1: 0x15,
+    mldsa65: 0xE2,
+    mlkem768: 0xE3,
   );
 
   List<int> encode() => [
@@ -117,6 +146,8 @@ class PivAlgorithmExtensionConfig {
         secp256k1,
         secp521r1,
         sm2,
+        mldsa65,
+        mlkem768,
       ];
 
   Map<int, AlgorithmType> toAlgorithmMap() => {
@@ -127,6 +158,8 @@ class PivAlgorithmExtensionConfig {
         secp256k1: AlgorithmType.secp256k1,
         sm2: AlgorithmType.sm2,
         secp521r1: AlgorithmType.eccp521,
+        mldsa65: AlgorithmType.mldsa65,
+        mlkem768: AlgorithmType.mlkem768,
       };
 
   int idFor(AlgorithmType algorithm) {
@@ -138,6 +171,8 @@ class PivAlgorithmExtensionConfig {
       AlgorithmType.secp256k1 => secp256k1,
       AlgorithmType.sm2 => sm2,
       AlgorithmType.eccp521 => secp521r1,
+      AlgorithmType.mldsa65 => mldsa65,
+      AlgorithmType.mlkem768 => mlkem768,
       _ => algorithm.value,
     };
   }
@@ -158,6 +193,12 @@ class PivAlgorithmExtensionConfig {
       secp521r1: data.length >= 8
           ? data[6]
           : PivAlgorithmExtensionConfig.defaults.secp521r1,
+      mldsa65: data.length >= 9
+          ? data[8]
+          : PivAlgorithmExtensionConfig.defaults.mldsa65,
+      mlkem768: data.length >= 10
+          ? data[9]
+          : PivAlgorithmExtensionConfig.defaults.mlkem768,
     );
   }
 }

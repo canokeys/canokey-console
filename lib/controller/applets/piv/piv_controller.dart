@@ -11,6 +11,7 @@ import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/piv_csr.dart';
 import 'package:canokey_console/helper/utils/piv_management_key.dart';
+import 'package:canokey_console/helper/utils/piv_post_quantum.dart';
 import 'package:canokey_console/helper/utils/piv_signature.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
@@ -66,6 +67,10 @@ class PivController extends PollingController {
       case AlgorithmType.secp256k1:
       case AlgorithmType.sm2:
         return supportsMetadata && algorithmExtensionConfig.enabled;
+      case AlgorithmType.mldsa65:
+      case AlgorithmType.mlkem768:
+        return supportsCurrentDevelopmentFeatures &&
+            algorithmExtensionConfig.enabled;
       case AlgorithmType.pin:
       case AlgorithmType.tdes:
       case AlgorithmType.aes128:
@@ -599,6 +604,44 @@ class PivController extends PollingController {
     return c.future;
   }
 
+  Future<Uint8List?> decapsulateMlKem768(
+      String slot, String pin, Uint8List ciphertext) async {
+    if (!supportsAlgorithm(AlgorithmType.mlkem768)) {
+      return null;
+    }
+    final request =
+        PivPostQuantumProtocol.buildMlKemDecapsulationData(ciphertext);
+    final c = Completer<Uint8List?>();
+    try {
+      await SmartCard.process((String sn) async {
+        SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
+        if (!await _verifyPinInSession(pin)) {
+          c.complete(null);
+          return;
+        }
+        final resp = await _generalAuthenticateRaw(
+          slot,
+          AlgorithmType.mlkem768,
+          hex.encode(request),
+        );
+        if (!SmartCard.isOK(resp)) {
+          c.complete(null);
+          return;
+        }
+        c.complete(PivPostQuantumProtocol.parseMlKemSharedSecret(
+            hex.decode(SmartCard.dropSW(resp))));
+      });
+    } catch (_) {
+      if (!c.isCompleted) {
+        c.complete(null);
+      }
+    }
+    if (!c.isCompleted) {
+      c.complete(null);
+    }
+    return c.future;
+  }
+
   Future<Uint8List?> signData(
       String slot, SlotInfo slotInfo, String pin, Uint8List data) async {
     final publicKey = publicKeyForSlot(slotInfo);
@@ -669,6 +712,38 @@ class PivController extends PollingController {
     return c.future;
   }
 
+  Future<bool> importPostQuantumSeed(String slotNumber, AlgorithmType algorithm,
+      Uint8List seed, PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
+    if (!supportsAlgorithm(algorithm)) {
+      return false;
+    }
+    try {
+      PivPostQuantumProtocol.buildImportData(
+        algorithm: algorithm,
+        seed: seed,
+        pinPolicy: pinPolicy,
+        touchPolicy: touchPolicy,
+      );
+    } on ArgumentError {
+      return false;
+    }
+    final c = Completer<bool>();
+    try {
+      await SmartCard.process((String sn) async {
+        c.complete(await _importPostQuantumSeedInSession(
+            slotNumber, algorithm, seed, pinPolicy, touchPolicy));
+      });
+    } catch (_) {
+      if (!c.isCompleted) {
+        c.complete(false);
+      }
+    }
+    if (!c.isCompleted) {
+      c.complete(false);
+    }
+    return c.future;
+  }
+
   Future<bool> changeAlgorithmExtensionConfigAuthenticated({
     required PivAlgorithmExtensionConfig config,
     required String pin,
@@ -706,10 +781,36 @@ class PivController extends PollingController {
     ECPrivateKey? ecPrivateKey,
     RSAPrivateKey? rsaPrivateKey,
     Uint8List? edPrivateKey,
+    Uint8List? mlDsaSeed,
+    Uint8List? mlKemSeed,
     Uint8List? cert,
     required PinPolicy pinPolicy,
     required TouchPolicy touchPolicy,
   }) async {
+    if ((mlDsaSeed != null && !supportsAlgorithm(AlgorithmType.mldsa65)) ||
+        (mlKemSeed != null && !supportsAlgorithm(AlgorithmType.mlkem768))) {
+      return false;
+    }
+    try {
+      if (mlDsaSeed != null) {
+        PivPostQuantumProtocol.buildImportData(
+          algorithm: AlgorithmType.mldsa65,
+          seed: mlDsaSeed,
+          pinPolicy: pinPolicy,
+          touchPolicy: touchPolicy,
+        );
+      }
+      if (mlKemSeed != null) {
+        PivPostQuantumProtocol.buildImportData(
+          algorithm: AlgorithmType.mlkem768,
+          seed: mlKemSeed,
+          pinPolicy: pinPolicy,
+          touchPolicy: touchPolicy,
+        );
+      }
+    } on ArgumentError {
+      return false;
+    }
     final c = Completer<bool>();
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
@@ -737,6 +838,18 @@ class PivController extends PollingController {
       if (edPrivateKey != null &&
           !await _importEd25519KeyInSession(
               slot, edPrivateKey, pinPolicy, touchPolicy)) {
+        c.complete(false);
+        return;
+      }
+      if (mlDsaSeed != null &&
+          !await _importPostQuantumSeedInSession(
+              slot, AlgorithmType.mldsa65, mlDsaSeed, pinPolicy, touchPolicy)) {
+        c.complete(false);
+        return;
+      }
+      if (mlKemSeed != null &&
+          !await _importPostQuantumSeedInSession(slot, AlgorithmType.mlkem768,
+              mlKemSeed, pinPolicy, touchPolicy)) {
         c.complete(false);
         return;
       }
@@ -768,6 +881,26 @@ class PivController extends PollingController {
     var capdu =
         '00FE${_algorithmIdHex(AlgorithmType.ed25519)}$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}$data';
     String resp = await SmartCard.transceive(capdu);
+    return SmartCard.isOK(resp);
+  }
+
+  Future<bool> _importPostQuantumSeedInSession(
+      String slotNumber,
+      AlgorithmType algorithm,
+      Uint8List seed,
+      PinPolicy pinPolicy,
+      TouchPolicy touchPolicy) async {
+    final data = PivPostQuantumProtocol.buildImportData(
+      algorithm: algorithm,
+      seed: seed,
+      pinPolicy: pinPolicy,
+      touchPolicy: touchPolicy,
+    );
+    final resp = await _sendChainedData(
+      instruction: 'FE',
+      p1p2: '${_algorithmIdHex(algorithm)}$slotNumber',
+      data: hex.encode(data),
+    );
     return SmartCard.isOK(resp);
   }
 
@@ -1025,6 +1158,7 @@ class PivController extends PollingController {
         _shaDigest(data, _ecDigestBits(algorithm)),
       AlgorithmType.sm2 => _sm2Digest(data, publicKey),
       AlgorithmType.ed25519 => data,
+      AlgorithmType.mldsa65 => data,
       _ => throw ArgumentError('Unsupported signing algorithm: $algorithm'),
     };
     final inner = '820081${_hexLength(input.length)}${hex.encode(input)}';
@@ -1034,12 +1168,26 @@ class PivController extends PollingController {
   Future<String> _generalAuthenticate(String slot, AlgorithmType algorithm,
       Uint8List data, PivPublicKey? publicKey) async {
     final signData = _buildAuthenticateData(algorithm, data, publicKey);
-    return _generalAuthenticateRaw(slot, algorithm, signData);
+    final algorithmId = PivSignatureProtocol.generalAuthenticateAlgorithmId(
+      algorithm: algorithm,
+      messageLength: data.length,
+      config: algorithmExtensionConfig,
+    );
+    return _generalAuthenticateRaw(
+      slot,
+      algorithm,
+      signData,
+      algorithmId: algorithmId,
+    );
   }
 
   Future<String> _generalAuthenticateRaw(
-      String slot, AlgorithmType algorithm, String data) async {
-    final algorithmHex = _algorithmIdHex(algorithm);
+      String slot, AlgorithmType algorithm, String data,
+      {int? algorithmId}) async {
+    final algorithmHex =
+        (algorithmId ?? algorithmExtensionConfig.idFor(algorithm))
+            .toRadixString(16)
+            .padLeft(2, '0');
     return _sendChainedData(
       p1p2: '$algorithmHex$slot',
       instruction: '87',

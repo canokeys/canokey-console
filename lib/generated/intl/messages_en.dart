@@ -59,31 +59,33 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m15(slot) =>
       "This action will delete the slot ${slot} from your CanoKey. Make sure you have other ways to authenticate.";
 
-  static String m16(sourceSlot) => "Move Key from ${sourceSlot}";
+  static String m16(algorithm) => "Generating a ${algorithm} key";
 
-  static String m17(action, slot) =>
+  static String m17(sourceSlot) => "Move Key from ${sourceSlot}";
+
+  static String m18(action, slot) =>
       "${action} will replace the private key in slot ${slot}. Existing authentication or signing that depends on this key may stop working.";
 
-  static String m18(policy) => "PIN: ${policy}";
+  static String m19(policy) => "PIN: ${policy}";
 
-  static String m19(index) => "Retired ${index}";
+  static String m20(index) => "Retired ${index}";
 
-  static String m20(remaining, total) => "Retries: ${remaining}/${total}";
+  static String m21(remaining, total) => "Retries: ${remaining}/${total}";
 
-  static String m21(policy) => "Touch: ${policy}";
+  static String m22(policy) => "Touch: ${policy}";
 
-  static String m22(layout) => "Current: ${layout}";
+  static String m23(layout) => "Current: ${layout}";
 
-  static String m23(applet) =>
+  static String m24(applet) =>
       "This operation will RESET all data of ${applet}!";
 
-  static String m24(min) => "At least ${min} characters";
+  static String m25(min) => "At least ${min} characters";
 
-  static String m25(max) => "At most ${max} characters";
+  static String m26(max) => "At most ${max} characters";
 
-  static String m26(length) => "Need exact ${length} characters";
+  static String m27(length) => "Need exact ${length} characters";
 
-  static String m27(name) =>
+  static String m28(name) =>
       "This action will delete the account ${name} from your CanoKey. Make sure you have other ways to log in.";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -733,6 +735,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivGenerateCsrFailed": MessageLookupByLibrary.simpleMessage(
       "Generate CSR Failed",
     ),
+    "pivGenerateKey": MessageLookupByLibrary.simpleMessage("Generate Key"),
+    "pivGenerateKeyFailed": MessageLookupByLibrary.simpleMessage(
+      "Generate Key Failed",
+    ),
     "pivGenerateX25519": MessageLookupByLibrary.simpleMessage(
       "Generate X25519",
     ),
@@ -745,6 +751,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivGeneratingCsr": MessageLookupByLibrary.simpleMessage(
       "Generating a CSR",
     ),
+    "pivGeneratingKey": m16,
     "pivGeneratingX25519Key": MessageLookupByLibrary.simpleMessage(
       "Generating an X25519 key",
     ),
@@ -762,6 +769,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivImportingPrivateKey": MessageLookupByLibrary.simpleMessage(
       "Importing a private key",
     ),
+    "pivKeyGenerated": MessageLookupByLibrary.simpleMessage("Key Generated"),
     "pivKeyManagement": MessageLookupByLibrary.simpleMessage("Key Management"),
     "pivKeyMoved": MessageLookupByLibrary.simpleMessage("Key moved"),
     "pivKeyOnlyKeepsCertificate": MessageLookupByLibrary.simpleMessage(
@@ -792,7 +800,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivMoveKeyFailed": MessageLookupByLibrary.simpleMessage(
       "Key move failed. The destination must not contain a key.",
     ),
-    "pivMoveKeyFrom": m16,
+    "pivMoveKeyFrom": m17,
     "pivMoveKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "Only the private key is moved. Certificates remain in their current slots.",
     ),
@@ -824,14 +832,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivOriginImported": MessageLookupByLibrary.simpleMessage("Imported"),
     "pivOverwrite": MessageLookupByLibrary.simpleMessage("Overwrite"),
     "pivOverwriteKey": MessageLookupByLibrary.simpleMessage("Overwrite Key"),
-    "pivOverwriteKeyPrompt": m17,
+    "pivOverwriteKeyPrompt": m18,
     "pivPinAndTouchPolicy": MessageLookupByLibrary.simpleMessage(
       "PIN and Touch Policy",
     ),
     "pivPinManagement": MessageLookupByLibrary.simpleMessage("PIN Management"),
     "pivPinPolicy": MessageLookupByLibrary.simpleMessage("PIN Policy"),
     "pivPinPolicyAlways": MessageLookupByLibrary.simpleMessage("Always"),
-    "pivPinPolicyChip": m18,
+    "pivPinPolicyChip": m19,
     "pivPinPolicyDefault": MessageLookupByLibrary.simpleMessage("Default"),
     "pivPinPolicyNever": MessageLookupByLibrary.simpleMessage("Never"),
     "pivPinPolicyOnce": MessageLookupByLibrary.simpleMessage("Once"),
@@ -843,6 +851,10 @@ class MessageLookup extends MessageLookupByLibrary {
           "Use the PIN to unlock the management key stored on this card.",
         ),
     "pivPinRetries": MessageLookupByLibrary.simpleMessage("PIN retries"),
+    "pivPostQuantumCertificateGenerationDisabled":
+        MessageLookupByLibrary.simpleMessage(
+          "CSR, self-signed certificates, and attestation are unavailable for this algorithm.",
+        ),
     "pivPrivateKey": MessageLookupByLibrary.simpleMessage("Private Key"),
     "pivProvisioning": MessageLookupByLibrary.simpleMessage("Provisioning"),
     "pivPublicKey": MessageLookupByLibrary.simpleMessage("Public Key"),
@@ -850,8 +862,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage("Random"),
     "pivRetired1": MessageLookupByLibrary.simpleMessage("Retired 1"),
     "pivRetired2": MessageLookupByLibrary.simpleMessage("Retired 2"),
-    "pivRetiredSlot": m19,
-    "pivRetries": m20,
+    "pivRetiredSlot": m20,
+    "pivRetries": m21,
     "pivRetriesUnknown": MessageLookupByLibrary.simpleMessage(
       "Retries: unknown",
     ),
@@ -941,7 +953,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivTouchPolicyCached": MessageLookupByLibrary.simpleMessage(
       "Cached for 15 seconds",
     ),
-    "pivTouchPolicyChip": m21,
+    "pivTouchPolicyChip": m22,
     "pivTouchPolicyDefault": MessageLookupByLibrary.simpleMessage("Default"),
     "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("Never"),
     "pivUnblockPin": MessageLookupByLibrary.simpleMessage("Unblock PIN"),
@@ -1038,7 +1050,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsKeyboardLayout": MessageLookupByLibrary.simpleMessage(
       "Keyboard Layout",
     ),
-    "settingsKeyboardLayoutCurrent": m22,
+    "settingsKeyboardLayoutCurrent": m23,
     "settingsKeyboardLayoutCustom": MessageLookupByLibrary.simpleMessage(
       "Custom layout",
     ),
@@ -1074,7 +1086,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsResetAllPrompt": MessageLookupByLibrary.simpleMessage(
       "All data will be erased. Once confirmed, the CanoKey will blink multiple times. Please touch it each time you see a blink until the success prompt appears.",
     ),
-    "settingsResetApplet": m23,
+    "settingsResetApplet": m24,
     "settingsResetConditionNotSatisfying": MessageLookupByLibrary.simpleMessage(
       "PIN has not been locked yet",
     ),
@@ -1118,9 +1130,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "successfullyChanged": MessageLookupByLibrary.simpleMessage(
       "Successfully changed",
     ),
-    "validationAtLeastCharacters": m24,
-    "validationAtMostCharacters": m25,
-    "validationExactLength": m26,
+    "validationAtLeastCharacters": m25,
+    "validationAtMostCharacters": m26,
+    "validationExactLength": m27,
     "validationHexString": MessageLookupByLibrary.simpleMessage(
       "Please input a valid hexadecimal string.",
     ),
@@ -1132,7 +1144,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
       "This key does not support WebAuthn PIN.",
     ),
-    "webauthnDelete": m27,
+    "webauthnDelete": m28,
     "webauthnInputPinPrompt": MessageLookupByLibrary.simpleMessage(
       "Please input your WebAuthn PIN.",
     ),

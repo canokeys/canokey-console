@@ -141,9 +141,10 @@ packages:
   ccid:
     dependency: "direct main"
     description:
-      path: "third_party/ccid"
-      relative: true
-    source: path
+      name: ccid
+      sha256: "84d69d9b7e3846864822c63f0c13736e15753bfd9fa22a827041ee3d071b5a06"
+      url: "https://pub.dev"
+    source: hosted
     version: "0.1.9"
   characters:
     dependency: transitive
