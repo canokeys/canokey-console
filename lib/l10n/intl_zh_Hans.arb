@@ -490,7 +490,7 @@
   "pivCertificateValidFrom": "生效时间",
   "pivCertificateValidTo": "失效时间",
   "pivProvisioning": "配置",
-  "pivDiagnostics": "诊断",
+  "pivDiagnostics": "密钥操作",
   "pivDangerZone": "危险操作",
   "pivSignFilePrompt": "为所选文件生成分离式原始签名。",
   "pivNoFileSelected": "未选择文件",

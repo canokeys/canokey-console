@@ -1,3 +1,4 @@
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:flutter/material.dart';
 
 class KeyboardSafeDialog extends StatelessWidget {
@@ -10,7 +11,7 @@ class KeyboardSafeDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return AppDialogSurface(
       child: SingleChildScrollView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         child: child,

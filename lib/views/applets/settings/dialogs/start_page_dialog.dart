@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
@@ -11,7 +12,7 @@ class StartPageDialog extends StatelessWidget with UIMixin {
   const StartPageDialog({super.key});
 
   static Future<void> show() {
-    return Get.dialog(const StartPageDialog());
+    return AppDialog.show(const StartPageDialog());
   }
 
   static String pageName(BuildContext context, String path) {
@@ -35,8 +36,7 @@ class StartPageDialog extends StatelessWidget with UIMixin {
     }
   }
 
-  Widget _buildStartPageItem(
-      BuildContext context, RxString startPage, String path) {
+  Widget _buildStartPageItem(BuildContext context, RxString startPage, String path) {
     return RadioListTile(
       dense: true,
       contentPadding: Spacing.x(16),
@@ -52,9 +52,9 @@ class StartPageDialog extends StatelessWidget with UIMixin {
   Widget build(BuildContext context) {
     final startPage = (LocalStorage.getStartPage() ?? '/').obs;
 
-    return Dialog(
+    return AppDialogSurface(
       child: SizedBox(
-        width: 400,
+        width: AppDialogWidth.compact,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,8 +68,7 @@ class StartPageDialog extends StatelessWidget with UIMixin {
                   children: [
                     _buildStartPageItem(context, startPage, '/'),
                     _buildStartPageItem(context, startPage, '/applets/oath'),
-                    _buildStartPageItem(
-                        context, startPage, '/applets/webauthn'),
+                    _buildStartPageItem(context, startPage, '/applets/webauthn'),
                     _buildStartPageItem(context, startPage, '/applets/pass'),
                     _buildStartPageItem(context, startPage, '/applets/piv'),
                     _buildStartPageItem(context, startPage, '/applets/openpgp'),
@@ -87,8 +86,7 @@ class StartPageDialog extends StatelessWidget with UIMixin {
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).cancel,
-                        color: contentTheme.onSecondary),
+                    child: CustomizedText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
                   ),
                   Spacing.width(16),
                   CustomizedButton.rounded(
@@ -99,8 +97,7 @@ class StartPageDialog extends StatelessWidget with UIMixin {
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(S.of(context).confirm,
-                        color: contentTheme.onPrimary),
+                    child: CustomizedText.labelMedium(S.of(context).confirm, color: contentTheme.onPrimary),
                   ),
                 ],
               ),

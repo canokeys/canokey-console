@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:base32/base32.dart';
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
@@ -50,7 +51,7 @@ class AddAccountDialog extends BaseDialog with UIMixin {
     OathAlgorithm? initialAlgorithm,
     int? initialDigits,
   }) {
-    return Get.dialog(
+    return AppDialog.show(
       AddAccountDialog(
         onAddAccount: onAddAccount,
         initialIssuer: initialIssuer,
@@ -61,7 +62,6 @@ class AddAccountDialog extends BaseDialog with UIMixin {
         initialAlgorithm: initialAlgorithm,
         initialDigits: initialDigits,
       ),
-      barrierDismissible: false,
     );
   }
 

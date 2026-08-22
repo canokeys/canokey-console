@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
@@ -29,13 +30,12 @@ class Sm2ConfigDialog extends BaseDialog with UIMixin {
     required bool canChangeEnabled,
     required Function(bool enabled, int curveId, int algoId) onConfirm,
   }) {
-    return Get.dialog(
+    return AppDialog.show(
       Sm2ConfigDialog(
         config: config,
         canChangeEnabled: canChangeEnabled,
         onConfirm: onConfirm,
       ),
-      barrierDismissible: false,
     );
   }
 
@@ -43,8 +43,7 @@ class Sm2ConfigDialog extends BaseDialog with UIMixin {
   State<Sm2ConfigDialog> createState() => _Sm2ConfigDialogState();
 }
 
-class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
-    with UIMixin {
+class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog> with UIMixin {
   final FormValidator validator = FormValidator();
 
   late final RxBool enabled;
@@ -53,22 +52,15 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
   void initState() {
     super.initState();
     enabled = (widget.canChangeEnabled ? widget.config.enabled : true).obs;
-    validator.addField('curveId',
-        controller: TextEditingController(),
-        validators: [IntValidator(min: -65536, max: 65535)]);
-    validator.addField('algoId',
-        controller: TextEditingController(),
-        validators: [IntValidator(min: -65536, max: 65535)]);
+    validator.addField('curveId', controller: TextEditingController(), validators: [IntValidator(min: -65536, max: 65535)]);
+    validator.addField('algoId', controller: TextEditingController(), validators: [IntValidator(min: -65536, max: 65535)]);
     validator.getController('curveId')!.text = widget.config.curveId.toString();
     validator.getController('algoId')!.text = widget.config.algoId.toString();
   }
 
   void _onSubmit() {
     if (validator.formKey.currentState!.validate()) {
-      widget.onConfirm(
-          enabled.value,
-          int.parse(validator.getController('curveId')!.text),
-          int.parse(validator.getController('algoId')!.text));
+      widget.onConfirm(enabled.value, int.parse(validator.getController('curveId')!.text), int.parse(validator.getController('algoId')!.text));
     }
   }
 
@@ -81,8 +73,7 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
         children: [
           Padding(
             padding: Spacing.all(16),
-            child: CustomizedText.labelLarge(
-                S.of(context).settingsWebAuthnSm2Support),
+            child: CustomizedText.labelLarge(S.of(context).settingsWebAuthnSm2Support),
           ),
           Divider(height: 0, thickness: 1),
           Padding(
@@ -98,8 +89,7 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
                           onChanged: (value) => enabled.value = value!,
                           value: enabled.value,
                           activeColor: contentTheme.primary,
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           visualDensity: getCompactDensity,
                         ),
                         Spacing.width(16),
@@ -138,9 +128,7 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
             Padding(
               padding: Spacing.all(16),
               child: CustomizedText.bodyMedium(errorMessage.value,
-                  color: errorLevel.value == 'E'
-                      ? ContentThemeColor.danger.color
-                      : ContentThemeColor.warning.color),
+                  color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color),
             ),
           Divider(height: 0, thickness: 1),
           Padding(
@@ -153,8 +141,7 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
                   elevation: 0,
                   padding: Spacing.xy(20, 16),
                   backgroundColor: contentTheme.secondary,
-                  child: CustomizedText.labelMedium(S.of(context).close,
-                      color: contentTheme.onSecondary),
+                  child: CustomizedText.labelMedium(S.of(context).close, color: contentTheme.onSecondary),
                 ),
                 Spacing.width(16),
                 CustomizedButton.rounded(
@@ -162,8 +149,7 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
                   elevation: 0,
                   padding: Spacing.xy(20, 16),
                   backgroundColor: contentTheme.primary,
-                  child: CustomizedText.labelMedium(S.of(context).save,
-                      color: contentTheme.onPrimary),
+                  child: CustomizedText.labelMedium(S.of(context).save, color: contentTheme.onPrimary),
                 ),
               ],
             ),

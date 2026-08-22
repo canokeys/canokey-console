@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
@@ -9,7 +10,6 @@ import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/ndef.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:ndef/ndef.dart';
 
 class NdefRecordDialog extends BaseDialog {
@@ -29,9 +29,8 @@ class NdefRecordDialog extends BaseDialog {
     NDEFRecord? record,
     required String defaultLanguage,
   }) {
-    return Get.dialog<NDEFRecord>(
+    return AppDialog.show<NDEFRecord>(
       NdefRecordDialog(record: record, defaultLanguage: defaultLanguage),
-      barrierDismissible: false,
     );
   }
 
@@ -39,8 +38,7 @@ class NdefRecordDialog extends BaseDialog {
   State<NdefRecordDialog> createState() => _NdefRecordDialogState();
 }
 
-class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
-    with UIMixin {
+class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog> with UIMixin {
   static const _typeOptions = [
     NdefEditableRecordType.uri,
     NdefEditableRecordType.text,
@@ -80,27 +78,18 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
     final record = widget.record;
     _type = record?.editableType ?? NdefEditableRecordType.uri;
     _textEncoding = record is TextRecord ? record.encoding : TextEncoding.UTF8;
-    _payloadEncoding =
-        record == null ? NdefPayloadEncoding.text : NdefPayloadEncoding.hex;
+    _payloadEncoding = record == null ? NdefPayloadEncoding.text : NdefPayloadEncoding.hex;
     _tnf = record?.tnf ?? TypeNameFormat.media;
-    _wifiAuthentication = record is WifiRecord
-        ? record.authenticationType
-        : WifiAuthenticationType.wpa2Personal;
-    _wifiEncryption =
-        record is WifiRecord ? record.encryptionType : WifiEncryptionType.aes;
+    _wifiAuthentication = record is WifiRecord ? record.authenticationType : WifiAuthenticationType.wpa2Personal;
+    _wifiEncryption = record is WifiRecord ? record.encryptionType : WifiEncryptionType.aes;
 
     _valueController = TextEditingController(text: _initialValue(record));
-    _secondaryController =
-        TextEditingController(text: _initialSecondaryValue(record));
+    _secondaryController = TextEditingController(text: _initialSecondaryValue(record));
     _languageController = TextEditingController(
-      text: record is TextRecord
-          ? record.language ?? widget.defaultLanguage
-          : widget.defaultLanguage,
+      text: record is TextRecord ? record.language ?? widget.defaultLanguage : widget.defaultLanguage,
     );
     _typeController = TextEditingController(
-      text: _type == NdefEditableRecordType.custom
-          ? record?.safeDecodedType ?? ''
-          : '',
+      text: _type == NdefEditableRecordType.custom ? record?.safeDecodedType ?? '' : '',
     );
     _payloadController = TextEditingController(
       text: _initialPayloadValue(record),
@@ -140,9 +129,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
         Padding(
           padding: Spacing.all(16),
           child: CustomizedText.labelLarge(
-            _editing
-                ? S.of(context).ndefEditRecord
-                : S.of(context).ndefAddRecord,
+            _editing ? S.of(context).ndefEditRecord : S.of(context).ndefAddRecord,
           ),
         ),
         const Divider(height: 0, thickness: 1),
@@ -163,8 +150,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
                   ),
                   Spacing.height(20),
                   ..._buildTypeFields(),
-                  if (!(_type == NdefEditableRecordType.custom &&
-                      _tnf == TypeNameFormat.empty)) ...[
+                  if (!(_type == NdefEditableRecordType.custom && _tnf == TypeNameFormat.empty)) ...[
                     Spacing.height(16),
                     _textField(
                       _idController,
@@ -292,9 +278,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
           _textField(
             _secondaryController,
             S.of(context).ndefWifiPassword,
-            validator: _wifiAuthentication == WifiAuthenticationType.open
-                ? null
-                : _validateRequired,
+            validator: _wifiAuthentication == WifiAuthenticationType.open ? null : _validateRequired,
           ),
           Spacing.height(16),
           _selectionField<WifiAuthenticationType>(
@@ -354,8 +338,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
             S.of(context).ndefTypeName,
             validator: _validateCustomType,
           ),
-          if (_tnf != TypeNameFormat.empty &&
-              _tnf != TypeNameFormat.absoluteURI) ...[
+          if (_tnf != TypeNameFormat.empty && _tnf != TypeNameFormat.absoluteURI) ...[
             Spacing.height(16),
             _payloadEncodingField(),
             Spacing.height(16),
@@ -401,8 +384,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
           ],
           selected: {_textEncoding},
           showSelectedIcon: false,
-          onSelectionChanged: (selection) =>
-              setState(() => _textEncoding = selection.single),
+          onSelectionChanged: (selection) => setState(() => _textEncoding = selection.single),
         ),
       ],
     );
@@ -439,14 +421,10 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
   Widget _payloadField() {
     return _textField(
       _payloadController,
-      _payloadEncoding == NdefPayloadEncoding.hex
-          ? '${S.of(context).ndefPayload} (${S.of(context).ndefPayloadHex})'
-          : S.of(context).ndefPayload,
+      _payloadEncoding == NdefPayloadEncoding.hex ? '${S.of(context).ndefPayload} (${S.of(context).ndefPayloadHex})' : S.of(context).ndefPayload,
       minLines: 3,
       maxLines: 7,
-      validator: _payloadEncoding == NdefPayloadEncoding.hex
-          ? _validateOptionalHex
-          : null,
+      validator: _payloadEncoding == NdefPayloadEncoding.hex ? _validateOptionalHex : null,
     );
   }
 
@@ -469,8 +447,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6),
           side: BorderSide(
-            color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.16),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.16),
           ),
         ),
         constraints: BoxConstraints(
@@ -548,8 +525,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
     if (next == _payloadEncoding || _payloadController.text.isEmpty) return;
     try {
       if (next == NdefPayloadEncoding.hex) {
-        _payloadController.text =
-            _hex(Uint8List.fromList(utf8.encode(_payloadController.text)));
+        _payloadController.text = _hex(Uint8List.fromList(utf8.encode(_payloadController.text)));
       } else {
         _payloadController.text = utf8.decode(
           _parseHex(_payloadController.text),
@@ -562,9 +538,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
   }
 
   String? _validateRequired(String? value) {
-    return (value?.trim().isEmpty ?? true)
-        ? S.of(context).ndefRequiredField
-        : null;
+    return (value?.trim().isEmpty ?? true) ? S.of(context).ndefRequiredField : null;
   }
 
   String? _validateUri(String? value) {
@@ -611,8 +585,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
 
   String? _validatePackageName(String? value) {
     final packageName = value?.trim() ?? '';
-    if (!RegExp(r'^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+$')
-        .hasMatch(packageName)) {
+    if (!RegExp(r'^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+$').hasMatch(packageName)) {
       return S.of(context).ndefInvalidPackageName;
     }
     return null;
@@ -694,10 +667,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
       case NdefEditableRecordType.androidApplication:
         record = AARRecord(packageName: value);
       case NdefEditableRecordType.custom:
-        final payload =
-            _tnf == TypeNameFormat.empty || _tnf == TypeNameFormat.absoluteURI
-                ? Uint8List(0)
-                : _payloadBytes();
+        final payload = _tnf == TypeNameFormat.empty || _tnf == TypeNameFormat.absoluteURI ? Uint8List(0) : _payloadBytes();
         record = NdefDocument.rawRecord(
           tnf: _tnf,
           type: _typeController.text.trim(),
@@ -726,13 +696,11 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
   Uint8List _parseHex(String value) {
     final normalized = value.replaceAll(RegExp(r'[\s:]'), '');
     if (normalized.isEmpty) return Uint8List(0);
-    if (normalized.length.isOdd ||
-        !RegExp(r'^[0-9A-Fa-f]+$').hasMatch(normalized)) {
+    if (normalized.length.isOdd || !RegExp(r'^[0-9A-Fa-f]+$').hasMatch(normalized)) {
       throw const FormatException('Invalid hexadecimal value');
     }
     return Uint8List.fromList([
-      for (var i = 0; i < normalized.length; i += 2)
-        int.parse(normalized.substring(i, i + 2), radix: 16),
+      for (var i = 0; i < normalized.length; i += 2) int.parse(normalized.substring(i, i + 2), radix: 16),
     ]);
   }
 
@@ -743,8 +711,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
       NdefEditableRecordType.phone => S.of(context).ndefPhone,
       NdefEditableRecordType.contact => S.of(context).ndefContact,
       NdefEditableRecordType.wifi => S.of(context).ndefWifi,
-      NdefEditableRecordType.androidApplication =>
-        S.of(context).ndefAndroidApplication,
+      NdefEditableRecordType.androidApplication => S.of(context).ndefAndroidApplication,
       NdefEditableRecordType.custom => S.of(context).ndefOther,
     };
   }
@@ -789,12 +756,10 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
     return switch (record?.editableType) {
       NdefEditableRecordType.uri => (record as UriRecord).iriString ?? '',
       NdefEditableRecordType.text => (record as TextRecord).text ?? '',
-      NdefEditableRecordType.phone =>
-        (record as UriRecord).iriString?.replaceFirst('tel:', '') ?? '',
+      NdefEditableRecordType.phone => (record as UriRecord).iriString?.replaceFirst('tel:', '') ?? '',
       NdefEditableRecordType.contact => record?.vCardField('FN') ?? '',
       NdefEditableRecordType.wifi => (record as WifiRecord).ssid ?? '',
-      NdefEditableRecordType.androidApplication =>
-        (record as AARRecord).packageName ?? '',
+      NdefEditableRecordType.androidApplication => (record as AARRecord).packageName ?? '',
       _ => '',
     };
   }
@@ -808,8 +773,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
   }
 
   static String _initialPayloadValue(NDEFRecord? record) {
-    if (record == null ||
-        record.editableType != NdefEditableRecordType.custom) {
+    if (record == null || record.editableType != NdefEditableRecordType.custom) {
       return '';
     }
     try {
@@ -821,9 +785,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
 
   static String _hex(Uint8List? bytes) {
     if (bytes == null) return '';
-    return bytes
-        .map((byte) => byte.toRadixString(16).padLeft(2, '0').toUpperCase())
-        .join(' ');
+    return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0').toUpperCase()).join(' ');
   }
 
   static String? _nullIfEmpty(String value) {

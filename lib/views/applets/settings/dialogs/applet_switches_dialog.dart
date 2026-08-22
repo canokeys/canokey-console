@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
@@ -26,13 +27,12 @@ class AppletSwitchesDialog extends BaseDialog {
     required Set<Func> functionSet,
     required Future<void> Function(Map<Func, bool> values) onConfirm,
   }) {
-    return Get.dialog(
+    return AppDialog.show(
       AppletSwitchesDialog(
         canokey: canokey,
         functionSet: functionSet,
         onConfirm: onConfirm,
       ),
-      barrierDismissible: false,
     );
   }
 
@@ -40,8 +40,7 @@ class AppletSwitchesDialog extends BaseDialog {
   State<AppletSwitchesDialog> createState() => _AppletSwitchesDialogState();
 }
 
-class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog>
-    with UIMixin {
+class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog> with UIMixin {
   late final Map<Func, bool> _initialValues;
   late final Map<Func, RxBool> _values;
 
@@ -49,20 +48,13 @@ class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog>
   void initState() {
     super.initState();
     _initialValues = {
-      if (_supports(Func.passSwitch))
-        Func.passSwitch: widget.canokey.passEnabled,
-      if (_supports(Func.webAuthnSwitch))
-        Func.webAuthnSwitch: widget.canokey.webAuthnEnabled,
-      if (_supports(Func.ndefEnabled))
-        Func.ndefEnabled: widget.canokey.ndefEnabled,
-      if (_supports(Func.pivCcIdSwitch))
-        Func.pivCcIdSwitch: widget.canokey.pivCcIdEnabled,
-      if (_supports(Func.pivNfcSwitch))
-        Func.pivNfcSwitch: widget.canokey.pivNfcEnabled,
-      if (_supports(Func.openPgpCcIdSwitch))
-        Func.openPgpCcIdSwitch: widget.canokey.openPgpCcIdEnabled,
-      if (_supports(Func.openPgpNfcSwitch))
-        Func.openPgpNfcSwitch: widget.canokey.openPgpNfcEnabled,
+      if (_supports(Func.passSwitch)) Func.passSwitch: widget.canokey.passEnabled,
+      if (_supports(Func.webAuthnSwitch)) Func.webAuthnSwitch: widget.canokey.webAuthnEnabled,
+      if (_supports(Func.ndefEnabled)) Func.ndefEnabled: widget.canokey.ndefEnabled,
+      if (_supports(Func.pivCcIdSwitch)) Func.pivCcIdSwitch: widget.canokey.pivCcIdEnabled,
+      if (_supports(Func.pivNfcSwitch)) Func.pivNfcSwitch: widget.canokey.pivNfcEnabled,
+      if (_supports(Func.openPgpCcIdSwitch)) Func.openPgpCcIdSwitch: widget.canokey.openPgpCcIdEnabled,
+      if (_supports(Func.openPgpNfcSwitch)) Func.openPgpNfcSwitch: widget.canokey.openPgpNfcEnabled,
     };
     _values = {
       for (final entry in _initialValues.entries) entry.key: entry.value.obs,
@@ -100,9 +92,7 @@ class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog>
                 ],
                 _row(
                   'PIV',
-                  switches: supportsNfc
-                      ? {Func.pivCcIdSwitch: 'USB', Func.pivNfcSwitch: 'NFC'}
-                      : {Func.pivCcIdSwitch: 'Enable'},
+                  switches: supportsNfc ? {Func.pivCcIdSwitch: 'USB', Func.pivNfcSwitch: 'NFC'} : {Func.pivCcIdSwitch: 'Enable'},
                 ),
                 Spacing.height(8),
                 _row(
@@ -122,9 +112,7 @@ class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog>
               padding: Spacing.all(16),
               child: CustomizedText.bodyMedium(
                 errorMessage.value,
-                color: errorLevel.value == 'E'
-                    ? ContentThemeColor.danger.color
-                    : ContentThemeColor.warning.color,
+                color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color,
               ),
             ),
           Divider(height: 0, thickness: 1),
@@ -163,9 +151,7 @@ class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog>
   }
 
   Widget _row(String title, {required Map<Func, String> switches}) {
-    final availableSwitches = switches.entries
-        .where((entry) => _values.containsKey(entry.key))
-        .toList(growable: false);
+    final availableSwitches = switches.entries.where((entry) => _values.containsKey(entry.key)).toList(growable: false);
 
     return Row(
       children: [
@@ -182,8 +168,7 @@ class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog>
               if (availableSwitches.isEmpty)
                 CustomizedText.bodySmall('-', xMuted: true)
               else
-                for (final entry in availableSwitches)
-                  _switchControl(entry.key, entry.value),
+                for (final entry in availableSwitches) _switchControl(entry.key, entry.value),
             ],
           ),
         ),
@@ -215,8 +200,7 @@ class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog>
     if (!widget.functionSet.contains(func)) {
       return false;
     }
-    if (_featureSwitches.contains(func) &&
-        !widget.canokey.featureSwitchesSupported) {
+    if (_featureSwitches.contains(func) && !widget.canokey.featureSwitchesSupported) {
       return false;
     }
     return true;

@@ -677,7 +677,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivDestinationSlot": MessageLookupByLibrary.simpleMessage(
       "Destination slot",
     ),
-    "pivDiagnostics": MessageLookupByLibrary.simpleMessage("Diagnostics"),
+    "pivDiagnostics": MessageLookupByLibrary.simpleMessage("Key operations"),
     "pivDisablePinProtectedManagementKey": MessageLookupByLibrary.simpleMessage(
       "Return to Manual Management Key",
     ),

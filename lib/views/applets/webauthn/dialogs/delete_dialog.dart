@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
@@ -23,7 +24,7 @@ class WebAuthnDeleteDialog extends BaseDialog with UIMixin {
   bool get managesOwnScrolling => true;
 
   static Future<void> show(WebAuthnItem item, Function onDelete) {
-    return Get.dialog(WebAuthnDeleteDialog(item: item, onDelete: onDelete), barrierDismissible: false);
+    return AppDialog.show(WebAuthnDeleteDialog(item: item, onDelete: onDelete));
   }
 
   @override

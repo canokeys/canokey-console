@@ -4,6 +4,7 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
@@ -45,7 +46,7 @@ class InputPinDialog extends BaseDialog {
     Future<void> Function(String, bool) onSubmit = _defaultOnSubmit,
     Future<void> Function() onCancel = _defaultOnCancel,
   }) {
-    Get.dialog(
+    AppDialog.show(
       InputPinDialog(
         title: title,
         label: label,
@@ -56,7 +57,6 @@ class InputPinDialog extends BaseDialog {
         onSubmit: onSubmit,
         onCancel: onCancel,
       ),
-      barrierDismissible: false,
     );
   }
 

@@ -534,7 +534,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivDelete": MessageLookupByLibrary.simpleMessage("删除"),
     "pivDeleteSlot": m15,
     "pivDestinationSlot": MessageLookupByLibrary.simpleMessage("目标槽"),
-    "pivDiagnostics": MessageLookupByLibrary.simpleMessage("诊断"),
+    "pivDiagnostics": MessageLookupByLibrary.simpleMessage("密钥操作"),
     "pivDisablePinProtectedManagementKey": MessageLookupByLibrary.simpleMessage(
       "改为手动管理密钥",
     ),

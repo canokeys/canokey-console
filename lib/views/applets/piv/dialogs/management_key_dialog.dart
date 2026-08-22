@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
@@ -21,9 +22,8 @@ class ManagementKeyDialog extends StatelessWidget with UIMixin {
   const ManagementKeyDialog({super.key, required this.onSubmit});
 
   static Future<void> show(Future<void> Function(String oldKey, String newKey) onSubmit) {
-    return Get.dialog(
+    return AppDialog.show(
       ManagementKeyDialog(onSubmit: onSubmit),
-      barrierDismissible: false,
     );
   }
 
@@ -35,7 +35,7 @@ class ManagementKeyDialog extends StatelessWidget with UIMixin {
 
     return KeyboardSafeDialog(
       child: SizedBox(
-        width: 400,
+        width: AppDialogWidth.compact,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

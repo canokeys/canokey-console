@@ -58,6 +58,94 @@ void main() {
     expect(find.text('Export Public Key'), findsOneWidget);
   });
 
+  testWidgets('slot details provide an explicit close action', (tester) async {
+    final controller = _TestPivController()..polled = true;
+    Get.put<PivController>(controller);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    tester.widget<PivSlotListItem>(_slotItem('9A')).onTap();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Close'), findsOneWidget);
+    expect(find.byType(Dialog), findsOneWidget);
+
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(Dialog), findsNothing);
+  });
+
+  testWidgets('slot actions expose a scrollable key operations section',
+      (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 480);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
+    final controller = _TestPivController()
+      ..polled = true
+      ..functionSetVersion = FunctionSetVersion.v5
+      ..extendedRetiredSlots = true
+      ..slots[0x9C] = _slot(0x9C, AlgorithmType.eccp256);
+    Get.put<PivController>(controller);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    tester.widget<PivSlotListItem>(_slotItem('9C')).onTap();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Key operations'), findsOneWidget);
+
+    final dialog = find.byType(Dialog);
+    final scrollbarFinder = find.descendant(
+      of: dialog,
+      matching: find.byType(Scrollbar),
+    );
+    expect(scrollbarFinder, findsOneWidget);
+
+    final scrollbar = tester.widget<Scrollbar>(scrollbarFinder);
+    expect(scrollbar.controller!.position.maxScrollExtent, greaterThan(0));
+
+    final scrollView = find.descendant(
+      of: dialog,
+      matching: find.byType(SingleChildScrollView),
+    );
+    await tester.drag(scrollView, const Offset(0, -160));
+    await tester.pumpAndSettle();
+
+    expect(scrollbar.controller!.position.pixels, greaterThan(0));
+    expect(find.text('Close'), findsOneWidget);
+  });
+
+  testWidgets('slot action groups flow into columns on wide layouts',
+      (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(2000, 1000);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
+    final controller = _TestPivController()
+      ..polled = true
+      ..functionSetVersion = FunctionSetVersion.v5
+      ..extendedRetiredSlots = true
+      ..slots[0x9C] = _slot(0x9C, AlgorithmType.eccp256);
+    Get.put<PivController>(controller);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    tester.widget<PivSlotListItem>(_slotItem('9C')).onTap();
+    await tester.pumpAndSettle();
+
+    final provisioningTop = tester.getTopLeft(find.text('Provisioning')).dy;
+    final exportTop = tester.getTopLeft(find.text('Export')).dy;
+    final operationsTop = tester.getTopLeft(find.text('Key operations')).dy;
+
+    expect(exportTop, provisioningTop);
+    expect(operationsTop, provisioningTop);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('offers message signing without immediate verification',
       (tester) async {
     final controller = _TestPivController()
@@ -110,6 +198,29 @@ void main() {
         AdminTheme.theme.contentTheme.danger);
   });
 
+  testWidgets('loads a certificate-only v5 slot when details are opened',
+      (tester) async {
+    final controller = _TestPivController()
+      ..polled = true
+      ..functionSetVersion = FunctionSetVersion.v5
+      ..certificateSlots.add(0x9A);
+    Get.put<PivController>(controller);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    final item = tester.widget<PivSlotListItem>(_slotItem('9A'));
+    expect(item.hasCertificate, isTrue);
+    expect(controller.certificateBytes, isEmpty);
+
+    item.onTap();
+    await tester.pumpAndSettle();
+
+    expect(controller.detailsLoadCount, 1);
+    expect(controller.certificateBytes[0x9A], isNotNull);
+    expect(find.text('Export Certificate'), findsOneWidget);
+  });
+
   testWidgets('limits ML-KEM slots to compatible management actions',
       (tester) async {
     final controller = _TestPivController()
@@ -147,6 +258,7 @@ void main() {
     tester.widget<PivSlotListItem>(_slotItem('9C')).onTap();
     await tester.pumpAndSettle();
 
+    expect(controller.detailsLoadCount, 1);
     expect(find.text('Self-sign'), findsOneWidget);
     expect(find.text('Generate CSR'), findsNothing);
     expect(find.text('Download Attestation'), findsOneWidget);
@@ -191,6 +303,7 @@ SlotInfo _slot(int number, AlgorithmType algorithm) => SlotInfo(
 
 class _TestPivController extends PivController {
   int refreshCount = 0;
+  int detailsLoadCount = 0;
 
   @override
   void onReady() {}
@@ -198,6 +311,15 @@ class _TestPivController extends PivController {
   @override
   Future<void> doRefreshData() async {
     refreshCount++;
+  }
+
+  @override
+  Future<SlotInfo?> loadSlotDetails(int slot) async {
+    detailsLoadCount++;
+    if (certificateSlots.contains(slot)) {
+      certificateBytes[slot] = Uint8List.fromList([1]);
+    }
+    return slots[slot];
   }
 }
 

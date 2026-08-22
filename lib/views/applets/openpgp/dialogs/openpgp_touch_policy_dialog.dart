@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
@@ -36,19 +37,16 @@ class OpenPgpTouchPolicyDialog extends BaseDialog {
       String adminPin,
     ) onSubmit,
   }) {
-    return Get.dialog(
+    return AppDialog.show(
       OpenPgpTouchPolicyDialog(slot: slot, onSubmit: onSubmit),
-      barrierDismissible: false,
     );
   }
 
   @override
-  State<OpenPgpTouchPolicyDialog> createState() =>
-      _OpenPgpTouchPolicyDialogState();
+  State<OpenPgpTouchPolicyDialog> createState() => _OpenPgpTouchPolicyDialogState();
 }
 
-class _OpenPgpTouchPolicyDialogState
-    extends BaseDialogState<OpenPgpTouchPolicyDialog> {
+class _OpenPgpTouchPolicyDialogState extends BaseDialogState<OpenPgpTouchPolicyDialog> {
   final FormValidator _validator = FormValidator();
   final Rx<OpenPgpTouchPolicy> _policy = OpenPgpTouchPolicy.off.obs;
   final RxBool _showAdminPin = false.obs;
@@ -102,8 +100,7 @@ class _OpenPgpTouchPolicyDialogState
                   CheckboxListTile(
                     dense: true,
                     value: _permanentConfirmed.value,
-                    onChanged: (value) =>
-                        _permanentConfirmed.value = value ?? false,
+                    onChanged: (value) => _permanentConfirmed.value = value ?? false,
                     controlAffinity: ListTileControlAffinity.leading,
                     contentPadding: EdgeInsets.zero,
                     title: CustomizedText.bodyMedium(
@@ -129,9 +126,7 @@ class _OpenPgpTouchPolicyDialogState
                   labelText: S.of(context).openpgpAdminPin,
                   border: _outlineInputBorder,
                   suffixIcon: IconButton(
-                    icon: Icon(_showAdminPin.value
-                        ? Icons.visibility
-                        : Icons.visibility_off),
+                    icon: Icon(_showAdminPin.value ? Icons.visibility : Icons.visibility_off),
                     onPressed: () => _showAdminPin.toggle(),
                   ),
                 ),
@@ -143,9 +138,7 @@ class _OpenPgpTouchPolicyDialogState
               padding: Spacing.all(16),
               child: CustomizedText.bodyMedium(
                 errorMessage.value,
-                color: errorLevel.value == 'E'
-                    ? ContentThemeColor.danger.color
-                    : ContentThemeColor.warning.color,
+                color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color,
               ),
             ),
           Divider(height: 0, thickness: 1),
@@ -183,9 +176,7 @@ class _OpenPgpTouchPolicyDialogState
     );
   }
 
-  bool get _canSubmit =>
-      _policy.value != OpenPgpTouchPolicy.permanent ||
-      _permanentConfirmed.value;
+  bool get _canSubmit => _policy.value != OpenPgpTouchPolicy.permanent || _permanentConfirmed.value;
 
   void _submit() {
     if (!_validator.validateForm()) {

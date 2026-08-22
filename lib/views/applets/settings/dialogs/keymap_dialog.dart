@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
@@ -26,12 +27,11 @@ class KeymapDialog extends BaseDialog with UIMixin {
     required KeyboardKeymapState? currentState,
     required Function(KeyboardKeymapPreset) onConfirm,
   }) {
-    return Get.dialog(
+    return AppDialog.show(
       KeymapDialog(
         currentState: currentState,
         onConfirm: onConfirm,
       ),
-      barrierDismissible: false,
     );
   }
 
@@ -48,9 +48,7 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
   void initState() {
     super.initState();
     selectedId = Rxn<int>(
-      widget.currentState?.isDefault == true
-          ? _defaultSelection
-          : widget.currentState?.preset?.id,
+      widget.currentState?.isDefault == true ? _defaultSelection : widget.currentState?.preset?.id,
     );
   }
 
@@ -63,8 +61,7 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
         children: [
           Padding(
             padding: Spacing.all(16),
-            child:
-                CustomizedText.labelLarge(S.of(context).settingsKeyboardLayout),
+            child: CustomizedText.labelLarge(S.of(context).settingsKeyboardLayout),
           ),
           Divider(height: 0, thickness: 1),
           Flexible(
@@ -85,16 +82,13 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
                   ),
                   Spacing.height(16),
                   ...KeyboardKeymapPresets.presets.map(_buildPresetTile),
-                  if (widget.currentState != null &&
-                      !widget.currentState!.isDefault &&
-                      !widget.currentState!.isKnownPreset) ...[
+                  if (widget.currentState != null && !widget.currentState!.isDefault && !widget.currentState!.isKnownPreset) ...[
                     Spacing.height(8),
                     Container(
                       width: double.infinity,
                       padding: Spacing.all(12),
                       decoration: BoxDecoration(
-                        color: ContentThemeColor.warning.color
-                            .withValues(alpha: 0.12),
+                        color: ContentThemeColor.warning.color.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: CustomizedText.bodySmall(
@@ -107,9 +101,7 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
                     Spacing.height(12),
                     CustomizedText.bodyMedium(
                       errorMessage.value,
-                      color: errorLevel.value == 'E'
-                          ? ContentThemeColor.danger.color
-                          : ContentThemeColor.warning.color,
+                      color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color,
                     ),
                   ],
                 ],
@@ -127,21 +119,15 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
                   elevation: 0,
                   padding: Spacing.xy(20, 16),
                   backgroundColor: contentTheme.secondary,
-                  child: CustomizedText.labelMedium(S.of(context).cancel,
-                      color: contentTheme.onSecondary),
+                  child: CustomizedText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
                 ),
                 Spacing.width(16),
                 CustomizedButton.rounded(
                   onPressed: selectedId.value == null ? null : _confirm,
                   elevation: 0,
                   padding: Spacing.xy(20, 16),
-                  backgroundColor: selectedId.value == null
-                      ? contentTheme.secondary
-                      : contentTheme.primary,
-                  child: CustomizedText.labelMedium(S.of(context).confirm,
-                      color: selectedId.value == null
-                          ? contentTheme.onSecondary
-                          : contentTheme.onPrimary),
+                  backgroundColor: selectedId.value == null ? contentTheme.secondary : contentTheme.primary,
+                  child: CustomizedText.labelMedium(S.of(context).confirm, color: selectedId.value == null ? contentTheme.onSecondary : contentTheme.onPrimary),
                 ),
               ],
             ),

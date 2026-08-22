@@ -2,6 +2,7 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/field_validator.dart';
@@ -37,9 +38,8 @@ class ChangePinDialog extends StatefulWidget {
     List<FieldValidatorRule> validators = const [],
     required Future<void> Function(String oldValue, String newValue) onSubmit,
   }) {
-    return Get.dialog(
+    return AppDialog.show(
       ChangePinDialog(title: title, oldValueLabel: oldValueLabel, newValueLabel: newValueLabel, prompt: prompt, validators: validators, onSubmit: onSubmit),
-      barrierDismissible: false,
     );
   }
 
@@ -63,7 +63,7 @@ class _ChangePinDialogState extends State<ChangePinDialog> {
   Widget build(BuildContext context) {
     return KeyboardSafeDialog(
       child: SizedBox(
-        width: 400,
+        width: AppDialogWidth.compact,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

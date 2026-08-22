@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
@@ -16,8 +17,7 @@ import 'package:get/get.dart';
 
 class OpenPgpSignaturePinPolicyDialog extends BaseDialog {
   final OpenPgpPinState pinState;
-  final Future<void> Function(String adminPin, bool verifyForEverySignature)
-      onSubmit;
+  final Future<void> Function(String adminPin, bool verifyForEverySignature) onSubmit;
 
   const OpenPgpSignaturePinPolicyDialog({
     super.key,
@@ -27,26 +27,21 @@ class OpenPgpSignaturePinPolicyDialog extends BaseDialog {
 
   static Future<void> show({
     required OpenPgpPinState pinState,
-    required Future<void> Function(
-            String adminPin, bool verifyForEverySignature)
-        onSubmit,
+    required Future<void> Function(String adminPin, bool verifyForEverySignature) onSubmit,
   }) {
-    return Get.dialog(
+    return AppDialog.show(
       OpenPgpSignaturePinPolicyDialog(
         pinState: pinState,
         onSubmit: onSubmit,
       ),
-      barrierDismissible: false,
     );
   }
 
   @override
-  State<OpenPgpSignaturePinPolicyDialog> createState() =>
-      _OpenPgpSignaturePinPolicyDialogState();
+  State<OpenPgpSignaturePinPolicyDialog> createState() => _OpenPgpSignaturePinPolicyDialogState();
 }
 
-class _OpenPgpSignaturePinPolicyDialogState
-    extends BaseDialogState<OpenPgpSignaturePinPolicyDialog> {
+class _OpenPgpSignaturePinPolicyDialogState extends BaseDialogState<OpenPgpSignaturePinPolicyDialog> {
   final FormValidator _validator = FormValidator();
   final RxBool _showAdminPin = false.obs;
   late final RxBool _verifyForEverySignature;
@@ -85,8 +80,7 @@ class _OpenPgpSignaturePinPolicyDialogState
                   dense: true,
                   value: true,
                   groupValue: _verifyForEverySignature.value,
-                  onChanged: (value) =>
-                      _verifyForEverySignature.value = value ?? true,
+                  onChanged: (value) => _verifyForEverySignature.value = value ?? true,
                   title: CustomizedText.bodyMedium(
                     S.of(context).openpgpVerifyEverySignaturePrompt,
                   ),
@@ -96,8 +90,7 @@ class _OpenPgpSignaturePinPolicyDialogState
                   dense: true,
                   value: false,
                   groupValue: _verifyForEverySignature.value,
-                  onChanged: (value) =>
-                      _verifyForEverySignature.value = value ?? false,
+                  onChanged: (value) => _verifyForEverySignature.value = value ?? false,
                   title: CustomizedText.bodyMedium(
                     S.of(context).openpgpVerifyOnceAfterInsertionPrompt,
                   ),
@@ -121,9 +114,7 @@ class _OpenPgpSignaturePinPolicyDialogState
                   labelText: S.of(context).openpgpAdminPin,
                   border: _outlineInputBorder,
                   suffixIcon: IconButton(
-                    icon: Icon(_showAdminPin.value
-                        ? Icons.visibility
-                        : Icons.visibility_off),
+                    icon: Icon(_showAdminPin.value ? Icons.visibility : Icons.visibility_off),
                     onPressed: () => _showAdminPin.toggle(),
                   ),
                 ),
@@ -135,9 +126,7 @@ class _OpenPgpSignaturePinPolicyDialogState
               padding: Spacing.all(16),
               child: CustomizedText.bodyMedium(
                 errorMessage.value,
-                color: errorLevel.value == 'E'
-                    ? ContentThemeColor.danger.color
-                    : ContentThemeColor.warning.color,
+                color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color,
               ),
             ),
           Divider(height: 0, thickness: 1),

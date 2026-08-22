@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
@@ -14,9 +15,7 @@ import 'package:get/get.dart';
 
 class OpenPgpPinRetriesDialog extends BaseDialog {
   final OpenPgpPinState pinState;
-  final Future<void> Function(
-          String adminPin, int userRetries, int resetRetries, int adminRetries)
-      onSubmit;
+  final Future<void> Function(String adminPin, int userRetries, int resetRetries, int adminRetries) onSubmit;
 
   const OpenPgpPinRetriesDialog({
     super.key,
@@ -26,23 +25,18 @@ class OpenPgpPinRetriesDialog extends BaseDialog {
 
   static Future<void> show({
     required OpenPgpPinState pinState,
-    required Future<void> Function(String adminPin, int userRetries,
-            int resetRetries, int adminRetries)
-        onSubmit,
+    required Future<void> Function(String adminPin, int userRetries, int resetRetries, int adminRetries) onSubmit,
   }) {
-    return Get.dialog(
+    return AppDialog.show(
       OpenPgpPinRetriesDialog(pinState: pinState, onSubmit: onSubmit),
-      barrierDismissible: false,
     );
   }
 
   @override
-  State<OpenPgpPinRetriesDialog> createState() =>
-      _OpenPgpPinRetriesDialogState();
+  State<OpenPgpPinRetriesDialog> createState() => _OpenPgpPinRetriesDialogState();
 }
 
-class _OpenPgpPinRetriesDialogState
-    extends BaseDialogState<OpenPgpPinRetriesDialog> {
+class _OpenPgpPinRetriesDialogState extends BaseDialogState<OpenPgpPinRetriesDialog> {
   final FormValidator _validator = FormValidator();
   final RxBool _showAdminPin = false.obs;
 
@@ -58,22 +52,19 @@ class _OpenPgpPinRetriesDialogState
     _validator.addField(
       'user',
       required: true,
-      controller:
-          TextEditingController(text: '${widget.pinState.userRetries ?? 3}'),
+      controller: TextEditingController(text: '${widget.pinState.userRetries ?? 3}'),
       validators: [IntValidator(min: 1, max: 15)],
     );
     _validator.addField(
       'reset',
       required: true,
-      controller:
-          TextEditingController(text: '${widget.pinState.resetRetries ?? 3}'),
+      controller: TextEditingController(text: '${widget.pinState.resetRetries ?? 3}'),
       validators: [IntValidator(min: 1, max: 15)],
     );
     _validator.addField(
       'adminRetries',
       required: true,
-      controller:
-          TextEditingController(text: '${widget.pinState.adminRetries ?? 3}'),
+      controller: TextEditingController(text: '${widget.pinState.adminRetries ?? 3}'),
       validators: [IntValidator(min: 1, max: 15)],
     );
   }
@@ -122,9 +113,7 @@ class _OpenPgpPinRetriesDialogState
               padding: Spacing.all(16),
               child: CustomizedText.bodyMedium(
                 errorMessage.value,
-                color: errorLevel.value == 'E'
-                    ? ContentThemeColor.danger.color
-                    : ContentThemeColor.warning.color,
+                color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color,
               ),
             ),
           Divider(height: 0, thickness: 1),
@@ -173,8 +162,7 @@ class _OpenPgpPinRetriesDialogState
         labelText: S.of(context).openpgpAdminPin,
         border: _outlineInputBorder,
         suffixIcon: IconButton(
-          icon: Icon(
-              _showAdminPin.value ? Icons.visibility : Icons.visibility_off),
+          icon: Icon(_showAdminPin.value ? Icons.visibility : Icons.visibility_off),
           onPressed: () => _showAdminPin.toggle(),
         ),
       ),

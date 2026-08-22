@@ -3595,10 +3595,10 @@ class S {
     );
   }
 
-  /// `Diagnostics`
+  /// `Key operations`
   String get pivDiagnostics {
     return Intl.message(
-      'Diagnostics',
+      'Key operations',
       name: 'pivDiagnostics',
       desc: '',
       args: [],

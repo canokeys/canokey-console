@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
@@ -16,32 +17,18 @@ class SlotConfigDialog extends BaseDialog with UIMixin {
   final int index;
   final PassSlot slot;
   final bool hmacSha1Supported;
-  final Function(
-          int index, PassSlotType slotType, String password, bool withEnter)
-      onSetSlot;
+  final Function(int index, PassSlotType slotType, String password, bool withEnter) onSetSlot;
 
-  const SlotConfigDialog(
-      {super.key,
-      required this.index,
-      required this.slot,
-      required this.hmacSha1Supported,
-      required this.onSetSlot});
+  const SlotConfigDialog({super.key, required this.index, required this.slot, required this.hmacSha1Supported, required this.onSetSlot});
 
   static Future<void> show({
     required int index,
     required PassSlot slot,
     required bool hmacSha1Supported,
-    required Function(
-            int index, PassSlotType slotType, String password, bool withEnter)
-        onSetSlot,
+    required Function(int index, PassSlotType slotType, String password, bool withEnter) onSetSlot,
   }) {
-    return Get.dialog(
-      SlotConfigDialog(
-          index: index,
-          slot: slot,
-          hmacSha1Supported: hmacSha1Supported,
-          onSetSlot: onSetSlot),
-      barrierDismissible: false,
+    return AppDialog.show(
+      SlotConfigDialog(index: index, slot: slot, hmacSha1Supported: hmacSha1Supported, onSetSlot: onSetSlot),
     );
   }
 
@@ -49,8 +36,7 @@ class SlotConfigDialog extends BaseDialog with UIMixin {
   State<SlotConfigDialog> createState() => _SlotConfigDialogState();
 }
 
-class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
-    with UIMixin {
+class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog> with UIMixin {
   final FormValidator validator = FormValidator();
 
   late final RxBool showPassword;
@@ -63,14 +49,8 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
     showPassword = false.obs;
     withEnter = widget.slot.withEnter.obs;
     slotType = Rx<PassSlotType>(widget.slot.type);
-    validator.addField('password',
-        required: true,
-        controller: TextEditingController(),
-        validators: [LengthValidator(min: 1, max: 32)]);
-    validator.addField('hmacKey',
-        required: true,
-        controller: TextEditingController(),
-        validators: [LengthValidator(exact: 40), HexStringValidator()]);
+    validator.addField('password', required: true, controller: TextEditingController(), validators: [LengthValidator(min: 1, max: 32)]);
+    validator.addField('hmacKey', required: true, controller: TextEditingController(), validators: [LengthValidator(exact: 40), HexStringValidator()]);
   }
 
   void _onSubmit() {
@@ -83,12 +63,10 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
         validator.formKey.currentState?.validate();
         return;
       }
-      widget.onSetSlot(
-          widget.index, slotType.value, hmacKey.toLowerCase(), false);
+      widget.onSetSlot(widget.index, slotType.value, hmacKey.toLowerCase(), false);
       return;
     }
-    widget.onSetSlot(widget.index, slotType.value,
-        validator.getController('password')!.text, withEnter.value);
+    widget.onSetSlot(widget.index, slotType.value, validator.getController('password')!.text, withEnter.value);
   }
 
   String _slotTypeName(PassSlotType type) {
@@ -146,18 +124,14 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
                   Spacing.height(16),
                   Row(
                     children: [
-                      SizedBox(
-                          width: 90,
-                          child: CustomizedText.labelLarge(
-                              S.of(context).oathType)),
+                      SizedBox(width: 90, child: CustomizedText.labelLarge(S.of(context).oathType)),
                       Expanded(
                         child: Wrap(
                           spacing: 16,
                           children: [
                             _buildRadioOption(PassSlotType.none),
                             _buildRadioOption(PassSlotType.static),
-                            if (widget.hmacSha1Supported)
-                              _buildRadioOption(PassSlotType.hmacSha1),
+                            if (widget.hmacSha1Supported) _buildRadioOption(PassSlotType.hmacSha1),
                           ],
                         ),
                       )
@@ -175,11 +149,8 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
                         border: outlineInputBorder,
                         floatingLabelBehavior: FloatingLabelBehavior.auto,
                         suffixIcon: IconButton(
-                          onPressed: () =>
-                              showPassword.value = !showPassword.value,
-                          icon: Icon(showPassword.value
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined),
+                          onPressed: () => showPassword.value = !showPassword.value,
+                          icon: Icon(showPassword.value ? Icons.visibility_off_outlined : Icons.visibility_outlined),
                         ),
                       ),
                     ),
@@ -197,8 +168,7 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
                       ),
                     ),
                   ],
-                  if (slotType.value != PassSlotType.none &&
-                      slotType.value != PassSlotType.hmacSha1) ...[
+                  if (slotType.value != PassSlotType.none && slotType.value != PassSlotType.hmacSha1) ...[
                     Spacing.height(16),
                     Row(
                       children: [
@@ -206,13 +176,11 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
                               onChanged: (value) => withEnter.value = value!,
                               value: withEnter.value,
                               activeColor: contentTheme.primary,
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               visualDensity: getCompactDensity,
                             )),
                         Spacing.width(16),
-                        CustomizedText.bodyMedium(
-                            S.of(context).passSlotWithEnter),
+                        CustomizedText.bodyMedium(S.of(context).passSlotWithEnter),
                       ],
                     ),
                   ]
@@ -224,9 +192,7 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
             Padding(
               padding: Spacing.all(16),
               child: CustomizedText.bodyMedium(errorMessage.value,
-                  color: errorLevel.value == 'E'
-                      ? ContentThemeColor.danger.color
-                      : ContentThemeColor.warning.color),
+                  color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color),
             ),
           Divider(height: 0, thickness: 1),
           Padding(
@@ -239,8 +205,7 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
                   elevation: 0,
                   padding: Spacing.xy(20, 16),
                   backgroundColor: contentTheme.secondary,
-                  child: CustomizedText.labelMedium(S.of(context).close,
-                      color: contentTheme.onSecondary),
+                  child: CustomizedText.labelMedium(S.of(context).close, color: contentTheme.onSecondary),
                 ),
                 Spacing.width(16),
                 CustomizedButton.rounded(
@@ -248,8 +213,7 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
                   elevation: 0,
                   padding: Spacing.xy(20, 16),
                   backgroundColor: contentTheme.primary,
-                  child: CustomizedText.labelMedium(S.of(context).save,
-                      color: contentTheme.onPrimary),
+                  child: CustomizedText.labelMedium(S.of(context).save, color: contentTheme.onPrimary),
                 ),
               ],
             ),

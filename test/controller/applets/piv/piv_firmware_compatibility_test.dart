@@ -21,6 +21,7 @@ void main() {
       expect(controller.supportsCurrentDevelopmentFeatures, isTrue);
       expect(controller.supportsPinOnlyMode, isTrue);
       expect(controller.supportsPinRetryConfig, isTrue);
+      expect(controller.supportsMetadataDirectory, isTrue);
       expect(controller.supportsAlgorithm(AlgorithmType.eccp521), isTrue);
       expect(controller.supportsAlgorithm(AlgorithmType.mldsa65), isTrue);
       expect(controller.supportsAlgorithm(AlgorithmType.mlkem768), isTrue);
@@ -33,6 +34,7 @@ void main() {
       expect(controller.supportsCurrentDevelopmentFeatures, isFalse);
       expect(controller.supportsPinOnlyMode, isFalse);
       expect(controller.supportsPinRetryConfig, isFalse);
+      expect(controller.supportsMetadataDirectory, isFalse);
       expect(controller.supportsAlgorithm(AlgorithmType.eccp521), isFalse);
       expect(controller.supportsAlgorithm(AlgorithmType.mldsa65), isFalse);
       expect(controller.supportsAlgorithm(AlgorithmType.mlkem768), isFalse);

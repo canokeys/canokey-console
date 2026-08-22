@@ -16,6 +16,7 @@ import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/applet_disabled_screen.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_card.dart';
 import 'package:canokey_console/helper/widgets/customized_container.dart';
@@ -276,9 +277,9 @@ class _PivPageState extends State<PivPage>
     }
 
     final c = Completer<bool>();
-    Get.dialog(Dialog(
+    AppDialog.show(AppDialogSurface(
       child: SizedBox(
-        width: 420,
+        width: AppDialogWidth.compact,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -487,9 +488,9 @@ class _PivPageState extends State<PivPage>
         controller: TextEditingController(),
         validators: validators);
 
-    Get.dialog(KeyboardSafeDialog(
+    AppDialog.show(KeyboardSafeDialog(
       child: SizedBox(
-        width: 400,
+        width: AppDialogWidth.compact,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -749,10 +750,10 @@ class _PivPageState extends State<PivPage>
     int idValue(String name) =>
         int.parse(validator.getController(name)!.text.trim());
 
-    Get.dialog(Dialog(
+    AppDialog.show(AppDialogSurface(
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
-          width: 520,
+          width: AppDialogWidth.medium,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -982,10 +983,10 @@ class _PivPageState extends State<PivPage>
             text: (controller.pukInfo?.retriesCount ?? 3).toString()),
         validators: [IntValidator(min: 1, max: 15)]);
 
-    Get.dialog(KeyboardSafeDialog(
+    AppDialog.show(KeyboardSafeDialog(
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
-          width: 460,
+          width: AppDialogWidth.medium,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1134,9 +1135,9 @@ class _PivPageState extends State<PivPage>
         controller: TextEditingController(),
         validators: [LengthValidator(exact: 48), HexStringValidator()]);
 
-    Get.dialog(KeyboardSafeDialog(
+    AppDialog.show(KeyboardSafeDialog(
       child: SizedBox(
-        width: 460,
+        width: AppDialogWidth.medium,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1249,10 +1250,10 @@ class _PivPageState extends State<PivPage>
         controller: TextEditingController(),
         validators: [LengthValidator(exact: 48), HexStringValidator()]);
 
-    Get.dialog(KeyboardSafeDialog(
+    AppDialog.show(KeyboardSafeDialog(
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
-          width: 460,
+          width: AppDialogWidth.medium,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1403,9 +1404,9 @@ class _PivPageState extends State<PivPage>
         controller: TextEditingController(),
         validators: [LengthValidator(exact: 48), HexStringValidator()]);
 
-    Get.dialog(KeyboardSafeDialog(
+    AppDialog.show(KeyboardSafeDialog(
       child: SizedBox(
-        width: 400,
+        width: AppDialogWidth.compact,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1522,10 +1523,10 @@ class _PivPageState extends State<PivPage>
         controller: TextEditingController(),
         validators: [LengthValidator(exact: 48), HexStringValidator()]);
 
-    Get.dialog(KeyboardSafeDialog(
+    AppDialog.show(KeyboardSafeDialog(
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
-          width: 460,
+          width: AppDialogWidth.medium,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1715,7 +1716,7 @@ class _PivPageState extends State<PivPage>
       title: title,
       slotNumber: slotNumber,
       slot: slot,
-      hasCertificate: controller.certificateBytes.containsKey(slotId),
+      hasCertificate: controller.hasCertificate(slotId),
       onTap: () => _showSlotDetailDialog(title, slotNumber, slot),
     );
   }
@@ -1795,11 +1796,18 @@ class _PivPageState extends State<PivPage>
     );
   }
 
-  void _showSlotDetailDialog(String title, String slotNumber, SlotInfo? slot) {
+  Future<void> _showSlotDetailDialog(
+      String title, String slotNumber, SlotInfo? slot) async {
     final slotId = int.parse(slotNumber, radix: 16);
+    if (controller.supportsMetadataDirectory) {
+      slot = await controller.loadSlotDetails(slotId) ?? slot;
+      if (!mounted) {
+        return;
+      }
+    }
     final certBytes = controller.certificateBytes[slotId];
     final certificate = controller.certificates[slotId];
-    final hasSlotData = slot != null || certBytes != null;
+    final hasSlotData = slot != null || controller.hasCertificate(slotId);
     final isX25519Slot = slot?.algorithm == AlgorithmType.x25519;
     final isPostQuantumSlot = slot?.algorithm == AlgorithmType.mldsa65 ||
         slot?.algorithm == AlgorithmType.mlkem768;
@@ -1856,7 +1864,7 @@ class _PivPageState extends State<PivPage>
           text: S.of(context).pivExportPublicKey,
           onPressed: () {
             Navigator.pop(Get.context!);
-            _showExportPublicKeyDialog(slot);
+            _showExportPublicKeyDialog(slot!);
           },
         ),
       if (certBytes != null)
@@ -1887,14 +1895,14 @@ class _PivPageState extends State<PivPage>
           text: S.of(context).pivSignMessage,
           onPressed: () {
             Navigator.pop(Get.context!);
-            _showMessageSignDialog(slotNumber, slot);
+            _showMessageSignDialog(slotNumber, slot!);
           },
         ),
         _slotActionButton(
           text: S.of(context).pivSignFile,
           onPressed: () {
             Navigator.pop(Get.context!);
-            _showFileSignDialog(slotNumber, slot);
+            _showFileSignDialog(slotNumber, slot!);
           },
         ),
         if (slot.algorithm != AlgorithmType.mldsa65)
@@ -1902,7 +1910,7 @@ class _PivPageState extends State<PivPage>
             text: S.of(context).pivVerifyFile,
             onPressed: () {
               Navigator.pop(Get.context!);
-              _showFileVerifyDialog(slot);
+              _showFileVerifyDialog(slot!);
             },
           ),
       ],
@@ -1927,8 +1935,9 @@ class _PivPageState extends State<PivPage>
           },
         ),
     ];
+    final actionScrollController = ScrollController();
 
-    Get.dialog(Dialog(
+    AppDialog.show(AppDialogSurface(
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.85,
@@ -2059,28 +2068,73 @@ class _PivPageState extends State<PivPage>
                 ),
                 Divider(height: 0, thickness: 1)
               ],
+              Flexible(
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Scrollbar(
+                    controller: actionScrollController,
+                    thumbVisibility: true,
+                    child: SingleChildScrollView(
+                      controller: actionScrollController,
+                      padding: Spacing.all(16),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          const spacing = 24.0;
+                          final columnCount = constraints.maxWidth >= 1024
+                              ? 3
+                              : constraints.maxWidth >= 640
+                                  ? 2
+                                  : 1;
+                          final sectionWidth = (constraints.maxWidth -
+                                  spacing * (columnCount - 1)) /
+                              columnCount;
+                          final sections = <Widget>[
+                            _slotActionSection(S.of(context).pivProvisioning,
+                                provisioningActions),
+                            if (exportActions.isNotEmpty)
+                              _slotActionSection(
+                                  S.of(context).pivExport, exportActions),
+                            if (diagnosticActions.isNotEmpty)
+                              _slotActionSection(S.of(context).pivDiagnostics,
+                                  diagnosticActions),
+                            if (dangerActions.isNotEmpty)
+                              _slotActionSection(
+                                  S.of(context).pivDangerZone, dangerActions),
+                          ];
+                          return Wrap(
+                            spacing: spacing,
+                            runSpacing: spacing,
+                            crossAxisAlignment: WrapCrossAlignment.start,
+                            children: [
+                              for (final section in sections)
+                                SizedBox(
+                                  width: sectionWidth,
+                                  child: section,
+                                ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Divider(height: 0, thickness: 1),
               Padding(
                 padding: Spacing.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    _slotActionSection(
-                        S.of(context).pivProvisioning, provisioningActions),
-                    if (exportActions.isNotEmpty) ...[
-                      Spacing.height(16),
-                      _slotActionSection(
-                          S.of(context).pivExport, exportActions),
-                    ],
-                    if (diagnosticActions.isNotEmpty) ...[
-                      Spacing.height(16),
-                      _slotActionSection(
-                          S.of(context).pivDiagnostics, diagnosticActions),
-                    ],
-                    if (dangerActions.isNotEmpty) ...[
-                      Spacing.height(16),
-                      _slotActionSection(
-                          S.of(context).pivDangerZone, dangerActions),
-                    ],
+                    CustomizedButton.rounded(
+                      onPressed: () => Navigator.pop(Get.context!),
+                      elevation: 0,
+                      padding: Spacing.xy(20, 16),
+                      backgroundColor: contentTheme.secondary,
+                      child: CustomizedText.labelMedium(
+                        S.of(context).close,
+                        color: contentTheme.onSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -2088,13 +2142,13 @@ class _PivPageState extends State<PivPage>
           ),
         ),
       ),
-    ));
+    )).whenComplete(actionScrollController.dispose);
   }
 
   void _showExportDialog(Uint8List certificateBytes) {
-    Get.dialog(Dialog(
+    AppDialog.show(AppDialogSurface(
         child: SizedBox(
-            width: 300,
+            width: AppDialogWidth.compact,
             child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2162,9 +2216,9 @@ class _PivPageState extends State<PivPage>
           S.of(context).pivNoPublicKeyAvailable, ContentThemeColor.danger);
       return;
     }
-    Get.dialog(Dialog(
+    AppDialog.show(AppDialogSurface(
         child: SizedBox(
-            width: 360,
+            width: AppDialogWidth.compact,
             child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2240,9 +2294,9 @@ class _PivPageState extends State<PivPage>
         controller: TextEditingController(text: 'hello canokey'));
     final signature = ''.obs;
 
-    Get.dialog(KeyboardSafeDialog(
+    AppDialog.show(KeyboardSafeDialog(
       child: SizedBox(
-        width: 560,
+        width: AppDialogWidth.medium,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -2367,10 +2421,10 @@ class _PivPageState extends State<PivPage>
     final selectedFileName = ''.obs;
     Uint8List? selectedBytes;
 
-    Get.dialog(KeyboardSafeDialog(
+    AppDialog.show(KeyboardSafeDialog(
       child: Obx(
         () => SizedBox(
-          width: 520,
+          width: AppDialogWidth.medium,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2501,10 +2555,10 @@ class _PivPageState extends State<PivPage>
     Uint8List? selectedBytes;
     Uint8List? selectedSignature;
 
-    Get.dialog(Dialog(
+    AppDialog.show(AppDialogSurface(
       child: Obx(
         () => SizedBox(
-          width: 520,
+          width: AppDialogWidth.medium,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2912,10 +2966,10 @@ class _PivPageState extends State<PivPage>
       return _algorithmLabel(algorithm);
     }
 
-    Get.dialog(Dialog(
+    AppDialog.show(AppDialogSurface(
       child: Obx(
         () => SizedBox(
-          width: 460,
+          width: AppDialogWidth.medium,
           child: Stepper(
             currentStep: step.value,
             onStepContinue: nextStep,
@@ -3298,10 +3352,10 @@ class _PivPageState extends State<PivPage>
       }
     }
 
-    Get.dialog(Dialog(
+    AppDialog.show(AppDialogSurface(
       child: Obx(
         () => SizedBox(
-          width: 460,
+          width: AppDialogWidth.medium,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -3607,10 +3661,10 @@ class _PivPageState extends State<PivPage>
           HexStringValidator(required: !usePinOnly)
         ]);
 
-    Get.dialog(KeyboardSafeDialog(
+    AppDialog.show(KeyboardSafeDialog(
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
-          width: 460,
+          width: AppDialogWidth.medium,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -3769,9 +3823,9 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showCsrResultDialog(String slotNumber, String csr) {
-    Get.dialog(Dialog(
+    AppDialog.show(AppDialogSurface(
       child: SizedBox(
-        width: 640,
+        width: AppDialogWidth.large,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -3848,9 +3902,9 @@ class _PivPageState extends State<PivPage>
   void _showCertificateResultDialog(String slotNumber, Uint8List cert) {
     final encodedDer = StringUtils.chunk(base64.encode(cert), 64).join("\n");
     final pem = '${X509Utils.BEGIN_CERT}\n$encodedDer\n${X509Utils.END_CERT}';
-    Get.dialog(Dialog(
+    AppDialog.show(AppDialogSurface(
       child: SizedBox(
-        width: 520,
+        width: AppDialogWidth.medium,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -3974,10 +4028,10 @@ class _PivPageState extends State<PivPage>
       ],
     );
 
-    Get.dialog(KeyboardSafeDialog(
+    AppDialog.show(KeyboardSafeDialog(
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
-          width: 460,
+          width: AppDialogWidth.medium,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -4141,10 +4195,10 @@ class _PivPageState extends State<PivPage>
           HexStringValidator(required: !usePinOnly)
         ]);
 
-    Get.dialog(KeyboardSafeDialog(
+    AppDialog.show(KeyboardSafeDialog(
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
-          width: 460,
+          width: AppDialogWidth.medium,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,

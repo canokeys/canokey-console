@@ -74,6 +74,19 @@ class AppTheme {
     cardTheme: CardThemeData(color: Color(0xffffffff)),
     cardColor: Color(0xffffffff),
 
+    /// Dialog Theme
+    dialogTheme: DialogThemeData(
+      backgroundColor: Color(0xffffffff),
+      barrierColor: Color(0x8A000000),
+      elevation: 8,
+      surfaceTintColor: Colors.transparent,
+      insetPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+    ),
+
     textTheme: TextTheme(titleLarge: GoogleFonts.aBeeZee(), bodyLarge: GoogleFonts.abel()),
 
     /// Floating Action Theme
@@ -187,6 +200,19 @@ class AppTheme {
     /// Card Theme
     cardTheme: CardThemeData(color: Color(0xff222327)),
     cardColor: Color(0xff222327),
+
+    /// Dialog Theme
+    dialogTheme: DialogThemeData(
+      backgroundColor: Color(0xff222327),
+      barrierColor: Color(0x8A000000),
+      elevation: 8,
+      surfaceTintColor: Colors.transparent,
+      insetPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+    ),
 
     /// Input (Text-Field) Theme
     inputDecorationTheme: InputDecorationTheme(

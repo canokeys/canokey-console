@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
@@ -15,8 +16,7 @@ import 'package:get/get.dart';
 
 class OpenPgpUnblockPinDialog extends BaseDialog {
   final Future<void> Function(String adminPin, String newPin) onSubmitWithAdmin;
-  final Future<void> Function(String resetCode, String newPin)
-      onSubmitWithResetCode;
+  final Future<void> Function(String resetCode, String newPin) onSubmitWithResetCode;
 
   const OpenPgpUnblockPinDialog({
     super.key,
@@ -25,27 +25,22 @@ class OpenPgpUnblockPinDialog extends BaseDialog {
   });
 
   static Future<void> show({
-    required Future<void> Function(String adminPin, String newPin)
-        onSubmitWithAdmin,
-    required Future<void> Function(String resetCode, String newPin)
-        onSubmitWithResetCode,
+    required Future<void> Function(String adminPin, String newPin) onSubmitWithAdmin,
+    required Future<void> Function(String resetCode, String newPin) onSubmitWithResetCode,
   }) {
-    return Get.dialog(
+    return AppDialog.show(
       OpenPgpUnblockPinDialog(
         onSubmitWithAdmin: onSubmitWithAdmin,
         onSubmitWithResetCode: onSubmitWithResetCode,
       ),
-      barrierDismissible: false,
     );
   }
 
   @override
-  State<OpenPgpUnblockPinDialog> createState() =>
-      _OpenPgpUnblockPinDialogState();
+  State<OpenPgpUnblockPinDialog> createState() => _OpenPgpUnblockPinDialogState();
 }
 
-class _OpenPgpUnblockPinDialogState
-    extends BaseDialogState<OpenPgpUnblockPinDialog> {
+class _OpenPgpUnblockPinDialogState extends BaseDialogState<OpenPgpUnblockPinDialog> {
   final FormValidator _validator = FormValidator();
   final RxBool _useAdminPin = true.obs;
   final RxBool _showSecret = false.obs;
@@ -77,8 +72,7 @@ class _OpenPgpUnblockPinDialogState
         children: [
           Padding(
             padding: Spacing.all(16),
-            child:
-                CustomizedText.labelLarge(S.of(context).openpgpUnblockUserPin),
+            child: CustomizedText.labelLarge(S.of(context).openpgpUnblockUserPin),
           ),
           Divider(height: 0, thickness: 1),
           Padding(
@@ -118,9 +112,7 @@ class _OpenPgpUnblockPinDialogState
                 children: [
                   _field(
                     name: 'secret',
-                    label: _useAdminPin.value
-                        ? S.of(context).openpgpAdminPin
-                        : S.of(context).openpgpResetCode,
+                    label: _useAdminPin.value ? S.of(context).openpgpAdminPin : S.of(context).openpgpResetCode,
                     showValue: _showSecret,
                   ),
                   Spacing.height(16),
@@ -138,9 +130,7 @@ class _OpenPgpUnblockPinDialogState
               padding: Spacing.all(16),
               child: CustomizedText.bodyMedium(
                 errorMessage.value,
-                color: errorLevel.value == 'E'
-                    ? ContentThemeColor.danger.color
-                    : ContentThemeColor.warning.color,
+                color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color,
               ),
             ),
           Divider(height: 0, thickness: 1),

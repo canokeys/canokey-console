@@ -11,6 +11,7 @@ import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/piv_csr.dart';
 import 'package:canokey_console/helper/utils/piv_management_key.dart';
+import 'package:canokey_console/helper/utils/piv_metadata_directory.dart';
 import 'package:canokey_console/helper/utils/piv_post_quantum.dart';
 import 'package:canokey_console/helper/utils/piv_signature.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
@@ -25,6 +26,7 @@ import 'package:logger/logger.dart';
 
 class PivController extends PollingController {
   Map<int, SlotInfo> slots = {};
+  final Set<int> certificateSlots = {};
   final Map<int, Uint8List> certificateBytes = {};
   final Map<int, X509CertData> certificates = {};
   FirmwareVersion firmwareVersion = const FirmwareVersion(0, 0, 0);
@@ -50,6 +52,9 @@ class PivController extends PollingController {
   bool get supportsPinOnlyMode => supportsCurrentDevelopmentFeatures;
 
   bool get supportsPinRetryConfig => supportsCurrentDevelopmentFeatures;
+
+  bool get supportsMetadataDirectory =>
+      functionSetVersion == FunctionSetVersion.v5;
 
   bool supportsAlgorithm(AlgorithmType algorithm) {
     switch (algorithm) {
@@ -92,6 +97,7 @@ class PivController extends PollingController {
         disabledMessage = AppletSwitches.disabledMessage('PIV');
         polled = false;
         slots.clear();
+        certificateSlots.clear();
         certificateBytes.clear();
         certificates.clear();
         pinInfo = null;
@@ -105,6 +111,7 @@ class PivController extends PollingController {
       await _refreshCapabilities();
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       slots.clear();
+      certificateSlots.clear();
       certificateBytes.clear();
       certificates.clear();
       pinInfo = supportsMetadata ? await _readCredentialMetadata(0x80) : null;
@@ -113,34 +120,11 @@ class PivController extends PollingController {
           supportsMetadata ? await _readCredentialMetadata(0x9B) : null;
       pinOnlyMode =
           supportsPinOnlyMode ? await _readPinOnlyModeInSession() : false;
-      for (var slot in _keySlots) {
-        SlotInfo? slotInfo;
-        if (supportsMetadata) {
-          final metadataResp =
-              await _transceive('00F700${hex.encode([slot])}00');
-          if (SmartCard.isOK(metadataResp) &&
-              !_isMissingMetadataResponse(metadataResp)) {
-            slotInfo = SlotInfo.parse(
-              slot,
-              hex.decode(SmartCard.dropSW(metadataResp)),
-              algorithmExtensionConfig: algorithmExtensionConfig,
-            );
-            slots[slot] = slotInfo;
-          }
-        }
-        if (_certDO.containsKey(slot)) {
-          final certResp = await _transceive(
-              '00CB3FFF055C035FC1${hex.encode([_certDO[slot]!])}00');
-          if (SmartCard.isOK(certResp)) {
-            final bytes = Uint8List.fromList(
-                hex.decode(certResp.substring(16, certResp.length - 4)));
-            final cert = parseX509CertFromDer(der: bytes);
-            certificateBytes[slot] = bytes;
-            certificates[slot] = cert;
-            slotInfo?.cert = cert;
-            slotInfo?.certBytes = bytes;
-          }
-        }
+      final directory = await _readMetadataDirectory();
+      if (directory == null) {
+        await _refreshSlotsLegacy();
+      } else {
+        _refreshSlotsFromDirectory(directory);
       }
 
       polled = true;
@@ -163,6 +147,113 @@ class PivController extends PollingController {
           ? PivAlgorithmExtensionConfig.legacyV2
           : PivAlgorithmExtensionConfig.defaults;
     }
+  }
+
+  Future<PivMetadataDirectory?> _readMetadataDirectory() async {
+    if (!supportsMetadataDirectory) {
+      return null;
+    }
+    final resp = await _transceive('00F7010000');
+    if (!SmartCard.isOK(resp)) {
+      return null;
+    }
+    try {
+      return PivMetadataDirectory.parse(hex.decode(SmartCard.dropSW(resp)));
+    } catch (error) {
+      log.w('Failed to parse PIV metadata directory', error: error);
+      return null;
+    }
+  }
+
+  void _refreshSlotsFromDirectory(PivMetadataDirectory directory) {
+    for (final entry in directory.entries) {
+      if (entry.hasKey) {
+        slots[entry.slot] = entry.toSlotInfo(algorithmExtensionConfig);
+      }
+      if (entry.hasCertificate) {
+        certificateSlots.add(entry.slot);
+      }
+    }
+  }
+
+  bool hasCertificate(int slot) =>
+      certificateSlots.contains(slot) || certificateBytes.containsKey(slot);
+
+  Future<SlotInfo?> loadSlotDetails(int slot) async {
+    final current = slots[slot];
+    final needsKeyMetadata = current != null && current.public.isEmpty;
+    final needsCertificate =
+        hasCertificate(slot) && !certificateBytes.containsKey(slot);
+    if (!needsKeyMetadata && !needsCertificate) {
+      return current;
+    }
+
+    SlotInfo? loaded = current;
+    await SmartCard.process((String sn) async {
+      SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
+      if (needsKeyMetadata) {
+        loaded = await _readKeyMetadata(slot) ?? current;
+      }
+      if (needsCertificate) {
+        await _readSlotCertificate(slot, loaded);
+      }
+      final metadata = loaded;
+      if (metadata != null) {
+        metadata.cert = certificates[slot];
+        metadata.certBytes = certificateBytes[slot];
+        slots[slot] = metadata;
+      }
+      update();
+    });
+    return loaded;
+  }
+
+  Future<void> _refreshSlotsLegacy() async {
+    for (final slot in _keySlots) {
+      SlotInfo? slotInfo;
+      if (supportsMetadata) {
+        slotInfo = await _readKeyMetadata(slot);
+        if (slotInfo != null) {
+          slots[slot] = slotInfo;
+        }
+      }
+      if (_certDO.containsKey(slot)) {
+        await _readSlotCertificate(slot, slotInfo);
+      }
+    }
+  }
+
+  Future<SlotInfo?> _readKeyMetadata(int slot) async {
+    final metadataResp = await _transceive('00F700${hex.encode([slot])}00');
+    if (!SmartCard.isOK(metadataResp) ||
+        _isMissingMetadataResponse(metadataResp)) {
+      return null;
+    }
+    return SlotInfo.parse(
+      slot,
+      hex.decode(SmartCard.dropSW(metadataResp)),
+      algorithmExtensionConfig: algorithmExtensionConfig,
+    );
+  }
+
+  Future<void> _readSlotCertificate(int slot, SlotInfo? slotInfo) async {
+    final certObject = _certDO[slot];
+    if (certObject == null) {
+      return;
+    }
+    final certResp =
+        await _transceive('00CB3FFF055C035FC1${hex.encode([certObject])}00');
+    if (!SmartCard.isOK(certResp)) {
+      return;
+    }
+    final bytes = Uint8List.fromList(
+        hex.decode(certResp.substring(16, certResp.length - 4)));
+    final cert = parseX509CertFromDer(der: bytes);
+    certificateSlots.add(slot);
+    certificateBytes[slot] = bytes;
+    certificates[slot] = cert;
+    slotInfo?.cert = cert;
+    slotInfo?.certBytes = bytes;
   }
 
   Future<bool> verifyPin(String pin) async {

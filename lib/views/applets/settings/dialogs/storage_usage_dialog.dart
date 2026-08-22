@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
@@ -15,7 +16,7 @@ class StorageUsageDialog extends StatelessWidget with UIMixin {
   const StorageUsageDialog({super.key, required this.storageUsage});
 
   static Future<void> show(StorageUsage storageUsage) {
-    return Get.dialog(StorageUsageDialog(storageUsage: storageUsage));
+    return AppDialog.show(StorageUsageDialog(storageUsage: storageUsage));
   }
 
   @override
@@ -24,80 +25,83 @@ class StorageUsageDialog extends StatelessWidget with UIMixin {
     final totalBytes = storageUsage.totalKiB * 1024;
     final slices = _buildSlices(usedBytes, totalBytes);
 
-    return Dialog(
+    return AppDialogSurface(
       child: SizedBox(
-        width: 520,
-        height: MediaQuery.of(context).size.height * 0.8,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: Spacing.all(16),
-              child:
-                  CustomizedText.labelLarge(S.of(context).settingsStorageUsage),
-            ),
-            Divider(height: 0, thickness: 1),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: Spacing.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Center(
-                        child: SizedBox(
-                          width: 200,
-                          height: 200,
-                          child: CustomPaint(
-                            painter: _StorageUsagePiePainter(
-                              slices: slices,
-                              backgroundColor: contentTheme.light,
+        width: AppDialogWidth.medium,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.8,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: Spacing.all(16),
+                child: CustomizedText.labelLarge(S.of(context).settingsStorageUsage),
+              ),
+              Divider(height: 0, thickness: 1),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: Spacing.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Center(
+                          child: SizedBox(
+                            width: 200,
+                            height: 200,
+                            child: CustomPaint(
+                              painter: _StorageUsagePiePainter(
+                                slices: slices,
+                                backgroundColor: contentTheme.light,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      Spacing.height(16),
-                      Center(
-                        child: CustomizedText.bodyMedium(
-                          '${storageUsage.usedKiB} / ${storageUsage.totalKiB} KiB',
-                          fontWeight: 600,
-                        ),
-                      ),
-                      if (slices.isNotEmpty) ...[
                         Spacing.height(16),
-                        ...slices.map((slice) => _LegendRow(
-                              label: slice.label,
-                              value: _formatBytes(slice.bytes),
-                              color: slice.color,
-                              approximate: slice.approximate,
-                            )),
+                        Center(
+                          child: CustomizedText.bodyMedium(
+                            '${storageUsage.usedKiB} / ${storageUsage.totalKiB} KiB',
+                            fontWeight: 600,
+                          ),
+                        ),
+                        if (slices.isNotEmpty) ...[
+                          Spacing.height(16),
+                          ...slices.map((slice) => _LegendRow(
+                                label: slice.label,
+                                value: _formatBytes(slice.bytes),
+                                color: slice.color,
+                                approximate: slice.approximate,
+                              )),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  CustomizedButton.rounded(
-                    onPressed: () => Navigator.pop(context),
-                    elevation: 0,
-                    padding: Spacing.xy(20, 16),
-                    backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(
-                      S.of(context).close,
-                      color: contentTheme.onPrimary,
+              Divider(height: 0, thickness: 1),
+              Padding(
+                padding: Spacing.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    CustomizedButton.rounded(
+                      onPressed: () => Navigator.pop(context),
+                      elevation: 0,
+                      padding: Spacing.xy(20, 16),
+                      backgroundColor: contentTheme.primary,
+                      child: CustomizedText.labelMedium(
+                        S.of(context).close,
+                        color: contentTheme.onPrimary,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -247,7 +251,6 @@ class _StorageUsagePiePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _StorageUsagePiePainter oldDelegate) {
-    return slices != oldDelegate.slices ||
-        backgroundColor != oldDelegate.backgroundColor;
+    return slices != oldDelegate.slices || backgroundColor != oldDelegate.backgroundColor;
   }
 }

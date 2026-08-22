@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
@@ -25,22 +26,19 @@ class OpenPgpTouchCacheTimeDialog extends BaseDialog {
     required int? currentSeconds,
     required Future<void> Function(String adminPin, int seconds) onSubmit,
   }) {
-    return Get.dialog(
+    return AppDialog.show(
       OpenPgpTouchCacheTimeDialog(
         currentSeconds: currentSeconds,
         onSubmit: onSubmit,
       ),
-      barrierDismissible: false,
     );
   }
 
   @override
-  State<OpenPgpTouchCacheTimeDialog> createState() =>
-      _OpenPgpTouchCacheTimeDialogState();
+  State<OpenPgpTouchCacheTimeDialog> createState() => _OpenPgpTouchCacheTimeDialogState();
 }
 
-class _OpenPgpTouchCacheTimeDialogState
-    extends BaseDialogState<OpenPgpTouchCacheTimeDialog> {
+class _OpenPgpTouchCacheTimeDialogState extends BaseDialogState<OpenPgpTouchCacheTimeDialog> {
   final FormValidator _validator = FormValidator();
   final RxBool _showAdminPin = false.obs;
 
@@ -99,9 +97,7 @@ class _OpenPgpTouchCacheTimeDialogState
                       labelText: S.of(context).openpgpAdminPin,
                       border: _outlineInputBorder,
                       suffixIcon: IconButton(
-                        icon: Icon(_showAdminPin.value
-                            ? Icons.visibility
-                            : Icons.visibility_off),
+                        icon: Icon(_showAdminPin.value ? Icons.visibility : Icons.visibility_off),
                         onPressed: () => _showAdminPin.toggle(),
                       ),
                     ),
@@ -125,9 +121,7 @@ class _OpenPgpTouchCacheTimeDialogState
               padding: Spacing.all(16),
               child: CustomizedText.bodyMedium(
                 errorMessage.value,
-                color: errorLevel.value == 'E'
-                    ? ContentThemeColor.danger.color
-                    : ContentThemeColor.warning.color,
+                color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color,
               ),
             ),
           Divider(height: 0, thickness: 1),

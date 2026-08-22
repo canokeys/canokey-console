@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
 
 class WebAuthnViewUserIdDialog extends StatelessWidget {
   final List<int> userId;
@@ -16,7 +16,7 @@ class WebAuthnViewUserIdDialog extends StatelessWidget {
   });
 
   static Future<void> show(List<int> userId) {
-    return Get.dialog(WebAuthnViewUserIdDialog(userId: userId));
+    return AppDialog.show(WebAuthnViewUserIdDialog(userId: userId));
   }
 
   @override

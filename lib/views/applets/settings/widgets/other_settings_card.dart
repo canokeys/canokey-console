@@ -54,8 +54,7 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
   @override
   Widget build(BuildContext context) {
     final languageName = ThemeCustomizer.instance.currentLanguage.languageName;
-    final startPage =
-        StartPageDialog.pageName(context, LocalStorage.getStartPage() ?? '/');
+    final startPage = StartPageDialog.pageName(context, LocalStorage.getStartPage() ?? '/');
     return CustomizedCard(
       clipBehavior: Clip.antiAliasWithSaveLayer,
       shadow: Shadow(elevation: 0.5, position: ShadowPosition.bottom),
@@ -68,11 +67,9 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
             padding: Spacing.xy(16, 12),
             child: Row(
               children: [
-                Icon(LucideIcons.settings2,
-                    color: contentTheme.primary, size: 16),
+                Icon(LucideIcons.settings2, color: contentTheme.primary, size: 16),
                 Spacing.width(12),
-                CustomizedText.titleMedium(S.of(context).settingsOtherSettings,
-                    fontWeight: 600, color: contentTheme.primary)
+                CustomizedText.titleMedium(S.of(context).settingsOtherSettings, fontWeight: 600, color: contentTheme.primary)
               ],
             ),
           ),
@@ -81,30 +78,14 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                InfoItem(
-                    iconData: LucideIcons.languages,
-                    title: S.of(context).settingsLanguage,
-                    value: languageName,
-                    onTap: LanguageDialog.show),
+                InfoItem(iconData: LucideIcons.languages, title: S.of(context).settingsLanguage, value: languageName, onTap: LanguageDialog.show),
                 Spacing.height(16),
-                InfoItem(
-                    iconData: LucideIcons.home,
-                    title: S.of(context).settingsStartPage,
-                    value: startPage,
-                    onTap: StartPageDialog.show),
+                InfoItem(iconData: LucideIcons.home, title: S.of(context).settingsStartPage, value: startPage, onTap: StartPageDialog.show),
                 Spacing.height(16),
-                InfoItem(
-                    iconData: LucideIcons.pin,
-                    title: S.of(context).settingsClearPinCache,
-                    value: '',
-                    onTap: () => ClearPinCacheDialog.show()),
+                InfoItem(iconData: LucideIcons.pin, title: S.of(context).settingsClearPinCache, value: '', onTap: () => ClearPinCacheDialog.show()),
                 Spacing.height(16),
                 if (widget.showNfcSettings) ...{
-                  InfoItem(
-                      iconData: LucideIcons.bellRing,
-                      title: S.of(context).nfcSound,
-                      value: '',
-                      onTap: () => NfcSoundDialog.show()),
+                  InfoItem(iconData: LucideIcons.bellRing, title: S.of(context).nfcSound, value: '', onTap: () => NfcSoundDialog.show()),
                   Spacing.height(16),
                 },
                 InfoItem(
@@ -113,20 +94,15 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                     value: '',
                     onTap: () => showAboutDialog(
                           context: context,
+                          barrierDismissible: false,
                           applicationName: S.of(context).homeScreenTitle,
-                          applicationVersion:
-                              '${_packageInfo.version} / build ${_packageInfo.buildNumber}'
-                                  .trim(),
-                          applicationIcon: Image.asset(
-                              'assets/images/logo/logo_icon_dark.png',
-                              width: 75,
-                              height: 75),
+                          applicationVersion: '${_packageInfo.version} / build ${_packageInfo.buildNumber}'.trim(),
+                          applicationIcon: Image.asset('assets/images/logo/logo_icon_dark.png', width: 75, height: 75),
                           applicationLegalese: '© 2025 canokeys.org',
                           children: [
                             Padding(
                               padding: Spacing.y(8),
-                              child: CustomizedText.bodyMedium(
-                                  S.of(context).appDescription),
+                              child: CustomizedText.bodyMedium(S.of(context).appDescription),
                             ),
                             RichText(
                                 text: TextSpan(
@@ -134,17 +110,12 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                                 TextSpan(text: S.of(context).beforeSourceLink),
                                 TextSpan(
                                     text: 'canokeys/canokey-console',
-                                    style: TextStyle(
-                                        color: contentTheme.primary,
-                                        decoration: TextDecoration.underline),
+                                    style: TextStyle(color: contentTheme.primary, decoration: TextDecoration.underline),
                                     recognizer: TapGestureRecognizer()
                                       ..onTap = () async {
-                                        const repoUrl =
-                                            'https://github.com/canokeys/canokey-console';
+                                        const repoUrl = 'https://github.com/canokeys/canokey-console';
                                         if (await canLaunchUrlString(repoUrl)) {
-                                          await launchUrlString(repoUrl,
-                                              mode: LaunchMode
-                                                  .externalApplication);
+                                          await launchUrlString(repoUrl, mode: LaunchMode.externalApplication);
                                         }
                                       }),
                               ],

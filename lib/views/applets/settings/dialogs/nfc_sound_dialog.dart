@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/utils/audio.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
@@ -12,7 +13,7 @@ class NfcSoundDialog extends StatelessWidget with UIMixin {
   const NfcSoundDialog({super.key});
 
   static Future<void> show() {
-    return Get.dialog(const NfcSoundDialog());
+    return AppDialog.show(const NfcSoundDialog());
   }
 
   Widget _buildNfcSoundItem(BuildContext context, RxInt nfcSound, int sound) {
@@ -32,9 +33,9 @@ class NfcSoundDialog extends StatelessWidget with UIMixin {
   Widget build(BuildContext context) {
     final nfcSound = (LocalStorage.getNfcSound() ?? Audio.AUDIO_SET_DEFAULT).obs;
 
-    return Dialog(
+    return AppDialogSurface(
       child: SizedBox(
-        width: 400,
+        width: AppDialogWidth.compact,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

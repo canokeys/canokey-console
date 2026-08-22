@@ -1,5 +1,6 @@
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
@@ -40,17 +41,16 @@ abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
   @override
   Widget build(BuildContext context) {
     final content = buildDialogContent();
-    return Dialog(
+    return AppDialogSurface(
       child: SizedBox(
-        width: 400,
+        width: AppDialogWidth.compact,
         child: Stack(
           children: [
             if (widget.managesOwnScrolling)
               content
             else
               SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 child: content,
               ),
             Positioned.fill(

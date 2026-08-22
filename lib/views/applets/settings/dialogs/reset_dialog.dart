@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
@@ -26,13 +27,12 @@ class ResetDialog extends BaseDialog with UIMixin {
     required Function resetCanokey,
     required Function(Applet applet) resetApplet,
   }) {
-    return Get.dialog(
+    return AppDialog.show(
       ResetDialog(
         applet: applet,
         resetCanokey: resetCanokey,
         resetApplet: resetApplet,
       ),
-      barrierDismissible: false,
     );
   }
 

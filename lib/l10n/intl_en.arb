@@ -421,7 +421,7 @@
   "pivCertificateValidFrom": "Valid from",
   "pivCertificateValidTo": "Valid to",
   "pivProvisioning": "Provisioning",
-  "pivDiagnostics": "Diagnostics",
+  "pivDiagnostics": "Key operations",
   "pivDangerZone": "Danger Zone",
   "pivSignFilePrompt": "Creates a detached raw signature for the selected file.",
   "pivNoFileSelected": "No file selected",
