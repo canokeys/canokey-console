@@ -30,6 +30,7 @@ class _SettingsPageState extends State<SettingsPage>
   Widget build(BuildContext context) {
     return Layout(
       title: S.of(context).settings,
+      onRefresh: _controller.refreshData,
       topActions: isWeb() || isIOSApp()
           ? IconButton(
               onPressed: () => _controller.refreshData(),

@@ -14,6 +14,7 @@ abstract class PollingController extends Controller {
   bool _ccidRefreshAttempted = false;
   bool _ccidRefreshInProgress = false;
   bool _closed = false;
+  Future<void>? _refreshFuture;
   Future<void> Function()? _registeredRefreshHandler;
 
   Future<void> doRefreshData();
@@ -110,10 +111,23 @@ abstract class PollingController extends Controller {
     super.onClose();
   }
 
-  Future<void> refreshData() async {
-    await doRefreshData();
-    _wasNfcConnection = SmartCard.connectionType == ConnectionType.nfc;
-    log.t("wasNfcConnection = $_wasNfcConnection");
+  Future<void> refreshData() {
+    final activeRefresh = _refreshFuture;
+    if (activeRefresh != null) {
+      return activeRefresh;
+    }
+
+    late final Future<void> refresh;
+    refresh = Future<void>.sync(doRefreshData).then((_) {
+      _wasNfcConnection = SmartCard.connectionType == ConnectionType.nfc;
+      log.t("wasNfcConnection = $_wasNfcConnection");
+    }).whenComplete(() {
+      if (identical(_refreshFuture, refresh)) {
+        _refreshFuture = null;
+      }
+    });
+    _refreshFuture = refresh;
+    return refresh;
   }
 
   Future<void> _refreshCcidOnce(String platform, {bool force = false}) async {

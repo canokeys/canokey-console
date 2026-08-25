@@ -26,6 +26,7 @@ class _PassPageState extends State<PassPage> with UIMixin {
   Widget build(BuildContext context) {
     return Layout(
       title: 'Pass',
+      onRefresh: _controller.refreshData,
       topActions: isWeb() || isIOSApp()
           ? IconButton(
               onPressed: () => _controller.refreshData(),

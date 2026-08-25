@@ -87,6 +87,7 @@ class _OathPageState extends State<OathPage> with UIMixin {
   Widget build(BuildContext context) {
     return Layout(
       title: 'TOTP / HOTP',
+      onRefresh: controller.refreshData,
       topActions: GetBuilder(
         init: controller,
         builder: (_) => TopActions(

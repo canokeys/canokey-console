@@ -37,6 +37,7 @@ class _OpenPgpPageState extends State<OpenPgpPage> with UIMixin {
   Widget build(BuildContext context) {
     return Layout(
       title: 'OpenPGP',
+      onRefresh: controller.refreshData,
       topActions: isWeb() || isIOSApp()
           ? IconButton(
               tooltip: S.of(context).refresh,

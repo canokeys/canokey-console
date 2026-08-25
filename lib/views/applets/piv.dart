@@ -340,6 +340,7 @@ class _PivPageState extends State<PivPage>
   Widget build(BuildContext context) {
     return Layout(
       title: 'PIV',
+      onRefresh: controller.refreshData,
       topActions: GetBuilder<PivController>(
         builder: (_) => Row(
           mainAxisSize: MainAxisSize.min,

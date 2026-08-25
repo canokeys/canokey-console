@@ -30,6 +30,7 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
   Widget build(BuildContext context) {
     return Layout(
       title: 'NDEF',
+      onRefresh: _controller.refreshData,
       topActions: isWeb() || isIOSApp()
           ? Tooltip(
               message: MaterialLocalizations.of(context)

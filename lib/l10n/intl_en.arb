@@ -14,7 +14,7 @@
   "pollCanoKey": "Please read your CanoKey by clicking the refresh button",
   "androidPollCanoKeyPrompt": "Tap your CanoKey or insert it into the USB port",
   "desktopPollCanoKeyPrompt": "Insert your CanoKey into the USB port",
-  "iosPollCanoKeyPrompt": "Tap the refresh button and tap your CanoKey or insert it into the USB port",
+  "iosPollCanoKeyPrompt": "Pull down or tap refresh, then hold your iPhone near your CanoKey, or insert it into the USB port",
   "webPollCanoKeyPrompt": "Insert your CanoKey into the USB port and click the refresh button",
   "desktopPollError": "Error finding CanoKey connected via USB. Please fix the problem and restart this app:",
   "pollCanceled": "No CanoKey is selected.",

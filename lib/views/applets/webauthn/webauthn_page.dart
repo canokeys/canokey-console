@@ -60,6 +60,7 @@ class _WebAuthnPageState extends State<WebAuthnPage>
   Widget build(BuildContext context) {
     return Layout(
       title: 'WebAuthn',
+      onRefresh: controller.refreshData,
       topActions: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

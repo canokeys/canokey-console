@@ -14,7 +14,7 @@
   "pollCanoKey": "请点击右上角刷新按钮读取 CanoKey",
   "androidPollCanoKeyPrompt": "请用手机背面触碰您的 CanoKey 或将其插入 USB 接口",
   "desktopPollCanoKeyPrompt": "请将您的 CanoKey 插入 USB 接口",
-  "iosPollCanoKeyPrompt": "请点击刷新按钮并点击您的 CanoKey 或将其插入 USB 接口",
+  "iosPollCanoKeyPrompt": "请下拉页面或点击刷新按钮，然后用 iPhone 顶部靠近 CanoKey；也可将其插入 USB 接口",
   "webPollCanoKeyPrompt": "请将您的 CanoKey 插入 USB 接口并点击刷新按钮",
   "desktopPollError": "寻找 USB 连接的 CanoKey 时遇到错误。请修复错误后重启此应用：",
   "pollCanceled": "您没有选择任何 CanoKey",

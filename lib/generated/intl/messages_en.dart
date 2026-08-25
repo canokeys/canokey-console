@@ -156,7 +156,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Hold your iPhone near the CanoKey",
     ),
     "iosPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
-      "Tap the refresh button and tap your CanoKey or insert it into the USB port",
+      "Pull down or tap refresh, then hold your iPhone near your CanoKey, or insert it into the USB port",
     ),
     "ndefAbsoluteUri": MessageLookupByLibrary.simpleMessage("Absolute URI"),
     "ndefAddRecord": MessageLookupByLibrary.simpleMessage("Add record"),

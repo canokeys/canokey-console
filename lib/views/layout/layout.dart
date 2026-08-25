@@ -7,8 +7,10 @@ import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/views/layout/left_bar.dart';
 import 'package:canokey_console/views/layout/top_bar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:platform_detector/platform_detector.dart';
 
 class Layout extends StatelessWidget {
   static bool notSupported = false;
@@ -16,12 +18,19 @@ class Layout extends StatelessWidget {
   final Widget? child;
   final String title;
   final Widget? topActions;
+  final Future<void> Function()? onRefresh;
 
   final LayoutController controller = LayoutController();
   final topBarTheme = AdminTheme.theme.topBarTheme;
   final contentTheme = AdminTheme.theme.contentTheme;
 
-  Layout({super.key, this.child, this.topActions, this.title = ""});
+  Layout({
+    super.key,
+    this.child,
+    this.topActions,
+    this.onRefresh,
+    this.title = "",
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +45,8 @@ class Layout extends StatelessWidget {
   }
 
   Widget mobileScreen(BuildContext context) {
+    final canPullToRefresh = isIOSApp() && onRefresh != null;
+
     return Scaffold(
       key: controller.scaffoldKey,
       appBar: AppBar(
@@ -74,7 +85,19 @@ class Layout extends StatelessWidget {
               ],
       ),
       drawer: LeftBar(),
-      body: SingleChildScrollView(key: controller.scrollKey, child: child),
+      body: CustomScrollView(
+        key: controller.scrollKey,
+        physics: canPullToRefresh
+            ? const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              )
+            : null,
+        slivers: [
+          if (canPullToRefresh)
+            CupertinoSliverRefreshControl(onRefresh: onRefresh!),
+          SliverToBoxAdapter(child: child ?? const SizedBox.shrink()),
+        ],
+      ),
     );
   }
 
@@ -91,7 +114,7 @@ class Layout extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Spacing.height(MediaQuery.of(Get.context!).size.height / 2 - 100),
+              Spacing.height(MediaQuery.of(Get.context!).size.height / 2 - 150),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,

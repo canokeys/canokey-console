@@ -135,7 +135,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "使用 iPhone 顶部读取 CanoKey",
     ),
     "iosPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
-      "请点击刷新按钮并点击您的 CanoKey 或将其插入 USB 接口",
+      "请下拉页面或点击刷新按钮，然后用 iPhone 顶部靠近 CanoKey；也可将其插入 USB 接口",
     ),
     "ndefAbsoluteUri": MessageLookupByLibrary.simpleMessage("绝对 URI"),
     "ndefAddRecord": MessageLookupByLibrary.simpleMessage("添加记录"),

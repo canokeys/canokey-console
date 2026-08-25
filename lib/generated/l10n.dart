@@ -155,10 +155,10 @@ class S {
     );
   }
 
-  /// `Tap the refresh button and tap your CanoKey or insert it into the USB port`
+  /// `Pull down or tap refresh, then hold your iPhone near your CanoKey, or insert it into the USB port`
   String get iosPollCanoKeyPrompt {
     return Intl.message(
-      'Tap the refresh button and tap your CanoKey or insert it into the USB port',
+      'Pull down or tap refresh, then hold your iPhone near your CanoKey, or insert it into the USB port',
       name: 'iosPollCanoKeyPrompt',
       desc: '',
       args: [],
