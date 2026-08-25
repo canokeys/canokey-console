@@ -15,6 +15,7 @@ import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
+import 'package:canokey_console/helper/utils/x509_algorithm_names.dart';
 import 'package:canokey_console/helper/widgets/applet_disabled_screen.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
@@ -241,13 +242,7 @@ class _PivPageState extends State<PivPage>
   }
 
   String _certificateKeySummary(X509CertData cert) {
-    final algorithm = switch (cert.publicKeyAlgorithm) {
-      '1.2.840.113549.1.1.1' => 'RSA',
-      '1.2.840.10045.2.1' => 'EC',
-      '1.3.101.112' => 'Ed25519',
-      '1.3.101.110' => 'X25519',
-      _ => cert.publicKeyAlgorithm,
-    };
+    final algorithm = x509PublicKeyAlgorithmName(cert.publicKeyAlgorithm);
     final size = switch (cert.publicKeyAlgorithm) {
       '1.3.101.112' || '1.3.101.110' => BigInt.from(256),
       _ => cert.publicKeySize,
@@ -2012,7 +2007,8 @@ class _PivPageState extends State<PivPage>
                             ),
                             Spacing.height(16),
                             TextFormField(
-                              initialValue: certificate.signatureAlgorithm,
+                              initialValue: x509SignatureAlgorithmName(
+                                  certificate.signatureAlgorithm),
                               readOnly: true,
                               decoration: InputDecoration(
                                   labelText:
