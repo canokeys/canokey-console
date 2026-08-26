@@ -18,16 +18,21 @@ jobs:
     - uses: actions/checkout@v6
       with:
         submodules: recursive
-    - uses: actions/cache@v5
-      with:
-        key: web-spa-rust-${{ hashFiles('rust/Cargo.toml') }}
-        path: |
-          rust/target
+    - name: Resolve latest wasm-pack version
+      id: wasm_pack
+      run: |
+        version="$(curl --fail --silent --show-error \
+          --user-agent 'canokey-console-ci (https://github.com/canokeys/canokey-console)' \
+          https://crates.io/api/v1/crates/wasm-pack | jq -er '.crate.max_stable_version')"
+        echo "version=$version" >> "$GITHUB_OUTPUT"
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
-        toolchain: nightly
+        toolchain: nightly-2026-08-26
         components: rust-src
         target: wasm32-unknown-unknown
+        rust-src-dir: rust
+        cache-key: web-wasm-pack-${{ steps.wasm_pack.outputs.version }}
+        cache-directories: ~/.cache/.wasm-pack
     - name: Setup Flutter SDK
       uses: flutter-actions/setup-flutter@v4
       with:
@@ -36,8 +41,11 @@ jobs:
         cache: true
     - run: flutter pub get
     - name: Build Rust Library
+      env:
+        WASM_PACK_VERSION: ${{ steps.wasm_pack.outputs.version }}
       run: |
         cargo install flutter_rust_bridge_codegen --version 2.12.0 --locked
+        cargo install wasm-pack --version "$WASM_PACK_VERSION" --locked
         flutter_rust_bridge_codegen build-web --release
     - run: flutter build web --verbose
     - uses: actions/upload-artifact@v7
