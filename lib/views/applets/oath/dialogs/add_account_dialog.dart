@@ -13,11 +13,13 @@ import 'package:canokey_console/helper/widgets/form_validator.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/models/oath.dart';
+import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AddAccountDialog extends BaseDialog with UIMixin {
-  final Function(String name, String secretHex, OathType type, OathAlgorithm algo, int digits, bool touch, int initValue) onAddAccount;
+  final Function(String name, String secretHex, OathType type,
+      OathAlgorithm algo, int digits, bool touch, int initValue) onAddAccount;
   final String? initialIssuer;
   final String? initialAccount;
   final String? initialSecret;
@@ -42,7 +44,9 @@ class AddAccountDialog extends BaseDialog with UIMixin {
   bool get managesOwnScrolling => true;
 
   static Future<void> show(
-    Function(String name, String secretHex, OathType type, OathAlgorithm algo, int digits, bool touch, int initValue) onAddAccount, {
+    Function(String name, String secretHex, OathType type, OathAlgorithm algo,
+            int digits, bool touch, int initValue)
+        onAddAccount, {
     String? initialIssuer,
     String? initialAccount,
     String? initialSecret,
@@ -69,7 +73,8 @@ class AddAccountDialog extends BaseDialog with UIMixin {
   State<AddAccountDialog> createState() => _AddAccountDialogState();
 }
 
-class _AddAccountDialogState extends BaseDialogState<AddAccountDialog> with UIMixin {
+class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
+    with UIMixin {
   static const _kPadding = 16.0;
   static const _kValidDigits = [6, 7, 8];
   static const _kLabelWidth = 90.0;
@@ -96,9 +101,9 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog> with UIMi
     }
 
     final data = formData.validator.getData();
-    final issuer = data['issuer'];
-    final account = data['account'];
-    final secret = data['secret'];
+    final issuer = data['issuer'].trim();
+    final account = data['account'].trim();
+    final secret = data['secret'].trim();
     final initValue = int.parse(data['counter']);
     final name = '$issuer:$account';
 
@@ -110,7 +115,7 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog> with UIMi
 
     String secretHex;
     try {
-      secretHex = base32.decodeAsHexString(secret.toUpperCase());
+      secretHex = _decodeSecret(secret, issuer);
     } catch (e) {
       formData.validator.addError('secret', S.of(Get.context!).oathInvalidKey);
       formData.validator.formKey.currentState!.validate();
@@ -118,7 +123,24 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog> with UIMi
     }
 
     widget.onAddAccount(
-        name, secretHex, formData.oathType.value, formData.oathAlgorithm.value, formData.oathDigits.value, formData.requireTouch.value, initValue);
+        name,
+        secretHex,
+        formData.oathType.value,
+        formData.oathAlgorithm.value,
+        formData.oathDigits.value,
+        formData.requireTouch.value,
+        initValue);
+  }
+
+  String _decodeSecret(String secret, String issuer) {
+    try {
+      return base32.decodeAsHexString(secret.toUpperCase());
+    } catch (_) {
+      if (OathCodeFormat.fromIssuer(issuer) != OathCodeFormat.steam) {
+        rethrow;
+      }
+      return hex.encode(base64.decode(secret));
+    }
   }
 
   Widget _buildBasicFields() {
@@ -315,7 +337,8 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog> with UIMi
                     _buildBasicFields(),
                     _buildTouchRequirement(),
                     _buildAdvancedSettings(),
-                    if (formData.oathType.value == OathType.hotp) _buildHotpCounter(),
+                    if (formData.oathType.value == OathType.hotp)
+                      _buildHotpCounter(),
                   ],
                 ),
               ),
@@ -324,7 +347,9 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog> with UIMi
               Padding(
                 padding: const EdgeInsets.all(_kPadding),
                 child: CustomizedText.bodyMedium(errorMessage.value,
-                    color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color),
+                    color: errorLevel.value == 'E'
+                        ? ContentThemeColor.danger.color
+                        : ContentThemeColor.warning.color),
               ),
             const Divider(height: 0, thickness: 1),
             Padding(
@@ -388,13 +413,20 @@ class _OathFormData {
     int? initialDigits,
   }) {
     final validator = FormValidator();
-    validator.addField('issuer', required: true, controller: TextEditingController(text: initialIssuer));
-    validator.addField('account', required: true, controller: TextEditingController(text: initialAccount));
-    validator.addField('secret', required: true, controller: TextEditingController(text: initialSecret), validators: [LengthValidator(min: 8, max: 103)]);
+    validator.addField('issuer',
+        required: true, controller: TextEditingController(text: initialIssuer));
+    validator.addField('account',
+        required: true,
+        controller: TextEditingController(text: initialAccount));
+    validator.addField('secret',
+        required: true,
+        controller: TextEditingController(text: initialSecret),
+        validators: [LengthValidator(min: 8, max: 103)]);
     validator.addField(
       'counter',
       required: true,
-      controller: TextEditingController(text: initialCounter?.toString() ?? '0'),
+      controller:
+          TextEditingController(text: initialCounter?.toString() ?? '0'),
       validators: [IntValidator(min: 0, max: 4294967295)],
     );
 
