@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
@@ -11,17 +12,14 @@ class ClearPinCacheDialog extends StatelessWidget {
   const ClearPinCacheDialog({super.key});
 
   static Future<void> show() {
-    return Get.dialog(
-      const ClearPinCacheDialog(),
-      barrierDismissible: false,
-    );
+    return AppDialog.show(const ClearPinCacheDialog());
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return AppDialogSurface(
       child: SizedBox(
-        width: 400,
+        width: AppDialogWidth.compact,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

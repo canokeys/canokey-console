@@ -35,7 +35,8 @@ pub fn decode_png_qrcode(png_file: Vec<u8>) -> String {
         img.width() as usize,
         img.height() as usize,
         argb_buf.as_slice(),
-    );
+    )
+    .expect("Cannot create QR luminance source");
     let bin = rxing::common::HybridBinarizer::new(ls);
     let mut bitmap = rxing::BinaryBitmap::new(bin);
     log::info!("Generated bitmap");
@@ -47,4 +48,3 @@ pub fn decode_png_qrcode(png_file: Vec<u8>) -> String {
 
     text
 }
-

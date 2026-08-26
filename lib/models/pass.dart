@@ -4,6 +4,7 @@ enum PassSlotType {
   none,
   oath,
   static,
+  hmacSha1,
 }
 
 class PassSlot {
@@ -21,7 +22,8 @@ class PassSlot {
   // For each slot, the first byte is the type.
   // For PASS_SLOT_OFF, there is no more data
   // For PASS_SLOT_STATIC, the second byte is with_enter
-  // For PASS_SLOT_OATH, the next byte is the length of the name, followed by the name, and the next byte is with_enter
+  // For PASS_SLOT_HMACSHA1, there is no more data because the key is never dumped back.
+  // For PASS_SLOT_OATH, the next byte is the length of the name, followed by the name, and the next byte is with_enter.
   static List<PassSlot> fromData(String hexData) {
     List<PassSlot> slots = [];
     int i = 0;
@@ -30,7 +32,8 @@ class PassSlot {
       i += 2;
       if (type == 0) {
         // OFF
-        slots.add(PassSlot(type: PassSlotType.none, name: '', withEnter: false));
+        slots
+            .add(PassSlot(type: PassSlotType.none, name: '', withEnter: false));
       } else if (type == 1) {
         // OATH
         int nameLen = int.parse(hexData.substring(i, i + 2), radix: 16);
@@ -40,12 +43,20 @@ class PassSlot {
         i += nameLen * 2;
         int withEnter = int.parse(hexData.substring(i, i + 2), radix: 16);
         i += 2;
-        slots.add(PassSlot(type: PassSlotType.oath, name: name, withEnter: withEnter == 1));
+        slots.add(PassSlot(
+            type: PassSlotType.oath, name: name, withEnter: withEnter == 1));
       } else if (type == 2) {
         // STATIC
         int withEnter = int.parse(hexData.substring(i, i + 2), radix: 16);
         i += 2;
-        slots.add(PassSlot(type: PassSlotType.static, name: '', withEnter: withEnter == 1));
+        slots.add(PassSlot(
+            type: PassSlotType.static, name: '', withEnter: withEnter == 1));
+      } else if (type == 3) {
+        // HMAC-SHA1
+        slots.add(
+            PassSlot(type: PassSlotType.hmacSha1, name: '', withEnter: false));
+      } else {
+        throw FormatException('Unsupported Pass slot type: $type');
       }
     }
     return slots;

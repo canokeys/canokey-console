@@ -8,7 +8,7 @@ import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/pass.dart';
 import 'package:canokey_console/views/applets/pass/dialogs/slot_config_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 
 class SlotCard extends StatelessWidget with UIMixin {
   final String title;
@@ -16,7 +16,12 @@ class SlotCard extends StatelessWidget with UIMixin {
   final int slotIndex;
   final PassController controller;
 
-  const SlotCard({super.key, required this.title, required this.slot, required this.slotIndex, required this.controller});
+  const SlotCard(
+      {super.key,
+      required this.title,
+      required this.slot,
+      required this.slotIndex,
+      required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -32,9 +37,11 @@ class SlotCard extends StatelessWidget with UIMixin {
             padding: Spacing.xy(16, 12),
             child: Row(
               children: [
-                Icon(LucideIcons.keyboard, color: contentTheme.primary, size: 16),
+                Icon(LucideIcons.keyboard,
+                    color: contentTheme.primary, size: 16),
                 Spacing.width(12),
-                CustomizedText.titleMedium(title, fontWeight: 600, color: contentTheme.primary)
+                CustomizedText.titleMedium(title,
+                    fontWeight: 600, color: contentTheme.primary)
               ],
             ),
           ),
@@ -44,7 +51,11 @@ class SlotCard extends StatelessWidget with UIMixin {
               LucideIcons.shieldCheck,
               S.of(context).passStatus,
               _slotStatus(slot, context),
-              () => SlotConfigDialog.show(index: slotIndex, slot: slot, onSetSlot: controller.setSlot),
+              () => SlotConfigDialog.show(
+                  index: slotIndex,
+                  slot: slot,
+                  hmacSha1Supported: controller.hmacSha1Supported,
+                  onSetSlot: controller.setSlot),
             ),
           ),
         ],
@@ -52,12 +63,17 @@ class SlotCard extends StatelessWidget with UIMixin {
     );
   }
 
-  Widget _buildInfo(IconData iconData, String title, String value, GestureTapCallback handler) {
+  Widget _buildInfo(IconData iconData, String title, String value,
+      GestureTapCallback handler) {
     return InkWell(
       onTap: handler,
       child: Row(
         children: [
-          Container(padding: Spacing.all(4), height: 32, width: 32, child: Icon(iconData, size: 20)),
+          Container(
+              padding: Spacing.all(4),
+              height: 32,
+              width: 32,
+              child: Icon(iconData, size: 20)),
           Spacing.width(16),
           Expanded(
             child: Column(
@@ -82,6 +98,8 @@ class SlotCard extends StatelessWidget with UIMixin {
         return '${S.of(context).passSlotHotp} (${slot.name})';
       case PassSlotType.static:
         return S.of(context).passSlotStatic;
+      case PassSlotType.hmacSha1:
+        return S.of(context).passSlotHmacSha1;
     }
   }
 }

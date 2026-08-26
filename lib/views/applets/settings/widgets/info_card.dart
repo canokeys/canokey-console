@@ -6,9 +6,10 @@ import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/canokey.dart';
+import 'package:canokey_console/views/applets/settings/dialogs/storage_usage_dialog.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 
 class InfoCard extends StatelessWidget with UIMixin {
   final CanoKey canokey;
@@ -17,6 +18,8 @@ class InfoCard extends StatelessWidget with UIMixin {
 
   @override
   Widget build(BuildContext context) {
+    final storageUsage = canokey.storageUsage;
+
     return CustomizedCard(
       clipBehavior: Clip.antiAliasWithSaveLayer,
       shadow: Shadow(elevation: 0.5, position: ShadowPosition.bottom),
@@ -29,9 +32,11 @@ class InfoCard extends StatelessWidget with UIMixin {
             padding: Spacing.xy(16, 12),
             child: Row(
               children: [
-                Icon(LucideIcons.keyRound, color: contentTheme.primary, size: 16),
+                Icon(LucideIcons.keyRound,
+                    color: contentTheme.primary, size: 16),
                 Spacing.width(12),
-                CustomizedText.titleMedium(S.of(context).settingsInfo, fontWeight: 600, color: contentTheme.primary)
+                CustomizedText.titleMedium(S.of(context).settingsInfo,
+                    fontWeight: 600, color: contentTheme.primary)
               ],
             ),
           ),
@@ -40,13 +45,42 @@ class InfoCard extends StatelessWidget with UIMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                InfoItem(iconData: LucideIcons.shieldCheck, title: S.of(context).settingsModel, value: canokey.model),
+                InfoItem(
+                    iconData: LucideIcons.shieldCheck,
+                    title: S.of(context).settingsModel,
+                    value: canokey.model),
                 Spacing.height(16),
-                InfoItem(iconData: LucideIcons.info, title: S.of(context).settingsFirmwareVersion, value: canokey.firmwareVersion),
+                InfoItem(
+                    iconData: LucideIcons.info,
+                    title: S.of(context).settingsFirmwareVersion,
+                    value: canokey.firmwareVersion),
+                if (canokey.coreCommit != null) ...[
+                  Spacing.height(16),
+                  InfoItem(
+                      iconData: LucideIcons.hash,
+                      title: S.of(context).settingsCoreCommit,
+                      value: canokey.coreCommit!),
+                ],
                 Spacing.height(16),
-                InfoItem(iconData: LucideIcons.hash, title: S.of(context).settingsSN, value: canokey.sn),
+                InfoItem(
+                    iconData: LucideIcons.hash,
+                    title: S.of(context).settingsSN,
+                    value: canokey.sn),
                 Spacing.height(16),
-                InfoItem(iconData: LucideIcons.cpu, title: S.of(context).settingsChipId, value: canokey.chipId),
+                InfoItem(
+                    iconData: LucideIcons.cpu,
+                    title: S.of(context).settingsChipId,
+                    value: canokey.chipId),
+                if (storageUsage != null) ...[
+                  Spacing.height(16),
+                  InfoItem(
+                    iconData: LucideIcons.database,
+                    title: S.of(context).settingsStorageUsage,
+                    value:
+                        '${storageUsage.usedKiB} / ${storageUsage.totalKiB} KiB',
+                    onTap: () => StorageUsageDialog.show(storageUsage),
+                  ),
+                ],
               ],
             ),
           ),

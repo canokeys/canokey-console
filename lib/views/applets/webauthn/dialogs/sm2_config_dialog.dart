@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
@@ -8,20 +9,33 @@ import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
-import 'package:canokey_console/models/canokey.dart';
+import 'package:canokey_console/models/webauthn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class Sm2ConfigDialog extends BaseDialog with UIMixin {
   final WebAuthnSm2Config config;
+  final bool canChangeEnabled;
   final Function(bool enabled, int curveId, int algoId) onConfirm;
 
-  const Sm2ConfigDialog({super.key, required this.config, required this.onConfirm});
+  const Sm2ConfigDialog({
+    super.key,
+    required this.config,
+    required this.canChangeEnabled,
+    required this.onConfirm,
+  });
 
-  static Future<void> show({required WebAuthnSm2Config config, required Function(bool enabled, int curveId, int algoId) onConfirm}) {
-    return Get.dialog(
-      Sm2ConfigDialog(config: config, onConfirm: onConfirm),
-      barrierDismissible: false,
+  static Future<void> show({
+    required WebAuthnSm2Config config,
+    required bool canChangeEnabled,
+    required Function(bool enabled, int curveId, int algoId) onConfirm,
+  }) {
+    return AppDialog.show(
+      Sm2ConfigDialog(
+        config: config,
+        canChangeEnabled: canChangeEnabled,
+        onConfirm: onConfirm,
+      ),
     );
   }
 
@@ -37,7 +51,7 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog> with UIMixi
   @override
   void initState() {
     super.initState();
-    enabled = widget.config.enabled.obs;
+    enabled = (widget.canChangeEnabled ? widget.config.enabled : true).obs;
     validator.addField('curveId', controller: TextEditingController(), validators: [IntValidator(min: -65536, max: 65535)]);
     validator.addField('algoId', controller: TextEditingController(), validators: [IntValidator(min: -65536, max: 65535)]);
     validator.getController('curveId')!.text = widget.config.curveId.toString();
@@ -68,20 +82,22 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog> with UIMixi
               key: validator.formKey,
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      Checkbox(
-                        onChanged: (value) => enabled.value = value!,
-                        value: enabled.value,
-                        activeColor: contentTheme.primary,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: getCompactDensity,
-                      ),
-                      Spacing.width(16),
-                      CustomizedText.bodyMedium(S.of(context).enabled),
-                    ],
-                  ),
-                  Spacing.height(16),
+                  if (widget.canChangeEnabled) ...[
+                    Row(
+                      children: [
+                        Checkbox(
+                          onChanged: (value) => enabled.value = value!,
+                          value: enabled.value,
+                          activeColor: contentTheme.primary,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: getCompactDensity,
+                        ),
+                        Spacing.width(16),
+                        CustomizedText.bodyMedium(S.of(context).enabled),
+                      ],
+                    ),
+                    Spacing.height(16),
+                  ],
                   TextFormField(
                     autofocus: true,
                     onTap: SmartCard.eject,

@@ -7,7 +7,7 @@ import 'package:canokey_console/helper/widgets/search_box.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 
 class TopBar extends StatefulWidget {
   final Widget? actions;

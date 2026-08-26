@@ -10,9 +10,11 @@ import 'package:get/get.dart';
 import 'package:platform_detector/platform_detector.dart';
 
 class Prompts {
-  static late SnackbarController _snackbarController;
+  static SnackbarController? _pollingSnackbarController;
+  static int _promptGeneration = 0;
 
   static String getPinFailureResult(String resp) {
+    resp = resp.toUpperCase();
     if (resp == '6983') {
       return S.of(Get.context!).appletLocked;
     } else if (resp == '6982') {
@@ -22,27 +24,40 @@ class Prompts {
       return S.of(Get.context!).pinRetries(retries);
     } else if (resp == '6700') {
       return S.of(Get.context!).pinLength;
+    } else if (isStorageFull(resp)) {
+      return S.of(Get.context!).storageFull;
     } else {
       return 'Unknown response';
     }
   }
 
   static void promptPinFailureResult(String resp) {
+    resp = resp.toUpperCase();
     if (resp == '6983') {
       showPrompt(S.of(Get.context!).appletLocked, ContentThemeColor.danger);
     } else if (resp == '6982') {
       showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
     } else if (resp.toUpperCase().startsWith('63C')) {
       String retries = resp[resp.length - 1];
-      showPrompt(S.of(Get.context!).pinRetries(retries), ContentThemeColor.danger);
+      showPrompt(
+          S.of(Get.context!).pinRetries(retries), ContentThemeColor.danger);
     } else if (resp == '6700') {
       showPrompt(S.of(Get.context!).pinLength, ContentThemeColor.danger);
+    } else if (isStorageFull(resp)) {
+      showPrompt(S.of(Get.context!).storageFull, ContentThemeColor.danger);
     } else {
       showPrompt('Unknown response', ContentThemeColor.danger);
     }
   }
 
-  static void showPrompt(String content, ContentThemeColor selectedColor, {String level = 'E', bool forceSnackBar = false}) {
+  static bool isStorageFull(String resp) {
+    final sw = resp.toUpperCase();
+    return sw == '6A84' || sw == '6581';
+  }
+
+  static void showPrompt(String content, ContentThemeColor selectedColor,
+      {String level = 'E', bool forceSnackBar = false}) {
+    final generation = ++_promptGeneration;
     Color backgroundColor = selectedColor.color;
     Color color = selectedColor.onColor;
 
@@ -57,7 +72,9 @@ class Prompts {
       ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
       ScaffoldMessenger.of(Get.context!).showMaterialBanner(banner);
       Timer(Duration(seconds: 3), () {
-        ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
+        if (generation == _promptGeneration) {
+          ScaffoldMessenger.of(Get.context!).hideCurrentMaterialBanner();
+        }
       });
     } else {
       try {
@@ -67,7 +84,9 @@ class Prompts {
         Get.find<RxString>(tag: 'dialog_error').value = content;
         Get.find<RxString>(tag: 'dialog_error_level').value = level;
         Timer(Duration(seconds: 3), () {
-          Get.find<RxString>(tag: 'dialog_error').value = '';
+          if (generation == _promptGeneration) {
+            Get.find<RxString>(tag: 'dialog_error').value = '';
+          }
         });
       } catch (e) {
         // log.d('Failed to find a dialog', error: e);
@@ -86,11 +105,29 @@ class Prompts {
     }
   }
 
-  static promptAndroidPolling() {
+  static void dismissTransientPrompt() {
+    _promptGeneration++;
+    try {
+      Get.find<RxString>(tag: 'dialog_error').value = '';
+    } catch (_) {
+      // There is no active dialog prompt.
+    }
+    try {
+      final messenger = ScaffoldMessenger.maybeOf(Get.context!);
+      messenger?.removeCurrentSnackBar();
+      messenger?.hideCurrentMaterialBanner();
+    } catch (_) {
+      // The navigator may not have an active scaffold yet.
+    }
+  }
+
+  static void promptAndroidPolling() {
+    dismissTransientPrompt();
     try {
       Get.find<RxBool>(tag: 'dialog_polling').value = true;
     } catch (e) {
-      _snackbarController = Get.snackbar(
+      _pollingSnackbarController?.close();
+      _pollingSnackbarController = Get.snackbar(
         S.of(Get.context!).androidAlertTitle,
         S.of(Get.context!).readingAlertMessage,
         icon: SpinKitRipple(color: Colors.tealAccent, size: 32.0),
@@ -102,14 +139,15 @@ class Prompts {
     }
   }
 
-  static stopPromptAndroidPolling() {
+  static void stopPromptAndroidPolling() {
     try {
       Get.find<RxBool>(tag: 'dialog_polling').value = false;
     } catch (e) {
       // ignore: empty_catches
     }
     try {
-      _snackbarController.close();
+      _pollingSnackbarController?.close();
+      _pollingSnackbarController = null;
     } catch (e) {
       // ignore: empty_catches
     }

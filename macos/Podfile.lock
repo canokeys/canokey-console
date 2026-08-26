@@ -1,80 +1,22 @@
 PODS:
-  - ccid (0.1.5):
-    - Flutter
-    - FlutterMacOS
-  - device_info_plus (0.0.1):
-    - FlutterMacOS
-  - file_saver (0.0.1):
-    - FlutterMacOS
-  - flutter_webrtc (0.12.2):
-    - FlutterMacOS
-    - WebRTC-SDK (= 125.6422.06)
   - FlutterMacOS (1.0.0)
-  - mobile_scanner (6.0.2):
-    - FlutterMacOS
-  - path_provider_foundation (0.0.1):
-    - Flutter
-    - FlutterMacOS
   - rust_lib_canokey_console (0.0.1):
     - FlutterMacOS
-  - shared_preferences_foundation (0.0.1):
-    - Flutter
-    - FlutterMacOS
-  - url_launcher_macos (0.0.1):
-    - FlutterMacOS
-  - WebRTC-SDK (125.6422.06)
 
 DEPENDENCIES:
-  - ccid (from `Flutter/ephemeral/.symlinks/plugins/ccid/darwin`)
-  - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
-  - file_saver (from `Flutter/ephemeral/.symlinks/plugins/file_saver/macos`)
-  - flutter_webrtc (from `Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
-  - mobile_scanner (from `Flutter/ephemeral/.symlinks/plugins/mobile_scanner/macos`)
-  - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
   - rust_lib_canokey_console (from `Flutter/ephemeral/.symlinks/plugins/rust_lib_canokey_console/macos`)
-  - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
-  - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
-
-SPEC REPOS:
-  trunk:
-    - WebRTC-SDK
 
 EXTERNAL SOURCES:
-  ccid:
-    :path: Flutter/ephemeral/.symlinks/plugins/ccid/darwin
-  device_info_plus:
-    :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
-  file_saver:
-    :path: Flutter/ephemeral/.symlinks/plugins/file_saver/macos
-  flutter_webrtc:
-    :path: Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
-  mobile_scanner:
-    :path: Flutter/ephemeral/.symlinks/plugins/mobile_scanner/macos
-  path_provider_foundation:
-    :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
   rust_lib_canokey_console:
     :path: Flutter/ephemeral/.symlinks/plugins/rust_lib_canokey_console/macos
-  shared_preferences_foundation:
-    :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
-  url_launcher_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
 
 SPEC CHECKSUMS:
-  ccid: 177607aa71ea9e050991c400623687b03fc2883f
-  device_info_plus: 4fb280989f669696856f8b129e4a5e3cd6c48f76
-  file_saver: e35bd97de451dde55ff8c38862ed7ad0f3418d0f
-  flutter_webrtc: 56b1b0a80685dc60958fd8657016df16d5114de5
-  FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
-  mobile_scanner: 0e365ed56cad24f28c0fd858ca04edefb40dfac3
-  path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
+  FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   rust_lib_canokey_console: a4a9152dbbc3183d4ddfe4c79a57f3de31203bd3
-  shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
-  url_launcher_macos: 0fba8ddabfc33ce0a9afe7c5fef5aab3d8d2d673
-  WebRTC-SDK: 79942c006ea64f6fb48d7da8a4786dfc820bc1db
 
-PODFILE CHECKSUM: 236401fc2c932af29a9fcf0e97baeeb2d750d367
+PODFILE CHECKSUM: 9ebaf0ce3d369aaa26a9ea0e159195ed94724cf3
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.17.0

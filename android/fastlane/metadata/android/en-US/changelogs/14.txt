@@ -1,0 +1,1 @@
+Expanded PIV certificate, key, and signing tools; added NDEF management and improved OpenPGP details. This release also improves NFC and CCID stability and provides optional NFC interaction sounds.

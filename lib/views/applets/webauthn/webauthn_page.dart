@@ -2,6 +2,7 @@ import 'package:canokey_console/controller/applets/webauthn/webauthn_controller.
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
+import 'package:canokey_console/helper/widgets/applet_disabled_screen.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/no_credential_screen.dart';
 import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
@@ -14,7 +15,7 @@ import 'package:canokey_console/views/applets/webauthn/widgets/webauthn_item_car
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 
 class WebAuthnPage extends StatefulWidget {
   const WebAuthnPage({super.key});
@@ -23,7 +24,8 @@ class WebAuthnPage extends StatefulWidget {
   State<WebAuthnPage> createState() => _WebAuthnPageState();
 }
 
-class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderStateMixin, UIMixin {
+class _WebAuthnPageState extends State<WebAuthnPage>
+    with SingleTickerProviderStateMixin, UIMixin {
   final WebAuthnController controller = Get.put(WebAuthnController());
   final RxString searchText = ''.obs;
   final RxBool sortAlphabetically = false.obs;
@@ -36,10 +38,10 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
     super.initState();
     Get.put(searchText, tag: 'webauthn_search');
     Get.put(sortAlphabetically, tag: 'webauthn_sort');
-    
+
     // Load saved preference
     sortAlphabetically.value = LocalStorage.getWebAuthnSortAlphabetically();
-    
+
     // Save preference when it changes
     _sortWorker = ever(sortAlphabetically, (bool value) {
       LocalStorage.setWebAuthnSortAlphabetically(value);
@@ -58,23 +60,29 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return Layout(
       title: 'WebAuthn',
+      onRefresh: controller.refreshData,
       topActions: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Obx(() => InkWell(
-            onTap: () => sortAlphabetically.value = !sortAlphabetically.value,
-            child: Icon(
-              sortAlphabetically.value ? LucideIcons.arrowDownAZ : LucideIcons.clock,
-              size: 20,
-              color: topBarTheme.onBackground,
-            ),
-          )),
-          Spacing.width(12),
+          Obx(() => IconButton(
+                onPressed: () =>
+                    sortAlphabetically.value = !sortAlphabetically.value,
+                icon: Icon(
+                  sortAlphabetically.value
+                      ? LucideIcons.arrowDownAZ
+                      : LucideIcons.clock,
+                  color: topBarTheme.onBackground,
+                ),
+              )),
           TopActions(controller: controller),
         ],
       ),
       child: GetBuilder(
         init: controller,
         builder: (_) {
+          if (controller.disabledMessage != null) {
+            return AppletDisabledScreen(message: controller.disabledMessage!);
+          }
           if (!controller.polled) {
             return PollCanoKeyScreen();
           }
@@ -89,7 +97,9 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (ScreenMedia.getTypeFromWidth(MediaQuery.of(context).size.width).isMobile) ...{
+                    if (ScreenMedia.getTypeFromWidth(
+                            MediaQuery.of(context).size.width)
+                        .isMobile) ...{
                       Spacing.height(16),
                       SearchBox(formKey: _searchFormKey),
                     },
@@ -99,10 +109,18 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                           ? controller.webAuthnItems
                           : controller.webAuthnItems
                               .where((item) =>
-                                  item.rpId.toLowerCase().contains(searchText.value.toLowerCase()) ||
-                                  item.userDisplayName.toLowerCase().contains(searchText.value.toLowerCase()))
+                                  item.rpId.toLowerCase().contains(
+                                      searchText.value.toLowerCase()) ||
+                                  item.userDisplayName
+                                      .toLowerCase()
+                                      .contains(searchText.value.toLowerCase()))
                               .toList();
-                      if (filteredItems.isEmpty) return Center(child: CustomizedText.bodyMedium(S.of(context).noMatchingCredential, fontSize: 24));
+                      if (filteredItems.isEmpty) {
+                        return Center(
+                            child: CustomizedText.bodyMedium(
+                                S.of(context).noMatchingCredential,
+                                fontSize: 24));
+                      }
                       final items = List<WebAuthnItem>.from(filteredItems);
                       if (sortAlphabetically.value) {
                         items.sort((a, b) {
@@ -118,17 +136,23 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                             bRpId[0] = bRpId[1];
                             bRpId[1] = temp;
                           }
-                          for (int i = 0; i < aRpId.length && i < bRpId.length; i++) {
+                          for (int i = 0;
+                              i < aRpId.length && i < bRpId.length;
+                              i++) {
                             final aRpIdChip = aRpId[i];
                             final bRpIdChip = bRpId[i];
                             if (aRpIdChip != bRpIdChip) {
-                              return aRpIdChip.toLowerCase().compareTo(bRpIdChip.toLowerCase());
+                              return aRpIdChip
+                                  .toLowerCase()
+                                  .compareTo(bRpIdChip.toLowerCase());
                             }
                           }
                           if (aRpId.length != bRpId.length) {
                             return aRpId.length.compareTo(bRpId.length);
                           }
-                          return a.userName.toLowerCase().compareTo(b.userName.toLowerCase());
+                          return a.userName
+                              .toLowerCase()
+                              .compareTo(b.userName.toLowerCase());
                         });
                       }
                       return GridView.builder(
@@ -136,7 +160,8 @@ class _WebAuthnPageState extends State<WebAuthnPage> with SingleTickerProviderSt
                         shrinkWrap: true,
                         scrollDirection: Axis.vertical,
                         itemCount: items.length,
-                        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
                           maxCrossAxisExtent: 500,
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,

@@ -1,5 +1,17 @@
 import 'package:fido2/fido2.dart';
 
+class WebAuthnSm2Config {
+  final bool enabled;
+  final int curveId;
+  final int algoId;
+
+  const WebAuthnSm2Config({
+    required this.enabled,
+    required this.curveId,
+    required this.algoId,
+  });
+}
+
 class WebAuthnItem {
   String rpId;
   String userName;

@@ -10,7 +10,7 @@ import 'package:canokey_console/models/webauthn.dart';
 import 'package:canokey_console/views/applets/webauthn/dialogs/delete_dialog.dart';
 import 'package:canokey_console/views/applets/webauthn/dialogs/view_user_id_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 
 class WebAuthnItemCard extends StatelessWidget with UIMixin {
   final WebAuthnItem item;

@@ -1,4 +1,5 @@
 import 'package:canokey_console/helper/utils/logging.dart';
+import 'package:canokey_console/models/keyboard_keymap.dart';
 
 final log = Logging.logger('CanoKey:Model');
 
@@ -16,6 +17,7 @@ enum Applet {
 }
 
 enum Func {
+  changeAdminPin,
   led,
   hotp,
   ndefEnabled,
@@ -27,10 +29,26 @@ enum Func {
   autTouch,
   touchCacheTime,
   nfcSwitch,
+  resetOpenPgp,
+  resetPiv,
+  resetOath,
+  resetNdef,
   resetWebAuthn,
   resetPass,
+  factoryReset,
   webAuthnSm2Support,
   pass,
+  passHmacSha1,
+  keyboardKeymap,
+  dynamicOathCapacity,
+  dynamicWebAuthnCapacity,
+  pinRetryConfig,
+  passSwitch,
+  openPgpCcIdSwitch,
+  openPgpNfcSwitch,
+  pivCcIdSwitch,
+  pivNfcSwitch,
+  webAuthnSwitch,
 }
 
 enum FunctionSetVersion {
@@ -38,14 +56,70 @@ enum FunctionSetVersion {
   v2, // led, hotp, ndef enabled/readonly, webusb landing page
   v3, // led, hotp, ndef enabled/readonly, webusb landing page, hotp return switch
   v4, // led, ndef enabled/readonly, webusb landing page, nfc switch
+  v5, // CanoKey Core 3.1.0 capabilities
 }
 
-class WebAuthnSm2Config {
-  final bool enabled; // encoding as a byte, 0x01: enabled, 0x00: disabled
-  final int curveId; // encoding as four bytes as big endian signed int
-  final int algoId; // encoding as four bytes as big endian signed int
+class FirmwareVersion implements Comparable<FirmwareVersion> {
+  final int major;
+  final int minor;
+  final int patch;
 
-  WebAuthnSm2Config({required this.enabled, required this.curveId, required this.algoId});
+  const FirmwareVersion(this.major, this.minor, this.patch);
+
+  factory FirmwareVersion.parse(String value) {
+    final match =
+        RegExp(r'^(\d+)(?:\.(\d+))?(?:\.(\d+))?').firstMatch(value.trim());
+    if (match == null) {
+      log.w('Failed to parse firmware version: $value');
+      return const FirmwareVersion(0, 0, 0);
+    }
+    return FirmwareVersion(
+      int.parse(match.group(1)!),
+      int.parse(match.group(2) ?? '0'),
+      int.parse(match.group(3) ?? '0'),
+    );
+  }
+
+  @override
+  int compareTo(FirmwareVersion other) {
+    final majorCompare = major.compareTo(other.major);
+    if (majorCompare != 0) {
+      return majorCompare;
+    }
+    final minorCompare = minor.compareTo(other.minor);
+    if (minorCompare != 0) {
+      return minorCompare;
+    }
+    return patch.compareTo(other.patch);
+  }
+
+  bool operator <(FirmwareVersion other) => compareTo(other) < 0;
+}
+
+class StorageUsage {
+  final int usedKiB;
+  final int totalKiB;
+  final List<AppletStorageUsage> applets;
+
+  StorageUsage({
+    required this.usedKiB,
+    required this.totalKiB,
+    this.applets = const [],
+  });
+}
+
+class AppletStorageUsage {
+  final int id;
+  final String name;
+  final int logicalBytes;
+  final bool hasMissingSources;
+
+  AppletStorageUsage({
+    required this.id,
+    required this.name,
+    required this.logicalBytes,
+    required this.hasMissingSources,
+  });
 }
 
 class CanoKey {
@@ -53,6 +127,7 @@ class CanoKey {
   final String sn;
   final String chipId;
   final String firmwareVersion;
+  final String? coreCommit;
   final FunctionSetVersion functionSetVersion;
   final bool ledOn;
   final bool hotpOn;
@@ -65,13 +140,22 @@ class CanoKey {
   final bool autTouch;
   final int touchCacheTime;
   final bool nfcEnabled;
-  WebAuthnSm2Config? webAuthnSm2Config;
+  final bool passEnabled;
+  final bool openPgpCcIdEnabled;
+  final bool openPgpNfcEnabled;
+  final bool pivCcIdEnabled;
+  final bool pivNfcEnabled;
+  final bool webAuthnEnabled;
+  final bool featureSwitchesSupported;
+  final StorageUsage? storageUsage;
+  final KeyboardKeymapState? keyboardKeymap;
 
   CanoKey(
       {required this.model,
       required this.sn,
       required this.chipId,
       required this.firmwareVersion,
+      this.coreCommit,
       required this.functionSetVersion,
       required this.ledOn,
       required this.hotpOn,
@@ -84,7 +168,15 @@ class CanoKey {
       required this.autTouch,
       required this.touchCacheTime,
       required this.nfcEnabled,
-      this.webAuthnSm2Config});
+      this.passEnabled = true,
+      this.openPgpCcIdEnabled = true,
+      this.openPgpNfcEnabled = true,
+      this.pivCcIdEnabled = true,
+      this.pivNfcEnabled = true,
+      this.webAuthnEnabled = true,
+      this.featureSwitchesSupported = false,
+      this.storageUsage,
+      this.keyboardKeymap});
 
   Set<Func> getFunctionSet() {
     return functionSet(functionSetVersion);
@@ -93,42 +185,109 @@ class CanoKey {
   static Set<Func> functionSet(FunctionSetVersion functionSetVersion) {
     switch (functionSetVersion) {
       case FunctionSetVersion.v1:
-        return {Func.led, Func.hotp, Func.ndefReadonly, Func.sigTouch, Func.decTouch, Func.autTouch, Func.touchCacheTime};
+        return {
+          ..._baseAdminFunctions,
+          Func.led,
+          Func.hotp,
+          Func.ndefReadonly,
+          Func.resetNdef,
+          Func.sigTouch,
+          Func.decTouch,
+          Func.autTouch,
+          Func.touchCacheTime
+        };
       case FunctionSetVersion.v2:
-        return {Func.led, Func.hotp, Func.webusbLandingPage, Func.ndefEnabled, Func.ndefReadonly};
+        return {
+          ..._baseAdminFunctions,
+          Func.led,
+          Func.hotp,
+          Func.webusbLandingPage,
+          Func.ndefEnabled,
+          Func.ndefReadonly,
+          Func.resetNdef,
+        };
       case FunctionSetVersion.v3:
-        return {Func.led, Func.hotp, Func.webusbLandingPage, Func.ndefEnabled, Func.ndefReadonly, Func.keyboardWithReturn};
+        return {
+          ..._baseAdminFunctions,
+          Func.led,
+          Func.hotp,
+          Func.webusbLandingPage,
+          Func.ndefEnabled,
+          Func.ndefReadonly,
+          Func.keyboardWithReturn,
+          Func.resetNdef,
+        };
       case FunctionSetVersion.v4:
         return {
+          ..._baseAdminFunctions,
           Func.led,
           Func.webusbLandingPage,
           Func.ndefEnabled,
           Func.ndefReadonly,
+          Func.resetNdef,
           Func.nfcSwitch,
           Func.resetWebAuthn,
           Func.resetPass,
           Func.webAuthnSm2Support,
           Func.pass,
         };
+      case FunctionSetVersion.v5:
+        return {
+          ..._baseAdminFunctions,
+          Func.led,
+          Func.webusbLandingPage,
+          Func.ndefEnabled,
+          Func.ndefReadonly,
+          Func.resetNdef,
+          Func.nfcSwitch,
+          Func.resetWebAuthn,
+          Func.resetPass,
+          Func.webAuthnSm2Support,
+          Func.pass,
+          Func.passHmacSha1,
+          Func.keyboardKeymap,
+          Func.dynamicOathCapacity,
+          Func.dynamicWebAuthnCapacity,
+          Func.pinRetryConfig,
+          Func.passSwitch,
+          Func.openPgpCcIdSwitch,
+          Func.openPgpNfcSwitch,
+          Func.pivCcIdSwitch,
+          Func.pivNfcSwitch,
+          Func.webAuthnSwitch,
+        };
     }
   }
 
-  static FunctionSetVersion functionSetFromFirmwareVersion(String firmwareVersion) {
-    if (firmwareVersion.compareTo('1.5.') < 0) {
+  static const Set<Func> _baseAdminFunctions = {
+    Func.changeAdminPin,
+    Func.resetOpenPgp,
+    Func.resetPiv,
+    Func.resetOath,
+    Func.factoryReset,
+  };
+
+  static FunctionSetVersion functionSetFromFirmwareVersion(
+      String firmwareVersion) {
+    final version = FirmwareVersion.parse(firmwareVersion);
+    if (version < const FirmwareVersion(1, 5, 0)) {
       log.i("Function Set: V1");
       return FunctionSetVersion.v1;
-    } else if (firmwareVersion.compareTo('1.6.2') < 0) {
+    } else if (version < const FirmwareVersion(1, 6, 2)) {
       log.i("Function Set: V2");
       return FunctionSetVersion.v2;
-    } else if (firmwareVersion.compareTo('3.0.0') < 0) {
+    } else if (version < const FirmwareVersion(3, 0, 0)) {
       log.i("Function Set: V3");
       return FunctionSetVersion.v3;
+    } else if (version < const FirmwareVersion(3, 1, 0)) {
+      log.i("Function Set: V4");
+      return FunctionSetVersion.v4;
     }
-    log.i("Function Set: V4");
-    return FunctionSetVersion.v4;
+    log.i("Function Set: V5");
+    return FunctionSetVersion.v5;
   }
 
-  static get pigeon => "CanoKey Pigeon";
+  static String get pigeon => "CanoKey Pigeon";
 
-  static get canary => "CanoKey Canary";
+  static String get canary => "CanoKey Canary";
 }

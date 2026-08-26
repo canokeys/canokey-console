@@ -1,7 +1,7 @@
 import 'package:canokey_console/helper/extensions/extensions.dart';
 
 class Utils {
-  static getDateStringFromDateTime(DateTime dateTime, {bool showMonthShort = false}) {
+  static String getDateStringFromDateTime(DateTime dateTime, {bool showMonthShort = false}) {
     String date = dateTime.day < 10 ? "0${dateTime.day}" : dateTime.day.toString();
     late String month;
     if (showMonthShort) {
@@ -15,7 +15,7 @@ class Utils {
     return "$date$separator$month$separator$year";
   }
 
-  static getTimeStringFromDateTime(
+  static String getTimeStringFromDateTime(
     DateTime dateTime, {
     bool showSecond = true,
   }) {

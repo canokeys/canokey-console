@@ -34,3 +34,4 @@ linter:
 analyzer:
   exclude:
     - rust_builder/**
+    - third_party/**

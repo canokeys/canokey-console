@@ -5,3 +5,5 @@ build
 *.iml
 .flutter-plugins*
 dist/
+android/fastlane/report.xml
+ios/fastlane/report.xml

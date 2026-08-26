@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class QrScannerDialog extends StatefulWidget {
@@ -15,7 +15,7 @@ class QrScannerDialog extends StatefulWidget {
   const QrScannerDialog({super.key, required this.onQrCodeScanned});
 
   static void show({required Function(String) onQrCodeScanned}) {
-    Get.dialog(QrScannerDialog(onQrCodeScanned: onQrCodeScanned));
+    AppDialog.show(QrScannerDialog(onQrCodeScanned: onQrCodeScanned));
   }
 
   @override
@@ -87,9 +87,9 @@ class _QrScannerDialogState extends State<QrScannerDialog> with UIMixin, Widgets
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return AppDialogSurface(
       child: SizedBox(
-        width: 400,
+        width: AppDialogWidth.compact,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

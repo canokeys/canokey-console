@@ -2,11 +2,11 @@ import 'package:canokey_console/controller/applets/webauthn/webauthn_controller.
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
-import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
+import 'package:canokey_console/views/applets/webauthn/dialogs/sm2_config_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:platform_detector/platform_detector.dart';
 
 class TopActions extends StatelessWidget with UIMixin {
@@ -22,16 +22,17 @@ class TopActions extends StatelessWidget with UIMixin {
         List<Widget> widgets = [];
 
         if (isWeb() || isIOSApp()) {
-          widgets.add(InkWell(
-            onTap: controller.refreshData,
-            child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
+          widgets.add(IconButton(
+            onPressed: controller.refreshData,
+            icon: Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
           ));
         }
 
         if (controller.polled) {
-          widgets.insertAll(0, [
-            InkWell(
-              onTap: () {
+          widgets.insert(
+            0,
+            IconButton(
+              onPressed: () {
                 InputPinDialog.show(
                   title: S.of(context).changePin,
                   label: 'PIN',
@@ -43,12 +44,32 @@ class TopActions extends StatelessWidget with UIMixin {
                   },
                 );
               },
-              child: Icon(LucideIcons.lock, size: 20, color: topBarTheme.onBackground),
+              icon: Icon(LucideIcons.lock, color: topBarTheme.onBackground),
             ),
-            Spacing.width(12),
-          ]);
+          );
+          if (controller.supportsSm2Settings) {
+            widgets.insert(
+              0,
+              IconButton(
+                tooltip: S.of(context).settingsWebAuthnSm2Support,
+                onPressed: () async {
+                  final config = await controller.readSm2Config();
+                  if (config == null) {
+                    return;
+                  }
+                  await Sm2ConfigDialog.show(
+                    config: config,
+                    canChangeEnabled: true,
+                    onConfirm: controller.changeSm2Config,
+                  );
+                },
+                icon:
+                    Icon(LucideIcons.settings, color: topBarTheme.onBackground),
+              ),
+            );
+          }
         }
-        return Row(children: widgets);
+        return Row(mainAxisSize: MainAxisSize.min, children: widgets);
       },
     );
   }

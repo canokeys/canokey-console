@@ -5,7 +5,7 @@ import 'package:canokey_console/helper/widgets/customized_text_style.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 
 class SearchBox extends StatelessWidget with UIMixin {
   const SearchBox({super.key, this.formKey});

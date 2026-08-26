@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
@@ -15,8 +16,11 @@ class SetDefaultDialog extends BaseDialog with UIMixin {
 
   const SetDefaultDialog({super.key, required this.name, required this.onSetDefault});
 
+  @override
+  bool get managesOwnScrolling => true;
+
   static Future<void> show({required String name, required Function(int slot, bool withEnter) onSetDefault}) {
-    return Get.dialog(SetDefaultDialog(name: name, onSetDefault: onSetDefault), barrierDismissible: false);
+    return AppDialog.show(SetDefaultDialog(name: name, onSetDefault: onSetDefault));
   }
 
   @override

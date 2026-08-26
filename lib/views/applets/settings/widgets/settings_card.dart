@@ -7,17 +7,19 @@ import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/canokey.dart';
+import 'package:canokey_console/views/applets/settings/dialogs/applet_switches_dialog.dart';
+import 'package:canokey_console/views/applets/settings/dialogs/keymap_dialog.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/switch_dialog.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 
 class SettingsCard extends StatelessWidget with UIMixin {
   final SettingsController controller;
 
   const SettingsCard({super.key, required this.controller});
 
-  _showChangeSwitchDialog(String title, Func func, bool currentState) {
+  void _showChangeSwitchDialog(String title, Func func, bool currentState) {
     SwitchDialog.show(
       title: title,
       initialValue: currentState,
@@ -25,8 +27,37 @@ class SettingsCard extends StatelessWidget with UIMixin {
     );
   }
 
+  void _showKeymapDialog(BuildContext context) {
+    KeymapDialog.show(
+      currentState: controller.key.keyboardKeymap,
+      onConfirm: controller.changeKeyboardKeymap,
+    );
+  }
+
+  void _showAppletSwitchesDialog(Set<Func> functionSet) {
+    AppletSwitchesDialog.show(
+      canokey: controller.key,
+      functionSet: functionSet,
+      onConfirm: controller.changeSwitches,
+    );
+  }
+
+  bool _hasAppletSwitches(Set<Func> functionSet) {
+    return (functionSet.contains(Func.nfcSwitch) &&
+            functionSet.contains(Func.ndefEnabled)) ||
+        (controller.key.featureSwitchesSupported &&
+            (functionSet.contains(Func.passSwitch) ||
+                functionSet.contains(Func.webAuthnSwitch) ||
+                functionSet.contains(Func.pivCcIdSwitch) ||
+                functionSet.contains(Func.pivNfcSwitch) ||
+                functionSet.contains(Func.openPgpCcIdSwitch) ||
+                functionSet.contains(Func.openPgpNfcSwitch)));
+  }
+
   @override
   Widget build(BuildContext context) {
+    final functionSet = controller.key.getFunctionSet();
+
     return CustomizedCard(
       clipBehavior: Clip.antiAliasWithSaveLayer,
       shadow: Shadow(elevation: 0.5, position: ShadowPosition.bottom),
@@ -39,9 +70,11 @@ class SettingsCard extends StatelessWidget with UIMixin {
             padding: Spacing.xy(16, 12),
             child: Row(
               children: [
-                Icon(LucideIcons.settings, color: contentTheme.primary, size: 16),
+                Icon(LucideIcons.settings,
+                    color: contentTheme.primary, size: 16),
                 Spacing.width(12),
-                CustomizedText.titleMedium(S.of(context).settings, fontWeight: 600, color: contentTheme.primary)
+                CustomizedText.titleMedium(S.of(context).settings,
+                    fontWeight: 600, color: contentTheme.primary)
               ],
             ),
           ),
@@ -50,66 +83,105 @@ class SettingsCard extends StatelessWidget with UIMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (controller.key.getFunctionSet().contains(Func.led)) ...{
+                if (functionSet.contains(Func.led)) ...{
                   InfoItem(
                     iconData: LucideIcons.lightbulb,
                     title: 'LED',
-                    value: controller.key.ledOn ? S.of(context).on : S.of(context).off,
-                    onTap: () => _showChangeSwitchDialog('LED', Func.led, controller.key.ledOn),
+                    value: controller.key.ledOn
+                        ? S.of(context).on
+                        : S.of(context).off,
+                    onTap: () => _showChangeSwitchDialog(
+                        'LED', Func.led, controller.key.ledOn),
                   ),
                   Spacing.height(16),
                 },
-                if (controller.key.getFunctionSet().contains(Func.hotp)) ...{
+                if (functionSet.contains(Func.hotp)) ...{
                   InfoItem(
                     iconData: LucideIcons.keyboard,
                     title: S.of(context).settingsHotp,
-                    value: controller.key.hotpOn ? S.of(context).on : S.of(context).off,
-                    onTap: () => _showChangeSwitchDialog(S.of(context).settingsHotp, Func.hotp, controller.key.hotpOn),
+                    value: controller.key.hotpOn
+                        ? S.of(context).on
+                        : S.of(context).off,
+                    onTap: () => _showChangeSwitchDialog(
+                        S.of(context).settingsHotp,
+                        Func.hotp,
+                        controller.key.hotpOn),
                   ),
                   Spacing.height(16),
                 },
-                if (controller.key.getFunctionSet().contains(Func.keyboardWithReturn)) ...{
+                if (functionSet.contains(Func.keyboardWithReturn)) ...{
                   InfoItem(
                     iconData: LucideIcons.cornerDownLeft,
                     title: S.of(context).settingsKeyboardWithReturn,
-                    value: controller.key.keyboardWithReturn ? S.of(context).on : S.of(context).off,
-                    onTap: () => _showChangeSwitchDialog(S.of(context).settingsKeyboardWithReturn, Func.keyboardWithReturn, controller.key.keyboardWithReturn),
+                    value: controller.key.keyboardWithReturn
+                        ? S.of(context).on
+                        : S.of(context).off,
+                    onTap: () => _showChangeSwitchDialog(
+                        S.of(context).settingsKeyboardWithReturn,
+                        Func.keyboardWithReturn,
+                        controller.key.keyboardWithReturn),
                   ),
                   Spacing.height(16),
                 },
-                if (controller.key.getFunctionSet().contains(Func.webusbLandingPage)) ...{
+                if (functionSet.contains(Func.keyboardKeymap)) ...{
+                  InfoItem(
+                    iconData: LucideIcons.keyboard,
+                    title: S.of(context).settingsKeyboardLayout,
+                    value: controller.key.keyboardKeymap?.displayName(
+                          S.of(context).settingsKeyboardLayoutDefault,
+                          S.of(context).settingsKeyboardLayoutCustom,
+                        ) ??
+                        S.of(context).settingsKeyboardLayoutUnknown,
+                    onTap: () => _showKeymapDialog(context),
+                  ),
+                  Spacing.height(16),
+                },
+                if (functionSet.contains(Func.webusbLandingPage)) ...{
                   InfoItem(
                     iconData: LucideIcons.globe,
                     title: S.of(context).settingsWebUSB,
-                    value: controller.key.webusbLandingEnabled ? S.of(context).on : S.of(context).off,
-                    onTap: () => _showChangeSwitchDialog(S.of(context).settingsWebUSB, Func.webusbLandingPage, controller.key.webusbLandingEnabled),
+                    value: controller.key.webusbLandingEnabled
+                        ? S.of(context).on
+                        : S.of(context).off,
+                    onTap: () => _showChangeSwitchDialog(
+                        S.of(context).settingsWebUSB,
+                        Func.webusbLandingPage,
+                        controller.key.webusbLandingEnabled),
                   ),
                   Spacing.height(16),
                 },
-                if (controller.key.getFunctionSet().contains(Func.ndefEnabled)) ...{
+                if (_hasAppletSwitches(functionSet)) ...{
                   InfoItem(
-                    iconData: LucideIcons.tag,
-                    title: S.of(context).settingsNDEF,
-                    value: controller.key.ndefEnabled ? S.of(context).on : S.of(context).off,
-                    onTap: () => _showChangeSwitchDialog(S.of(context).settingsNDEF, Func.ndefEnabled, controller.key.ndefEnabled),
+                    iconData: LucideIcons.settings2,
+                    title: S.of(context).settingsAppletSwitches,
+                    value: '',
+                    onTap: () => _showAppletSwitchesDialog(functionSet),
                   ),
                   Spacing.height(16),
                 },
-                if (controller.key.getFunctionSet().contains(Func.ndefReadonly)) ...{
+                if (functionSet.contains(Func.ndefReadonly)) ...{
                   InfoItem(
                     iconData: LucideIcons.shieldAlert,
                     title: S.of(context).settingsNDEFReadonly,
-                    value: controller.key.ndefReadonly ? S.of(context).on : S.of(context).off,
-                    onTap: () => _showChangeSwitchDialog(S.of(context).settingsNDEFReadonly, Func.ndefReadonly, controller.key.ndefReadonly),
+                    value: controller.key.ndefReadonly
+                        ? S.of(context).on
+                        : S.of(context).off,
+                    onTap: () => _showChangeSwitchDialog(
+                        S.of(context).settingsNDEFReadonly,
+                        Func.ndefReadonly,
+                        controller.key.ndefReadonly),
                   ),
                   Spacing.height(16),
                 },
-                if (controller.key.getFunctionSet().contains(Func.nfcSwitch)) ...{
+                if (functionSet.contains(Func.nfcSwitch)) ...{
                   InfoItem(
                     iconData: LucideIcons.nfc,
                     title: 'NFC',
-                    value: controller.key.nfcEnabled ? S.of(context).on : S.of(context).off,
-                    onTap: () => _showChangeSwitchDialog('NFC', Func.nfcSwitch, controller.key.nfcEnabled),
+                    value: controller.key.nfcEnabled
+                        ? S.of(context).on
+                        : S.of(context).off,
+                    onTap: () => _showChangeSwitchDialog(
+                        'NFC', Func.nfcSwitch, controller.key.nfcEnabled),
                   ),
                   Spacing.height(16),
                 },

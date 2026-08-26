@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
@@ -25,13 +26,12 @@ class SwitchDialog extends BaseDialog with UIMixin {
     required bool initialValue,
     required Function(bool) onConfirm,
   }) {
-    return Get.dialog(
+    return AppDialog.show(
       SwitchDialog(
         title: title,
         initialValue: initialValue,
         onConfirm: onConfirm,
       ),
-      barrierDismissible: false,
     );
   }
 

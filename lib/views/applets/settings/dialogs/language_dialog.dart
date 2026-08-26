@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/localization/language.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
@@ -13,15 +14,15 @@ class LanguageDialog extends StatelessWidget with UIMixin {
   const LanguageDialog({super.key});
 
   static Future<void> show() {
-    return Get.dialog(const LanguageDialog());
+    return AppDialog.show(const LanguageDialog());
   }
 
   @override
   Widget build(BuildContext context) {
     final newLanguageCode = ThemeCustomizer.instance.currentLanguage.locale.toString().obs;
-    return Dialog(
+    return AppDialogSurface(
       child: SizedBox(
-        width: 400,
+        width: AppDialogWidth.compact,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

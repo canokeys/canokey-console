@@ -3,15 +3,16 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  audioplayers_windows
   ccid
   file_saver
   flutter_webrtc
   sentry_flutter
+  share_plus
   url_launcher_windows
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  jni
   rust_lib_canokey_console
 )
 

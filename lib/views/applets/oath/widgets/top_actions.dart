@@ -6,40 +6,44 @@ import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/oath.dart';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:platform_detector/platform_detector.dart';
 
 class TopActions extends StatelessWidget with UIMixin {
+  static const double _actionWidth = 32;
+
   final OathController controller;
+  final Widget? leading;
   final VoidCallback onQrScan;
   final VoidCallback onScreenCapture;
   final VoidCallback onManualAdd;
 
-  TopActions({super.key, required this.controller, required this.onQrScan, required this.onScreenCapture, required this.onManualAdd});
+  const TopActions(
+      {super.key,
+      required this.controller,
+      this.leading,
+      required this.onQrScan,
+      required this.onScreenCapture,
+      required this.onManualAdd});
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> widgets = [];
-
-    if (isWeb() || isIOSApp()) {
-      widgets.add(InkWell(
-        onTap: controller.refreshData,
-        child: Icon(LucideIcons.refreshCw, size: 20, color: topBarTheme.onBackground),
-      ));
-    }
+    List<Widget> widgets = [if (leading != null) leading!];
 
     if (controller.polled) {
-      widgets.insertAll(0, [
+      widgets.addAll([
         PopupMenuButton(
           offset: const Offset(0, 10),
           position: PopupMenuPosition.under,
+          icon: Icon(LucideIcons.plus, color: topBarTheme.onBackground),
           itemBuilder: (BuildContext context) => [
             if (!isDesktop()) // Use camera to scan the QR code
               PopupMenuItem(
                 padding: Spacing.xy(16, 8),
                 height: 10,
                 onTap: onQrScan,
-                child: CustomizedText.bodySmall(S.of(context).oathAddByScanning),
+                child:
+                    CustomizedText.bodySmall(S.of(context).oathAddByScanning),
               ),
             if (isWeb() || isDesktop()) // Use screen to capture the QR code
               PopupMenuItem(
@@ -56,12 +60,10 @@ class TopActions extends StatelessWidget with UIMixin {
               child: CustomizedText.bodySmall(S.of(context).oathAddManually),
             ),
           ],
-          child: const Icon(LucideIcons.plus, size: 20),
         ),
-        Spacing.width(12),
         if (controller.version != OathVersion.legacy) ...{
-          InkWell(
-            onTap: () {
+          IconButton(
+            onPressed: () {
               InputPinDialog.show(
                 title: S.of(context).oathSetCode,
                 label: S.of(context).oathCode,
@@ -73,13 +75,25 @@ class TopActions extends StatelessWidget with UIMixin {
                 },
               );
             },
-            child: Icon(LucideIcons.lock, size: 20, color: topBarTheme.onBackground),
+            icon: Icon(LucideIcons.lock, color: topBarTheme.onBackground),
           ),
-          Spacing.width(12),
         }
       ]);
     }
 
-    return Row(children: widgets);
+    if (isWeb() || isIOSApp()) {
+      widgets.add(IconButton(
+        onPressed: controller.refreshData,
+        icon: Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
+      ));
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final widget in widgets)
+          SizedBox(width: _actionWidth, height: 40, child: widget),
+      ],
+    );
   }
 }

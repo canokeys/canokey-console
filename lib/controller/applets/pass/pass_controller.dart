@@ -3,6 +3,7 @@ import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
+import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
@@ -16,6 +17,8 @@ class PassController extends PollingController with AdminApplet {
   List<PassSlot> slots = [PassSlot.empty(), PassSlot.empty()];
   PassSlot get slotShort => slots[0];
   PassSlot get slotLong => slots[1];
+  bool hmacSha1Supported = false;
+  String? disabledMessage;
 
   @override
   Logger get log => Logging.logger('Pass:Controller');
@@ -28,13 +31,27 @@ class PassController extends PollingController with AdminApplet {
       // read firmware version
       String resp = await SmartCard.transceive('0031000000');
       SmartCard.assertOK(resp);
-      String firmwareVersion = String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
+      String firmwareVersion =
+          String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
 
-      FunctionSetVersion functionSetVersion = CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
-      if (!CanoKey.functionSet(functionSetVersion).contains(Func.pass)) {
-        Prompts.showPrompt(S.current.passNotSupported, ContentThemeColor.danger);
+      FunctionSetVersion functionSetVersion =
+          CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
+      final functionSet = CanoKey.functionSet(functionSetVersion);
+      if (!functionSet.contains(Func.pass)) {
+        Prompts.showPrompt(
+            S.current.passNotSupported, ContentThemeColor.danger);
         return;
       }
+      final switchStatus = await AppletSwitches.readStatus();
+      if (!switchStatus.passEnabled) {
+        disabledMessage = AppletSwitches.disabledMessage('Pass');
+        polled = false;
+        slots = [PassSlot.empty(), PassSlot.empty()];
+        update();
+        return;
+      }
+      disabledMessage = null;
+      hmacSha1Supported = functionSet.contains(Func.passHmacSha1);
 
       if (!await authenticate(sn)) {
         return;
@@ -44,7 +61,8 @@ class PassController extends PollingController with AdminApplet {
     });
   }
 
-  Future<void> setSlot(int index, PassSlotType type, String password, bool withEnter) async {
+  Future<void> setSlot(
+      int index, PassSlotType type, String password, bool withEnter) async {
     await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
         return;
@@ -54,17 +72,33 @@ class PassController extends PollingController with AdminApplet {
       if (type == PassSlotType.none) {
         capduData = '00';
       } else if (type == PassSlotType.static) {
-        capduData = '02${password.length.toRadixString(16).padLeft(2, '0')}${hex.encode(password.codeUnits)}${withEnter ? '01' : '00'}';
+        capduData =
+            '02${password.length.toRadixString(16).padLeft(2, '0')}${hex.encode(password.codeUnits)}${withEnter ? '01' : '00'}';
+      } else if (type == PassSlotType.hmacSha1) {
+        if (!hmacSha1Supported) {
+          Prompts.showPrompt(
+              S.of(Get.context!).notSupported, ContentThemeColor.danger);
+          return;
+        }
+        capduData = '0314$password';
       } else {
         log.w('unsupported slot type');
         return;
       }
-      SmartCard.assertOK(
-          await SmartCard.transceive('0044${index == short ? '01' : '02'}00${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
+      final resp = await SmartCard.transceive(
+          '0044${index == short ? '01' : '02'}00${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
+      if (Prompts.isStorageFull(resp)) {
+        Prompts.showPrompt(
+            S.of(Get.context!).storageFull, ContentThemeColor.danger);
+        return;
+      }
+      SmartCard.assertOK(resp);
       log.i('Successfully changed slot');
 
       Navigator.pop(Get.context!);
-      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success, forceSnackBar: true);
+      Prompts.showPrompt(
+          S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
+          forceSnackBar: true);
 
       await _refresh();
     });

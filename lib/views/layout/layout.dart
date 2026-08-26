@@ -7,8 +7,10 @@ import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/views/layout/left_bar.dart';
 import 'package:canokey_console/views/layout/top_bar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:platform_detector/platform_detector.dart';
 
 class Layout extends StatelessWidget {
   static bool notSupported = false;
@@ -16,12 +18,19 @@ class Layout extends StatelessWidget {
   final Widget? child;
   final String title;
   final Widget? topActions;
+  final Future<void> Function()? onRefresh;
 
   final LayoutController controller = LayoutController();
   final topBarTheme = AdminTheme.theme.topBarTheme;
   final contentTheme = AdminTheme.theme.contentTheme;
 
-  Layout({super.key, this.child, this.topActions, this.title = ""});
+  Layout({
+    super.key,
+    this.child,
+    this.topActions,
+    this.onRefresh,
+    this.title = "",
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,36 +39,88 @@ class Layout extends StatelessWidget {
           init: controller,
           builder: (_) {
             if (notSupported) return notSupportedScreen();
-            return screenMT.isMobile ? mobileScreen() : largeScreen();
+            return screenMT.isMobile ? mobileScreen(context) : largeScreen();
           });
     });
   }
 
-  Widget mobileScreen() {
+  Widget mobileScreen(BuildContext context) {
+    final canPullToRefresh = isIOSApp() && onRefresh != null;
+
     return Scaffold(
       key: controller.scaffoldKey,
-      appBar: AppBar(elevation: 0, centerTitle: true, title: CustomizedText.titleMedium(title), actions: [topActions!, Spacing.width(20)]),
+      appBar: AppBar(
+        elevation: 0,
+        centerTitle: true,
+        leadingWidth: 48,
+        titleSpacing: 8,
+        title: CustomizedText.titleMedium(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        actions: topActions == null
+            ? null
+            : [
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Theme(
+                    data: Theme.of(context).copyWith(
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    child: IconButtonTheme(
+                      data: IconButtonThemeData(
+                        style: IconButton.styleFrom(
+                          minimumSize: const Size.square(48),
+                          maximumSize: const Size.square(48),
+                          padding: const EdgeInsets.all(8),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                      child: topActions!,
+                    ),
+                  ),
+                ),
+              ],
+      ),
       drawer: LeftBar(),
-      body: SingleChildScrollView(key: controller.scrollKey, child: child),
+      body: CustomScrollView(
+        key: controller.scrollKey,
+        physics: canPullToRefresh
+            ? const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              )
+            : null,
+        slivers: [
+          if (canPullToRefresh)
+            CupertinoSliverRefreshControl(onRefresh: onRefresh!),
+          SliverToBoxAdapter(child: child ?? const SizedBox.shrink()),
+        ],
+      ),
     );
   }
 
   Widget notSupportedScreen() {
     return Scaffold(
       key: controller.scaffoldKey,
-      appBar: AppBar(elevation: 0, centerTitle: true, title: CustomizedText.titleMedium('CanoKey Console')),
+      appBar: AppBar(
+          elevation: 0,
+          centerTitle: true,
+          title: CustomizedText.titleMedium('CanoKey Console')),
       body: SingleChildScrollView(
           key: controller.scrollKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Spacing.height(MediaQuery.of(Get.context!).size.height / 2 - 100),
+              Spacing.height(MediaQuery.of(Get.context!).size.height / 2 - 150),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(S.of(Get.context!).browserNotSupported, style: TextStyle(fontSize: 18.0)),
+                  Text(S.of(Get.context!).browserNotSupported,
+                      style: TextStyle(fontSize: 18.0)),
                 ],
               ),
             ],
@@ -81,9 +142,17 @@ class Layout extends StatelessWidget {
                 right: 0,
                 left: 0,
                 bottom: 0,
-                child: SingleChildScrollView(padding: Spacing.fromLTRB(0, 58 + flexSpacing, 0, flexSpacing), key: controller.scrollKey, child: child),
+                child: SingleChildScrollView(
+                    padding:
+                        Spacing.fromLTRB(0, 58 + flexSpacing, 0, flexSpacing),
+                    key: controller.scrollKey,
+                    child: child),
               ),
-              Positioned(top: 0, left: 0, right: 0, child: TopBar(actions: topActions)),
+              Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: TopBar(actions: topActions)),
             ],
           )),
         ],
@@ -92,6 +161,7 @@ class Layout extends StatelessWidget {
   }
 
   static bool hasSidebar() {
-    return ScreenMedia.getTypeFromWidth(MediaQuery.of(Get.context!).size.width).isMobile;
+    return ScreenMedia.getTypeFromWidth(MediaQuery.of(Get.context!).size.width)
+        .isMobile;
   }
 }

@@ -1,5 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +8,8 @@ import 'package:get/get.dart';
 
 abstract class BaseDialog extends StatefulWidget {
   const BaseDialog({super.key});
+
+  bool get managesOwnScrolling => false;
 }
 
 abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
@@ -21,15 +23,13 @@ abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
     Get.put(_showPolling, tag: 'dialog_polling');
     Get.put(errorMessage, tag: 'dialog_error');
     Get.put(errorLevel, tag: 'dialog_error_level');
-    SmartCard.nfcState = NfcState.input; // prevent refreshing
   }
 
   @override
   void dispose() {
     Get.delete<RxBool>(tag: 'dialog_polling');
     Get.delete<RxString>(tag: 'dialog_error');
-    Get.delete<RxString>(tag: 'dialog_error_color');
-    SmartCard.nfcState = NfcState.idle; // allow refreshing
+    Get.delete<RxString>(tag: 'dialog_error_level');
     super.dispose();
   }
 
@@ -37,12 +37,20 @@ abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    final content = buildDialogContent();
+    return AppDialogSurface(
       child: SizedBox(
-        width: 400,
+        width: AppDialogWidth.compact,
         child: Stack(
           children: [
-            buildDialogContent(),
+            if (widget.managesOwnScrolling)
+              content
+            else
+              SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: content,
+              ),
             Positioned.fill(
               child: Obx(
                 () => !_showPolling.value
@@ -56,9 +64,12 @@ abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                SpinKitRipple(color: Colors.tealAccent, size: 64.0),
+                                SpinKitRipple(
+                                    color: Colors.tealAccent, size: 64.0),
                                 Spacing.height(16),
-                                CustomizedText.bodyLarge(S.of(Get.context!).readingAlertMessage, color: Colors.white),
+                                CustomizedText.bodyLarge(
+                                    S.of(Get.context!).readingAlertMessage,
+                                    color: Colors.white),
                               ],
                             ),
                           ),

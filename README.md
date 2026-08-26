@@ -28,8 +28,8 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 
 ### Prerequisites
 
-- Flutter SDK 3.24.5 or higher
-- Dart SDK 3.1.2 or higher
+- Flutter SDK 3.44.4
+- Dart SDK 3.12.2 or higher
 - Rust **nightly** toolchain with `rust-src` component installed (`rustup component add rust-src`)
 
 ### Setup

@@ -2,27 +2,25 @@ name: canokey_console
 description: Manage your CanoKey via NFC or USB.
 publish_to: 'none'
 
-version: 1.1.3+13
+version: 1.2.0+14
 
 environment:
   sdk: '>=3.4.0 <4.0.0'
-  flutter: 3.29.2
+  flutter: 3.44.4
 
 dependencies:
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  cupertino_icons: ^1.0.8
   get: ^4.6.6
   shared_preferences: ^2.3.3
   provider: ^6.1.2
-  google_fonts: ^6.2.1
-  lucide_icons: ^0.257.0
+  google_fonts: ^8.1.0
+  lucide_icons_flutter: ^3.1.14+2
   url_launcher: ^6.3.1
-  file_picker: ^10.0.0
-  font_awesome_flutter: ^10.8.0
-  intl: ^0.19.0
+  file_picker: ^12.0.0-beta.1
+  intl: ^0.20.2
   flutter_nfc_kit: ^3.6.0
   base32: ^2.1.3
   convert: ^3.1.2
@@ -32,35 +30,39 @@ dependencies:
   flutter_spinkit: ^5.2.1
   fixnum: ^1.1.1
   platform_detector: ^0.2.0
-  mobile_scanner: ^6.0.2
-  flutter_webrtc: ^0.13.1
-  fido2: ^0.0.4
-  ccid: ^0.1.8
-  device_info_plus: ^11.2.0
-  file_saver: ^0.2.14
+  mobile_scanner: ^7.1.3
+  ndef: ^0.4.0
+  flutter_webrtc: ^1.2.1
+  fido2: ^1.2.0
+  ccid: ^0.1.9
+  device_info_plus: ^13.1.0
+  file_saver: ^0.4.0
   basic_utils:
     git:
       url: https://github.com/dangfan/Dart-Basic-Utils.git
       ref: 743c57a717a8425f9baf3f363f9359216dcb832e
   rust_lib_canokey_console:
     path: rust_builder
-  flutter_rust_bridge: 2.9.0
+  flutter_rust_bridge: 2.12.0
   logger: ^2.5.0
-  audioplayers: ^6.1.0
-  package_info_plus: ^8.1.2
+  pointycastle: ^4.0.0
+  package_info_plus: ^10.1.0
   chinese_font_library: ^1.2.0
-  sentry_flutter: ^8.12.0
+  sentry_flutter: ^9.8.0
+  share_plus: ^13.3.0
+
+dependency_overrides:
+  pointycastle: ^4.0.0 # basic_utils requires ^3.7.3 but fido requires ^4.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
   assets:
     - assets/images/logo/
-    - assets/audio/
     - rust/THIRD_PARTY_LICENSES.json
 
 flutter_intl:

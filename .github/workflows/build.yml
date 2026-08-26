@@ -2,7 +2,7 @@ name: Build Apps
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, ci]
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   JAVA_VERSION: 17
-  FLUTTER_VERSION: 3.29.2
+  FLUTTER_VERSION: 3.44.4
 
 jobs:
   build:
@@ -56,7 +56,7 @@ jobs:
             debug-artifact-path: build/macos/Build/Products/Debug/*.app
             release-artifact-path: build/macos/Build/Products/Release/*.app
           - target: ios
-            os: macos-latest
+            os: macos-26
             pre-build-script: ""
             build-args: "--no-codesign"
             artifact-path: |
@@ -68,8 +68,8 @@ jobs:
     steps:
 
     # setup environment
-    - uses: actions/checkout@v4
-    - uses: actions/cache@v4
+    - uses: actions/checkout@v6
+    - uses: actions/cache@v5
       with:
         key: apk-${{ hashFiles('rust/Cargo.toml') }}
         path: |
@@ -81,13 +81,13 @@ jobs:
       with:
         toolchain: nightly
         components: rust-src
-    - uses: actions/setup-java@v4
+    - uses: actions/setup-java@v5
       if: ${{ matrix.target == 'apk' }}
       with:
         distribution: 'temurin'
         java-version: ${{ env.JAVA_VERSION }}
     - name: Setup Flutter SDK
-      uses: flutter-actions/setup-flutter@v3
+      uses: flutter-actions/setup-flutter@v4
       with:
         channel: stable
         version: ${{ env.FLUTTER_VERSION }}
@@ -102,7 +102,7 @@ jobs:
 
     # build flutter app
     - name: Install Flutter Rust Bridge
-      run: cargo install flutter_rust_bridge_codegen
+      run: cargo install flutter_rust_bridge_codegen --version 2.12.0 --locked
     - name: Run flutter ${{ matrix.variant }} build (${{ matrix.target }})
       run: |
         flutter build ${{ matrix.target }} --${{ matrix.variant }} ${{ matrix.build-args }} --verbose
@@ -112,7 +112,7 @@ jobs:
         fi
 
     # upload build artifacts
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: canokey-console-${{ matrix.target }}-${{ matrix.variant }}
         path: |

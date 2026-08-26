@@ -38,7 +38,8 @@ class OathController extends PollingController {
       if (timerController.value.remaining == 0) {
         // set codes to empty for TOTP with touch required
         for (var name in oathMap.keys) {
-          if (oathMap[name]!.requireTouch || isMobile() && oathMap[name]!.type == OathType.totp) {
+          if (oathMap[name]!.requireTouch ||
+              isMobile() && oathMap[name]!.type == OathType.totp) {
             oathMap[name]!.code = '';
           }
         }
@@ -67,18 +68,24 @@ class OathController extends PollingController {
     });
   }
 
-  Future<void> addAccount(String name, String secretHex, OathType type, OathAlgorithm algo, int digits, bool requireTouch, int initValue) async {
+  Future<void> addAccount(String name, String secretHex, OathType type,
+      OathAlgorithm algo, int digits, bool requireTouch, int initValue) async {
     await SmartCard.process((String sn) async {
       if (!await _authenticate(sn)) {
         return;
       }
 
       List<int> nameBytes = utf8.encode(name);
-      String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}'; // name 0x71
+      String capduData =
+          '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}'; // name 0x71
       // ignore: prefer_interpolation_to_compose_strings
       capduData += '73' + // tag
-          (secretHex.length ~/ 2 + 2).toRadixString(16).padLeft(2, '0') + // length
-          (type.value | algo.value).toRadixString(16).padLeft(2, '0') + // type & algo
+          (secretHex.length ~/ 2 + 2)
+              .toRadixString(16)
+              .padLeft(2, '0') + // length
+          (type.value | algo.value)
+              .toRadixString(16)
+              .padLeft(2, '0') + // type & algo
           digits.toRadixString(16).padLeft(2, '0') + // digits
           secretHex;
       if (requireTouch) {
@@ -92,16 +99,25 @@ class OathController extends PollingController {
         capduData += '7A04${initValue.toRadixString(16).padLeft(4, '0')}';
       }
 
-      String resp = await _transceive('00010000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
+      String resp = await _transceive(
+          '00010000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
       if (resp == '6985') {
-        Prompts.showPrompt(S.of(Get.context!).oathDuplicated, ContentThemeColor.danger);
+        Prompts.showPrompt(
+            S.of(Get.context!).oathDuplicated, ContentThemeColor.danger);
+        return;
+      }
+      if (Prompts.isStorageFull(resp)) {
+        Prompts.showPrompt(
+            S.of(Get.context!).storageFull, ContentThemeColor.danger);
         return;
       }
       SmartCard.assertOK(resp);
       log.i('Successfully added $name');
 
       Navigator.pop(Get.context!);
-      Prompts.showPrompt(S.of(Get.context!).oathAdded, ContentThemeColor.success, forceSnackBar: true);
+      Prompts.showPrompt(
+          S.of(Get.context!).oathAdded, ContentThemeColor.success,
+          forceSnackBar: true);
 
       await _refresh();
     });
@@ -124,9 +140,14 @@ class OathController extends PollingController {
           // clear code
           resp = await _transceive('00030000027300');
         } else {
-          final key = pbkdf2HmacSha1(password: newCode, salt: info[0x71], iterations: 1000, keyLen: 16);
+          final key = pbkdf2HmacSha1(
+              password: newCode,
+              salt: info[0x71],
+              iterations: 1000,
+              keyLen: 16);
           final mac = hmacSha1(key: key, data: List.of([0, 0, 0, 0]));
-          resp = await _transceive('000300002F731101${hex.encode(key)}7404000000007514${hex.encode(mac)}');
+          resp = await _transceive(
+              '000300002F731101${hex.encode(key)}7404000000007514${hex.encode(mac)}');
         }
 
         SmartCard.assertOK(resp);
@@ -138,7 +159,9 @@ class OathController extends PollingController {
         }
 
         Navigator.pop(Get.context!);
-        Prompts.showPrompt(S.of(Get.context!).oathCodeChanged, ContentThemeColor.success, forceSnackBar: true);
+        Prompts.showPrompt(
+            S.of(Get.context!).oathCodeChanged, ContentThemeColor.success,
+            forceSnackBar: true);
       }
     });
   }
@@ -151,7 +174,8 @@ class OathController extends PollingController {
       }
 
       List<int> nameBytes = utf8.encode(name);
-      String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
+      String capduData =
+          '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
       if (type == OathType.totp) {
         int challenge = DateTime.now().millisecondsSinceEpoch ~/ 30000;
         String challengeStr = challenge.toRadixString(16).padLeft(16, '0');
@@ -159,9 +183,11 @@ class OathController extends PollingController {
       }
       String resp;
       if (version == OathVersion.legacy) {
-        resp = await _transceive('00040000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
+        resp = await _transceive(
+            '00040000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
       } else {
-        resp = await _transceive('00A20001${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
+        resp = await _transceive(
+            '00A20001${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
       }
       SmartCard.assertOK(resp);
 
@@ -182,12 +208,15 @@ class OathController extends PollingController {
       }
 
       List<int> nameBytes = utf8.encode(name);
-      String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
-      SmartCard.assertOK(await _transceive('00020000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
+      String capduData =
+          '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
+      SmartCard.assertOK(await _transceive(
+          '00020000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
       log.i('Successfully deleted $name');
 
       Navigator.pop(Get.context!);
-      Prompts.showPrompt(S.of(Get.context!).deleted, ContentThemeColor.success, forceSnackBar: true);
+      Prompts.showPrompt(S.of(Get.context!).deleted, ContentThemeColor.success,
+          forceSnackBar: true);
       await _refresh();
     });
   }
@@ -199,12 +228,16 @@ class OathController extends PollingController {
       }
 
       List<int> nameBytes = utf8.encode(name);
-      String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
-      SmartCard.assertOK(await _transceive('00550$slot${withEnter ? '01' : '00'}${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
+      String capduData =
+          '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
+      SmartCard.assertOK(await _transceive(
+          '00550$slot${withEnter ? '01' : '00'}${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
       log.i('Successfully changed default');
 
       Navigator.pop(Get.context!);
-      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success, forceSnackBar: true);
+      Prompts.showPrompt(
+          S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
+          forceSnackBar: true);
     });
   }
 
@@ -215,9 +248,12 @@ class OathController extends PollingController {
       }
 
       List<int> nameBytes = utf8.encode(name);
-      String capduData = '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
-      SmartCard.assertOK(await _transceive('00550000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
-      Prompts.showPrompt(S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
+      String capduData =
+          '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
+      SmartCard.assertOK(await _transceive(
+          '00550000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
+      Prompts.showPrompt(
+          S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
     });
   }
 
@@ -248,7 +284,14 @@ class OathController extends PollingController {
     }
     final counter = int.parse(query['counter'] ?? '0');
 
-    qrScanResult.value = QrScanResult(issuer: issuer, account: account, secret: secret, type: type, algo: algo, digits: digits, initValue: counter);
+    qrScanResult.value = QrScanResult(
+        issuer: issuer,
+        account: account,
+        secret: secret,
+        type: type,
+        algo: algo,
+        digits: digits,
+        initValue: counter);
   }
 
   Future<bool> _verifyCode(String code) async {
@@ -261,11 +304,13 @@ class OathController extends PollingController {
     }
     List<int> nonce = info[0x71];
     List<int> challenge = info[0x74];
-    final key = pbkdf2HmacSha1(password: code, salt: nonce, iterations: 1000, keyLen: 16);
+    final key = pbkdf2HmacSha1(
+        password: code, salt: nonce, iterations: 1000, keyLen: 16);
     final mac = hmacSha1(key: key, data: challenge);
     resp = await _transceive('00A300001C7514${hex.encode(mac)}740400000000');
     if (resp == '6a80') {
-      Prompts.showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+      Prompts.showPrompt(
+          S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
       return false;
     }
     SmartCard.assertOK(resp);
@@ -316,7 +361,7 @@ class OathController extends PollingController {
 
     // Finally, prompt user
     // When using NFC, we need to finish NFC before showing the dialog
-    SmartCard.stopPollingNfc(withInput: true);
+    await SmartCard.stopPollingNfc(withInput: true);
     final completer = Completer<bool>();
     InputPinDialog.show(
       title: S.of(Get.context!).oathInputCode,
@@ -328,17 +373,21 @@ class OathController extends PollingController {
         SmartCard.nfcState = NfcState.processWithInput;
         if (!await SmartCard.pollNfcOrWebUsb()) {
           Prompts.stopPromptAndroidPolling();
-          Prompts.showPrompt(S.of(Get.context!).noCard, ContentThemeColor.warning, level: 'W');
+          Prompts.showPrompt(
+              S.of(Get.context!).noCard, ContentThemeColor.warning,
+              level: 'W');
+          return;
         }
         Prompts.stopPromptAndroidPolling();
         bool verified = false;
         try {
           verified = await _verifyCode(code);
         } on PlatformException catch (e) {
-          SmartCard.stopPollingNfc(withInput: true);
+          await SmartCard.stopPollingNfc(withInput: true);
           log.e('_verifyCode failed', error: e);
           if (e.code == '500') {
-            Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger);
+            Prompts.showPrompt(
+                S.of(Get.context!).interrupted, ContentThemeColor.danger);
           }
         }
         if (verified) {
@@ -398,7 +447,8 @@ class OathController extends PollingController {
     item.length = nameLen + dataLen + 4;
     switch (data[2 + nameLen]) {
       case 0x76: // response
-        item.code = _parseResponse(data.sublist(4 + nameLen, 4 + nameLen + dataLen));
+        item.code =
+            _parseResponse(data.sublist(4 + nameLen, 4 + nameLen + dataLen));
         break;
       case 0x77: // hotp
         item.type = OathType.hotp;
@@ -421,7 +471,9 @@ class OathController extends PollingController {
   }
 
   Future<String> _transceive(String capdu) async {
-    bool isListCommand = (version == OathVersion.legacy && capdu.startsWith('000500')) || (version != OathVersion.legacy && capdu.startsWith('00A400'));
+    bool isListCommand =
+        (version == OathVersion.legacy && capdu.startsWith('000500')) ||
+            (version != OathVersion.legacy && capdu.startsWith('00A400'));
     if (!isListCommand) {
       return await SmartCard.transceive(capdu);
     }
@@ -435,7 +487,8 @@ class OathController extends PollingController {
       result += SmartCard.dropSW(rapdu);
 
       if (sw.startsWith('61') || sw == '9000') {
-        String getResponseCommand = version == OathVersion.legacy ? '00060000FF' : '00A50000FF';
+        String getResponseCommand =
+            version == OathVersion.legacy ? '00060000FF' : '00A50000FF';
         rapdu = await SmartCard.transceive(getResponseCommand);
         if (rapdu.endsWith('6985')) {
           return '${result}9000';
@@ -487,14 +540,25 @@ class OathController extends PollingController {
     update();
   }
 
-  _startTimer() {
+  void _startTimer() {
     int running = DateTime.now().millisecondsSinceEpoch ~/ 1000 % 30;
     timerController.reset();
-    timerController.value = new TimerValue(remaining: 30 - running, unit: TimerUnit.second);
+    timerController.value =
+        new TimerValue(remaining: 30 - running, unit: TimerUnit.second);
     timerController.start();
   }
 
-  final List<int> _digitsPower = [1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000];
+  final List<int> _digitsPower = [
+    1,
+    10,
+    100,
+    1000,
+    10000,
+    100000,
+    1000000,
+    10000000,
+    100000000
+  ];
 
   final String _tag = 'OATH';
 }

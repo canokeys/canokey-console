@@ -15,8 +15,13 @@ enum AlgorithmType {
   rsa4096(0x16),
   eccp256(0x11),
   eccp384(0x14),
+  eccp521(0x15),
+  secp256k1(0x53),
+  sm2(0x54),
   ed25519(0xE0),
-  x25519(0xE1);
+  x25519(0xE1),
+  mldsa65(0xE2),
+  mlkem768(0xE3);
 
   const AlgorithmType(this.value);
 
@@ -44,16 +49,158 @@ enum AlgorithmType {
         return AlgorithmType.eccp256;
       case 0x14:
         return AlgorithmType.eccp384;
+      case 0x15:
+        return AlgorithmType.eccp521;
+      case 0x53:
+        return AlgorithmType.secp256k1;
+      case 0x54:
+        return AlgorithmType.sm2;
       case 0xE0:
         return AlgorithmType.ed25519;
       case 0xE1:
         return AlgorithmType.x25519;
+      case 0xE2:
+        return AlgorithmType.mldsa65;
+      case 0xE3:
+        return AlgorithmType.mlkem768;
       default:
         throw ArgumentError('Invalid algorithm value: $value');
     }
   }
 
   final int value;
+
+  String get label => switch (this) {
+        AlgorithmType.eccp256 => 'ECC P-256',
+        AlgorithmType.eccp384 => 'ECC P-384',
+        AlgorithmType.eccp521 => 'ECC P-521',
+        AlgorithmType.secp256k1 => 'secp256k1',
+        AlgorithmType.sm2 => 'SM2',
+        AlgorithmType.ed25519 => 'Ed25519',
+        AlgorithmType.rsa2048 => 'RSA 2048',
+        AlgorithmType.rsa3072 => 'RSA 3072',
+        AlgorithmType.rsa4096 => 'RSA 4096',
+        AlgorithmType.mldsa65 => 'ML-DSA-65',
+        AlgorithmType.mlkem768 => 'ML-KEM-768',
+        _ => name.toUpperCase(),
+      };
+}
+
+class PivAlgorithmExtensionConfig {
+  final bool enabled;
+  final int ed25519;
+  final int rsa3072;
+  final int rsa4096;
+  final int x25519;
+  final int secp256k1;
+  final int sm2;
+  final int secp521r1;
+  final int mldsa65;
+  final int mlkem768;
+
+  const PivAlgorithmExtensionConfig({
+    required this.enabled,
+    required this.ed25519,
+    required this.rsa3072,
+    required this.rsa4096,
+    required this.x25519,
+    required this.secp256k1,
+    required this.sm2,
+    required this.secp521r1,
+    required this.mldsa65,
+    required this.mlkem768,
+  });
+
+  static const defaults = PivAlgorithmExtensionConfig(
+    enabled: true,
+    ed25519: 0xE0,
+    rsa3072: 0x05,
+    rsa4096: 0x16,
+    x25519: 0xE1,
+    secp256k1: 0x53,
+    sm2: 0x54,
+    secp521r1: 0x15,
+    mldsa65: 0xE2,
+    mlkem768: 0xE3,
+  );
+
+  static const legacyV2 = PivAlgorithmExtensionConfig(
+    enabled: true,
+    ed25519: 0x22,
+    rsa3072: 0x50,
+    rsa4096: 0x51,
+    x25519: 0x52,
+    secp256k1: 0x53,
+    sm2: 0x54,
+    secp521r1: 0x15,
+    mldsa65: 0xE2,
+    mlkem768: 0xE3,
+  );
+
+  List<int> encode() => [
+        enabled ? 0x01 : 0x00,
+        ed25519,
+        rsa3072,
+        rsa4096,
+        x25519,
+        secp256k1,
+        secp521r1,
+        sm2,
+        mldsa65,
+        mlkem768,
+      ];
+
+  Map<int, AlgorithmType> toAlgorithmMap() => {
+        ed25519: AlgorithmType.ed25519,
+        rsa3072: AlgorithmType.rsa3072,
+        rsa4096: AlgorithmType.rsa4096,
+        x25519: AlgorithmType.x25519,
+        secp256k1: AlgorithmType.secp256k1,
+        sm2: AlgorithmType.sm2,
+        secp521r1: AlgorithmType.eccp521,
+        mldsa65: AlgorithmType.mldsa65,
+        mlkem768: AlgorithmType.mlkem768,
+      };
+
+  int idFor(AlgorithmType algorithm) {
+    return switch (algorithm) {
+      AlgorithmType.ed25519 => ed25519,
+      AlgorithmType.rsa3072 => rsa3072,
+      AlgorithmType.rsa4096 => rsa4096,
+      AlgorithmType.x25519 => x25519,
+      AlgorithmType.secp256k1 => secp256k1,
+      AlgorithmType.sm2 => sm2,
+      AlgorithmType.eccp521 => secp521r1,
+      AlgorithmType.mldsa65 => mldsa65,
+      AlgorithmType.mlkem768 => mlkem768,
+      _ => algorithm.value,
+    };
+  }
+
+  static PivAlgorithmExtensionConfig decode(List<int> data) {
+    if (data.length < 7) {
+      throw ArgumentError(
+          'Invalid PIV algorithm extension config length: ${data.length}');
+    }
+    return PivAlgorithmExtensionConfig(
+      enabled: data[0] != 0x00,
+      ed25519: data[1],
+      rsa3072: data[2],
+      rsa4096: data[3],
+      x25519: data[4],
+      secp256k1: data[5],
+      sm2: data.length >= 8 ? data[7] : data[6],
+      secp521r1: data.length >= 8
+          ? data[6]
+          : PivAlgorithmExtensionConfig.defaults.secp521r1,
+      mldsa65: data.length >= 9
+          ? data[8]
+          : PivAlgorithmExtensionConfig.defaults.mldsa65,
+      mlkem768: data.length >= 10
+          ? data[9]
+          : PivAlgorithmExtensionConfig.defaults.mlkem768,
+    );
+  }
 }
 
 enum PinPolicy {
@@ -94,6 +241,14 @@ enum PinPolicy {
   }
 
   final int value;
+}
+
+PinPolicy recommendedPivPinPolicy(String slotNumber) {
+  return switch (slotNumber.toUpperCase()) {
+    '9C' => PinPolicy.always,
+    '9E' => PinPolicy.never,
+    _ => PinPolicy.once,
+  };
 }
 
 enum TouchPolicy {
@@ -169,11 +324,29 @@ class SlotInfo {
   List<int>? certBytes;
   X509CertData? cert;
 
-  SlotInfo(this.number, this.algorithm, this.pinPolicy, this.touchPolicy, this.origin, this.public, this.defaultValue, this.retriesCount, this.remainingCount);
+  SlotInfo(
+      this.number,
+      this.algorithm,
+      this.pinPolicy,
+      this.touchPolicy,
+      this.origin,
+      this.public,
+      this.defaultValue,
+      this.retriesCount,
+      this.remainingCount);
 
-  static SlotInfo parse(int number, List<int> buf) {
+  static SlotInfo parse(
+    int number,
+    List<int> buf, {
+    PivAlgorithmExtensionConfig algorithmExtensionConfig =
+        PivAlgorithmExtensionConfig.defaults,
+  }) {
     Map map = TLV.parse(buf);
-    var algo = AlgorithmType.fromValue(map[0x01][0]);
+    final algoId = map[0x01][0] as int;
+    var algo = algorithmExtensionConfig.enabled
+        ? (algorithmExtensionConfig.toAlgorithmMap()[algoId] ??
+            AlgorithmType.fromValue(algoId))
+        : AlgorithmType.fromValue(algoId);
     var pinPolicy = PinPolicy.defaultPolicy;
     var touchPolicy = TouchPolicy.defaultPolicy;
     if (number != 0x80 && number != 0x81) {
@@ -197,7 +370,8 @@ class SlotInfo {
       retriesCount = map[0x06][0];
       remainingCount = map[0x06][1];
     }
-    return SlotInfo(number, algo, pinPolicy, touchPolicy, origin, public, defaultValue, retriesCount, remainingCount);
+    return SlotInfo(number, algo, pinPolicy, touchPolicy, origin, public,
+        defaultValue, retriesCount, remainingCount);
   }
 
   @override

@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
@@ -15,18 +16,19 @@ import 'package:get/get.dart';
 class SlotConfigDialog extends BaseDialog with UIMixin {
   final int index;
   final PassSlot slot;
+  final bool hmacSha1Supported;
   final Function(int index, PassSlotType slotType, String password, bool withEnter) onSetSlot;
 
-  const SlotConfigDialog({super.key, required this.index, required this.slot, required this.onSetSlot});
+  const SlotConfigDialog({super.key, required this.index, required this.slot, required this.hmacSha1Supported, required this.onSetSlot});
 
   static Future<void> show({
     required int index,
     required PassSlot slot,
+    required bool hmacSha1Supported,
     required Function(int index, PassSlotType slotType, String password, bool withEnter) onSetSlot,
   }) {
-    return Get.dialog(
-      SlotConfigDialog(index: index, slot: slot, onSetSlot: onSetSlot),
-      barrierDismissible: false,
+    return AppDialog.show(
+      SlotConfigDialog(index: index, slot: slot, hmacSha1Supported: hmacSha1Supported, onSetSlot: onSetSlot),
     );
   }
 
@@ -48,10 +50,20 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog> with UIMi
     withEnter = widget.slot.withEnter.obs;
     slotType = Rx<PassSlotType>(widget.slot.type);
     validator.addField('password', required: true, controller: TextEditingController(), validators: [LengthValidator(min: 1, max: 32)]);
+    validator.addField('hmacKey', required: true, controller: TextEditingController(), validators: [LengthValidator(exact: 40), HexStringValidator()]);
   }
 
   void _onSubmit() {
     if (slotType.value == PassSlotType.static && !validator.validateForm()) {
+      return;
+    }
+    if (slotType.value == PassSlotType.hmacSha1) {
+      final hmacKey = validator.getController('hmacKey')!.text.trim();
+      if (!RegExp(r'^[0-9a-fA-F]{40}$').hasMatch(hmacKey)) {
+        validator.formKey.currentState?.validate();
+        return;
+      }
+      widget.onSetSlot(widget.index, slotType.value, hmacKey.toLowerCase(), false);
       return;
     }
     widget.onSetSlot(widget.index, slotType.value, validator.getController('password')!.text, withEnter.value);
@@ -65,6 +77,8 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog> with UIMi
         return S.of(context).passSlotHotp;
       case PassSlotType.static:
         return S.of(context).passSlotStatic;
+      case PassSlotType.hmacSha1:
+        return S.of(context).passSlotHmacSha1;
     }
   }
 
@@ -117,6 +131,7 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog> with UIMi
                           children: [
                             _buildRadioOption(PassSlotType.none),
                             _buildRadioOption(PassSlotType.static),
+                            if (widget.hmacSha1Supported) _buildRadioOption(PassSlotType.hmacSha1),
                           ],
                         ),
                       )
@@ -140,7 +155,20 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog> with UIMi
                       ),
                     ),
                   ],
-                  if (slotType.value != PassSlotType.none) ...[
+                  if (slotType.value == PassSlotType.hmacSha1) ...[
+                    Spacing.height(16),
+                    TextFormField(
+                      onTap: SmartCard.eject,
+                      controller: validator.getController('hmacKey'),
+                      validator: validator.getValidator('hmacKey'),
+                      decoration: InputDecoration(
+                        labelText: S.of(context).passSlotHmacSha1Key,
+                        border: outlineInputBorder,
+                        floatingLabelBehavior: FloatingLabelBehavior.auto,
+                      ),
+                    ),
+                  ],
+                  if (slotType.value != PassSlotType.none && slotType.value != PassSlotType.hmacSha1) ...[
                     Spacing.height(16),
                     Row(
                       children: [
