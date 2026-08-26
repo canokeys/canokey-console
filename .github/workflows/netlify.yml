@@ -9,7 +9,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  FLUTTER_VERSION: 3.41.9
+  FLUTTER_VERSION: 3.44.4
 
 jobs:
   build:
@@ -37,7 +37,7 @@ jobs:
     - run: flutter pub get
     - name: Build Rust Library
       run: |
-        cargo install flutter_rust_bridge_codegen
+        cargo install flutter_rust_bridge_codegen --version 2.12.0 --locked
         flutter_rust_bridge_codegen build-web --release
     - run: flutter build web --verbose
     - uses: actions/upload-artifact@v7

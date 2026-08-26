@@ -1,0 +1,3 @@
+package_name(ENV.fetch("ANDROID_PACKAGE_NAME", "org.canokeys.console"))
+
+json_key_file(ENV["GOOGLE_PLAY_JSON_KEY"]) if ENV["GOOGLE_PLAY_JSON_KEY"]

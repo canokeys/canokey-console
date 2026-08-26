@@ -82,10 +82,54 @@ class SmartCard {
   static int _lastFinishedTime = 0;
 
   static NfcState _nfcState = NfcState.mute;
+  static int _dialogInputScopeDepth = 0;
+  static NfcState? _dialogInputRestoreState;
+  static NfcState? _pendingDialogInputRestoreState;
+
   static NfcState get nfcState => _nfcState;
   static set nfcState(NfcState value) {
+    // A dialog may be dismissed while its card operation is still settling.
+    // Restore the page state when that operation returns to input.
+    if (_dialogInputScopeDepth == 0 &&
+        value == NfcState.input &&
+        _pendingDialogInputRestoreState != null) {
+      value = _pendingDialogInputRestoreState!;
+      _pendingDialogInputRestoreState = null;
+    }
     _nfcState = value;
     log.t('nfcState = $_nfcState');
+  }
+
+  static void beginDialogInputScope() {
+    if (_dialogInputScopeDepth++ > 0) {
+      return;
+    }
+
+    _dialogInputRestoreState = _pendingDialogInputRestoreState ?? nfcState;
+    _pendingDialogInputRestoreState = null;
+    if (nfcState == NfcState.idle) {
+      nfcState = NfcState.input;
+    }
+  }
+
+  static void endDialogInputScope() {
+    if (_dialogInputScopeDepth == 0) {
+      return;
+    }
+    if (--_dialogInputScopeDepth > 0) {
+      return;
+    }
+
+    final restoreState = _dialogInputRestoreState;
+    _dialogInputRestoreState = null;
+    if (restoreState == null || restoreState == NfcState.input) {
+      return;
+    }
+    if (nfcState == NfcState.input) {
+      nfcState = restoreState;
+    } else if (nfcState == NfcState.processWithInput) {
+      _pendingDialogInputRestoreState = restoreState;
+    }
   }
 
   static RefreshCallback? refreshHandler;

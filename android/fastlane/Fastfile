@@ -1,0 +1,46 @@
+require "fileutils"
+
+default_platform(:android)
+
+ROOT_DIR = File.expand_path("../..", __dir__)
+AAB_BUILD_PATH = File.join(ROOT_DIR, "build", "app", "outputs", "bundle", "release", "app-release.aab")
+AAB_DIST_PATH = File.join(ROOT_DIR, "dist", "android", "CanoKey-Console.aab")
+ANDROID_METADATA_DIR = File.join(__dir__, "metadata", "android")
+
+platform :android do
+  desc "Build the signed release AAB without uploading it"
+  lane :build_internal do
+    Dir.chdir(ROOT_DIR) do
+      sh("flutter", "build", "appbundle", "--release")
+    end
+
+    UI.user_error!("AAB was not generated at #{AAB_BUILD_PATH}") unless File.exist?(AAB_BUILD_PATH)
+    FileUtils.mkdir_p(File.dirname(AAB_DIST_PATH))
+    FileUtils.cp(AAB_BUILD_PATH, AAB_DIST_PATH)
+    UI.success("AAB ready: #{AAB_DIST_PATH}")
+  end
+
+  desc "Upload an existing AAB to the Google Play internal track"
+  lane :upload_internal do |options|
+    aab_path = File.expand_path(options[:aab] || AAB_DIST_PATH)
+    json_key = ENV["GOOGLE_PLAY_JSON_KEY"]
+
+    UI.user_error!("AAB not found: #{aab_path}. Run android build_internal first.") unless File.exist?(aab_path)
+    UI.user_error!("Set GOOGLE_PLAY_JSON_KEY to an absolute service-account JSON path.") if json_key.nil? || json_key.empty?
+    UI.user_error!("Google Play service-account JSON not found: #{json_key}") unless File.exist?(json_key)
+
+    upload_to_play_store(
+      aab: aab_path,
+      json_key: json_key,
+      package_name: ENV.fetch("ANDROID_PACKAGE_NAME", "org.canokeys.console"),
+      track: "internal",
+      release_status: ENV.fetch("GOOGLE_PLAY_RELEASE_STATUS", "draft"),
+      metadata_path: ANDROID_METADATA_DIR,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end

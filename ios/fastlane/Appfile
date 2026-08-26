@@ -1,0 +1,4 @@
+app_identifier(ENV.fetch("IOS_APP_IDENTIFIER", "org.canokeys.console"))
+team_id(ENV.fetch("IOS_TEAM_ID", "TXWL7Q5MT7"))
+
+apple_id(ENV["APPLE_ID"]) if ENV["APPLE_ID"]

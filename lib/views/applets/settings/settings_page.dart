@@ -40,14 +40,14 @@ class _SettingsPageState extends State<SettingsPage>
       child: GetBuilder(
         init: _controller,
         builder: (_) {
-          final showNfcSettings = (isAndroidApp() || isIOSApp()) &&
+          final showNfcSound = isAndroidApp() &&
               (!_controller.polled ||
                   _controller.key.getFunctionSet().contains(Func.nfcSwitch));
           List<Widget> widgets = [
             Spacing.height(20),
             ActionCard(controller: _controller),
             Spacing.height(20),
-            OtherSettingsCard(showNfcSettings: showNfcSettings),
+            OtherSettingsCard(showNfcSound: showNfcSound),
             Spacing.height(20),
           ];
 

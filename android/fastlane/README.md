@@ -13,23 +13,23 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 # Available Actions
 
-## iOS
+## Android
 
-### ios build_testflight
-
-```sh
-[bundle exec] fastlane ios build_testflight
-```
-
-Build the signed App Store IPA without uploading it
-
-### ios upload_testflight
+### android build_internal
 
 ```sh
-[bundle exec] fastlane ios upload_testflight
+[bundle exec] fastlane android build_internal
 ```
 
-Upload an existing IPA to TestFlight
+Build the signed release AAB without uploading it
+
+### android upload_internal
+
+```sh
+[bundle exec] fastlane android upload_internal
+```
+
+Upload an existing AAB to the Google Play internal track
 
 ----
 

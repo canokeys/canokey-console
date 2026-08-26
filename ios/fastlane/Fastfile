@@ -1,27 +1,68 @@
-# This file contains the fastlane.tools configuration
-# You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
-
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
+require "fileutils"
 
 default_platform(:ios)
 
+ROOT_DIR = File.expand_path("../..", __dir__)
+IPA_PATH = File.join(ROOT_DIR, "dist", "ios", "CanoKey-Console.ipa")
+IOS_METADATA_DIR = File.join(__dir__, "metadata")
+
 platform :ios do
-  desc "Push a new beta build to TestFlight"
-  lane :beta do
-    get_certificates
-    get_provisioning_profile
-    # increment_build_number(xcodeproj: "Runner.xcodeproj")
-    build_app(workspace: "Runner.xcworkspace", scheme: "Runner")
-    upload_to_testflight
+  desc "Build the signed App Store IPA without uploading it"
+  lane :build_testflight do
+    FileUtils.mkdir_p(File.dirname(IPA_PATH))
+
+    Dir.chdir(ROOT_DIR) do
+      sh("flutter", "build", "ios", "--config-only", "--release")
+    end
+
+    original_path = ENV.fetch("PATH", "")
+    begin
+      # Xcode's system rsync launches a second rsync via PATH during IPA export.
+      ENV["PATH"] = ["/usr/bin", "/bin", "/usr/sbin", "/sbin", original_path].join(":")
+
+      build_app(
+        workspace: File.join(ROOT_DIR, "ios", "Runner.xcworkspace"),
+        scheme: "Runner",
+        configuration: "Release",
+        export_method: "app-store-connect",
+        output_directory: File.dirname(IPA_PATH),
+        output_name: File.basename(IPA_PATH),
+        xcargs: "-allowProvisioningUpdates",
+        export_xcargs: "-allowProvisioningUpdates",
+        clean: true
+      )
+    ensure
+      ENV["PATH"] = original_path
+    end
+
+    UI.success("IPA ready: #{IPA_PATH}")
+  end
+
+  desc "Upload an existing IPA to TestFlight"
+  lane :upload_testflight do |options|
+    ipa_path = File.expand_path(options[:ipa] || IPA_PATH)
+    UI.user_error!("IPA not found: #{ipa_path}. Run ios build_testflight first.") unless File.exist?(ipa_path)
+
+    localized_build_info = {
+      "en-US" => {
+        whats_new: File.read(File.join(IOS_METADATA_DIR, "en-US", "release_notes.txt")).strip
+      },
+      "zh-Hans" => {
+        whats_new: File.read(File.join(IOS_METADATA_DIR, "zh-Hans", "release_notes.txt")).strip
+      }
+    }
+
+    upload_options = {
+      ipa: ipa_path,
+      localized_build_info: localized_build_info,
+      notify_external_testers: false,
+      skip_submission: true,
+      skip_waiting_for_build_processing: false
+    }
+
+    api_key_path = ENV["APP_STORE_CONNECT_API_KEY_PATH"]
+    upload_options[:api_key_path] = api_key_path if api_key_path && !api_key_path.empty?
+
+    upload_to_testflight(**upload_options)
   end
 end

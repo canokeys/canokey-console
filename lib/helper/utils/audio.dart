@@ -1,67 +1,64 @@
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
+import 'package:platform_detector/platform_detector.dart';
 
 class Audio {
-
-  static const int AUDIO_SET_NUM = 3;
-  static const int AUDIO_SET_DEFAULT = 0;
-  static final _poll = <Source>[];
-  static final _finish = <Source>[];
-  static final _error = <Source>[];
-  static late int _current; // -1 for disabled
-
-  static final _player = AudioPlayer();
+  static const int soundSetCount = 3;
+  static const int defaultSoundSet = 0;
+  static const MethodChannel _channel =
+      MethodChannel('org.canokeys.console/audio');
+  static int _current = defaultSoundSet; // -1 for disabled
 
   static final Logger log = Logging.logger('Audio');
 
   static void reloadSoundSet() {
-    int sound = LocalStorage.getNfcSound() ?? AUDIO_SET_DEFAULT;
-    assert(sound >= -1 && sound < AUDIO_SET_NUM, 'Invalid audio set: $sound');
+    final sound = LocalStorage.getNfcSound() ?? defaultSoundSet;
+    assert(sound >= -1 && sound < soundSetCount, 'Invalid audio set: $sound');
     _current = sound;
   }
 
-  static void init() async {
+  static void init() {
+    if (!isAndroidApp()) return;
     reloadSoundSet();
-    AudioPlayer.global.setAudioContext(AudioContextConfig(focus: AudioContextConfigFocus.mixWithOthers, respectSilence: true).build());
-    // load all audio files
-    for (var i = 1; i <= AUDIO_SET_NUM; i++) {
-      _poll.add(AssetSource('audio/poll$i.aac'));
-      _finish.add(AssetSource('audio/finish$i.aac'));
-      _error.add(AssetSource('audio/error$i.aac'));
-    }
-    _player.setReleaseMode(ReleaseMode.stop);
   }
 
-  static void playAll(int set) async {
-    if (set < 0) return;
-    assert(set >= 0 && set < AUDIO_SET_NUM, 'Invalid audio set: $set');
-    await _player.stop();
+  static Future<void> playAll(int set) async {
+    if (!isAndroidApp() || set < 0) return;
+    assert(set >= 0 && set < soundSetCount, 'Invalid audio set: $set');
+    await _stop();
     // there is no easy way to get notified when the sound is finished
     // so we just wait for 1 second and then play the next sound
-    await _player.play(_poll[set], mode: PlayerMode.lowLatency);
+    await _play('poll', set);
     await Future.delayed(const Duration(milliseconds: 1000));
-    await _player.play(_finish[set], mode: PlayerMode.lowLatency);
+    await _play('finish', set);
     await Future.delayed(const Duration(milliseconds: 1000));
-    await _player.play(_error[set], mode: PlayerMode.lowLatency);
+    await _play('error', set);
   }
 
-  static void poll() async {
-    if (_current < 0) return;
-    await _player.stop();
-    await _player.play(_poll[_current]);
+  static Future<void> poll() => _play('poll', _current);
+
+  static Future<void> finish() => _play('finish', _current);
+
+  static Future<void> error() => _play('error', _current);
+
+  static Future<void> _play(String kind, int set) async {
+    if (!isAndroidApp() || set < 0) return;
+    try {
+      await _channel.invokeMethod<void>('play', {'kind': kind, 'set': set});
+    } on PlatformException catch (error, stackTrace) {
+      log.w('Failed to play NFC interaction sound',
+          error: error, stackTrace: stackTrace);
+    }
   }
 
-  static void finish() async {
-    if (_current < 0) return;
-    await _player.stop();
-    await _player.play(_finish[_current]);
-  }
-
-  static void error() async {
-    if (_current < 0) return;
-    await _player.stop();
-    await _player.play(_error[_current]);
+  static Future<void> _stop() async {
+    try {
+      await _channel.invokeMethod<void>('stop');
+    } on PlatformException catch (error, stackTrace) {
+      log.w('Failed to stop NFC interaction sound',
+          error: error, stackTrace: stackTrace);
+    }
   }
 }

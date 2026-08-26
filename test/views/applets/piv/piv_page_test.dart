@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:canokey_console/controller/applets/piv/piv_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
 import 'package:canokey_console/models/canokey.dart';
@@ -161,6 +162,30 @@ void main() {
     expect(find.text('Sign Message'), findsOneWidget);
     expect(find.text('Sign File'), findsOneWidget);
     expect(find.text('Sign / Verify'), findsNothing);
+  });
+
+  testWidgets('message signing dialog suspends page NFC refresh',
+      (tester) async {
+    SmartCard.nfcState = NfcState.idle;
+    final controller = _TestPivController()
+      ..polled = true
+      ..slots[0x9C] = _slot(0x9C, AlgorithmType.eccp256);
+    Get.put<PivController>(controller);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    tester.widget<PivSlotListItem>(_slotItem('9C')).onTap();
+    await tester.pumpAndSettle();
+    expect(SmartCard.nfcState, NfcState.input);
+
+    await tester.tap(find.text('Sign Message'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sign Message'), findsOneWidget);
+    expect(SmartCard.nfcState, NfcState.input);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(SmartCard.nfcState, NfcState.idle);
   });
 
   testWidgets('marks provisioning actions dangerous when slot has a key',

@@ -17,7 +17,9 @@ class NfcSoundDialog extends StatelessWidget with UIMixin {
   }
 
   Widget _buildNfcSoundItem(BuildContext context, RxInt nfcSound, int sound) {
-    final title = sound == -1 ? S.of(context).disableSound : "${S.of(context).nfcSound} ${sound + 1}";
+    final title = sound == -1
+        ? S.of(context).disableSound
+        : "${S.of(context).nfcSound} ${sound + 1}";
     return RadioListTile(
       dense: true,
       contentPadding: Spacing.x(16),
@@ -31,7 +33,7 @@ class NfcSoundDialog extends StatelessWidget with UIMixin {
 
   @override
   Widget build(BuildContext context) {
-    final nfcSound = (LocalStorage.getNfcSound() ?? Audio.AUDIO_SET_DEFAULT).obs;
+    final nfcSound = (LocalStorage.getNfcSound() ?? Audio.defaultSoundSet).obs;
 
     return AppDialogSurface(
       child: SizedBox(
@@ -46,9 +48,9 @@ class NfcSoundDialog extends StatelessWidget with UIMixin {
             ),
             Divider(height: 0, thickness: 1),
             Obx(() => Column(
-                    children: List.generate(Audio.AUDIO_SET_NUM + 1, (set) {
+                    children: List.generate(Audio.soundSetCount + 1, (set) {
                   // generate 0, 1, 2, .., n-1, n
-                  if (set == Audio.AUDIO_SET_NUM) set = -1;
+                  if (set == Audio.soundSetCount) set = -1;
                   return _buildNfcSoundItem(context, nfcSound, set);
                 }, growable: false))),
             Divider(height: 0, thickness: 1),
@@ -62,7 +64,8 @@ class NfcSoundDialog extends StatelessWidget with UIMixin {
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
+                    child: CustomizedText.labelMedium(S.of(context).cancel,
+                        color: contentTheme.onSecondary),
                   ),
                   Spacing.width(16),
                   CustomizedButton.rounded(
@@ -70,7 +73,8 @@ class NfcSoundDialog extends StatelessWidget with UIMixin {
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).play, color: contentTheme.onPrimary),
+                    child: CustomizedText.labelMedium(S.of(context).play,
+                        color: contentTheme.onPrimary),
                   ),
                   Spacing.width(16),
                   CustomizedButton.rounded(
@@ -82,7 +86,8 @@ class NfcSoundDialog extends StatelessWidget with UIMixin {
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(S.of(context).confirm, color: contentTheme.onPrimary),
+                    child: CustomizedText.labelMedium(S.of(context).confirm,
+                        color: contentTheme.onPrimary),
                   ),
                 ],
               ),
