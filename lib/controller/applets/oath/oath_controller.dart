@@ -192,7 +192,7 @@ class OathController extends PollingController {
       SmartCard.assertOK(resp);
 
       List<int> data = hex.decode(SmartCard.dropSW(resp));
-      code = _parseResponse(data.sublist(2));
+      code = _parseResponse(data.sublist(2), oathMap[name]!.format);
       oathMap[name]!.code = code;
 
       _startTimer();
@@ -271,12 +271,19 @@ class OathController extends PollingController {
     if (algorithm != 'SHA1' && algorithm != 'SHA256' && algorithm != 'SHA512') {
       return;
     }
+    final issuer = Uri.decodeComponent(query['issuer'] ?? '');
+    final label = Uri.decodeComponent(uri.path.substring(1));
+    final account = issuer.isNotEmpty && label.startsWith('$issuer:')
+        ? label.substring(issuer.length + 1)
+        : label;
+    final isSteam = OathCodeFormat.fromIssuer(issuer) == OathCodeFormat.steam;
     int digits = int.parse(query['digits'] ?? '6');
-    if (digits < 6 || digits > 12) {
+    if ((!isSteam && digits < 6) || digits > 12) {
       return;
     }
-    final account = Uri.decodeComponent(uri.path.substring(1));
-    final issuer = Uri.decodeComponent(query['issuer'] ?? '');
+    if (isSteam) {
+      digits = 6;
+    }
     final algo = OathAlgorithm.fromName(algorithm);
     final type = OathType.fromName(uri.host.toLowerCase());
     if (type == OathType.hotp && !query.containsKey('counter')) {
@@ -447,8 +454,8 @@ class OathController extends PollingController {
     item.length = nameLen + dataLen + 4;
     switch (data[2 + nameLen]) {
       case 0x76: // response
-        item.code =
-            _parseResponse(data.sublist(4 + nameLen, 4 + nameLen + dataLen));
+        item.code = _parseResponse(
+            data.sublist(4 + nameLen, 4 + nameLen + dataLen), item.format);
         break;
       case 0x77: // hotp
         item.type = OathType.hotp;
@@ -462,12 +469,11 @@ class OathController extends PollingController {
     return item;
   }
 
-  String _parseResponse(List<int> resp) {
+  String _parseResponse(List<int> resp, OathCodeFormat format) {
     assert(resp.length == 5);
     int digits = resp[0];
     int rawCode = (resp[1] << 24) | (resp[2] << 16) | (resp[3] << 8) | resp[4];
-    int code = rawCode % _digitsPower[digits];
-    return code.toString().padLeft(digits, '0');
+    return formatOathCode(rawCode: rawCode, digits: digits, format: format);
   }
 
   Future<String> _transceive(String capdu) async {
@@ -547,18 +553,6 @@ class OathController extends PollingController {
         new TimerValue(remaining: 30 - running, unit: TimerUnit.second);
     timerController.start();
   }
-
-  final List<int> _digitsPower = [
-    1,
-    10,
-    100,
-    1000,
-    10000,
-    100000,
-    1000000,
-    10000000,
-    100000000
-  ];
 
   final String _tag = 'OATH';
 }

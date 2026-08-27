@@ -1,6 +1,5 @@
-New in 1.2.0:
+New in 1.2.1:
 
-- Expanded PIV key, certificate, CSR, attestation, and signing workflows.
-- Added post-quantum PIV key support and clearer algorithm information.
-- Added NDEF record management and improved OpenPGP key details.
-- Improved NFC and CCID stability, including iOS pull-to-read NFC.
+- Added Steam TOTP support.
+- Improved QR code import across multiple desktop displays.
+- Prevented missing or invalid QR codes from causing a native crash.

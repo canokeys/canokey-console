@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:canokey_console/controller/applets/oath/oath_controller.dart';
 import 'package:canokey_console/controller/applets/oath/qr_scan_result.dart';
 import 'package:canokey_console/generated/l10n.dart';
@@ -184,24 +186,58 @@ class _OathPageState extends State<OathPage> with UIMixin {
   }
 
   void _showScreenCapture() async {
+    var sources = <webrtc.DesktopCapturerSource?>[null];
+    if (webrtc.WebRTC.platformIsDesktop) {
+      try {
+        final desktopSources = await webrtc.desktopCapturer
+            .getSources(types: [webrtc.SourceType.Screen]);
+        if (desktopSources.isNotEmpty) {
+          sources = desktopSources;
+        }
+      } catch (e) {
+        log.w('Cannot enumerate screens, using the default screen: $e');
+      }
+    }
+
+    for (final source in sources) {
+      try {
+        log.i('Capturing screen: ${source?.name ?? 'default'}');
+        final buffer = await _captureScreen(source);
+        final start = DateTime.now();
+        final result = decodePngQrcode(pngFile: buffer.asUint8List());
+        log.i(
+            'Rust decodePngQrcode took: ${DateTime.now().difference(start).inMilliseconds}ms');
+        controller.parseUri(result);
+        return;
+      } catch (e) {
+        log.w('Cannot decode QR code from ${source?.name ?? 'default'}: $e');
+      }
+    }
+
+    if (mounted) {
+      Prompts.showPrompt(S.of(context).oathNoQr, ContentThemeColor.danger);
+    }
+  }
+
+  Future<ByteBuffer> _captureScreen(
+      webrtc.DesktopCapturerSource? source) async {
     final stream = await webrtc.navigator.mediaDevices.getDisplayMedia({
       'audio': false,
-      'video': true,
+      'video': source == null
+          ? true
+          : {
+              'deviceId': {'exact': source.id},
+            },
     });
-    final track = stream.getVideoTracks().first;
-    final buffer = await track.captureFrame();
-    stream.getTracks().forEach((track) => track.stop());
     try {
-      log.i('Rust decodePngQrcode start');
-      final start = DateTime.now();
-      final result = decodePngQrcode(pngFile: buffer.asUint8List());
-      log.i(
-          'Rust decodePngQrcode took: ${DateTime.now().difference(start).inMilliseconds}ms');
-      controller.parseUri(result);
-    } catch (e) {
-      log.w('Rust decodePngQrcode error: $e');
-      if (mounted) {
-        Prompts.showPrompt(S.of(context).oathNoQr, ContentThemeColor.danger);
+      final tracks = stream.getVideoTracks();
+      if (tracks.isEmpty) {
+        throw StateError('Screen capture returned no video track');
+      }
+      return await tracks.first.captureFrame();
+    } finally {
+      for (final track in stream.getTracks()) {
+        track.stop();
       }
     }
   }

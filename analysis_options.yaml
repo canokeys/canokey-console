@@ -35,3 +35,10 @@ analyzer:
   exclude:
     - rust_builder/**
     - third_party/**
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
