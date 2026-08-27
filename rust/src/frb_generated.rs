@@ -69,9 +69,8 @@ fn wire__crate__api__decode__decode_png_qrcode_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_png_file = <Vec<u8>>::sse_decode(&mut deserializer);
             deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let output_ok =
-                    Result::<_, ()>::Ok(crate::api::decode::decode_png_qrcode(api_png_file))?;
+            transform_result_sse::<_, String>((move || {
+                let output_ok = crate::api::decode::decode_png_qrcode(api_png_file)?;
                 Ok(output_ok)
             })())
         },

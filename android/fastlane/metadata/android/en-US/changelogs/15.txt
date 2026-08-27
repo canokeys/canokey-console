@@ -1,0 +1,1 @@
+Added Steam TOTP support, improved QR code import across multiple desktop displays, and prevented invalid QR images from causing a native crash.
