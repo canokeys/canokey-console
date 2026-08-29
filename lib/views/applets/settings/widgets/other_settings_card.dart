@@ -1,6 +1,7 @@
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
+import 'package:canokey_console/helper/utils/icp_filing.dart';
 import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_card.dart';
@@ -13,9 +14,9 @@ import 'package:canokey_console/views/applets/settings/dialogs/nfc_sound_dialog.
 import 'package:canokey_console/views/applets/settings/dialogs/start_page_dialog.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/clear_pin_cache_dialog.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
+import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -56,6 +57,7 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
     final languageName = ThemeCustomizer.instance.currentLanguage.languageName;
     final startPage =
         StartPageDialog.pageName(context, LocalStorage.getStartPage() ?? '/');
+    final icpFiling = icpFilingNumber();
     return CustomizedCard(
       clipBehavior: Clip.antiAliasWithSaveLayer,
       shadow: Shadow(elevation: 0.5, position: ShadowPosition.bottom),
@@ -122,7 +124,7 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                               'assets/images/logo/logo_icon_dark.png',
                               width: 75,
                               height: 75),
-                          applicationLegalese: '© 2025 canokeys.org',
+                          applicationLegalese: '© 2026 canokeys.org',
                           children: [
                             Padding(
                               padding: Spacing.y(8),
@@ -155,6 +157,30 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                               Spacing.height(12),
                               CustomizedText.bodySmall(
                                   S.of(context).soundCredit),
+                            ],
+                            if (icpFiling != null) ...[
+                              Spacing.height(12),
+                              RichText(
+                                  text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                      text: icpFiling,
+                                      style: TextStyle(
+                                          color: contentTheme.primary,
+                                          decoration:
+                                              TextDecoration.underline),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () async {
+                                          if (await canLaunchUrlString(
+                                              icpFilingUrl)) {
+                                            await launchUrlString(icpFilingUrl,
+                                                mode: LaunchMode
+                                                    .externalApplication);
+                                          }
+                                        }),
+                                ],
+                                style: CustomizedTextStyle.bodyMedium(),
+                              )),
                             ],
                           ],
                         ))
