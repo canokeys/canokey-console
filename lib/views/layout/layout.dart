@@ -85,18 +85,21 @@ class Layout extends StatelessWidget {
               ],
       ),
       drawer: LeftBar(),
-      body: CustomScrollView(
-        key: controller.scrollKey,
-        physics: canPullToRefresh
-            ? const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              )
-            : null,
-        slivers: [
-          if (canPullToRefresh)
-            CupertinoSliverRefreshControl(onRefresh: onRefresh!),
-          SliverToBoxAdapter(child: child ?? const SizedBox.shrink()),
-        ],
+      body: SafeArea(
+        top: false,
+        child: CustomScrollView(
+          key: controller.scrollKey,
+          physics: canPullToRefresh
+              ? const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                )
+              : null,
+          slivers: [
+            if (canPullToRefresh)
+              CupertinoSliverRefreshControl(onRefresh: onRefresh!),
+            SliverToBoxAdapter(child: child ?? const SizedBox.shrink()),
+          ],
+        ),
       ),
     );
   }
@@ -142,11 +145,14 @@ class Layout extends StatelessWidget {
                 right: 0,
                 left: 0,
                 bottom: 0,
-                child: SingleChildScrollView(
-                    padding:
-                        Spacing.fromLTRB(0, 58 + flexSpacing, 0, flexSpacing),
-                    key: controller.scrollKey,
-                    child: child),
+                child: SafeArea(
+                  top: false,
+                  child: SingleChildScrollView(
+                      padding:
+                          Spacing.fromLTRB(0, 58 + flexSpacing, 0, flexSpacing),
+                      key: controller.scrollKey,
+                      child: child),
+                ),
               ),
               Positioned(
                   top: 0,
