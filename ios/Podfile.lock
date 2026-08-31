@@ -14,9 +14,9 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/rust_lib_canokey_console/ios"
 
 SPEC CHECKSUMS:
-  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
   rust_lib_canokey_console: 518e9996761d9fed2cd1d6f8f330170acd007d69
 
-PODFILE CHECKSUM: 4153e6b74d179c1f6ffe1ab35f4a753651267dd0
+PODFILE CHECKSUM: df3304ae62b08b6fe5478081d9f94c5df84efade
 
 COCOAPODS: 1.17.0

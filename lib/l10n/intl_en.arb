@@ -561,5 +561,12 @@
   "nfcSound": "NFC interaction sound",
   "disableSound": "Sound disabled",
   "play": "Play",
-  "nfcSoundPrompt": "Playing in order: poll, finish, error"
+  "nfcSoundPrompt": "Playing in order: poll, finish, error",
+  "privacyPolicy": "Privacy Policy",
+  "feedback": "Feedback",
+  "privacyConsentTitle": "Privacy Policy",
+  "privacyConsentBeforeLink": "Thank you for using CanoKey Console. Please read and agree to our ",
+  "privacyConsentAfterLink": " before continuing. We collect, use, and protect your personal information in accordance with the policy.",
+  "agreeAndContinue": "Agree and Continue",
+  "disagreeAndExit": "Disagree and Exit"
 }

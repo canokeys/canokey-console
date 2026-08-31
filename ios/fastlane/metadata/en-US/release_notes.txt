@@ -1,5 +1,6 @@
-New in 1.2.1:
+New in 1.2.2:
 
-- Added Steam TOTP support.
-- Improved QR code import across multiple desktop displays.
-- Prevented missing or invalid QR codes from causing a native crash.
+- Added privacy consent and compliance information for mobile releases.
+- Improved layout around system UI insets.
+- Fixed the app language changing after viewing open-source licenses.
+- Improved About links and feedback email handling.

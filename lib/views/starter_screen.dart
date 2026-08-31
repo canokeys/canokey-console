@@ -3,6 +3,7 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/views/layout/layout.dart';
+import 'package:canokey_console/views/privacy_consent_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -21,6 +22,9 @@ class _StarterScreenState extends State<StarterScreen>
   void initState() {
     controller = Get.put(StarterController());
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      PrivacyConsentDialog.showIfNeeded();
+    });
   }
 
   @override

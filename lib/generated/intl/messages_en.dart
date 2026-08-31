@@ -93,6 +93,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "about": MessageLookupByLibrary.simpleMessage("About"),
     "actions": MessageLookupByLibrary.simpleMessage("Actions"),
     "add": MessageLookupByLibrary.simpleMessage("Add"),
+    "agreeAndContinue": MessageLookupByLibrary.simpleMessage(
+      "Agree and Continue",
+    ),
     "androidAlertTitle": MessageLookupByLibrary.simpleMessage(
       "Touch your CanoKey",
     ),
@@ -135,8 +138,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "disable": MessageLookupByLibrary.simpleMessage("Disable"),
     "disableSound": MessageLookupByLibrary.simpleMessage("Sound disabled"),
+    "disagreeAndExit": MessageLookupByLibrary.simpleMessage(
+      "Disagree and Exit",
+    ),
     "enable": MessageLookupByLibrary.simpleMessage("Enable"),
     "enabled": MessageLookupByLibrary.simpleMessage("Enabled"),
+    "feedback": MessageLookupByLibrary.simpleMessage("Feedback"),
     "fileSaveFailed": MessageLookupByLibrary.simpleMessage(
       "Failed to save file",
     ),
@@ -1000,6 +1007,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "pollCanoKey": MessageLookupByLibrary.simpleMessage(
       "Please read your CanoKey by clicking the refresh button",
     ),
+    "privacyConsentAfterLink": MessageLookupByLibrary.simpleMessage(
+      " before continuing. We collect, use, and protect your personal information in accordance with the policy.",
+    ),
+    "privacyConsentBeforeLink": MessageLookupByLibrary.simpleMessage(
+      "Thank you for using CanoKey Console. Please read and agree to our ",
+    ),
+    "privacyConsentTitle": MessageLookupByLibrary.simpleMessage(
+      "Privacy Policy",
+    ),
+    "privacyPolicy": MessageLookupByLibrary.simpleMessage("Privacy Policy"),
     "readingAlertMessage": MessageLookupByLibrary.simpleMessage(
       "Hold the CanoKey until finished",
     ),

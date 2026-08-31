@@ -1,16 +1,19 @@
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
+import 'package:canokey_console/helper/utils/icp_filing.dart';
 import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_card.dart';
 import 'package:canokey_console/helper/widgets/customized_container.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/route_manager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:platform_detector/platform_detector.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 typedef LeftbarMenuFunction = void Function(String key);
 
@@ -149,7 +152,27 @@ class _LeftBarState extends State<LeftBar>
                   ),
                 ],
               ),
-            ))
+            )),
+            if (kIsWeb && !isCondensed && icpFilingNumber() != null)
+              Padding(
+                padding: Spacing.xy(16, 12),
+                child: Center(
+                  child: InkWell(
+                    onTap: () async {
+                      if (await canLaunchUrlString(icpFilingUrl)) {
+                        await launchUrlString(icpFilingUrl,
+                            mode: LaunchMode.externalApplication);
+                      }
+                    },
+                    child: CustomizedText.bodySmall(
+                      icpFilingNumber()!,
+                      color: leftBarTheme.labelColor,
+                      muted: true,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

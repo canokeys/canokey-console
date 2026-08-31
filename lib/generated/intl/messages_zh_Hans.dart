@@ -84,6 +84,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "about": MessageLookupByLibrary.simpleMessage("关于"),
     "actions": MessageLookupByLibrary.simpleMessage("操作"),
     "add": MessageLookupByLibrary.simpleMessage("增加"),
+    "agreeAndContinue": MessageLookupByLibrary.simpleMessage("同意并继续"),
     "androidAlertTitle": MessageLookupByLibrary.simpleMessage("读取 CanoKey"),
     "androidPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "请用手机背面触碰您的 CanoKey 或将其插入 USB 接口",
@@ -118,8 +119,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "disable": MessageLookupByLibrary.simpleMessage("禁用"),
     "disableSound": MessageLookupByLibrary.simpleMessage("无音效"),
+    "disagreeAndExit": MessageLookupByLibrary.simpleMessage("不同意并退出"),
     "enable": MessageLookupByLibrary.simpleMessage("启用"),
     "enabled": MessageLookupByLibrary.simpleMessage("启用"),
+    "feedback": MessageLookupByLibrary.simpleMessage("意见反馈"),
     "fileSaveFailed": MessageLookupByLibrary.simpleMessage("保存文件失败"),
     "fileSaveFailedWithError": m2,
     "fileSaved": MessageLookupByLibrary.simpleMessage("保存成功"),
@@ -777,6 +780,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "play": MessageLookupByLibrary.simpleMessage("播放"),
     "pollCanceled": MessageLookupByLibrary.simpleMessage("您没有选择任何 CanoKey"),
     "pollCanoKey": MessageLookupByLibrary.simpleMessage("请点击右上角刷新按钮读取 CanoKey"),
+    "privacyConsentAfterLink": MessageLookupByLibrary.simpleMessage(
+      "》后继续使用。我们将严格按照政策收集、使用和保护您的个人信息。",
+    ),
+    "privacyConsentBeforeLink": MessageLookupByLibrary.simpleMessage(
+      "感谢您使用 CanoKey Console。请仔细阅读并同意《",
+    ),
+    "privacyConsentTitle": MessageLookupByLibrary.simpleMessage("隐私政策提示"),
+    "privacyPolicy": MessageLookupByLibrary.simpleMessage("隐私政策"),
     "readingAlertMessage": MessageLookupByLibrary.simpleMessage(
       "请紧贴 CanoKey 直到读取结束",
     ),
