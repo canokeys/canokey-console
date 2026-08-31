@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/localization/language.dart';
+import 'package:canokey_console/helper/localization/preserving_app_localization_delegate.dart';
 import 'package:canokey_console/helper/services/navigation_service.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/app_notifier.dart';
@@ -106,7 +107,7 @@ class MyApp extends StatelessWidget {
               return child!;
             },
             localizationsDelegates: const [
-              S.delegate,
+              PreservingAppLocalizationDelegate(),
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,

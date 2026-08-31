@@ -18,7 +18,7 @@ import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:url_launcher/url_launcher_string.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OtherSettingsCard extends StatefulWidget {
   final bool showNfcSound;
@@ -52,10 +52,8 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
     });
   }
 
-  Future<void> _launchUrl(String url) async {
-    if (await canLaunchUrlString(url)) {
-      await launchUrlString(url, mode: LaunchMode.externalApplication);
-    }
+  Future<void> _launchUrl(Uri url) async {
+    await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
   @override
@@ -116,18 +114,6 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                   Spacing.height(16),
                 },
                 InfoItem(
-                    iconData: LucideIcons.shieldCheck,
-                    title: S.of(context).privacyPolicy,
-                    value: '',
-                    onTap: () => _launchUrl('https://canokeys.com/privacy/')),
-                Spacing.height(16),
-                InfoItem(
-                    iconData: LucideIcons.mail,
-                    title: S.of(context).feedback,
-                    value: '',
-                    onTap: () => _launchUrl('mailto:support@canokeys.com')),
-                Spacing.height(16),
-                InfoItem(
                     iconData: LucideIcons.info,
                     title: S.of(context).about,
                     value: '',
@@ -162,11 +148,7 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                                       ..onTap = () async {
                                         const repoUrl =
                                             'https://github.com/canokeys/canokey-console';
-                                        if (await canLaunchUrlString(repoUrl)) {
-                                          await launchUrlString(repoUrl,
-                                              mode: LaunchMode
-                                                  .externalApplication);
-                                        }
+                                        await _launchUrl(Uri.parse(repoUrl));
                                       }),
                               ],
                               style: CustomizedTextStyle.bodyMedium(),
@@ -181,8 +163,8 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                                         color: contentTheme.primary,
                                         decoration: TextDecoration.underline),
                                     recognizer: TapGestureRecognizer()
-                                      ..onTap = () => _launchUrl(
-                                          'https://canokeys.com/privacy/')),
+                                      ..onTap = () => _launchUrl(Uri.parse(
+                                          'https://canokeys.com/privacy/'))),
                               ],
                               style: CustomizedTextStyle.bodyMedium(),
                             )),
@@ -190,15 +172,16 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                             RichText(
                                 text: TextSpan(
                               children: [
+                                TextSpan(text: '${S.of(context).feedback}: '),
                                 TextSpan(
-                                    text:
-                                        '${S.of(context).feedback}: support@canokeys.com',
+                                    text: 'support@canokeys.com',
                                     style: TextStyle(
                                         color: contentTheme.primary,
                                         decoration: TextDecoration.underline),
                                     recognizer: TapGestureRecognizer()
-                                      ..onTap = () => _launchUrl(
-                                          'mailto:support@canokeys.com')),
+                                      ..onTap = () => _launchUrl(Uri(
+                                          scheme: 'mailto',
+                                          path: 'support@canokeys.com'))),
                               ],
                               style: CustomizedTextStyle.bodyMedium(),
                             )),
@@ -220,12 +203,8 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                                               TextDecoration.underline),
                                       recognizer: TapGestureRecognizer()
                                         ..onTap = () async {
-                                          if (await canLaunchUrlString(
-                                              icpFilingUrl)) {
-                                            await launchUrlString(icpFilingUrl,
-                                                mode: LaunchMode
-                                                    .externalApplication);
-                                          }
+                                          await _launchUrl(
+                                              Uri.parse(icpFilingUrl));
                                         }),
                                 ],
                                 style: CustomizedTextStyle.bodyMedium(),

@@ -1,0 +1,1 @@
+Added privacy consent and compliance information, improved system inset handling, fixed language changes after viewing licenses, and improved About links and feedback email handling.
