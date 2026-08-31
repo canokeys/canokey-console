@@ -4849,6 +4849,71 @@ class S {
       args: [],
     );
   }
+
+  /// `Privacy Policy`
+  String get privacyPolicy {
+    return Intl.message(
+      'Privacy Policy',
+      name: 'privacyPolicy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Feedback`
+  String get feedback {
+    return Intl.message('Feedback', name: 'feedback', desc: '', args: []);
+  }
+
+  /// `Privacy Policy`
+  String get privacyConsentTitle {
+    return Intl.message(
+      'Privacy Policy',
+      name: 'privacyConsentTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Thank you for using CanoKey Console. Please read and agree to our `
+  String get privacyConsentBeforeLink {
+    return Intl.message(
+      'Thank you for using CanoKey Console. Please read and agree to our ',
+      name: 'privacyConsentBeforeLink',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// ` before continuing. We collect, use, and protect your personal information in accordance with the policy.`
+  String get privacyConsentAfterLink {
+    return Intl.message(
+      ' before continuing. We collect, use, and protect your personal information in accordance with the policy.',
+      name: 'privacyConsentAfterLink',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Agree and Continue`
+  String get agreeAndContinue {
+    return Intl.message(
+      'Agree and Continue',
+      name: 'agreeAndContinue',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Disagree and Exit`
+  String get disagreeAndExit {
+    return Intl.message(
+      'Disagree and Exit',
+      name: 'disagreeAndExit',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

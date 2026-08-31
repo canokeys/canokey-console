@@ -31,4 +31,17 @@
             android:value="2" />
     </application>
 
+    <!-- Required on Android 11+ for url_launcher's canLaunchUrl checks
+         (privacy policy link, feedback mailto). -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="mailto" />
+        </intent>
+    </queries>
+
 </manifest>

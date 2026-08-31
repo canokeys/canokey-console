@@ -11,9 +11,11 @@ import 'package:canokey_console/helper/theme/theme_customizer.dart';
 import 'package:canokey_console/helper/utils/audio.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/rust_license.dart';
+import 'package:canokey_console/helper/utils/sentry_setup.dart';
 import 'package:canokey_console/routes.dart';
 import 'package:canokey_console/src/rust/frb_generated.dart';
 import 'package:canokey_console/views/layout/layout.dart';
+import 'package:canokey_console/views/privacy_consent_dialog.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -51,15 +53,22 @@ Future<void> main() async {
       WebUSB.onDisconnect = SmartCard.onWebUSBDisconnected;
     }
 
-    await SentryFlutter.init(
-      (options) {
-        options.dsn = 'https://4484dcb1b124a87b0b12403fd5747134@o292813.ingest.us.sentry.io/4508702185750528';
-      },
-      appRunner: () => runApp(ChangeNotifierProvider<AppNotifier>(
-        create: (context) => AppNotifier(),
-        child: MyApp(),
-      )),
+    Widget app = ChangeNotifierProvider<AppNotifier>(
+      create: (context) => AppNotifier(),
+      child: MyApp(),
     );
+
+    // OPPO compliance: Chinese users on iOS/Android who have not agreed to
+    // the privacy policy must not initialize Sentry before giving consent.
+    if (requiresPrivacyConsent()) {
+      runApp(app);
+    } else {
+      markSentryInitialized();
+      await SentryFlutter.init(
+        configureSentry,
+        appRunner: () => runApp(app),
+      );
+    }
   }, (exception, stackTrace) async {
     await Sentry.captureException(exception, stackTrace: stackTrace);
   });

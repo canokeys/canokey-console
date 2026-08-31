@@ -637,5 +637,12 @@
   "nfcSound": "NFC 交互音效",
   "disableSound": "无音效",
   "play": "播放",
-  "nfcSoundPrompt": "播放顺序：读卡开始、读卡结束、读卡失败"
+  "nfcSoundPrompt": "播放顺序：读卡开始、读卡结束、读卡失败",
+  "privacyPolicy": "隐私政策",
+  "feedback": "意见反馈",
+  "privacyConsentTitle": "隐私政策提示",
+  "privacyConsentBeforeLink": "感谢您使用 CanoKey Console。请仔细阅读并同意《",
+  "privacyConsentAfterLink": "》后继续使用。我们将严格按照政策收集、使用和保护您的个人信息。",
+  "agreeAndContinue": "同意并继续",
+  "disagreeAndExit": "不同意并退出"
 }

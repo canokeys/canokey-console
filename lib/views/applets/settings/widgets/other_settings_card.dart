@@ -52,6 +52,12 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
     });
   }
 
+  Future<void> _launchUrl(String url) async {
+    if (await canLaunchUrlString(url)) {
+      await launchUrlString(url, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final languageName = ThemeCustomizer.instance.currentLanguage.languageName;
@@ -110,6 +116,18 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                   Spacing.height(16),
                 },
                 InfoItem(
+                    iconData: LucideIcons.shieldCheck,
+                    title: S.of(context).privacyPolicy,
+                    value: '',
+                    onTap: () => _launchUrl('https://canokeys.com/privacy/')),
+                Spacing.height(16),
+                InfoItem(
+                    iconData: LucideIcons.mail,
+                    title: S.of(context).feedback,
+                    value: '',
+                    onTap: () => _launchUrl('mailto:support@canokeys.com')),
+                Spacing.height(16),
+                InfoItem(
                     iconData: LucideIcons.info,
                     title: S.of(context).about,
                     value: '',
@@ -150,6 +168,37 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                                                   .externalApplication);
                                         }
                                       }),
+                              ],
+                              style: CustomizedTextStyle.bodyMedium(),
+                            )),
+                            Spacing.height(12),
+                            RichText(
+                                text: TextSpan(
+                              children: [
+                                TextSpan(
+                                    text: S.of(context).privacyPolicy,
+                                    style: TextStyle(
+                                        color: contentTheme.primary,
+                                        decoration: TextDecoration.underline),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () => _launchUrl(
+                                          'https://canokeys.com/privacy/')),
+                              ],
+                              style: CustomizedTextStyle.bodyMedium(),
+                            )),
+                            Spacing.height(12),
+                            RichText(
+                                text: TextSpan(
+                              children: [
+                                TextSpan(
+                                    text:
+                                        '${S.of(context).feedback}: support@canokeys.com',
+                                    style: TextStyle(
+                                        color: contentTheme.primary,
+                                        decoration: TextDecoration.underline),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () => _launchUrl(
+                                          'mailto:support@canokeys.com')),
                               ],
                               style: CustomizedTextStyle.bodyMedium(),
                             )),

@@ -56,6 +56,8 @@ class LucideIcons {
       IconData(57602, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData lock =
       IconData(57611, fontFamily: _fontFamily, fontPackage: _fontPackage);
+  static const IconData mail =
+      IconData(57615, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData menu =
       IconData(57621, fontFamily: _fontFamily, fontPackage: _fontPackage);
   static const IconData moreHorizontal =

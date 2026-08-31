@@ -10,6 +10,7 @@ class LocalStorage {
   static const String _nfcSoundKey = 'nfc_sound';
   static const String _oathSortKey = 'oath_sort_alphabetically';
   static const String _webauthnSortKey = 'webauthn_sort_alphabetically';
+  static const String _privacyAgreedKey = 'privacy_agreed';
 
   static SharedPreferences? _preferencesInstance;
 
@@ -79,5 +80,13 @@ class LocalStorage {
 
   static bool getWebAuthnSortAlphabetically() {
     return preferences.getBool(_webauthnSortKey) ?? false;
+  }
+
+  static Future<bool> setPrivacyAgreed(bool value) {
+    return preferences.setBool(_privacyAgreedKey, value);
+  }
+
+  static bool isPrivacyAgreed() {
+    return preferences.getBool(_privacyAgreedKey) ?? false;
   }
 }
