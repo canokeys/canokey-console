@@ -12,6 +12,7 @@ import 'package:canokey_console/helper/theme/theme_customizer.dart';
 import 'package:canokey_console/helper/utils/audio.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/rust_license.dart';
+import 'package:canokey_console/helper/utils/screenshot_mode.dart';
 import 'package:canokey_console/helper/utils/sentry_setup.dart';
 import 'package:canokey_console/routes.dart';
 import 'package:canokey_console/src/rust/frb_generated.dart';
@@ -21,7 +22,8 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:canokey_console/helper/webusb_dummy.dart' if (dart.library.html) 'package:flutter_nfc_kit/webusb_interop.dart';
+import 'package:canokey_console/helper/webusb_dummy.dart'
+    if (dart.library.html) 'package:flutter_nfc_kit/webusb_interop.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:loader_overlay/loader_overlay.dart';
@@ -30,6 +32,21 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 Future<void> main() async {
+  if (ScreenshotMode.enabled) {
+    WidgetsFlutterBinding.ensureInitialized();
+    await LocalStorage.init();
+    AppStyle.init();
+    ThemeCustomizer.instance.currentLanguage = Language.languages[1];
+    ThemeCustomizer.instance.theme = ThemeMode.light;
+    runApp(
+      ChangeNotifierProvider<AppNotifier>(
+        create: (context) => AppNotifier(),
+        child: const MyApp(),
+      ),
+    );
+    return;
+  }
+
   await runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
 
@@ -48,7 +65,8 @@ Future<void> main() async {
     } else {
       final deviceInfo = DeviceInfoPlugin();
       final info = await deviceInfo.webBrowserInfo;
-      if (info.browserName != BrowserName.chrome && info.browserName != BrowserName.edge) {
+      if (info.browserName != BrowserName.chrome &&
+          info.browserName != BrowserName.edge) {
         Layout.notSupported = true;
       }
       WebUSB.onDisconnect = SmartCard.onWebUSBDisconnected;
@@ -99,7 +117,9 @@ class MyApp extends StatelessWidget {
             darkTheme: AppTheme.darkTheme,
             themeMode: ThemeCustomizer.instance.theme,
             navigatorKey: NavigationService.navigatorKey,
-            initialRoute: LocalStorage.getStartPage() ?? '/',
+            initialRoute: ScreenshotMode.enabled
+                ? ScreenshotMode.initialRoute
+                : LocalStorage.getStartPage() ?? '/',
             locale: ThemeCustomizer.instance.currentLanguage.locale,
             getPages: getPageRoute(),
             builder: (ctx, child) {

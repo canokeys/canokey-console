@@ -4,6 +4,7 @@ import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
 import 'package:canokey_console/views/applets/oath/widgets/top_actions.dart'
     as oath;
 import 'package:canokey_console/views/layout/layout.dart';
+import 'package:canokey_console/views/layout/top_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -28,6 +29,14 @@ void main() {
 
     await tester.pumpWidget(
       GetMaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: S.delegate.supportedLocales,
         home: Layout(
           title: 'TOTP / HOTP',
           topActions: Row(
@@ -152,6 +161,48 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(refreshCount, 1);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('large top bar clears the status area and sizes refresh action',
+      (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1366, 1024);
+    tester.view.viewPadding = const FakeViewPadding(top: 24);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetViewPadding);
+
+    await tester.pumpWidget(
+      GetMaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: S.delegate.supportedLocales,
+        home: Layout(
+          topActions: TopBarRefreshButton(onPressed: () async {}),
+          child: const SizedBox(height: 100),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.getTopLeft(find.byType(TopBar)).dy, 24);
+    expect(
+      tester.getSize(
+        find.descendant(
+          of: find.byType(TopBarRefreshButton),
+          matching: find.byType(IconButton),
+        ),
+      ),
+      const Size.square(48),
+    );
+    expect(tester.takeException(), isNull);
+
     await tester.pumpWidget(const SizedBox.shrink());
   });
 

@@ -1,15 +1,14 @@
 import 'package:canokey_console/controller/applets/pass/pass_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/applet_disabled_screen.dart';
 import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/views/applets/pass/widgets/slot_card.dart';
 import 'package:canokey_console/views/layout/layout.dart';
+import 'package:canokey_console/views/layout/top_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:platform_detector/platform_detector.dart';
 
 class PassPage extends StatefulWidget {
@@ -19,7 +18,7 @@ class PassPage extends StatefulWidget {
   State<PassPage> createState() => _PassPageState();
 }
 
-class _PassPageState extends State<PassPage> with UIMixin {
+class _PassPageState extends State<PassPage> {
   final _controller = Get.put(PassController());
 
   @override
@@ -28,11 +27,7 @@ class _PassPageState extends State<PassPage> with UIMixin {
       title: 'Pass',
       onRefresh: _controller.refreshData,
       topActions: isWeb() || isIOSApp()
-          ? IconButton(
-              onPressed: () => _controller.refreshData(),
-              icon:
-                  Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
-            )
+          ? TopBarRefreshButton(onPressed: _controller.refreshData)
           : null,
       child: GetBuilder(
         init: _controller,

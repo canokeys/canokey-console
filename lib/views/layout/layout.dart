@@ -40,7 +40,9 @@ class Layout extends StatelessWidget {
             init: controller,
             builder: (_) {
               if (notSupported) return notSupportedScreen();
-              return screenMT.isMobile ? mobileScreen(context) : largeScreen();
+              return screenMT.isMobile
+                  ? mobileScreen(context)
+                  : largeScreen(context);
             }),
       );
     });
@@ -135,7 +137,9 @@ class Layout extends StatelessWidget {
     );
   }
 
-  Widget largeScreen() {
+  Widget largeScreen(BuildContext context) {
+    final topInset = MediaQuery.viewPaddingOf(context).top;
+
     return Scaffold(
       key: controller.scaffoldKey,
       resizeToAvoidBottomInset: false,
@@ -153,17 +157,23 @@ class Layout extends StatelessWidget {
                 child: SafeArea(
                   top: false,
                   child: SingleChildScrollView(
-                      padding:
-                          Spacing.fromLTRB(0, 58 + flexSpacing, 0, flexSpacing),
+                      padding: Spacing.fromLTRB(
+                          0, topInset + 58 + flexSpacing, 0, flexSpacing),
                       key: controller.scrollKey,
                       child: child),
                 ),
               ),
               Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: TopBar(actions: topActions)),
+                top: 0,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  left: false,
+                  right: false,
+                  bottom: false,
+                  child: TopBar(actions: topActions),
+                ),
+              ),
             ],
           )),
         ],

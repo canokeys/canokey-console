@@ -5,6 +5,7 @@ import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
+import 'package:canokey_console/helper/utils/screenshot_mode.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/pass.dart';
@@ -25,6 +26,15 @@ class PassController extends PollingController with AdminApplet {
 
   @override
   Future<void> doRefreshData() async {
+    if (ScreenshotMode.enabled) {
+      slots = ScreenshotMode.passSlots();
+      hmacSha1Supported = true;
+      disabledMessage = null;
+      polled = true;
+      update();
+      return;
+    }
+
     await SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));
 

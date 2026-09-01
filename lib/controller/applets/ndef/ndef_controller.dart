@@ -7,6 +7,7 @@ import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
+import 'package:canokey_console/helper/utils/screenshot_mode.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/ndef.dart';
 import 'package:convert/convert.dart';
@@ -47,6 +48,19 @@ class NdefController extends PollingController {
 
   @override
   Future<void> doRefreshData() async {
+    if (ScreenshotMode.enabled) {
+      records = ScreenshotMode.ndefRecords();
+      maxMessageLength = defaultMaxMessageLength;
+      readOnly = false;
+      dirty = false;
+      writing = false;
+      disabledMessage = null;
+      decodeError = null;
+      polled = true;
+      update();
+      return;
+    }
+
     await SmartCard.process((_) async {
       if (!await _selectNdefApplet()) return;
 

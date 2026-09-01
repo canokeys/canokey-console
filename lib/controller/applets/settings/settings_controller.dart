@@ -8,6 +8,7 @@ import 'package:canokey_console/helper/utils/app_loader_overlay.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
+import 'package:canokey_console/helper/utils/screenshot_mode.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/keyboard_keymap.dart';
@@ -24,6 +25,13 @@ class SettingsController extends PollingController with AdminApplet {
 
   @override
   Future<void> doRefreshData() async {
+    if (ScreenshotMode.enabled) {
+      key = ScreenshotMode.canoKey();
+      polled = true;
+      update();
+      return;
+    }
+
     await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
         return;
