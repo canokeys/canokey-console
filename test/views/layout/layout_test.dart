@@ -71,6 +71,9 @@ void main() {
     );
     expect(tester.takeException(), isNull);
 
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+    expect(scaffold.resizeToAvoidBottomInset, isFalse);
+
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -184,6 +187,36 @@ void main() {
     await tester.pump();
 
     expect(find.byType(CupertinoSliverRefreshControl), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('keyboard insets do not rebuild page content', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetViewInsets);
+
+    var buildCount = 0;
+    await tester.pumpWidget(
+      GetMaterialApp(
+        home: Layout(
+          child: Builder(
+            builder: (context) {
+              MediaQuery.of(context);
+              buildCount++;
+              return const SizedBox(height: 100);
+            },
+          ),
+        ),
+      ),
+    );
+    expect(buildCount, 1);
+
+    tester.view.viewInsets = const FakeViewPadding(bottom: 360);
+    await tester.pump();
+
+    expect(buildCount, 1);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 

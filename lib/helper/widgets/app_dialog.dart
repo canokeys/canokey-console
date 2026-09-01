@@ -5,7 +5,23 @@ import 'package:get/get.dart';
 abstract final class AppDialog {
   static const Color barrierColor = Color(0x8A000000);
 
-  static Future<T?> show<T>(Widget dialog) async {
+  static Future<T?> replace<T>(BuildContext currentDialogContext, Widget dialog,
+      {bool useSafeArea = true}) async {
+    // Keep NFC polling suspended while the outgoing route finishes its reverse
+    // transition. The replacement must not overlap that transition: otherwise
+    // both dialog trees relayout during the keyboard animation.
+    SmartCard.beginDialogInputScope();
+    try {
+      final route = ModalRoute.of(currentDialogContext);
+      Navigator.of(currentDialogContext).pop();
+      await route?.completed;
+      return await show<T>(dialog, useSafeArea: useSafeArea);
+    } finally {
+      SmartCard.endDialogInputScope();
+    }
+  }
+
+  static Future<T?> show<T>(Widget dialog, {bool useSafeArea = true}) async {
     SmartCard.beginDialogInputScope();
     var released = false;
     void releaseNfcScope() {
@@ -24,6 +40,7 @@ abstract final class AppDialog {
         ),
         barrierDismissible: false,
         barrierColor: barrierColor,
+        useSafeArea: useSafeArea,
       );
     } finally {
       releaseNfcScope();
@@ -67,6 +84,10 @@ class AppDialogSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       clipBehavior: Clip.antiAlias,
+      // The platform already animates viewInsets with the keyboard. A second
+      // tween here restarts on every metrics update and makes large dialogs
+      // visibly lag behind the native keyboard animation.
+      insetAnimationDuration: Duration.zero,
       child: child,
     );
   }

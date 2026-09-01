@@ -1887,12 +1887,12 @@ class _PivPageState extends State<PivPage>
       if (slot != null &&
           slot.algorithm != AlgorithmType.x25519 &&
           slot.algorithm != AlgorithmType.mlkem768) ...[
-        _slotActionButton(
-          text: S.of(context).pivSignMessage,
-          onPressed: () {
-            Navigator.pop(Get.context!);
-            _showMessageSignDialog(slotNumber, slot!);
-          },
+        Builder(
+          builder: (dialogContext) => _slotActionButton(
+            text: S.of(context).pivSignMessage,
+            onPressed: () =>
+                _showMessageSignDialog(dialogContext, slotNumber, slot!),
+          ),
         ),
         _slotActionButton(
           text: S.of(context).pivSignFile,
@@ -2280,7 +2280,8 @@ class _PivPageState extends State<PivPage>
                 ]))));
   }
 
-  void _showMessageSignDialog(String slotNumber, SlotInfo slot) {
+  void _showMessageSignDialog(
+      BuildContext currentDialogContext, String slotNumber, SlotInfo slot) {
     FormValidator validator = FormValidator();
     validator.addField('pin',
         required: true,
@@ -2291,7 +2292,8 @@ class _PivPageState extends State<PivPage>
         controller: TextEditingController(text: 'hello canokey'));
     final signature = ''.obs;
 
-    AppDialog.show(KeyboardSafeDialog(
+    final dialog = KeyboardSafeDialog(
+      useCompositedKeyboardMotion: true,
       child: SizedBox(
         width: AppDialogWidth.medium,
         child: Column(
@@ -2310,7 +2312,6 @@ class _PivPageState extends State<PivPage>
                 child: Column(
                   children: [
                     TextFormField(
-                      autofocus: true,
                       onTap: SmartCard.eject,
                       obscureText: true,
                       controller: validator.getController('pin'),
@@ -2406,7 +2407,12 @@ class _PivPageState extends State<PivPage>
           ],
         ),
       ),
-    ));
+    );
+    AppDialog.replace(
+      currentDialogContext,
+      dialog,
+      useSafeArea: false,
+    );
   }
 
   void _showFileSignDialog(String slotNumber, SlotInfo slot) {

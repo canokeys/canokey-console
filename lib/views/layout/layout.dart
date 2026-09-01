@@ -35,12 +35,14 @@ class Layout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Responsive(builder: (BuildContext context, _, screenMT) {
-      return GetBuilder(
-          init: controller,
-          builder: (_) {
-            if (notSupported) return notSupportedScreen();
-            return screenMT.isMobile ? mobileScreen(context) : largeScreen();
-          });
+      return _KeyboardStablePage(
+        child: GetBuilder(
+            init: controller,
+            builder: (_) {
+              if (notSupported) return notSupportedScreen();
+              return screenMT.isMobile ? mobileScreen(context) : largeScreen();
+            }),
+      );
     });
   }
 
@@ -49,6 +51,7 @@ class Layout extends StatelessWidget {
 
     return Scaffold(
       key: controller.scaffoldKey,
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         elevation: 0,
         centerTitle: true,
@@ -107,6 +110,7 @@ class Layout extends StatelessWidget {
   Widget notSupportedScreen() {
     return Scaffold(
       key: controller.scaffoldKey,
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
           elevation: 0,
           centerTitle: true,
@@ -134,6 +138,7 @@ class Layout extends StatelessWidget {
   Widget largeScreen() {
     return Scaffold(
       key: controller.scaffoldKey,
+      resizeToAvoidBottomInset: false,
       body: Row(
         children: [
           LeftBar(isCondensed: ThemeCustomizer.instance.leftBarCondensed),
@@ -167,7 +172,25 @@ class Layout extends StatelessWidget {
   }
 
   static bool hasSidebar() {
-    return ScreenMedia.getTypeFromWidth(MediaQuery.of(Get.context!).size.width)
+    return ScreenMedia.getTypeFromWidth(MediaQuery.sizeOf(Get.context!).width)
         .isMobile;
+  }
+}
+
+class _KeyboardStablePage extends StatelessWidget {
+  final Widget child;
+
+  const _KeyboardStablePage({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    return MediaQuery(
+      data: mediaQuery.copyWith(
+        padding: mediaQuery.viewPadding,
+        viewInsets: EdgeInsets.zero,
+      ),
+      child: child,
+    );
   }
 }

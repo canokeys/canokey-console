@@ -52,19 +52,19 @@ void main() {
           builder: (context) => TextButton(
             onPressed: () => AppDialog.show(
               AppDialogSurface(
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    AppDialog.show(
+                child: Builder(
+                  builder: (dialogContext) => TextButton(
+                    onPressed: () => AppDialog.replace(
+                      dialogContext,
                       AppDialogSurface(
                         child: TextButton(
                           onPressed: () => Get.back(),
                           child: const Text('Close second'),
                         ),
                       ),
-                    );
-                  },
-                  child: const Text('Replace'),
+                    ),
+                    child: const Text('Replace'),
+                  ),
                 ),
               ),
             ),
@@ -77,7 +77,13 @@ void main() {
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Replace'));
+    await tester.pump();
+    expect(find.text('Close second'), findsNothing);
+    expect(SmartCard.nfcState, NfcState.input);
+
     await tester.pumpAndSettle();
+    expect(find.text('Replace'), findsNothing);
+    expect(find.text('Close second'), findsOneWidget);
     expect(SmartCard.nfcState, NfcState.input);
 
     await tester.tap(find.text('Close second'));
@@ -189,6 +195,7 @@ void main() {
 
     final dialog = tester.widget<Dialog>(find.byType(Dialog));
     expect(dialog.clipBehavior, Clip.antiAlias);
+    expect(dialog.insetAnimationDuration, Duration.zero);
 
     final theme =
         Theme.of(tester.element(find.byKey(const Key('dialog-content'))));

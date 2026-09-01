@@ -21,7 +21,10 @@ class Responsive extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) =>
-            builder(context, constraints, ScreenMedia.getTypeFromWidth(MediaQuery.of(context).size.width)));
+        builder: (BuildContext context, BoxConstraints constraints) => builder(
+              context,
+              constraints,
+              ScreenMedia.getTypeFromWidth(MediaQuery.sizeOf(context).width),
+            ));
   }
 }
