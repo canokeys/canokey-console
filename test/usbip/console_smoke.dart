@@ -577,8 +577,21 @@ class ConsoleSmoke {
     final originalUserRetries = originalState.userRetries!;
     final originalResetRetries = originalState.resetRetries!;
     final originalAdminRetries = originalState.adminRetries!;
+    final restoreResetRetries =
+        originalResetRetries == 0 ? 3 : originalResetRetries;
+    var temporaryResetCodeConfigured = false;
     var retriesChanged = false;
     try {
+      if (originalResetRetries == 0) {
+        temporaryResetCodeConfigured = await _openPgpClient.setResetCode(
+          _defaultOpenPgpAdminPin,
+          _openPgpResetCode,
+        );
+        _expect(
+          temporaryResetCodeConfigured,
+          'Console failed to configure a temporary OpenPGP reset code',
+        );
+      }
       retriesChanged = await _openPgpClient.setPinRetries(
         _defaultOpenPgpAdminPin,
         4,
@@ -603,10 +616,16 @@ class ConsoleSmoke {
           await _openPgpClient.setPinRetries(
             _defaultOpenPgpAdminPin,
             originalUserRetries,
-            originalResetRetries,
+            restoreResetRetries,
             originalAdminRetries,
           ),
           'Cleanup failed to restore the OpenPGP PIN retry limits',
+        );
+      }
+      if (temporaryResetCodeConfigured) {
+        _expect(
+          await _openPgpClient.setResetCode(_defaultOpenPgpAdminPin, ''),
+          'Cleanup failed to clear the temporary OpenPGP reset code',
         );
       }
     }
