@@ -22,15 +22,13 @@ jobs:
       fail-fast: false
       matrix:
         target: [apk, linux, windows, macos, ios]
-        variant: [debug, release]
         include:
           - target: apk
             os: ubuntu-latest
             pre-build-script: |
               sed -i 's/signingConfigs.release/signingConfigs.debug/' android/app/build.gradle
             build-args: ""
-            debug-artifact-path: build/app/outputs/flutter-apk/app-debug.apk
-            release-artifact-path: build/app/outputs/flutter-apk/app-release.apk
+            artifact-path: build/app/outputs/flutter-apk/app-release.apk
           - target: linux
             os: ubuntu-latest
             pre-build-script: |
@@ -41,20 +39,17 @@ jobs:
               dart pub global activate flutter_distributor
             build-args: ""
             artifact-path: build/linux/x64/*.deb
-            debug-artifact-path: build/linux/x64/debug/bundle
-            release-artifact-path: build/linux/x64/release/bundle
+            bundle-artifact-path: build/linux/x64/release/bundle
           - target: windows
             os: windows-latest
             pre-build-script: ""
             build-args: ""
-            debug-artifact-path: build/windows/x64/runner/Debug
-            release-artifact-path: build/windows/x64/runner/Release
+            artifact-path: build/windows/x64/runner/Release
           - target: macos
             os: macos-latest
             pre-build-script: ""
             build-args: ""
-            debug-artifact-path: build/macos/Build/Products/Debug/*.app
-            release-artifact-path: build/macos/Build/Products/Release/*.app
+            artifact-path: build/macos/Build/Products/Release/*.app
           - target: ios
             os: macos-26
             pre-build-script: ""
@@ -63,7 +58,7 @@ jobs:
               build/ios/iphoneos/Runner.app
 
     runs-on: ${{ matrix.os }}
-    name: ${{ matrix.target }}-${{ matrix.variant }}
+    name: ${{ matrix.target }}-release
 
     steps:
 
@@ -103,19 +98,18 @@ jobs:
     # build flutter app
     - name: Install Flutter Rust Bridge
       run: cargo install flutter_rust_bridge_codegen --version 2.12.0 --locked
-    - name: Run flutter ${{ matrix.variant }} build (${{ matrix.target }})
+    - name: Run flutter release build (${{ matrix.target }})
       run: |
-        flutter build ${{ matrix.target }} --${{ matrix.variant }} ${{ matrix.build-args }} --verbose
+        flutter build ${{ matrix.target }} --release ${{ matrix.build-args }} --verbose
         if [ "${{ matrix.target }}" == "linux" ]; then
-          flutter_distributor package --platform linux --targets deb --skip-clean --flutter-build-args=verbose,${{ matrix.variant }}
+          flutter_distributor package --platform linux --targets deb --skip-clean --flutter-build-args=verbose,release
           mv dist/*/*.deb build/linux/x64/
         fi
 
     # upload build artifacts
     - uses: actions/upload-artifact@v7
       with:
-        name: canokey-console-${{ matrix.target }}-${{ matrix.variant }}
+        name: canokey-console-${{ matrix.target }}-release
         path: |
           ${{ matrix.artifact-path }}
-          ${{ matrix.debug-artifact-path }}
-          ${{ matrix.release-artifact-path }}
+          ${{ matrix.bundle-artifact-path }}
