@@ -9,6 +9,7 @@ import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
+import 'package:canokey_console/helper/utils/piv_card.dart';
 import 'package:canokey_console/helper/utils/piv_csr.dart';
 import 'package:canokey_console/helper/utils/piv_management_key.dart';
 import 'package:canokey_console/helper/utils/piv_metadata_directory.dart';
@@ -25,6 +26,7 @@ import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
 class PivController extends PollingController {
+  final PivCardClient _client = PivCardClient();
   Map<int, SlotInfo> slots = {};
   final Set<int> certificateSlots = {};
   final Map<int, Uint8List> certificateBytes = {};
@@ -134,11 +136,11 @@ class PivController extends PollingController {
 
   Future<void> _refreshCapabilities() async {
     try {
-      SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
-      final resp = await SmartCard.transceive('00EE010000');
-      SmartCard.assertOK(resp);
-      algorithmExtensionConfig = PivAlgorithmExtensionConfig.decode(
-          hex.decode(SmartCard.dropSW(resp)));
+      final config = await _client.readAlgorithmExtensions();
+      if (config == null) {
+        throw StateError('PIV algorithm extensions are unavailable');
+      }
+      algorithmExtensionConfig = config;
     } catch (_) {
       final isLegacyV2 =
           firmwareVersion.compareTo(const FirmwareVersion(2, 0, 0)) >= 0 &&
@@ -224,14 +226,8 @@ class PivController extends PollingController {
   }
 
   Future<SlotInfo?> _readKeyMetadata(int slot) async {
-    final metadataResp = await _transceive('00F700${hex.encode([slot])}00');
-    if (!SmartCard.isOK(metadataResp) ||
-        _isMissingMetadataResponse(metadataResp)) {
-      return null;
-    }
-    return SlotInfo.parse(
+    return _client.readMetadata(
       slot,
-      hex.decode(SmartCard.dropSW(metadataResp)),
       algorithmExtensionConfig: algorithmExtensionConfig,
     );
   }
@@ -1444,18 +1440,7 @@ class PivController extends PollingController {
   }
 
   Future<SlotInfo?> _readCredentialMetadata(int slot) async {
-    final resp = await _transceive('00F700${hex.encode([slot])}00');
-    if (!SmartCard.isOK(resp) || _isMissingMetadataResponse(resp)) {
-      return null;
-    }
-    return SlotInfo.parse(slot, hex.decode(SmartCard.dropSW(resp)));
-  }
-
-  bool _isMissingMetadataResponse(String resp) {
-    return switch (resp.toUpperCase()) {
-      '6A88' || '6700' => true,
-      _ => false,
-    };
+    return _client.readMetadata(slot);
   }
 
   Future<bool> _authenticateManagementKeyOrPinOnly(

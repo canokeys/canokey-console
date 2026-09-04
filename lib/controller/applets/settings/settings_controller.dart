@@ -6,6 +6,7 @@ import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/app_loader_overlay.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/utils/admin_card.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/screenshot_mode.dart';
@@ -18,6 +19,7 @@ import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
 class SettingsController extends PollingController with AdminApplet {
+  final AdminCardClient _client = AdminCardClient();
   late CanoKey key;
 
   @override
@@ -186,17 +188,10 @@ class SettingsController extends PollingController with AdminApplet {
   }
 
   Future<void> _refresh(String sn) async {
-    String resp = await SmartCard.transceive('0031000000');
-    SmartCard.assertOK(resp);
-    String firmwareVersion =
-        String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
+    final firmwareVersion = await _client.readFirmwareVersion();
     String? coreCommit;
-    resp = await SmartCard.transceive('0031010000');
-    SmartCard.assertOK(resp);
-    String model = String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
-    resp = await SmartCard.transceive('0032010000');
-    SmartCard.assertOK(resp);
-    String chipId = SmartCard.dropSW(resp).toUpperCase();
+    final model = await _client.readModel();
+    final chipId = await _client.readChipId();
 
     // read configurations
     FunctionSetVersion functionSetVersion =
@@ -225,9 +220,7 @@ class SettingsController extends PollingController with AdminApplet {
     bool featureSwitchesSupported = false;
     StorageUsage? storageUsage;
     KeyboardKeymapState? keyboardKeymap;
-    resp = await SmartCard.transceive('0042000000');
-    SmartCard.assertOK(resp);
-    final configData = SmartCard.dropSW(resp);
+    final configData = hex.encode(await _client.readConfig());
     switch (functionSetVersion) {
       case FunctionSetVersion.v1:
         ledOn = configData.substring(0, 2) == '01';
@@ -278,18 +271,14 @@ class SettingsController extends PollingController with AdminApplet {
         break;
     }
     if (functionSet.contains(Func.nfcSwitch)) {
-      resp = await SmartCard.transceive('0014000000');
-      SmartCard.assertOK(resp);
-      nfcEnabled = resp.substring(0, 2) == '01';
+      nfcEnabled = await _client.readNfcEnabled();
     }
     if (functionSet.contains(Func.dynamicOathCapacity) ||
         functionSet.contains(Func.dynamicWebAuthnCapacity)) {
-      resp = await SmartCard.transceive('0041000002');
-      SmartCard.assertOK(resp);
-      final totalUsage = SmartCard.dropSW(resp);
+      final totalUsage = await _client.readStorageUsage();
       storageUsage = StorageUsage(
-        usedKiB: int.parse(totalUsage.substring(0, 2), radix: 16),
-        totalKiB: int.parse(totalUsage.substring(2, 4), radix: 16),
+        usedKiB: totalUsage.usedKiB,
+        totalKiB: totalUsage.totalKiB,
       );
       final appletUsage = await _tryReadAppletStorageUsage(functionSet);
       if (appletUsage.isNotEmpty) {
@@ -338,16 +327,7 @@ class SettingsController extends PollingController with AdminApplet {
   }
 
   Future<String?> _tryReadCoreCommit() async {
-    final resp = await SmartCard.transceive('0031020000');
-    if (!SmartCard.isOK(resp)) {
-      log.w('Failed to read canokey-core commit: $resp');
-      return null;
-    }
-    final data = SmartCard.dropSW(resp);
-    if (data.isEmpty) {
-      return null;
-    }
-    return String.fromCharCodes(hex.decode(data));
+    return _client.readCoreCommit();
   }
 
   Future<List<AppletStorageUsage>> _tryReadAppletStorageUsage(

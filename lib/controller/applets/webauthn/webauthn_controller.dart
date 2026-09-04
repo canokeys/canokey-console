@@ -5,6 +5,7 @@ import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
@@ -498,6 +499,12 @@ class WebAuthnController extends PollingController with AdminApplet {
 }
 
 class CtapTransimtter extends CtapDevice {
+  CtapTransimtter({
+    ApduTransport transport = const SmartCardApduTransport(),
+  }) : _transport = transport;
+
+  final ApduTransport _transport;
+
   @override
   Future<CtapResponse<List<int>>> transceive(List<int> command) async {
     List<int> lc;
@@ -514,7 +521,7 @@ class CtapTransimtter extends CtapDevice {
         capdu = '80C00000$remain';
         rapdu = rapdu.substring(0, rapdu.length - 4);
       }
-      rapdu += await SmartCard.transceive(capdu);
+      rapdu += await _transport.transceive(capdu);
     } while (rapdu.substring(rapdu.length - 4, rapdu.length - 2) == '61');
     List<int> resp = hex.decode(rapdu);
     return CtapResponse(resp[0], resp.sublist(1, resp.length - 2));

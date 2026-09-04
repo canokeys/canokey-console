@@ -8,6 +8,7 @@ import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
+import 'package:canokey_console/helper/utils/oath_card.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
@@ -22,6 +23,7 @@ import 'package:platform_detector/platform_detector.dart';
 import 'package:timer_controller/timer_controller.dart';
 
 class OathController extends PollingController {
+  final OathCardClient _client = OathCardClient();
   final TimerController timerController = TimerController.seconds(30);
   final Rxn<QrScanResult> qrScanResult = Rxn<QrScanResult>();
   final Map<String, String> _localCodeCache = {};
@@ -75,32 +77,15 @@ class OathController extends PollingController {
         return;
       }
 
-      List<int> nameBytes = utf8.encode(name);
-      String capduData =
-          '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}'; // name 0x71
-      // ignore: prefer_interpolation_to_compose_strings
-      capduData += '73' + // tag
-          (secretHex.length ~/ 2 + 2)
-              .toRadixString(16)
-              .padLeft(2, '0') + // length
-          (type.value | algo.value)
-              .toRadixString(16)
-              .padLeft(2, '0') + // type & algo
-          digits.toRadixString(16).padLeft(2, '0') + // digits
-          secretHex;
-      if (requireTouch) {
-        if (version == OathVersion.legacy) {
-          capduData += '780102';
-        } else {
-          capduData += '7802';
-        }
-      }
-      if (initValue > 0) {
-        capduData += '7A04${initValue.toRadixString(16).padLeft(4, '0')}';
-      }
-
-      String resp = await _transceive(
-          '00010000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
+      final resp = await _client.put(
+        name: name,
+        secretHex: secretHex,
+        type: type,
+        algorithm: algo,
+        digits: digits,
+        requireTouch: requireTouch,
+        initialValue: initValue,
+      );
       if (resp == '6985') {
         Prompts.showPrompt(
             S.of(Get.context!).oathDuplicated, ContentThemeColor.danger);
@@ -173,22 +158,16 @@ class OathController extends PollingController {
         return;
       }
 
-      List<int> nameBytes = utf8.encode(name);
-      String capduData =
-          '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
+      String? challengeHex;
       if (type == OathType.totp) {
         int challenge = DateTime.now().millisecondsSinceEpoch ~/ 30000;
-        String challengeStr = challenge.toRadixString(16).padLeft(16, '0');
-        capduData += '7408$challengeStr';
+        challengeHex = challenge.toRadixString(16).padLeft(16, '0');
       }
-      String resp;
-      if (version == OathVersion.legacy) {
-        resp = await _transceive(
-            '00040000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
-      } else {
-        resp = await _transceive(
-            '00A20001${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData');
-      }
+      final resp = await _client.calculate(
+        name: name,
+        type: type,
+        challengeHex: challengeHex,
+      );
       SmartCard.assertOK(resp);
 
       List<int> data = hex.decode(SmartCard.dropSW(resp));
@@ -207,11 +186,7 @@ class OathController extends PollingController {
         return;
       }
 
-      List<int> nameBytes = utf8.encode(name);
-      String capduData =
-          '71${nameBytes.length.toRadixString(16).padLeft(2, '0')}${hex.encode(nameBytes)}';
-      SmartCard.assertOK(await _transceive(
-          '00020000${(capduData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$capduData'));
+      SmartCard.assertOK(await _client.delete(name));
       log.i('Successfully deleted $name');
 
       Navigator.pop(Get.context!);
@@ -302,9 +277,10 @@ class OathController extends PollingController {
   }
 
   Future<bool> _verifyCode(String code) async {
-    String resp = await _transceive('00A4040007A0000005272101');
-    SmartCard.assertOK(resp);
-    Map info = TLV.parse(hex.decode(SmartCard.dropSW(resp)));
+    final selection = await _client.select();
+    version = selection.version;
+    String resp = selection.response;
+    final info = selection.info;
     if (!info.containsKey(0x74)) {
       // no code set
       return true;
@@ -330,18 +306,12 @@ class OathController extends PollingController {
   /// Finally, prompt the user for code.
   Future<bool> _authenticate(String sn) async {
     // First check if authentication is required
-    String resp = await _transceive('00A4040007A0000005272101');
-    SmartCard.assertOK(resp);
-    if (resp == '9000') {
-      version = OathVersion.legacy; // no code support
+    final selection = await _client.select();
+    version = selection.version;
+    if (version == OathVersion.legacy) {
       return true;
     }
-    Map info = TLV.parse(hex.decode(SmartCard.dropSW(resp)));
-    if (hex.encode(info[0x79]) == '050505') {
-      version = OathVersion.v1;
-    } else if (hex.encode(info[0x79]) == '060000') {
-      version = OathVersion.v2;
-    }
+    final info = selection.info;
     if (!info.containsKey(0x74)) {
       // no code set
       return true;
@@ -477,43 +447,14 @@ class OathController extends PollingController {
   }
 
   Future<String> _transceive(String capdu) async {
-    bool isListCommand =
-        (version == OathVersion.legacy && capdu.startsWith('000500')) ||
-            (version != OathVersion.legacy && capdu.startsWith('00A400'));
-    if (!isListCommand) {
-      return await SmartCard.transceive(capdu);
-    }
-
-    // Handle list command
-    String rapdu = await SmartCard.transceive(capdu);
-    String result = '';
-
-    while (true) {
-      String sw = rapdu.substring(rapdu.length - 4);
-      result += SmartCard.dropSW(rapdu);
-
-      if (sw.startsWith('61') || sw == '9000') {
-        String getResponseCommand =
-            version == OathVersion.legacy ? '00060000FF' : '00A50000FF';
-        rapdu = await SmartCard.transceive(getResponseCommand);
-        if (rapdu.endsWith('6985')) {
-          return '${result}9000';
-        }
-      } else {
-        return result + sw;
-      }
-    }
+    _client.version = version;
+    return _client.transceive(capdu);
   }
 
   Future<void> _refresh() async {
-    String resp;
     int challenge = DateTime.now().millisecondsSinceEpoch ~/ 30000;
     String challengeStr = challenge.toRadixString(16).padLeft(16, '0');
-    if (version == OathVersion.legacy) {
-      resp = await _transceive('000500000A7408$challengeStr');
-    } else {
-      resp = await _transceive('00A400010A7408$challengeStr');
-    }
+    final resp = await _client.calculateAll(challengeStr);
     SmartCard.assertOK(resp);
     List<int> data = hex.decode(SmartCard.dropSW(resp));
     polled = true;
