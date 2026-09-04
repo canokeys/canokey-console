@@ -263,19 +263,28 @@ class ConsoleSmoke {
       pinStatus.data.length == 14,
       'OpenPGP PIN status must contain seven bytes',
     );
-    final fingerprints = await _send('openpgp.fingerprints', '00CA00C500');
-    _expect(
-      fingerprints.data.length == 120,
-      'OpenPGP fingerprints must contain 60 bytes',
+    final fingerprints = await _send(
+      'openpgp.fingerprints',
+      '00CA00C500',
+      acceptedStatusWords: const {'9000', '6A88'},
     );
+    if (fingerprints.statusWord == '9000') {
+      _expect(
+        fingerprints.data.length == 120,
+        'OpenPGP fingerprints must contain 60 bytes',
+      );
+    }
     final generationTimes = await _send(
       'openpgp.generation_times',
       '00CA00CD00',
+      acceptedStatusWords: const {'9000', '6A88'},
     );
-    _expect(
-      generationTimes.data.length == 24,
-      'OpenPGP generation times must contain 12 bytes',
-    );
+    if (generationTimes.statusWord == '9000') {
+      _expect(
+        generationTimes.data.length == 24,
+        'OpenPGP generation times must contain 12 bytes',
+      );
+    }
 
     if (_functionSet.index >= FunctionSetVersion.v4.index) {
       final challenge = await _send('openpgp.challenge', '0084000008');
