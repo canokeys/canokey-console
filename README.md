@@ -87,6 +87,30 @@ flutter build macos
 flutter build linux
 ```
 
+## USB/IP Compatibility Tests
+
+The USB/IP workflow tests Console's CCID protocol against every released firmware in the
+[`canokey-usbip`](https://github.com/canokeys/canokey-usbip) release map. The matrix is generated
+from the harness catalog, so newly cataloged firmware releases are included without duplicating
+version lists in this repository. The development `head` entry is not a released firmware version.
+
+The tests require a Linux host with the `canokey-usbip` runner prerequisites and a Flutter SDK.
+To run one firmware locally:
+
+```bash
+git clone https://github.com/canokeys/canokey-usbip.git /tmp/canokey-usbip
+flutter pub get
+/tmp/canokey-usbip/compat/run \
+  --core-ref 3.1.0 \
+  --require ccid \
+  --require pcsc \
+  --test-command 'bash test/usbip/run.sh'
+```
+
+The smoke test performs read-only Admin, OpenPGP, PIV, OATH, NDEF, WebAuthn, and supported Pass
+queries through the same `ccid` package used by Console. Its JSON result is stored with the USB/IP
+diagnostics as `console-smoke.json`.
+
 ## Contributing
 
 We welcome contributions! Please feel free to submit a Pull Request.

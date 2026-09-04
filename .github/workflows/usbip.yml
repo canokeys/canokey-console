@@ -1,0 +1,123 @@
+name: USB/IP firmware compatibility
+
+on:
+  push:
+    branches: [main, develop, ci]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 18 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: 3.44.4
+
+jobs:
+  catalog:
+    runs-on: ubuntu-latest
+    outputs:
+      firmwares: ${{ steps.matrix.outputs.firmwares }}
+      usbip_sha: ${{ steps.matrix.outputs.usbip_sha }}
+    steps:
+      - name: Check out CanoKey Console
+        uses: actions/checkout@v6
+
+      - name: Check out CanoKey USB/IP catalog
+        uses: actions/checkout@v6
+        with:
+          repository: canokeys/canokey-usbip
+          ref: master
+          path: canokey-usbip
+          submodules: false
+
+      - name: Generate all released firmware versions
+        id: matrix
+        shell: bash
+        run: |
+          firmwares="$(./canokey-usbip/compat/list-firmwares --release-map --compact)"
+          test "$(jq 'length' <<<"$firmwares")" -gt 0
+          echo "firmwares=$firmwares" >> "$GITHUB_OUTPUT"
+          echo "usbip_sha=$(git -C canokey-usbip rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  firmware:
+    # Never execute code from a fork on the self-hosted USB/IP runner.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    needs: catalog
+    runs-on: [self-hosted, linux, canokey-usbip]
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        firmware: ${{ fromJSON(needs.catalog.outputs.firmwares) }}
+    name: firmware-${{ matrix.firmware.id }}
+    steps:
+      - name: Check out CanoKey Console
+        uses: actions/checkout@v6
+
+      - name: Check out CanoKey USB/IP harness
+        uses: actions/checkout@v6
+        with:
+          repository: canokeys/canokey-usbip
+          ref: ${{ needs.catalog.outputs.usbip_sha }}
+          path: canokey-usbip
+          submodules: false
+
+      - name: Install host dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            ca-certificates \
+            cmake \
+            git \
+            hwdata \
+            kmod \
+            libccid \
+            libpcsclite1 \
+            linux-tools-common \
+            pcsc-tools \
+            pcscd \
+            pkg-config \
+            python3 \
+            python3-jinja2 \
+            python3-jsonschema \
+            udev \
+            usbutils
+
+      - name: Set up Flutter
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Resolve Console dependencies
+        run: flutter pub get
+
+      - name: Check USB/IP runner environment
+        run: ./canokey-usbip/compat/environment
+
+      - name: Test Console against virtual CanoKey
+        shell: bash
+        run: |
+          ./canokey-usbip/compat/run \
+            --core-ref "${{ matrix.firmware.core_commit }}" \
+            --require ccid \
+            --require pcsc \
+            --test-command 'bash test/usbip/run.sh' \
+            --timeout 180 \
+            --output-dir "$PWD/artifacts"
+
+      - name: Upload USB/IP diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: canokey-console-usbip-${{ matrix.firmware.id }}
+          path: artifacts/
+          if-no-files-found: warn
