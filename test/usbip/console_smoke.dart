@@ -25,6 +25,7 @@ const _defaultOpenPgpUserPin = '123456';
 const _alternateOpenPgpUserPin = '654321';
 const _defaultOpenPgpAdminPin = '12345678';
 const _alternateOpenPgpAdminPin = '87654321';
+const _openPgpResetCode = '24682468';
 
 class ApduResponse {
   ApduResponse(this.data, this.statusWord);
@@ -357,6 +358,266 @@ class ConsoleSmoke {
       'Console failed to restore the OpenPGP admin PIN',
     );
     stdout.writeln('ok: openpgp.client.change_and_restore_pins');
+
+    await _openPgpPinRecovery();
+    await _openPgpPolicies(cardInfo);
+    if (_functionSet == FunctionSetVersion.v5) {
+      await _openPgpPinRetries(cardInfo.pinState);
+    }
+  }
+
+  Future<void> _openPgpPinRecovery() async {
+    var currentUserPin = _defaultOpenPgpUserPin;
+    var resetCodeConfigured = false;
+    try {
+      resetCodeConfigured = await _openPgpClient.setResetCode(
+        _defaultOpenPgpAdminPin,
+        _openPgpResetCode,
+      );
+      _expect(
+        resetCodeConfigured,
+        'Console failed to configure the OpenPGP reset code',
+      );
+      stdout.writeln('ok: openpgp.client.set_reset_code');
+
+      final resetWithCode = await _openPgpClient.unblockUserPinWithResetCode(
+        _openPgpResetCode,
+        _alternateOpenPgpUserPin,
+      );
+      if (resetWithCode) currentUserPin = _alternateOpenPgpUserPin;
+      _expect(
+        resetWithCode,
+        'Console failed to reset the OpenPGP user PIN with the reset code',
+      );
+      stdout.writeln('ok: openpgp.client.unblock_with_reset_code');
+
+      final restoredAfterResetCode = await _openPgpClient.changeUserPin(
+        currentUserPin,
+        _defaultOpenPgpUserPin,
+      );
+      if (restoredAfterResetCode) currentUserPin = _defaultOpenPgpUserPin;
+      _expect(
+        restoredAfterResetCode,
+        'Console failed to restore the OpenPGP user PIN after reset-code use',
+      );
+
+      final resetWithAdmin = await _openPgpClient.unblockUserPinWithAdmin(
+        _defaultOpenPgpAdminPin,
+        _alternateOpenPgpUserPin,
+      );
+      if (resetWithAdmin) currentUserPin = _alternateOpenPgpUserPin;
+      _expect(
+        resetWithAdmin,
+        'Console failed to reset the OpenPGP user PIN with the admin PIN',
+      );
+      stdout.writeln('ok: openpgp.client.unblock_with_admin_pin');
+
+      final restoredAfterAdmin = await _openPgpClient.changeUserPin(
+        currentUserPin,
+        _defaultOpenPgpUserPin,
+      );
+      if (restoredAfterAdmin) currentUserPin = _defaultOpenPgpUserPin;
+      _expect(
+        restoredAfterAdmin,
+        'Console failed to restore the OpenPGP user PIN after admin reset',
+      );
+    } finally {
+      if (currentUserPin != _defaultOpenPgpUserPin) {
+        _expect(
+          await _openPgpClient.unblockUserPinWithAdmin(
+            _defaultOpenPgpAdminPin,
+            _defaultOpenPgpUserPin,
+          ),
+          'Cleanup failed to restore the default OpenPGP user PIN',
+        );
+      }
+      if (resetCodeConfigured) {
+        _expect(
+          await _openPgpClient.setResetCode(_defaultOpenPgpAdminPin, ''),
+          'Cleanup failed to clear the OpenPGP reset code',
+        );
+      }
+    }
+    stdout.writeln('ok: openpgp.client.restore_pin_and_reset_code');
+  }
+
+  Future<void> _openPgpPolicies(OpenPgpCardInfo originalInfo) async {
+    final originalSignaturePolicy = originalInfo.pinState.signaturePinForced;
+    var signaturePolicyChanged = false;
+    try {
+      signaturePolicyChanged = await _openPgpClient.setSignaturePinPolicy(
+        _defaultOpenPgpAdminPin,
+        !originalSignaturePolicy,
+      );
+      _expect(
+        signaturePolicyChanged,
+        'Console failed to change the OpenPGP signature PIN policy',
+      );
+      final changedInfo = await _openPgpClient.readCardInfo();
+      _expect(
+        changedInfo.pinState.signaturePinForced != originalSignaturePolicy,
+        'Console did not read back the changed OpenPGP signature PIN policy',
+      );
+      stdout.writeln('ok: openpgp.client.set_signature_pin_policy');
+    } finally {
+      if (signaturePolicyChanged) {
+        _expect(
+          await _openPgpClient.setSignaturePinPolicy(
+            _defaultOpenPgpAdminPin,
+            originalSignaturePolicy,
+          ),
+          'Cleanup failed to restore the OpenPGP signature PIN policy',
+        );
+      }
+    }
+
+    var restoredInfo = await _openPgpClient.readCardInfo();
+    _expect(
+      restoredInfo.pinState.signaturePinForced == originalSignaturePolicy,
+      'Console did not read back the restored OpenPGP signature PIN policy',
+    );
+
+    if (originalInfo.touchCacheTime == null) {
+      stdout.writeln(
+        'skip: openpgp.client.touch_policy '
+        '(firmware does not expose standard UIF data objects)',
+      );
+      return;
+    }
+
+    for (final keyType in OpenPgpKeyType.values) {
+      final originalPolicy = originalInfo.keySlots[keyType]!.touchPolicy;
+      _expect(
+        originalPolicy == OpenPgpTouchPolicy.off ||
+            originalPolicy == OpenPgpTouchPolicy.on,
+        'OpenPGP ${keyType.name} touch policy cannot be safely restored',
+      );
+      final changedPolicy = originalPolicy == OpenPgpTouchPolicy.off
+          ? OpenPgpTouchPolicy.on
+          : OpenPgpTouchPolicy.off;
+      var policyChanged = false;
+      try {
+        policyChanged = await _openPgpClient.setTouchPolicy(
+          keyType,
+          changedPolicy,
+          _defaultOpenPgpAdminPin,
+        );
+        _expect(
+          policyChanged,
+          'Console failed to change the OpenPGP ${keyType.name} touch policy',
+        );
+        final changedInfo = await _openPgpClient.readCardInfo();
+        _expect(
+          changedInfo.keySlots[keyType]!.touchPolicy == changedPolicy,
+          'Console did not read back the changed OpenPGP '
+          '${keyType.name} touch policy',
+        );
+        stdout.writeln(
+          'ok: openpgp.client.set_${keyType.name.toLowerCase()}_touch_policy',
+        );
+      } finally {
+        if (policyChanged) {
+          _expect(
+            await _openPgpClient.setTouchPolicy(
+              keyType,
+              originalPolicy,
+              _defaultOpenPgpAdminPin,
+            ),
+            'Cleanup failed to restore the OpenPGP '
+            '${keyType.name} touch policy',
+          );
+        }
+      }
+      restoredInfo = await _openPgpClient.readCardInfo();
+      _expect(
+        restoredInfo.keySlots[keyType]!.touchPolicy == originalPolicy,
+        'Console did not read back the restored OpenPGP '
+        '${keyType.name} touch policy',
+      );
+    }
+
+    final originalCacheTime = originalInfo.touchCacheTime!;
+    final changedCacheTime = originalCacheTime == 15 ? 16 : 15;
+    var cacheTimeChanged = false;
+    try {
+      cacheTimeChanged = await _openPgpClient.setTouchCacheTime(
+        _defaultOpenPgpAdminPin,
+        changedCacheTime,
+      );
+      _expect(
+        cacheTimeChanged,
+        'Console failed to change the OpenPGP touch cache time',
+      );
+      final changedInfo = await _openPgpClient.readCardInfo();
+      _expect(
+        changedInfo.touchCacheTime == changedCacheTime,
+        'Console did not read back the changed OpenPGP touch cache time',
+      );
+      stdout.writeln('ok: openpgp.client.set_touch_cache_time');
+    } finally {
+      if (cacheTimeChanged) {
+        _expect(
+          await _openPgpClient.setTouchCacheTime(
+            _defaultOpenPgpAdminPin,
+            originalCacheTime,
+          ),
+          'Cleanup failed to restore the OpenPGP touch cache time',
+        );
+      }
+    }
+    restoredInfo = await _openPgpClient.readCardInfo();
+    _expect(
+      restoredInfo.touchCacheTime == originalCacheTime,
+      'Console did not read back the restored OpenPGP touch cache time',
+    );
+    stdout.writeln('ok: openpgp.client.restore_policies');
+  }
+
+  Future<void> _openPgpPinRetries(OpenPgpPinState originalState) async {
+    final originalUserRetries = originalState.userRetries!;
+    final originalResetRetries = originalState.resetRetries!;
+    final originalAdminRetries = originalState.adminRetries!;
+    var retriesChanged = false;
+    try {
+      retriesChanged = await _openPgpClient.setPinRetries(
+        _defaultOpenPgpAdminPin,
+        4,
+        4,
+        4,
+      );
+      _expect(
+        retriesChanged,
+        'Console failed to change the OpenPGP PIN retry limits',
+      );
+      final changedInfo = await _openPgpClient.readCardInfo();
+      _expect(
+        changedInfo.pinState.userRetries == 4 &&
+            changedInfo.pinState.resetRetries == 4 &&
+            changedInfo.pinState.adminRetries == 4,
+        'Console did not read back the changed OpenPGP PIN retry limits',
+      );
+      stdout.writeln('ok: openpgp.client.set_pin_retries');
+    } finally {
+      if (retriesChanged) {
+        _expect(
+          await _openPgpClient.setPinRetries(
+            _defaultOpenPgpAdminPin,
+            originalUserRetries,
+            originalResetRetries,
+            originalAdminRetries,
+          ),
+          'Cleanup failed to restore the OpenPGP PIN retry limits',
+        );
+      }
+    }
+    final restoredInfo = await _openPgpClient.readCardInfo();
+    _expect(
+      restoredInfo.pinState.userRetries == originalUserRetries &&
+          restoredInfo.pinState.resetRetries == originalResetRetries &&
+          restoredInfo.pinState.adminRetries == originalAdminRetries,
+      'Console did not read back the restored OpenPGP PIN retry limits',
+    );
+    stdout.writeln('ok: openpgp.client.restore_pin_retries');
   }
 
   Future<void> _pivApplet() async {

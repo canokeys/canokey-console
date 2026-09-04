@@ -11,6 +11,8 @@ if [[ ! -f .dart_tool/package_config.json ]]; then
 fi
 
 flutter test \
+  --no-pub \
+  --no-test-assets \
   --coverage \
   --coverage-path "$CANOKEY_TEST_OUTPUT/console-coverage.lcov" \
   --reporter expanded \
