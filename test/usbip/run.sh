@@ -10,4 +10,8 @@ if [[ ! -f .dart_tool/package_config.json ]]; then
   flutter pub get
 fi
 
-flutter test --reporter expanded test/usbip/console_smoke.dart
+flutter test \
+  --coverage \
+  --coverage-path "$CANOKEY_TEST_OUTPUT/console-coverage.lcov" \
+  --reporter expanded \
+  test/usbip/console_smoke.dart

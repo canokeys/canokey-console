@@ -44,6 +44,64 @@ void main() {
       '00400100',
     ]);
   });
+
+  test('runs optional admin operations and handles unavailable core commit',
+      () async {
+    final transport = _QueueApduTransport(List.filled(5, '9000'));
+    final client = AdminCardClient(transport: transport);
+
+    await client.setNfcEnabled(true);
+    await client.setNfcEnabled(false);
+    await client.setNdefReadOnly(true);
+    await client.setNdefReadOnly(false);
+    await client.resetNdef();
+
+    expect(transport.commands, [
+      '00140101',
+      '00140100',
+      '00080100',
+      '00080000',
+      '00070000',
+    ]);
+    expect(
+      await AdminCardClient(
+        transport: _QueueApduTransport(['6162639000']),
+      ).readCoreCommit(),
+      'abc',
+    );
+    expect(
+      await AdminCardClient(
+        transport: _QueueApduTransport(['9000']),
+      ).readCoreCommit(),
+      isNull,
+    );
+    expect(
+      await AdminCardClient(
+        transport: _QueueApduTransport(['6D00']),
+      ).readCoreCommit(),
+      isNull,
+    );
+  });
+
+  test('rejects invalid admin response data and configuration indexes',
+      () async {
+    final client = AdminCardClient(transport: _QueueApduTransport([]));
+
+    expect(() => client.writeConfigByte(-1, 0), throwsRangeError);
+    expect(() => client.writeConfigByte(1, 256), throwsRangeError);
+    expect(
+      AdminCardClient(
+        transport: _QueueApduTransport(['029000']),
+      ).readNfcEnabled(),
+      throwsFormatException,
+    );
+    expect(
+      AdminCardClient(
+        transport: _QueueApduTransport(['019000']),
+      ).readStorageUsage(),
+      throwsFormatException,
+    );
+  });
 }
 
 class _QueueApduTransport implements ApduTransport {

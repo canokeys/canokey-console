@@ -59,6 +59,9 @@ class OathCardClient {
     bool requireTouch = false,
     int initialValue = 0,
   }) {
+    if (initialValue < 0 || initialValue > 0xffffffff) {
+      throw RangeError.range(initialValue, 0, 0xffffffff, 'initialValue');
+    }
     final nameData = _nameData(name);
     final credential = StringBuffer(nameData)
       ..write('73')
@@ -71,7 +74,7 @@ class OathCardClient {
     }
     if (initialValue > 0) {
       credential.write(
-        '7A04${initialValue.toRadixString(16).padLeft(4, '0')}',
+        '7A04${initialValue.toRadixString(16).padLeft(8, '0')}',
       );
     }
     return transceive(_command('00010000', credential.toString()));

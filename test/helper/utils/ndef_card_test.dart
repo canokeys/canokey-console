@@ -67,6 +67,65 @@ void main() {
     expect(transport.commands[4], '00D600F201F0');
     expect(transport.commands[5], '00D600000200F1');
   });
+
+  test('reports unavailable and read-only NDEF applets', () async {
+    expect(
+      await NdefCardClient(
+        transport: _QueueApduTransport(['6A82']),
+      ).read(),
+      isNull,
+    );
+    expect(
+      await NdefCardClient(
+        transport: _QueueApduTransport(['6A82']),
+      ).write(Uint8List.fromList([1])),
+      isFalse,
+    );
+    expect(
+      NdefCardClient(
+        transport: _QueueApduTransport(['9000', '9000', '6982']),
+      ).write(Uint8List.fromList([1])),
+      throwsA(isA<NdefReadOnlyException>()),
+    );
+  });
+
+  test('rejects malformed capability and oversized message lengths', () async {
+    expect(
+      NdefCardClient(
+        transport: _QueueApduTransport([
+          '9000',
+          '9000',
+          '${hex.encode(List.filled(15, 0))}9000',
+        ]),
+      ).read(),
+      throwsFormatException,
+    );
+
+    final capability = List<int>.filled(15, 0)
+      ..[7] = 0x04
+      ..[8] = 0x06
+      ..[12] = 0x03;
+    expect(
+      NdefCardClient(
+        transport: _QueueApduTransport([
+          '9000',
+          '9000',
+          '${hex.encode(capability)}9000',
+          '9000',
+          '00029000',
+        ]),
+      ).read(),
+      throwsFormatException,
+    );
+  });
+
+  test('rejects invalid short APDU ranges', () {
+    expect(() => NdefCardClient.readBinaryApdu(-1, 1), throwsRangeError);
+    expect(
+      () => NdefCardClient.updateBinaryApdu(0, Uint8List(0)),
+      throwsRangeError,
+    );
+  });
 }
 
 class _QueueApduTransport implements ApduTransport {

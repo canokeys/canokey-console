@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:canokey_console/controller/applets/webauthn/webauthn_controller.dart';
 import 'package:canokey_console/helper/utils/admin_card.dart';
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
+import 'package:canokey_console/helper/utils/ctap_transmitter.dart';
 import 'package:canokey_console/helper/utils/ndef_card.dart';
 import 'package:canokey_console/helper/utils/oath_card.dart';
 import 'package:canokey_console/helper/utils/openpgp_card.dart';
@@ -63,7 +63,7 @@ class ConsoleSmoke {
     _pivClient = PivCardClient(
       transport: _clientTransport('piv'),
     );
-    _webAuthnTransmitter = CtapTransimtter(
+    _webAuthnTransmitter = CtapTransmitter(
       transport: _clientTransport('webauthn'),
     );
   }
@@ -77,7 +77,7 @@ class ConsoleSmoke {
   late final OathCardClient _oathClient;
   late final PassCardClient _passClient;
   late final PivCardClient _pivClient;
-  late final CtapTransimtter _webAuthnTransmitter;
+  late final CtapTransmitter _webAuthnTransmitter;
   late FunctionSetVersion _functionSet;
   late String _adminSerial;
   late bool _initialNdefReadonly;

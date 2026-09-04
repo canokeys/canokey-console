@@ -52,6 +52,63 @@ void main() {
       '00A50000FF',
     ]);
   });
+
+  test('uses legacy commands and encodes a four-byte HOTP counter', () async {
+    final transport = _QueueApduTransport([
+      '9000',
+      '9000',
+      '7605000000019000',
+    ]);
+    final client = OathCardClient(transport: transport);
+
+    expect((await client.select()).version, OathVersion.legacy);
+    await client.put(
+      name: 'A',
+      secretHex: '0102',
+      type: OathType.hotp,
+      algorithm: OathAlgorithm.sha1,
+      digits: 6,
+      requireTouch: true,
+      initialValue: 1,
+    );
+    await client.calculate(name: 'A', type: OathType.hotp);
+
+    expect(transport.commands[1], contains('7801027A0400000001'));
+    expect(transport.commands[2], startsWith('00040000'));
+  });
+
+  test('rejects invalid OATH challenge and counter sizes', () async {
+    final client = OathCardClient(transport: _QueueApduTransport([]));
+
+    expect(
+      () => client.calculate(
+        name: 'A',
+        type: OathType.totp,
+        challengeHex: '00',
+      ),
+      throwsArgumentError,
+    );
+    expect(() => client.calculateAll('00'), throwsArgumentError);
+    expect(
+      () => client.put(
+        name: 'A',
+        secretHex: '0102',
+        type: OathType.hotp,
+        algorithm: OathAlgorithm.sha1,
+        digits: 6,
+        initialValue: 0x100000000,
+      ),
+      throwsRangeError,
+    );
+  });
+
+  test('detects OATH v1 and preserves terminal list errors', () async {
+    final transport = _QueueApduTransport(['79030505059000', '6A80']);
+    final client = OathCardClient(transport: transport);
+
+    expect((await client.select()).version, OathVersion.v1);
+    expect(await client.calculateAll('0000000000000001'), '6A80');
+  });
 }
 
 class _QueueApduTransport implements ApduTransport {
