@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: canokeys/canokey-usbip
-          ref: aefdc9e8ca77683f44328919479c0053524bff4a
+          ref: 3e21b96a3f0540f7408510844a4dac453edfc87f
           path: canokey-usbip
           submodules: false
 
