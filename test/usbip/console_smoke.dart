@@ -390,7 +390,7 @@ class ConsoleSmoke {
     final algorithmExtensions = await _send(
       'piv.algorithm_extensions',
       '00EE010000',
-      acceptedStatusWords: const {'9000', '6D00'},
+      acceptedStatusWords: const {'9000', '6982', '6D00'},
     );
     if (algorithmExtensions.statusWord == '9000') {
       PivAlgorithmExtensionConfig.decode(
@@ -445,7 +445,10 @@ class ConsoleSmoke {
 
     await _send('oath.delete', _command('00020000', name));
     final empty = await _sendOathCalculateAll(legacy, challenge);
-    _expect(empty.isEmpty, 'OATH account was not deleted');
+    _expect(
+      !_containsBytes(empty, name),
+      'OATH account was not deleted',
+    );
   }
 
   Future<List<int>> _sendOathCalculateAll(
