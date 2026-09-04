@@ -43,13 +43,9 @@ jobs:
           echo "usbip_sha=$(git -C canokey-usbip rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
   firmware:
-    # Never execute code from a fork on the self-hosted USB/IP runner.
-    if: >-
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name == github.repository
     needs: catalog
-    runs-on: [self-hosted, linux, canokey-usbip]
-    timeout-minutes: 45
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -70,6 +66,8 @@ jobs:
       - name: Install host dependencies
         shell: bash
         run: |
+          mkdir -p artifacts
+          exec > >(tee -a artifacts/preflight.log) 2>&1
           sudo apt-get update
           sudo apt-get install -y \
             build-essential \
@@ -79,16 +77,60 @@ jobs:
             hwdata \
             kmod \
             libccid \
-            libpcsclite1 \
+            libpcsclite-dev \
             linux-tools-common \
+            ninja-build \
+            openssl \
             pcsc-tools \
             pcscd \
             pkg-config \
             python3 \
             python3-jinja2 \
             python3-jsonschema \
+            swig \
             udev \
             usbutils
+
+      - name: Load kernel-matched USB/IP modules
+        shell: bash
+        run: |
+          exec > >(tee -a artifacts/preflight.log) 2>&1
+          kernel_release="$(uname -r)"
+          module_package="linux-modules-extra-${kernel_release}"
+          tools_package="linux-tools-${kernel_release}"
+
+          diagnose_kernel() {
+            uname -r
+            apt-cache policy "$module_package" "$tools_package" || true
+            find "/lib/modules/${kernel_release}" \
+              \( -iname '*vhci*' -o -iname '*usbip*' \) -print || true
+            grep USBIP "/boot/config-${kernel_release}" || true
+          }
+
+          if ! modinfo vhci_hcd >/dev/null 2>&1; then
+            if ! apt-cache show "$module_package" >/dev/null 2>&1 || \
+                ! sudo apt-get install -y "$module_package"; then
+              diagnose_kernel
+              exit 1
+            fi
+          fi
+          if ! sudo modprobe vhci_hcd; then
+            diagnose_kernel
+            exit 1
+          fi
+
+          sudo modprobe usbhid || true
+          sudo modprobe hid_generic || true
+
+          if ! usbip version >/dev/null 2>&1; then
+            if ! apt-cache show "$tools_package" >/dev/null 2>&1 || \
+                ! sudo apt-get install -y "$tools_package"; then
+              diagnose_kernel
+              exit 1
+            fi
+          fi
+          usbip version
+          lsmod | grep -E 'vhci|usbip|hid' || true
 
       - name: Set up Flutter
         uses: flutter-actions/setup-flutter@v4
@@ -101,18 +143,51 @@ jobs:
         run: flutter pub get
 
       - name: Check USB/IP runner environment
-        run: ./canokey-usbip/compat/environment
+        shell: bash
+        run: |
+          exec > >(tee -a artifacts/preflight.log) 2>&1
+          ./canokey-usbip/compat/environment
+
+      - name: Configure PC/SC for noninteractive access
+        shell: bash
+        run: |
+          exec > >(tee -a artifacts/preflight.log) 2>&1
+          if ! pcscd --help 2>&1 | grep -q -- '--disable-polkit'; then
+            echo 'pcscd does not support --disable-polkit'
+            exit 1
+          fi
+          printf '%s\n' 'PCSCD_ARGS=--disable-polkit' | sudo tee /etc/default/pcscd
+          sudo systemctl restart pcscd.service
+          pgrep -af '[p]cscd.*--disable-polkit'
 
       - name: Test Console against virtual CanoKey
         shell: bash
+        env:
+          CANOKEY_USBIP_DEBUG: '1'
         run: |
           ./canokey-usbip/compat/run \
             --core-ref "${{ matrix.firmware.core_commit }}" \
+            --require usb \
             --require ccid \
             --require pcsc \
             --test-command 'bash test/usbip/run.sh' \
             --timeout 180 \
             --output-dir "$PWD/artifacts"
+
+      - name: Collect hosted runner diagnostics
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          sudo dmesg --ctime > artifacts/kernel.log 2>&1 || true
+          {
+            echo '=== pcscd ==='
+            cat /etc/default/pcscd || true
+            pgrep -af '[p]cscd' || true
+            systemctl status pcscd.service pcscd.socket --no-pager || true
+            echo '=== modules ==='
+            lsmod | grep -E 'vhci|usbip|hid|ccid' || true
+          } > artifacts/host-state.txt 2>&1
 
       - name: Upload USB/IP diagnostics
         if: always()
