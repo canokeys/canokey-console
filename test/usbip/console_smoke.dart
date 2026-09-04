@@ -134,10 +134,7 @@ class ConsoleSmoke {
 
     if (functionSet.index >= FunctionSetVersion.v4.index) {
       final nfc = await _send('admin.nfc_enabled', '0014000000');
-      _expect(
-        nfc.data.isEmpty || nfc.data.length == 2,
-        'NFC state must contain at most one byte',
-      );
+      _expect(nfc.data.length == 2, 'NFC state must contain one byte');
     }
     if (functionSet == FunctionSetVersion.v5) {
       final storage = await _send('admin.storage_usage', '0041000002');
