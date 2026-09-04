@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:canokey_console/helper/tlv.dart';
+import 'package:canokey_console/helper/utils/apdu_transport.dart';
+import 'package:canokey_console/helper/utils/openpgp_card.dart';
 import 'package:canokey_console/models/canokey.dart';
+import 'package:canokey_console/models/openpgp.dart';
 import 'package:canokey_console/models/pass.dart';
 import 'package:canokey_console/models/piv.dart';
 import 'package:ccid/ccid.dart';
@@ -37,11 +40,25 @@ class ApduResponse {
 }
 
 class ConsoleSmoke {
-  ConsoleSmoke({required this.card, required this.expectedVersion});
+  ConsoleSmoke({required this.card, required this.expectedVersion}) {
+    _openPgpClient = OpenPgpCardClient(
+      transport: _CcidApduTransport(
+        card,
+        onResponse: (response) {
+          checks.add({
+            'name': 'openpgp.client.transceive',
+            'status_word': response.statusWord,
+            'response_bytes': response.data.length ~/ 2,
+          });
+        },
+      ),
+    );
+  }
 
   final CcidCard card;
   final String expectedVersion;
   final List<Map<String, Object?>> checks = [];
+  late final OpenPgpCardClient _openPgpClient;
   late FunctionSetVersion _functionSet;
   late String _adminSerial;
   late bool _initialNdefReadonly;
@@ -291,43 +308,55 @@ class ConsoleSmoke {
       _expect(challenge.data.length == 16, 'OpenPGP challenge must be 8 bytes');
     }
 
-    await _changeOpenPgpPin(
-      name: 'user_pin',
-      reference: '81',
-      currentPin: _defaultOpenPgpUserPin,
-      newPin: _alternateOpenPgpUserPin,
+    final cardInfo = await _openPgpClient.readCardInfo();
+    _expect(
+      cardInfo.version.isNotEmpty,
+      'Console parsed an empty OpenPGP version',
     );
-    await _changeOpenPgpPin(
-      name: 'user_pin_restore',
-      reference: '81',
-      currentPin: _alternateOpenPgpUserPin,
-      newPin: _defaultOpenPgpUserPin,
+    _expect(
+      cardInfo.serialNumber.length == 8,
+      'Console parsed an invalid OpenPGP serial number',
     );
-    await _changeOpenPgpPin(
-      name: 'admin_pin',
-      reference: '83',
-      currentPin: _defaultOpenPgpAdminPin,
-      newPin: _alternateOpenPgpAdminPin,
+    _expect(
+      cardInfo.pinState.userRetries != null &&
+          cardInfo.pinState.adminRetries != null,
+      'Console did not parse OpenPGP PIN retries',
     );
-    await _changeOpenPgpPin(
-      name: 'admin_pin_restore',
-      reference: '83',
-      currentPin: _alternateOpenPgpAdminPin,
-      newPin: _defaultOpenPgpAdminPin,
+    _expect(
+      cardInfo.keySlots.length == OpenPgpKeyType.values.length,
+      'Console did not parse every OpenPGP key slot',
     );
-  }
+    stdout.writeln('ok: openpgp.client.read_card_info');
 
-  Future<void> _changeOpenPgpPin({
-    required String name,
-    required String reference,
-    required String currentPin,
-    required String newPin,
-  }) async {
-    final data = [...utf8.encode(currentPin), ...utf8.encode(newPin)];
-    await _send(
-      'openpgp.change_$name',
-      _command('002400$reference', data),
+    _expect(
+      await _openPgpClient.changeUserPin(
+        _defaultOpenPgpUserPin,
+        _alternateOpenPgpUserPin,
+      ),
+      'Console failed to change the OpenPGP user PIN',
     );
+    _expect(
+      await _openPgpClient.changeUserPin(
+        _alternateOpenPgpUserPin,
+        _defaultOpenPgpUserPin,
+      ),
+      'Console failed to restore the OpenPGP user PIN',
+    );
+    _expect(
+      await _openPgpClient.changeAdminPin(
+        _defaultOpenPgpAdminPin,
+        _alternateOpenPgpAdminPin,
+      ),
+      'Console failed to change the OpenPGP admin PIN',
+    );
+    _expect(
+      await _openPgpClient.changeAdminPin(
+        _alternateOpenPgpAdminPin,
+        _defaultOpenPgpAdminPin,
+      ),
+      'Console failed to restore the OpenPGP admin PIN',
+    );
+    stdout.writeln('ok: openpgp.client.change_and_restore_pins');
   }
 
   Future<void> _pivApplet() async {
@@ -689,6 +718,23 @@ class ConsoleSmoke {
   Future<void> _selectAdminAndVerify() async {
     await _send('admin.select_for_operation', _adminAid);
     await _send('admin.verify_for_operation', _defaultAdminPin);
+  }
+}
+
+class _CcidApduTransport implements ApduTransport {
+  _CcidApduTransport(this.card, {required this.onResponse});
+
+  final CcidCard card;
+  final void Function(ApduResponse response) onResponse;
+
+  @override
+  Future<String> transceive(String capdu) async {
+    final raw = await card.transceive(capdu);
+    if (raw == null) {
+      throw StateError('OpenPGP client returned no response');
+    }
+    onResponse(ApduResponse.parse(raw));
+    return raw;
   }
 }
 
