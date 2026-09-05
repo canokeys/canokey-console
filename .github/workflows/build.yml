@@ -10,7 +10,8 @@ on:
 env:
   CARGO_TERM_COLOR: always
   JAVA_VERSION: 17
-  FLUTTER_VERSION: 3.44.4
+  FLUTTER_VERSION: 3.47.1
+  RUST_VERSION: 1.98.1
 
 jobs:
   build:
@@ -96,7 +97,7 @@ jobs:
     # setup dependencies
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
-        toolchain: nightly
+        toolchain: ${{ env.RUST_VERSION }}
         components: rust-src
     - uses: actions/setup-java@v5
       if: ${{ matrix.target == 'apk' || matrix.target == 'linux' }}
@@ -119,7 +120,7 @@ jobs:
 
     # build flutter app
     - name: Install Flutter Rust Bridge
-      run: cargo install flutter_rust_bridge_codegen --version 2.12.0 --locked
+      run: cargo install flutter_rust_bridge_codegen --version 2.13.0 --locked
     - name: Run flutter release build (${{ matrix.target }})
       run: |
         flutter build ${{ matrix.target }} --release ${{ matrix.build-args }} --verbose

@@ -28,9 +28,10 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 
 ### Prerequisites
 
-- Flutter SDK 3.44.4
-- Dart SDK 3.12.2 or higher
-- Rust **nightly** toolchain with `rust-src` component installed (`rustup component add rust-src`)
+- Flutter SDK 3.47.1
+- Dart SDK 3.13.1 or higher
+- Rust 1.98.1 with the `rust-src` component installed for native builds
+- Rust nightly-2026-09-04 with `rust-src` for web builds
 
 ### Setup
 
@@ -42,7 +43,8 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 
 2. Install dependencies:
    ```bash
-   cargo install flutter_rust_bridge_codegen cargo-bundle-licenses
+   cargo install flutter_rust_bridge_codegen --version 2.13.0 --locked
+   cargo install cargo-bundle-licenses
    flutter pub get
    ```
 
