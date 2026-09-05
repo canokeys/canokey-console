@@ -37,22 +37,14 @@ dependencies:
   ccid: ^0.1.9
   device_info_plus: ^13.1.0
   file_saver: ^0.4.0
-  basic_utils:
-    git:
-      url: https://github.com/dangfan/Dart-Basic-Utils.git
-      ref: 743c57a717a8425f9baf3f363f9359216dcb832e
   rust_lib_canokey_console:
     path: rust_builder
   flutter_rust_bridge: 2.13.0
   logger: ^2.5.0
-  pointycastle: ^4.0.0
   package_info_plus: ^10.1.0
   chinese_font_library: ^1.2.0
   sentry_flutter: ^9.29.0
   share_plus: ^13.3.0
-
-dependency_overrides:
-  pointycastle: ^4.0.0 # basic_utils requires ^3.7.3 but fido requires ^4.0.0
 
 dev_dependencies:
   flutter_test:

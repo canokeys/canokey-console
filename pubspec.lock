@@ -49,15 +49,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
-  basic_utils:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: "743c57a717a8425f9baf3f363f9359216dcb832e"
-      resolved-ref: "743c57a717a8425f9baf3f363f9359216dcb832e"
-      url: "https://github.com/dangfan/Dart-Basic-Utils.git"
-    source: git
-    version: "5.7.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -735,7 +726,7 @@ packages:
     source: hosted
     version: "2.1.8"
   pointycastle:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: pointycastle
       sha256: "92aa3841d083cc4b0f4709b5c74fd6409a3e6ba833ffc7dc6a8fee096366acf5"

@@ -73,6 +73,8 @@ class X509CertData {
   final Uint8List signatureValue;
   final String publicKeyAlgorithm;
   final BigInt publicKeySize;
+  final Uint8List subjectPublicKeyInfo;
+  final Uint8List rawPublicKey;
 
   const X509CertData({
     required this.bytes,
@@ -85,6 +87,8 @@ class X509CertData {
     required this.signatureValue,
     required this.publicKeyAlgorithm,
     required this.publicKeySize,
+    required this.subjectPublicKeyInfo,
+    required this.rawPublicKey,
   });
 
   @override
@@ -98,7 +102,9 @@ class X509CertData {
       signatureAlgorithm.hashCode ^
       signatureValue.hashCode ^
       publicKeyAlgorithm.hashCode ^
-      publicKeySize.hashCode;
+      publicKeySize.hashCode ^
+      subjectPublicKeyInfo.hashCode ^
+      rawPublicKey.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -114,5 +120,7 @@ class X509CertData {
           signatureAlgorithm == other.signatureAlgorithm &&
           signatureValue == other.signatureValue &&
           publicKeyAlgorithm == other.publicKeyAlgorithm &&
-          publicKeySize == other.publicKeySize;
+          publicKeySize == other.publicKeySize &&
+          subjectPublicKeyInfo == other.subjectPublicKeyInfo &&
+          rawPublicKey == other.rawPublicKey;
 }

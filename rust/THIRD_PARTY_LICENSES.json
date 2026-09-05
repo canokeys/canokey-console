@@ -570,6 +570,12 @@
     "license": "MIT OR Apache-2.0 OR BSD-1-Clause"
   },
   {
+    "package_name": "flagset",
+    "package_version": "0.4.7",
+    "repository": "https://github.com/enarx/flagset",
+    "license": "Apache-2.0"
+  },
+  {
     "package_name": "flate2",
     "package_version": "1.1.10",
     "repository": "https://github.com/rust-lang/flate2-rs",
@@ -1078,6 +1084,18 @@
     "package_version": "0.13.0",
     "repository": "https://github.com/RustCrypto/password-hashes",
     "license": "MIT OR Apache-2.0"
+  },
+  {
+    "package_name": "pem-rfc7468",
+    "package_version": "0.7.0",
+    "repository": "https://github.com/RustCrypto/formats/tree/master/pem-rfc7468",
+    "license": "Apache-2.0 OR MIT"
+  },
+  {
+    "package_name": "pem-rfc7468",
+    "package_version": "1.0.0",
+    "repository": "https://github.com/RustCrypto/formats",
+    "license": "Apache-2.0 OR MIT"
   },
   {
     "package_name": "phf",
@@ -1608,6 +1626,18 @@
     "license": "MIT OR Apache-2.0"
   },
   {
+    "package_name": "tls_codec",
+    "package_version": "0.4.2",
+    "repository": "https://github.com/RustCrypto/formats",
+    "license": "Apache-2.0 OR MIT"
+  },
+  {
+    "package_name": "tls_codec_derive",
+    "package_version": "0.4.2",
+    "repository": "https://github.com/RustCrypto/formats",
+    "license": "Apache-2.0 OR MIT"
+  },
+  {
     "package_name": "tokio",
     "package_version": "1.53.1",
     "repository": "https://github.com/tokio-rs/tokio",
@@ -1782,6 +1812,12 @@
     "license": "Apache-2.0 OR MIT"
   },
   {
+    "package_name": "x509-cert",
+    "package_version": "0.3.0",
+    "repository": "https://github.com/RustCrypto/formats",
+    "license": "Apache-2.0 OR MIT"
+  },
+  {
     "package_name": "x509-parser",
     "package_version": "0.18.1",
     "repository": "https://github.com/rusticata/x509-parser.git",
@@ -1802,6 +1838,12 @@
   {
     "package_name": "zeroize",
     "package_version": "1.9.0",
+    "repository": "https://github.com/RustCrypto/utils",
+    "license": "Apache-2.0 OR MIT"
+  },
+  {
+    "package_name": "zeroize_derive",
+    "package_version": "1.5.0",
     "repository": "https://github.com/RustCrypto/utils",
     "license": "Apache-2.0 OR MIT"
   },

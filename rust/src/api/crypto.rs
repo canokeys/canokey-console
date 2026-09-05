@@ -51,6 +51,8 @@ pub struct X509CertData {
     pub signature_value: Vec<u8>,
     pub public_key_algorithm: String,
     pub public_key_size: usize,
+    pub subject_public_key_info: Vec<u8>,
+    pub raw_public_key: Vec<u8>,
 }
 
 pub fn tdes_ede3_enc(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
@@ -277,22 +279,28 @@ fn gen_x590_meta(cert: X509Certificate<'_>) -> X509CertData {
         signature_value: cert.signature_value.data.to_vec(),
         public_key_algorithm,
         public_key_size,
+        subject_public_key_info: subject_pki.raw.to_vec(),
+        raw_public_key: subject_pki.subject_public_key.data.to_vec(),
     }
 }
 
-pub fn parse_x509_cert_from_pem(pem: String) -> X509CertData {
+pub fn parse_x509_cert_from_pem(pem: String) -> Result<X509CertData, String> {
     let pem = parse_x509_pem(pem.as_bytes())
-        .expect("Parsing PEM failed")
+        .map_err(|_| "failed to parse PEM")?
         .1;
-    let cert = pem.parse_x509().expect("X.509: decoding DER failed");
-    gen_x590_meta(cert)
+    let cert = pem
+        .parse_x509()
+        .map_err(|_| "failed to decode X.509 certificate")?;
+    Ok(gen_x590_meta(cert))
 }
 
-pub fn parse_x509_cert_from_der(der: Vec<u8>) -> X509CertData {
-    let cert = x509_parser::parse_x509_certificate(der.as_slice())
-        .expect("X.509: decoding DER failed")
-        .1;
-    gen_x590_meta(cert)
+pub fn parse_x509_cert_from_der(der: Vec<u8>) -> Result<X509CertData, String> {
+    let (remaining, cert) = x509_parser::parse_x509_certificate(der.as_slice())
+        .map_err(|_| "failed to decode X.509 certificate")?;
+    if !remaining.is_empty() {
+        return Err("trailing data after X.509 certificate".into());
+    }
+    Ok(gen_x590_meta(cert))
 }
 
 pub fn pbkdf2_hmac_sha1(password: String, salt: Vec<u8>, iterations: u32, key_len: u32) -> Vec<u8> {

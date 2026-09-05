@@ -3,14 +3,13 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:canokey_console/src/rust/api/crypto.dart';
+import 'package:canokey_console/src/rust/api/piv_crypto.dart';
 
-import 'package:basic_utils/basic_utils.dart';
 import 'package:canokey_console/controller/applets/piv/piv_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/app_loader_overlay.dart';
-import 'package:canokey_console/helper/utils/piv_signature.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
@@ -36,16 +35,12 @@ import 'package:canokey_console/views/layout/layout.dart';
 import 'package:convert/convert.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_saver/file_saver.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:platform_detector/platform_detector.dart';
-import 'package:pointycastle/asn1/primitives/asn1_bit_string.dart';
-import 'package:pointycastle/asn1/primitives/asn1_integer.dart';
-import 'package:pointycastle/asn1/primitives/asn1_null.dart';
-import 'package:pointycastle/asn1/primitives/asn1_object_identifier.dart';
-import 'package:pointycastle/asn1/primitives/asn1_sequence.dart';
 import 'package:share_plus/share_plus.dart';
 
 class PivPage extends StatefulWidget {
@@ -109,6 +104,17 @@ class _PivPageState extends State<PivPage>
         .join(':');
   }
 
+  String _certificatePem(List<int> bytes) {
+    final encoded = base64.encode(bytes);
+    final lines = <String>[];
+    for (var offset = 0; offset < encoded.length; offset += 64) {
+      lines.add(
+          encoded.substring(offset, (offset + 64).clamp(0, encoded.length)));
+    }
+    return '-----BEGIN CERTIFICATE-----\n${lines.join('\n')}\n'
+        '-----END CERTIFICATE-----';
+  }
+
   String _formatBytes(int bytes) {
     if (bytes >= 1024) {
       return '${(bytes / 1024).toStringAsFixed(1)} KiB';
@@ -140,105 +146,16 @@ class _PivPageState extends State<PivPage>
     return base;
   }
 
-  AlgorithmType? _algorithmFromEcDomain(String? domainName) {
-    return switch (domainName) {
-      'prime256v1' => AlgorithmType.eccp256,
-      'secp384r1' => AlgorithmType.eccp384,
-      'secp521r1' => AlgorithmType.eccp521,
-      'secp256k1' => AlgorithmType.secp256k1,
-      _ => null,
-    };
-  }
-
-  AlgorithmType? _algorithmFromRsaKey(RSAPrivateKey key) {
-    return switch (key.modulus!.bitLength) {
-      <= 1024 => AlgorithmType.rsa1024,
-      <= 2048 => AlgorithmType.rsa2048,
-      <= 3072 => AlgorithmType.rsa3072,
-      _ => AlgorithmType.rsa4096,
-    };
-  }
-
-  AlgorithmType? _selectedImportAlgorithm({
-    ECPrivateKey? ecPrivateKey,
-    RSAPrivateKey? rsaPrivateKey,
-    Uint8List? edPrivateKey,
-  }) {
-    if (ecPrivateKey != null) {
-      return _algorithmFromEcDomain(ecPrivateKey.parameters?.domainName);
-    }
-    if (rsaPrivateKey != null) {
-      return _algorithmFromRsaKey(rsaPrivateKey);
-    }
-    if (edPrivateKey != null) {
-      return AlgorithmType.ed25519;
-    }
-    return null;
-  }
-
-  Uint8List _subjectPublicKeyInfoFromCertificate(List<int> certBytes) {
-    return PivSignatureTest.subjectPublicKeyInfoFromCertificate(certBytes);
-  }
-
-  Uint8List _rsaSubjectPublicKeyInfoFromPrivate(RSAPrivateKey key) {
-    final exponent = key.publicExponent ?? BigInt.from(65537);
-    final publicKey = ASN1Sequence()
-      ..add(ASN1Integer(key.modulus!))
-      ..add(ASN1Integer(exponent));
-    final algorithm = ASN1Sequence()
-      ..add(ASN1ObjectIdentifier.fromName('rsaEncryption'))
-      ..add(ASN1Null());
-    return (ASN1Sequence()
-          ..add(algorithm)
-          ..add(ASN1BitString(stringValues: publicKey.encode())))
-        .encode();
-  }
-
-  Uint8List? _ecSubjectPublicKeyInfoFromPrivate(ECPrivateKey key) {
-    final params = key.parameters;
-    final d = key.d;
-    if (params == null || d == null) {
-      return null;
-    }
-    final point = params.G * d;
-    if (point == null) {
-      return null;
-    }
-    final publicKey = ECPublicKey(point, params);
-    return Uint8List.fromList(CryptoUtils.getBytesFromPEMString(
-        CryptoUtils.encodeEcPublicKeyToPem(publicKey)));
-  }
-
-  Uint8List? _privateKeySubjectPublicKeyInfo({
-    ECPrivateKey? ecPrivateKey,
-    RSAPrivateKey? rsaPrivateKey,
-    Uint8List? edPrivateKey,
-  }) {
-    if (rsaPrivateKey != null) {
-      return _rsaSubjectPublicKeyInfoFromPrivate(rsaPrivateKey);
-    }
-    if (ecPrivateKey != null) {
-      return _ecSubjectPublicKeyInfoFromPrivate(ecPrivateKey);
-    }
-    return null;
-  }
+  AlgorithmType? _selectedImportAlgorithm(PivPrivateKeyData? privateKey) =>
+      privateKey == null ? null : AlgorithmType.fromValue(privateKey.algorithm);
 
   bool _certificateMatchesPrivateKey({
     required Uint8List certBytes,
-    ECPrivateKey? ecPrivateKey,
-    RSAPrivateKey? rsaPrivateKey,
-    Uint8List? edPrivateKey,
+    required PivPrivateKeyData privateKey,
   }) {
-    final privateSpki = _privateKeySubjectPublicKeyInfo(
-      ecPrivateKey: ecPrivateKey,
-      rsaPrivateKey: rsaPrivateKey,
-      edPrivateKey: edPrivateKey,
-    );
-    if (privateSpki == null) {
-      return true;
-    }
-    return hex.encode(privateSpki) ==
-        hex.encode(_subjectPublicKeyInfoFromCertificate(certBytes));
+    final certificate = parseX509CertFromDer(der: certBytes);
+    return listEquals(
+        privateKey.subjectPublicKeyInfo, certificate.subjectPublicKeyInfo);
   }
 
   String _certificateKeySummary(X509CertData cert) {
@@ -2181,11 +2098,7 @@ class _PivPageState extends State<PivPage>
                             Spacing.width(12),
                             CustomizedButton.rounded(
                               onPressed: () async {
-                                final encodedDer = StringUtils.chunk(
-                                        base64.encode(certificateBytes), 64)
-                                    .join("\n");
-                                String pem =
-                                    '${X509Utils.BEGIN_CERT}\n$encodedDer\n${X509Utils.END_CERT}';
+                                final pem = _certificatePem(certificateBytes);
                                 final saved = await _savePivFile(
                                   name: 'certificate',
                                   extension: 'pem',
@@ -2720,9 +2633,7 @@ class _PivPageState extends State<PivPage>
           LengthValidator(exact: 48, required: false),
           HexStringValidator(required: false)
         ]);
-    ECPrivateKey? ecPrivateKey;
-    RSAPrivateKey? rsaPrivateKey;
-    Uint8List? edPrivateKey;
+    PivPrivateKeyData? privateKey;
     X509CertData? cert;
     Uint8List? certBytes;
 
@@ -2732,9 +2643,7 @@ class _PivPageState extends State<PivPage>
       }
       return _certificateMatchesPrivateKey(
         certBytes: certBytes!,
-        ecPrivateKey: ecPrivateKey,
-        rsaPrivateKey: rsaPrivateKey,
-        edPrivateKey: edPrivateKey,
+        privateKey: privateKey!,
       );
     }
 
@@ -2750,11 +2659,7 @@ class _PivPageState extends State<PivPage>
       importWarnings.clear();
       importErrors.clear();
 
-      final algorithm = _selectedImportAlgorithm(
-        ecPrivateKey: ecPrivateKey,
-        rsaPrivateKey: rsaPrivateKey,
-        edPrivateKey: edPrivateKey,
-      );
+      final algorithm = _selectedImportAlgorithm(privateKey);
 
       if (algorithm != null && !controller.supportsAlgorithm(algorithm)) {
         importErrors.add(
@@ -2834,9 +2739,7 @@ class _PivPageState extends State<PivPage>
           pin: authValidator.getController('pin')!.text,
           managementKey: authValidator.getController('managementKey')!.text,
           usePinOnly: usePinOnly,
-          ecPrivateKey: ecPrivateKey,
-          rsaPrivateKey: rsaPrivateKey,
-          edPrivateKey: edPrivateKey,
+          privateKey: privateKey,
           cert: certBytes,
           pinPolicy: pinPolicy,
           touchPolicy: touchPolicy,
@@ -2867,9 +2770,7 @@ class _PivPageState extends State<PivPage>
     void resetImportState() {
       hasCert.value = false;
       hasKey.value = false;
-      ecPrivateKey = null;
-      rsaPrivateKey = null;
-      edPrivateKey = null;
+      privateKey = null;
       cert = null;
       certBytes = null;
       parseMessage.value = '';
@@ -2877,79 +2778,17 @@ class _PivPageState extends State<PivPage>
       importErrors.clear();
     }
 
-    void parsePem(Uint8List bytes) {
-      final pem = utf8.decode(bytes, allowMalformed: true);
-      pem.split('-----BEGIN ').forEach((element) {
-        if (element.isNotEmpty) {
-          final item = '-----BEGIN $element';
-          try {
-            if (item.startsWith(CryptoUtils.BEGIN_EC_PRIVATE_KEY)) {
-              ecPrivateKey = CryptoUtils.ecPrivateKeyFromPem(item);
-              hasKey.value = true;
-            } else if (item.startsWith(CryptoUtils.BEGIN_RSA_PRIVATE_KEY)) {
-              rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromPemPkcs1(item);
-              hasKey.value = true;
-            } else if (item.startsWith(CryptoUtils.BEGIN_PRIVATE_KEY)) {
-              try {
-                rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromPem(item);
-              } catch (_) {
-                try {
-                  ecPrivateKey = CryptoUtils.ecPrivateKeyFromPem(item);
-                } catch (_) {
-                  edPrivateKey = CryptoUtils.ed25519PrivateKeyFromPem(item);
-                }
-              }
-              hasKey.value = true;
-            } else if (item.startsWith(X509Utils.BEGIN_CERT)) {
-              cert = parseX509CertFromPem(pem: item);
-              certBytes = cert!.bytes;
-              hasCert.value = true;
-            }
-          } catch (e) {
-            parseMessage.value = e.toString();
-          }
-        }
-      });
-    }
-
-    void parseDer(Uint8List bytes) {
-      try {
-        cert = parseX509CertFromDer(der: bytes);
-        certBytes = cert!.bytes;
-        hasCert.value = true;
-        return;
-      } catch (_) {}
-      try {
-        rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromDERBytes(bytes);
-        hasKey.value = true;
-        return;
-      } catch (_) {}
-      try {
-        rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromDERBytesPkcs1(bytes);
-        hasKey.value = true;
-        return;
-      } catch (_) {}
-      try {
-        ecPrivateKey = CryptoUtils.ecPrivateKeyFromDerBytes(bytes, pkcs8: true);
-        hasKey.value = true;
-        return;
-      } catch (_) {}
-      try {
-        ecPrivateKey = CryptoUtils.ecPrivateKeyFromDerBytes(bytes);
-        hasKey.value = true;
-        return;
-      } catch (e) {
-        parseMessage.value = e.toString();
-      }
-    }
-
     void parseImportFile(Uint8List bytes) {
       resetImportState();
-      final text = utf8.decode(bytes, allowMalformed: true);
-      if (text.contains('-----BEGIN ')) {
-        parsePem(bytes);
-      } else {
-        parseDer(bytes);
+      try {
+        final result = parsePivImportFile(bytes: bytes);
+        privateKey = result.privateKey;
+        cert = result.certificate;
+        certBytes = cert?.bytes;
+        hasKey.value = privateKey != null;
+        hasCert.value = cert != null;
+      } catch (error) {
+        parseMessage.value = error.toString();
       }
       if (!hasCert.value && !hasKey.value && parseMessage.value.isEmpty) {
         parseMessage.value = S.of(context).pivUnsupportedImportFile;
@@ -2958,11 +2797,7 @@ class _PivPageState extends State<PivPage>
     }
 
     String keySummary() {
-      final algorithm = _selectedImportAlgorithm(
-        ecPrivateKey: ecPrivateKey,
-        rsaPrivateKey: rsaPrivateKey,
-        edPrivateKey: edPrivateKey,
-      );
+      final algorithm = _selectedImportAlgorithm(privateKey);
       if (algorithm == null) {
         return S.of(context).pivEmpty;
       }
@@ -3126,11 +2961,7 @@ class _PivPageState extends State<PivPage>
                     CustomizedText.bodySmall(
                       _slotUsageHint(
                           slotNumber,
-                          _selectedImportAlgorithm(
-                                ecPrivateKey: ecPrivateKey,
-                                rsaPrivateKey: rsaPrivateKey,
-                                edPrivateKey: edPrivateKey,
-                              ) ??
+                          _selectedImportAlgorithm(privateKey) ??
                               AlgorithmType.eccp256),
                     ),
                     Spacing.height(12),
@@ -3903,8 +3734,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showCertificateResultDialog(String slotNumber, Uint8List cert) {
-    final encodedDer = StringUtils.chunk(base64.encode(cert), 64).join("\n");
-    final pem = '${X509Utils.BEGIN_CERT}\n$encodedDer\n${X509Utils.END_CERT}';
+    final pem = _certificatePem(cert);
     AppDialog.show(AppDialogSurface(
       child: SizedBox(
         width: AppDialogWidth.medium,
@@ -4310,19 +4140,4 @@ class _PivPageState extends State<PivPage>
       ),
     ));
   }
-
-  // String _origin(Origin origin) {
-  //   if (origin == Origin.generated) {
-  //     return S.of(context).pivOriginGenerated;
-  //   }
-  //   return S.of(context).pivOriginImported;
-  // }
-
-  // String? _displayDN(Map<String, String?>? data) {
-  //   if (data == null) {
-  //     return null;
-  //   }
-  //   final dnMap = Map.fromEntries(X509Utils.DN.entries.map((e) => MapEntry(e.value, e.key)));
-  //   return data.keys.map((e) => '${dnMap[e]}=${data[e]}').join(', ');
-  // }
 }
