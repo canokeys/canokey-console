@@ -9,6 +9,7 @@ import 'package:canokey_console/helper/theme/app_notifier.dart';
 import 'package:canokey_console/helper/theme/app_style.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
+import 'package:canokey_console/helper/utils/apple_device.dart';
 import 'package:canokey_console/helper/utils/audio.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/rust_license.dart';
@@ -55,6 +56,7 @@ Future<void> main() async {
     AppStyle.init();
     Language.init();
     LicenseRegistry.addLicense(() => parseRustLicenses());
+    await AppleDevice.initialize();
 
     if (!isWeb()) {
       SmartCard.pollCcid();

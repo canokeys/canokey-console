@@ -1,5 +1,7 @@
 import 'package:canokey_console/controller/applets/oath/oath_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/utils/apple_device.dart';
+import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
 import 'package:canokey_console/views/applets/oath/widgets/top_actions.dart'
     as oath;
@@ -101,7 +103,9 @@ void main() {
       ..type = PlatformType.mobile
       ..name = PlatformName.iOS
       ..company = PlatformCompany.apple;
+    AppleDevice.setIPadForTesting(false);
     addTearDown(() {
+      AppleDevice.setIPadForTesting(false);
       platform
         ..type = originalType
         ..name = originalName
@@ -161,6 +165,50 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(refreshCount, 1);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('iPad uses the macOS USB connection prompt', (tester) async {
+    final platform = PlatformDetector.platform;
+    final originalType = platform.type;
+    final originalName = platform.name;
+    final originalCompany = platform.company;
+    platform
+      ..type = PlatformType.mobile
+      ..name = PlatformName.iOS
+      ..company = PlatformCompany.apple;
+    AppleDevice.setIPadForTesting(true);
+    SmartCard.connectionError = null;
+    addTearDown(() {
+      AppleDevice.setIPadForTesting(false);
+      SmartCard.connectionError = null;
+      platform
+        ..type = originalType
+        ..name = originalName
+        ..company = originalCompany;
+    });
+
+    await tester.pumpWidget(
+      GetMaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: S.delegate.supportedLocales,
+        home: const Scaffold(body: PollCanoKeyScreen()),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.text('Insert your CanoKey into the USB port'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('iPhone'), findsNothing);
+
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
