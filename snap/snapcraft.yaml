@@ -1,6 +1,6 @@
 name: canokey-console
 base: core24
-version: '1.2.2'
+version: '1.2.3'
 title: CanoKey Console
 summary: Manage CanoKey security keys
 description: |
