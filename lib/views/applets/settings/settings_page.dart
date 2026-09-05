@@ -1,7 +1,6 @@
 import 'package:canokey_console/controller/applets/settings/settings_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/localization/hints.dart';
-import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
@@ -11,6 +10,7 @@ import 'package:canokey_console/views/applets/settings/widgets/info_card.dart';
 import 'package:canokey_console/views/applets/settings/widgets/other_settings_card.dart';
 import 'package:canokey_console/views/applets/settings/widgets/settings_card.dart';
 import 'package:canokey_console/views/layout/layout.dart';
+import 'package:canokey_console/views/layout/top_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:platform_detector/platform_detector.dart';
@@ -23,7 +23,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage>
-    with SingleTickerProviderStateMixin, UIMixin {
+    with SingleTickerProviderStateMixin {
   final _controller = Get.put(SettingsController());
 
   @override
@@ -32,10 +32,7 @@ class _SettingsPageState extends State<SettingsPage>
       title: S.of(context).settings,
       onRefresh: _controller.refreshData,
       topActions: isWeb() || isIOSApp()
-          ? IconButton(
-              onPressed: () => _controller.refreshData(),
-              icon: Icon(Icons.refresh, color: topBarTheme.onBackground),
-            )
+          ? TopBarRefreshButton(onPressed: _controller.refreshData)
           : null,
       child: GetBuilder(
         init: _controller,

@@ -1,6 +1,6 @@
-New in 1.2.2:
+New in 1.2.3:
 
-- Added privacy consent and compliance information for mobile releases.
-- Improved layout around system UI insets.
-- Fixed the app language changing after viewing open-source licenses.
-- Improved About links and feedback email handling.
+- Added Linux Snap packages for AMD64 and ARM64.
+- Expanded PIV support, including post-quantum algorithms and safer key, CSR, and certificate handling.
+- Improved iPad, desktop, and compact-screen layouts.
+- Updated dependencies and improved CanoKey firmware compatibility.

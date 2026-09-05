@@ -12,6 +12,7 @@ import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/ndef.dart';
 import 'package:canokey_console/views/applets/ndef/dialogs/ndef_record_dialog.dart';
 import 'package:canokey_console/views/layout/layout.dart';
+import 'package:canokey_console/views/layout/top_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:platform_detector/platform_detector.dart';
@@ -32,15 +33,7 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
       title: 'NDEF',
       onRefresh: _controller.refreshData,
       topActions: isWeb() || isIOSApp()
-          ? Tooltip(
-              message: MaterialLocalizations.of(context)
-                  .refreshIndicatorSemanticLabel,
-              child: IconButton(
-                onPressed: _controller.refreshData,
-                icon: Icon(LucideIcons.refreshCw,
-                    color: topBarTheme.onBackground),
-              ),
-            )
+          ? TopBarRefreshButton(onPressed: _controller.refreshData)
           : null,
       child: GetBuilder<NdefController>(
         init: _controller,

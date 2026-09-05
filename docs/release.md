@@ -1,14 +1,14 @@
 # Mobile prerelease checklist
 
-The current candidate is version `1.2.2` with build/version code `16`.
+The current candidate is version `1.2.3` with build/version code `17`.
 
 Before building, confirm in both App Store Connect and Google Play Console that
-build number/version code `16` has not already been used. Increment the number
+build number/version code `17` has not already been used. Increment the number
 in `pubspec.yaml` if necessary.
 
 ## Prerequisites
 
-- Flutter 3.44.4 and Rust 1.88.0.
+- Flutter 3.47.1 and Rust 1.98.1.
 - Ruby dependencies installed with `bundle install`.
 - Android release keystore configured in `android/key.properties`.
 - An Apple Distribution certificate and App Store provisioning profile, or an
@@ -21,8 +21,8 @@ in `pubspec.yaml` if necessary.
 From the repository root:
 
 ```sh
-RUSTUP_TOOLCHAIN=1.88.0 flutter_rust_bridge_codegen generate
-rustup run 1.88.0 cargo test --manifest-path rust/Cargo.toml
+RUSTUP_TOOLCHAIN=1.98.1 flutter_rust_bridge_codegen generate
+rustup run 1.98.1 cargo test --manifest-path rust/Cargo.toml
 flutter test
 dart analyze
 flutter build ios --release --no-codesign

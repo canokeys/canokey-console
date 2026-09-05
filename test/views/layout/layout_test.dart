@@ -1,9 +1,12 @@
 import 'package:canokey_console/controller/applets/oath/oath_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/utils/apple_device.dart';
+import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
 import 'package:canokey_console/views/applets/oath/widgets/top_actions.dart'
     as oath;
 import 'package:canokey_console/views/layout/layout.dart';
+import 'package:canokey_console/views/layout/top_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -28,6 +31,14 @@ void main() {
 
     await tester.pumpWidget(
       GetMaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: S.delegate.supportedLocales,
         home: Layout(
           title: 'TOTP / HOTP',
           topActions: Row(
@@ -71,6 +82,9 @@ void main() {
     );
     expect(tester.takeException(), isNull);
 
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+    expect(scaffold.resizeToAvoidBottomInset, isFalse);
+
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
@@ -89,7 +103,9 @@ void main() {
       ..type = PlatformType.mobile
       ..name = PlatformName.iOS
       ..company = PlatformCompany.apple;
+    AppleDevice.setIPadForTesting(false);
     addTearDown(() {
+      AppleDevice.setIPadForTesting(false);
       platform
         ..type = originalType
         ..name = originalName
@@ -152,6 +168,92 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
+  testWidgets('iPad uses the macOS USB connection prompt', (tester) async {
+    final platform = PlatformDetector.platform;
+    final originalType = platform.type;
+    final originalName = platform.name;
+    final originalCompany = platform.company;
+    platform
+      ..type = PlatformType.mobile
+      ..name = PlatformName.iOS
+      ..company = PlatformCompany.apple;
+    AppleDevice.setIPadForTesting(true);
+    SmartCard.connectionError = null;
+    addTearDown(() {
+      AppleDevice.setIPadForTesting(false);
+      SmartCard.connectionError = null;
+      platform
+        ..type = originalType
+        ..name = originalName
+        ..company = originalCompany;
+    });
+
+    await tester.pumpWidget(
+      GetMaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: S.delegate.supportedLocales,
+        home: const Scaffold(body: PollCanoKeyScreen()),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.text('Insert your CanoKey into the USB port'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('iPhone'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('large top bar clears the status area and sizes refresh action',
+      (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1366, 1024);
+    tester.view.viewPadding = const FakeViewPadding(top: 24);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetViewPadding);
+
+    await tester.pumpWidget(
+      GetMaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: S.delegate.supportedLocales,
+        home: Layout(
+          topActions: TopBarRefreshButton(onPressed: () async {}),
+          child: const SizedBox(height: 100),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.getTopLeft(find.byType(TopBar)).dy, 24);
+    expect(
+      tester.getSize(
+        find.descendant(
+          of: find.byType(TopBarRefreshButton),
+          matching: find.byType(IconButton),
+        ),
+      ),
+      const Size.square(48),
+    );
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   testWidgets('non-iOS layouts do not enable pull to refresh', (tester) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(390, 844);
@@ -184,6 +286,36 @@ void main() {
     await tester.pump();
 
     expect(find.byType(CupertinoSliverRefreshControl), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('keyboard insets do not rebuild page content', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetViewInsets);
+
+    var buildCount = 0;
+    await tester.pumpWidget(
+      GetMaterialApp(
+        home: Layout(
+          child: Builder(
+            builder: (context) {
+              MediaQuery.of(context);
+              buildCount++;
+              return const SizedBox(height: 100);
+            },
+          ),
+        ),
+      ),
+    );
+    expect(buildCount, 1);
+
+    tester.view.viewInsets = const FakeViewPadding(bottom: 360);
+    await tester.pump();
+
+    expect(buildCount, 1);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 

@@ -10,7 +10,8 @@ on:
 env:
   CARGO_TERM_COLOR: always
   JAVA_VERSION: 17
-  FLUTTER_VERSION: 3.44.4
+  FLUTTER_VERSION: 3.47.1
+  RUST_VERSION: 1.98.1
 
 jobs:
   build:
@@ -21,41 +22,58 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [apk, linux, windows, macos, ios]
-        variant: [debug, release]
         include:
           - target: apk
+            job-name: apk-release
+            artifact-name: canokey-console-apk-release
             os: ubuntu-latest
             pre-build-script: |
               sed -i 's/signingConfigs.release/signingConfigs.debug/' android/app/build.gradle
             build-args: ""
-            debug-artifact-path: build/app/outputs/flutter-apk/app-debug.apk
-            release-artifact-path: build/app/outputs/flutter-apk/app-release.apk
+            artifact-path: build/app/outputs/flutter-apk/app-release.apk
           - target: linux
-            os: ubuntu-latest
+            arch: amd64
+            job-name: linux-amd64-release
+            artifact-name: canokey-console-linux-amd64-release
+            os: ubuntu-24.04
             pre-build-script: |
               sudo apt-get update -y
               sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev # flutter dependencies
               sudo apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev # audioplayers_linux dependencies
               sudo apt-get install -y libcurl4-openssl-dev # see https://github.com/getsentry/sentry-dart/issues/2504
-              dart pub global activate flutter_distributor
+              sudo snap install snapcraft --classic
             build-args: ""
-            artifact-path: build/linux/x64/*.deb
-            debug-artifact-path: build/linux/x64/debug/bundle
-            release-artifact-path: build/linux/x64/release/bundle
+            artifact-path: build/linux/*.snap
+          - target: linux
+            arch: arm64
+            job-name: linux-arm64-release
+            artifact-name: canokey-console-linux-arm64-release
+            os: ubuntu-24.04-arm
+            pre-build-script: |
+              sudo apt-get update -y
+              sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev # flutter dependencies
+              sudo apt-get install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev # audioplayers_linux dependencies
+              sudo apt-get install -y libcurl4-openssl-dev # see https://github.com/getsentry/sentry-dart/issues/2504
+              sudo snap install snapcraft --classic
+            build-args: ""
+            artifact-path: build/linux/*.snap
           - target: windows
+            job-name: windows-release
+            artifact-name: canokey-console-windows-release
             os: windows-latest
             pre-build-script: ""
             build-args: ""
-            debug-artifact-path: build/windows/x64/runner/Debug
-            release-artifact-path: build/windows/x64/runner/Release
+            artifact-path: build/windows/x64/runner/Release
           - target: macos
+            job-name: macos-release
+            artifact-name: canokey-console-macos-release
             os: macos-latest
             pre-build-script: ""
             build-args: ""
-            debug-artifact-path: build/macos/Build/Products/Debug/*.app
-            release-artifact-path: build/macos/Build/Products/Release/*.app
+            artifact-path: build/macos/Build/Products/Release/*.app
           - target: ios
+            job-name: ios-release
+            artifact-name: canokey-console-ios-release
             os: macos-26
             pre-build-script: ""
             build-args: "--no-codesign"
@@ -63,7 +81,7 @@ jobs:
               build/ios/iphoneos/Runner.app
 
     runs-on: ${{ matrix.os }}
-    name: ${{ matrix.target }}-${{ matrix.variant }}
+    name: ${{ matrix.job-name }}
 
     steps:
 
@@ -79,19 +97,32 @@ jobs:
     # setup dependencies
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
-        toolchain: nightly
+        toolchain: ${{ env.RUST_VERSION }}
         components: rust-src
     - uses: actions/setup-java@v5
-      if: ${{ matrix.target == 'apk' }}
+      if: ${{ matrix.target == 'apk' || matrix.target == 'linux' }}
       with:
         distribution: 'temurin'
         java-version: ${{ env.JAVA_VERSION }}
     - name: Setup Flutter SDK
+      if: ${{ matrix.arch != 'arm64' }}
       uses: flutter-actions/setup-flutter@v4
       with:
         channel: stable
         version: ${{ env.FLUTTER_VERSION }}
         cache: true
+    - name: Setup Flutter SDK from source (Linux arm64)
+      if: ${{ matrix.arch == 'arm64' }}
+      run: |
+        flutter_dir="$RUNNER_TEMP/flutter-sdk"
+        git clone --depth 1 --branch "$FLUTTER_VERSION" \
+          https://github.com/flutter/flutter.git "$flutter_dir"
+        echo "$flutter_dir/bin" >> "$GITHUB_PATH"
+        echo "PUB_CACHE=$RUNNER_TEMP/flutter/pub-cache" >> "$GITHUB_ENV"
+        mkdir -p "$RUNNER_TEMP/flutter/pub-cache"
+        "$flutter_dir/bin/flutter" --version --suppress-analytics
+        "$flutter_dir/bin/flutter" config --no-analytics
+        "$flutter_dir/bin/flutter" config --no-cli-animations
     - name: pre-build-script script for ${{ matrix.target }}
       run: ${{ matrix.pre-build-script }}
 
@@ -102,20 +133,18 @@ jobs:
 
     # build flutter app
     - name: Install Flutter Rust Bridge
-      run: cargo install flutter_rust_bridge_codegen --version 2.12.0 --locked
-    - name: Run flutter ${{ matrix.variant }} build (${{ matrix.target }})
+      run: cargo install flutter_rust_bridge_codegen --version 2.13.0 --locked
+    - name: Run flutter release build (${{ matrix.target }})
       run: |
-        flutter build ${{ matrix.target }} --${{ matrix.variant }} ${{ matrix.build-args }} --verbose
+        flutter build ${{ matrix.target }} --release ${{ matrix.build-args }} --verbose
         if [ "${{ matrix.target }}" == "linux" ]; then
-          flutter_distributor package --platform linux --targets deb --skip-clean --flutter-build-args=verbose,${{ matrix.variant }}
-          mv dist/*/*.deb build/linux/x64/
+          sudo sh -c 'umask 022; exec /snap/bin/snapcraft pack --destructive-mode --platform "$1"' _ "${{ matrix.arch }}"
+          sudo chown "$USER:$USER" ./*.snap
+          mv ./*.snap build/linux/
         fi
 
     # upload build artifacts
     - uses: actions/upload-artifact@v7
       with:
-        name: canokey-console-${{ matrix.target }}-${{ matrix.variant }}
-        path: |
-          ${{ matrix.artifact-path }}
-          ${{ matrix.debug-artifact-path }}
-          ${{ matrix.release-artifact-path }}
+        name: ${{ matrix.artifact-name }}
+        path: ${{ matrix.artifact-path }}

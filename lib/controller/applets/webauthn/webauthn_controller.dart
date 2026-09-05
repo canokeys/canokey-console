@@ -6,6 +6,7 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/applet_switches.dart';
+import 'package:canokey_console/helper/utils/ctap_transmitter.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
@@ -210,7 +211,7 @@ class WebAuthnController extends PollingController with AdminApplet {
   Future<List<int>?> _getPinToken(String sn) async {
     String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
     SmartCard.assertOK(resp);
-    _ctap = await Ctap2.create(CtapTransimtter());
+    _ctap = await Ctap2.create(CtapTransmitter());
 
     // We do nothing if the device does not support credMgmt or clientPin
     if (_ctap.info.options?['credMgmt'] != true ||
@@ -334,7 +335,7 @@ class WebAuthnController extends PollingController with AdminApplet {
           await cp.setPin(pin);
           // Update _ctap before continuing so later PIN-token operations see
           // the authenticator's new clientPin state.
-          _ctap = await Ctap2.create(CtapTransimtter());
+          _ctap = await Ctap2.create(CtapTransmitter());
           log.i('setPin success');
         } on PlatformException catch (e) {
           await SmartCard.stopPollingNfc(withInput: true);
@@ -401,7 +402,7 @@ class WebAuthnController extends PollingController with AdminApplet {
               await SmartCard.transceive('00A4040008A0000006472F0001'));
           final cp = ClientPin(_ctap);
           await cp.changePin(currentPin, newPin);
-          _ctap = await Ctap2.create(CtapTransimtter());
+          _ctap = await Ctap2.create(CtapTransmitter());
           final pinToken = await _doGetPinToken(newPin);
           if (pinToken == null) {
             await SmartCard.stopPollingNfc(withInput: true);
@@ -495,28 +496,4 @@ class WebAuthnController extends PollingController with AdminApplet {
   }
 
   final String _tag = 'webauthn';
-}
-
-class CtapTransimtter extends CtapDevice {
-  @override
-  Future<CtapResponse<List<int>>> transceive(List<int> command) async {
-    List<int> lc;
-    if (command.length <= 255) {
-      lc = [command.length];
-    } else {
-      lc = [0, command.length >> 8, command.length & 0xff];
-    }
-    String capdu = '80100000${hex.encode(lc)}${hex.encode(command)}';
-    String rapdu = '';
-    do {
-      if (rapdu.length >= 4) {
-        final remain = rapdu.substring(rapdu.length - 2);
-        capdu = '80C00000$remain';
-        rapdu = rapdu.substring(0, rapdu.length - 4);
-      }
-      rapdu += await SmartCard.transceive(capdu);
-    } while (rapdu.substring(rapdu.length - 4, rapdu.length - 2) == '61');
-    List<int> resp = hex.decode(rapdu);
-    return CtapResponse(resp[0], resp.sublist(1, resp.length - 2));
-  }
 }

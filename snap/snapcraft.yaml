@@ -1,0 +1,62 @@
+name: canokey-console
+base: core24
+version: '1.2.3'
+title: CanoKey Console
+summary: Manage CanoKey security keys
+icon: assets/images/logo/logo_icon_dark.png
+description: |
+  CanoKey Console manages CanoKey security keys over USB and NFC.
+license: MIT
+contact: mailto:contact@canokeys.org
+issues: https://github.com/canokeys/canokey-console/issues
+source-code: https://github.com/canokeys/canokey-console
+website: https://canokeys.org/
+grade: stable
+confinement: strict
+
+platforms:
+  amd64:
+    build-on: [amd64]
+    build-for: [amd64]
+  arm64:
+    build-on: [arm64]
+    build-for: [arm64]
+
+apps:
+  canokey-console:
+    command: canokey-console
+    desktop: meta/gui/canokey-console.desktop
+    extensions: [gnome]
+    plugs:
+      - home
+      - network
+      - pcscd
+
+parts:
+  canokey-console:
+    plugin: nil
+    override-build: |
+      set -eu
+      bundle_dir="$(find "$CRAFT_PROJECT_DIR/build/linux" \
+        -mindepth 3 -maxdepth 3 -type d -path '*/release/bundle' \
+        -print -quit)"
+      if [ -z "$bundle_dir" ]; then
+        echo "Linux release bundle not found; run 'flutter build linux --release' first" >&2
+        exit 1
+      fi
+      cp --archive "$bundle_dir/." "$CRAFT_PART_INSTALL/"
+      # mobile_scanner's transitive JNI library is not used on Linux.
+      rm -f "$CRAFT_PART_INSTALL/lib/libdartjni.so"
+    stage-packages:
+      - libpcsclite1
+      - fonts-droid-fallback
+
+  desktop-metadata:
+    plugin: nil
+    override-build: |
+      install -Dm644 \
+        "$CRAFT_PROJECT_DIR/snap/local/canokey-console.desktop" \
+        "$CRAFT_PART_INSTALL/meta/gui/canokey-console.desktop"
+      install -Dm644 \
+        "$CRAFT_PROJECT_DIR/assets/images/logo/logo_icon_dark.png" \
+        "$CRAFT_PART_INSTALL/meta/gui/canokey-console.png"

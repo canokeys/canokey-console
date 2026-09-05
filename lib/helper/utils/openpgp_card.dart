@@ -1,12 +1,18 @@
 import 'dart:convert';
 
 import 'package:canokey_console/helper/tlv.dart';
+import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/openpgp.dart';
 import 'package:convert/convert.dart';
 
 class OpenPgpCardClient {
+  OpenPgpCardClient({
+    ApduTransport transport = const SmartCardApduTransport(),
+  }) : _transport = transport;
+
   static const String _aid = 'D27600012401';
+  final ApduTransport _transport;
   String? lastStatusWord;
 
   Future<void> select() async {
@@ -338,7 +344,7 @@ class OpenPgpCardClient {
         capdu = '00C00000$remain';
         rapdu = rapdu.substring(0, rapdu.length - 4);
       }
-      rapdu += await SmartCard.transceive(capdu);
+      rapdu += await _transport.transceive(capdu);
     } while (rapdu.substring(rapdu.length - 4, rapdu.length - 2) == '61');
     lastStatusWord = SmartCard.sw(rapdu);
     return rapdu;

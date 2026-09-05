@@ -1,0 +1,1 @@
+Added AMD64 and ARM64 Linux Snap packages, expanded PIV and post-quantum support, improved key and certificate handling, refined cross-platform layouts, and updated dependencies.

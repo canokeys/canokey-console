@@ -1,6 +1,7 @@
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
 import 'package:canokey_console/helper/widgets/keyboard_safe_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
@@ -125,6 +126,46 @@ void main() {
     expect(find.byKey(const Key('stepper-end')).hitTestable(), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('composited keyboard motion does not relayout dialog content',
+      (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetViewInsets);
+
+    var layoutCount = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: KeyboardSafeDialog(
+          useCompositedKeyboardMotion: true,
+          child: _LayoutCounter(
+            onLayout: () => layoutCount++,
+            child: const SizedBox(
+              key: Key('compact-dialog-content'),
+              width: 360,
+              height: 320,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final initialLayoutCount = layoutCount;
+
+    for (final keyboardHeight in [100.0, 200.0, 360.0]) {
+      tester.view.viewInsets = FakeViewPadding(bottom: keyboardHeight);
+      await tester.pump();
+    }
+
+    expect(layoutCount, initialLayoutCount);
+    expect(
+      tester.getBottomRight(find.byKey(const Key('compact-dialog-content'))).dy,
+      lessThanOrEqualTo(844 - 360),
+    );
+    expect(tester.takeException(), isNull);
+  });
 }
 
 class _TestBaseDialog extends BaseDialog {
@@ -170,5 +211,33 @@ class _LongDialogContent extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class _LayoutCounter extends SingleChildRenderObjectWidget {
+  final VoidCallback onLayout;
+
+  const _LayoutCounter({required this.onLayout, required super.child});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderLayoutCounter(onLayout);
+
+  @override
+  void updateRenderObject(
+      BuildContext context, _RenderLayoutCounter renderObject) {
+    renderObject.onLayout = onLayout;
+  }
+}
+
+class _RenderLayoutCounter extends RenderProxyBox {
+  VoidCallback onLayout;
+
+  _RenderLayoutCounter(this.onLayout);
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    onLayout();
   }
 }

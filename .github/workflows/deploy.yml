@@ -9,8 +9,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  FLUTTER_VERSION: 3.44.4
-  RUST_NIGHTLY: nightly-2026-08-26
+  FLUTTER_VERSION: 3.47.1
+  RUST_NIGHTLY: nightly-2026-09-04
 
 jobs:
   build:
@@ -45,7 +45,7 @@ jobs:
       env:
         WASM_PACK_VERSION: ${{ steps.wasm_pack.outputs.version }}
       run: |
-        cargo install flutter_rust_bridge_codegen --version 2.12.0 --locked
+        cargo install flutter_rust_bridge_codegen --version 2.13.0 --locked
         cargo install wasm-pack --version "$WASM_PACK_VERSION" --locked
         flutter_rust_bridge_codegen build-web --release \
           --wasm-pack-rustup-toolchain "$RUST_NIGHTLY"

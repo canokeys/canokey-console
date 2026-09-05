@@ -1,18 +1,20 @@
-use aes::cipher::{Block as AesBlock, BlockEncrypt, KeyInit as AesKeyInit};
+use aes::cipher::{Block as AesBlock, BlockCipherEncrypt, KeyInit as AesKeyInit};
 use aes::Aes192;
 use der::asn1::UintRef;
 use der::{Decode, Sequence};
-use des::cipher::{Block, BlockCipherEncrypt, KeyInit};
+use des::cipher::Block;
 use ed25519_dalek::{Signature as Ed25519Signature, VerifyingKey as Ed25519VerifyingKey};
 use hex_literal::hex;
+use p256::ecdsa::signature::Verifier as EcdsaVerifier;
 use pbkdf2::hmac::{Hmac, KeyInit as HmacKeyInit, Mac};
 use pbkdf2::pbkdf2_hmac;
 use rsa::pkcs1v15::{Signature as RsaSignature, VerifyingKey as RsaVerifyingKey};
 use rsa::pkcs8::DecodePublicKey;
-use rsa::signature::Verifier;
+use rsa::signature::Verifier as LegacyVerifier;
 use rsa::RsaPublicKey;
 use sha1::Sha1;
 use sha2::{Digest, Sha256, Sha384, Sha512};
+use sha2_legacy::Sha256 as RsaSha256;
 use sm2::dsa::{Signature as Sm2Signature, VerifyingKey as Sm2VerifyingKey};
 use sm3::Sm3;
 use x509_parser::pem::parse_x509_pem;
@@ -49,6 +51,8 @@ pub struct X509CertData {
     pub signature_value: Vec<u8>,
     pub public_key_algorithm: String,
     pub public_key_size: usize,
+    pub subject_public_key_info: Vec<u8>,
+    pub raw_public_key: Vec<u8>,
 }
 
 pub fn tdes_ede3_enc(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
@@ -75,11 +79,12 @@ pub fn encrypt_piv_management_key_challenge(
         PIV_TDES if challenge.len() == 8 => Ok(tdes_ede3_enc(key, challenge)),
         PIV_AES192 if challenge.len() == 16 => {
             let cipher = Aes192::new_from_slice(&key).map_err(|_| "invalid AES-192 key")?;
-            let mut output = vec![0u8; challenge.len()];
-            let input: &AesBlock<Aes192> = challenge.as_slice().into();
-            let encrypted: &mut AesBlock<Aes192> = output.as_mut_slice().into();
-            cipher.encrypt_block_b2b(input, encrypted);
-            Ok(output)
+            let input = AesBlock::<Aes192>::from(
+                <[u8; 16]>::try_from(challenge.as_slice()).expect("validated challenge length"),
+            );
+            let mut encrypted = AesBlock::<Aes192>::default();
+            cipher.encrypt_block_b2b(&input, &mut encrypted);
+            Ok(encrypted.to_vec())
         }
         PIV_TDES => Err("3DES challenge must be 8 bytes".into()),
         PIV_AES192 => Err("AES-192 challenge must be 16 bytes".into()),
@@ -155,7 +160,7 @@ fn verify_rsa_signature(public_key: &[u8], data: &[u8], signature: &[u8]) -> boo
     let Ok(signature) = RsaSignature::try_from(signature) else {
         return false;
     };
-    RsaVerifyingKey::<Sha256>::new(public_key)
+    RsaVerifyingKey::<RsaSha256>::new(public_key)
         .verify(data, &signature)
         .is_ok()
 }
@@ -274,22 +279,28 @@ fn gen_x590_meta(cert: X509Certificate<'_>) -> X509CertData {
         signature_value: cert.signature_value.data.to_vec(),
         public_key_algorithm,
         public_key_size,
+        subject_public_key_info: subject_pki.raw.to_vec(),
+        raw_public_key: subject_pki.subject_public_key.data.to_vec(),
     }
 }
 
-pub fn parse_x509_cert_from_pem(pem: String) -> X509CertData {
+pub fn parse_x509_cert_from_pem(pem: String) -> Result<X509CertData, String> {
     let pem = parse_x509_pem(pem.as_bytes())
-        .expect("Parsing PEM failed")
+        .map_err(|_| "failed to parse PEM")?
         .1;
-    let cert = pem.parse_x509().expect("X.509: decoding DER failed");
-    gen_x590_meta(cert)
+    let cert = pem
+        .parse_x509()
+        .map_err(|_| "failed to decode X.509 certificate")?;
+    Ok(gen_x590_meta(cert))
 }
 
-pub fn parse_x509_cert_from_der(der: Vec<u8>) -> X509CertData {
-    let cert = x509_parser::parse_x509_certificate(der.as_slice())
-        .expect("X.509: decoding DER failed")
-        .1;
-    gen_x590_meta(cert)
+pub fn parse_x509_cert_from_der(der: Vec<u8>) -> Result<X509CertData, String> {
+    let (remaining, cert) = x509_parser::parse_x509_certificate(der.as_slice())
+        .map_err(|_| "failed to decode X.509 certificate")?;
+    if !remaining.is_empty() {
+        return Err("trailing data after X.509 certificate".into());
+    }
+    Ok(gen_x590_meta(cert))
 }
 
 pub fn pbkdf2_hmac_sha1(password: String, salt: Vec<u8>, iterations: u32, key_len: u32) -> Vec<u8> {
@@ -313,10 +324,13 @@ pub fn hmac_sha1(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use p256::ecdsa::signature::{
+        RandomizedSigner as EcdsaRandomizedSigner, Signer as EcdsaSigner,
+    };
     use rand::{rngs::StdRng, SeedableRng};
     use rsa::pkcs1v15::SigningKey as RsaSigningKey;
     use rsa::pkcs8::EncodePublicKey;
-    use rsa::signature::{RandomizedSigner, SignatureEncoding, Signer};
+    use rsa::signature::{SignatureEncoding, Signer as RsaSigner};
 
     const MESSAGE: &[u8] = b"CanoKey PIV signature test";
 
@@ -371,15 +385,14 @@ mod tests {
 
     #[test]
     fn verifies_rsa_signature() {
-        let mut rng = StdRng::seed_from_u64(1);
-        let private_key = rsa::RsaPrivateKey::new(&mut rng, 1024).unwrap();
+        let private_key = rsa::RsaPrivateKey::new(&mut rsa::rand_core::OsRng, 1024).unwrap();
         let public_key = private_key
             .to_public_key()
             .to_public_key_der()
             .unwrap()
             .as_bytes()
             .to_vec();
-        let signature = RsaSigningKey::<Sha256>::new(private_key)
+        let signature = RsaSigningKey::<RsaSha256>::new(private_key)
             .sign(MESSAGE)
             .to_vec();
         assert!(verify_piv_signature(
@@ -398,7 +411,7 @@ mod tests {
             PIV_ECC_P256,
             p256_key
                 .verifying_key()
-                .to_encoded_point(false)
+                .to_sec1_point(false)
                 .as_bytes()
                 .to_vec(),
             MESSAGE.to_vec(),
@@ -411,7 +424,7 @@ mod tests {
             PIV_ECC_P384,
             p384_key
                 .verifying_key()
-                .to_encoded_point(false)
+                .to_sec1_point(false)
                 .as_bytes()
                 .to_vec(),
             MESSAGE.to_vec(),
@@ -426,7 +439,7 @@ mod tests {
         let p521_public_key = p521::ecdsa::VerifyingKey::from(&p521_key);
         assert!(verify_piv_signature(
             PIV_ECC_P521,
-            p521_public_key.to_encoded_point(false).as_bytes().to_vec(),
+            p521_public_key.to_sec1_point(false).as_bytes().to_vec(),
             MESSAGE.to_vec(),
             p521_signature.to_der().as_bytes().to_vec(),
         ));
@@ -437,7 +450,7 @@ mod tests {
             PIV_SECP256K1,
             k256_key
                 .verifying_key()
-                .to_encoded_point(false)
+                .to_sec1_point(false)
                 .as_bytes()
                 .to_vec(),
             MESSAGE.to_vec(),

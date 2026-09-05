@@ -183,6 +183,25 @@ void main() {
     expect(find.text('Sign Message'), findsOneWidget);
     expect(SmartCard.nfcState, NfcState.input);
 
+    final pinDecorator = find.byWidgetPredicate(
+      (widget) =>
+          widget is InputDecorator && widget.decoration.labelText == 'PIN',
+    );
+    final pinField = tester.widget<EditableText>(
+      find.descendant(
+        of: pinDecorator,
+        matching: find.byType(EditableText),
+      ),
+    );
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is InputDecorator && widget.decoration.labelText == 'PIN',
+      ),
+      findsOneWidget,
+    );
+    expect(pinField.autofocus, isFalse);
+
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(SmartCard.nfcState, NfcState.idle);

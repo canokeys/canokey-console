@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:basic_utils/basic_utils.dart';
 import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
+import 'package:canokey_console/helper/utils/piv_card.dart';
 import 'package:canokey_console/helper/utils/piv_csr.dart';
 import 'package:canokey_console/helper/utils/piv_management_key.dart';
 import 'package:canokey_console/helper/utils/piv_metadata_directory.dart';
@@ -19,12 +19,14 @@ import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/piv.dart';
 import 'package:canokey_console/src/rust/api/crypto.dart';
+import 'package:canokey_console/src/rust/api/piv_crypto.dart';
 import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
 class PivController extends PollingController {
+  final PivCardClient _client = PivCardClient();
   Map<int, SlotInfo> slots = {};
   final Set<int> certificateSlots = {};
   final Map<int, Uint8List> certificateBytes = {};
@@ -134,11 +136,11 @@ class PivController extends PollingController {
 
   Future<void> _refreshCapabilities() async {
     try {
-      SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
-      final resp = await SmartCard.transceive('00EE010000');
-      SmartCard.assertOK(resp);
-      algorithmExtensionConfig = PivAlgorithmExtensionConfig.decode(
-          hex.decode(SmartCard.dropSW(resp)));
+      final config = await _client.readAlgorithmExtensions();
+      if (config == null) {
+        throw StateError('PIV algorithm extensions are unavailable');
+      }
+      algorithmExtensionConfig = config;
     } catch (_) {
       final isLegacyV2 =
           firmwareVersion.compareTo(const FirmwareVersion(2, 0, 0)) >= 0 &&
@@ -224,14 +226,8 @@ class PivController extends PollingController {
   }
 
   Future<SlotInfo?> _readKeyMetadata(int slot) async {
-    final metadataResp = await _transceive('00F700${hex.encode([slot])}00');
-    if (!SmartCard.isOK(metadataResp) ||
-        _isMissingMetadataResponse(metadataResp)) {
-      return null;
-    }
-    return SlotInfo.parse(
+    return _client.readMetadata(
       slot,
-      hex.decode(SmartCard.dropSW(metadataResp)),
       algorithmExtensionConfig: algorithmExtensionConfig,
     );
   }
@@ -382,41 +378,6 @@ class PivController extends PollingController {
       c.complete(true);
     });
     return c.future;
-  }
-
-  Future<bool> importEccKey(String slot, ECPrivateKey key, PinPolicy pinPolicy,
-      TouchPolicy touchPolicy) async {
-    final c = new Completer<bool>();
-    SmartCard.process((String sn) async {
-      c.complete(
-          await _importEccKeyInSession(slot, key, pinPolicy, touchPolicy));
-    });
-    return c.future;
-  }
-
-  Future<bool> _importEccKeyInSession(String slot, ECPrivateKey key,
-      PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
-    final algorithm = switch (key.parameters!.domainName) {
-      'prime256v1' => AlgorithmType.eccp256,
-      'secp384r1' => AlgorithmType.eccp384,
-      'secp521r1' => AlgorithmType.eccp521,
-      'secp256k1' => AlgorithmType.secp256k1,
-      _ => throw ArgumentError(
-          'Unsupported EC domain: ${key.parameters!.domainName}'),
-    };
-    final keyBytes = switch (key.parameters!.domainName) {
-      'prime256v1' || 'secp256k1' => 32,
-      'secp384r1' => 48,
-      'secp521r1' => 66,
-      _ => (key.d!.bitLength + 7) ~/ 8,
-    };
-    var rawKey = key.d!.toRadixString(16).padLeft(keyBytes * 2, '0');
-    var data =
-        '06${(rawKey.length ~/ 2).toRadixString(16).padLeft(2, '0')}${rawKey}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';
-    var capdu =
-        '00FE${_algorithmIdHex(algorithm)}$slot${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}$data';
-    String resp = await SmartCard.transceive(capdu);
-    return SmartCard.isOK(resp);
   }
 
   Future<String?> generateCsr(
@@ -792,17 +753,6 @@ class PivController extends PollingController {
     }
   }
 
-  Future<bool> importEd25519Key(String slotNumber, Uint8List key,
-      PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
-    final c = new Completer<bool>();
-    SmartCard.process((String sn) async {
-      c.complete(await _importEd25519KeyInSession(
-          slotNumber, key, pinPolicy, touchPolicy));
-    });
-
-    return c.future;
-  }
-
   Future<bool> importPostQuantumSeed(String slotNumber, AlgorithmType algorithm,
       Uint8List seed, PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
     if (!supportsAlgorithm(algorithm)) {
@@ -869,9 +819,7 @@ class PivController extends PollingController {
     required String pin,
     required String managementKey,
     required bool usePinOnly,
-    ECPrivateKey? ecPrivateKey,
-    RSAPrivateKey? rsaPrivateKey,
-    Uint8List? edPrivateKey,
+    PivPrivateKeyData? privateKey,
     Uint8List? mlDsaSeed,
     Uint8List? mlKemSeed,
     Uint8List? cert,
@@ -914,21 +862,9 @@ class PivController extends PollingController {
         c.complete(false);
         return;
       }
-      if (ecPrivateKey != null &&
-          !await _importEccKeyInSession(
-              slot, ecPrivateKey, pinPolicy, touchPolicy)) {
-        c.complete(false);
-        return;
-      }
-      if (rsaPrivateKey != null &&
-          !await _importRsaKeyInSession(
-              slot, rsaPrivateKey, pinPolicy, touchPolicy)) {
-        c.complete(false);
-        return;
-      }
-      if (edPrivateKey != null &&
-          !await _importEd25519KeyInSession(
-              slot, edPrivateKey, pinPolicy, touchPolicy)) {
+      if (privateKey != null &&
+          !await _importPrivateKeyInSession(
+              slot, privateKey, pinPolicy, touchPolicy)) {
         c.complete(false);
         return;
       }
@@ -953,25 +889,26 @@ class PivController extends PollingController {
     return c.future;
   }
 
-  Future<bool> importRsaKey(String slotNumber, RSAPrivateKey rsaPrivateKey,
-      PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
-    final c = new Completer<bool>();
-    SmartCard.process((String sn) async {
-      c.complete(await _importRsaKeyInSession(
-          slotNumber, rsaPrivateKey, pinPolicy, touchPolicy));
-    });
-    return c.future;
-  }
-
-  Future<bool> _importEd25519KeyInSession(String slotNumber, Uint8List key,
-      PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
-    String rawKey = hex.encode(key);
-    var data =
-        '06${key.length.toRadixString(16).padLeft(2, '0')}${rawKey}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';
-
-    var capdu =
-        '00FE${_algorithmIdHex(AlgorithmType.ed25519)}$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}$data';
-    String resp = await SmartCard.transceive(capdu);
+  Future<bool> _importPrivateKeyInSession(
+      String slotNumber,
+      PivPrivateKeyData key,
+      PinPolicy pinPolicy,
+      TouchPolicy touchPolicy) async {
+    final algorithm = AlgorithmType.fromValue(key.algorithm);
+    final data = <int>[
+      ...key.importData,
+      0xAA,
+      0x01,
+      pinPolicy.value,
+      0xAB,
+      0x01,
+      touchPolicy.value,
+    ];
+    final resp = await _sendChainedData(
+      instruction: 'FE',
+      p1p2: '${_algorithmIdHex(algorithm)}$slotNumber',
+      data: hex.encode(data),
+    );
     return SmartCard.isOK(resp);
   }
 
@@ -992,76 +929,6 @@ class PivController extends PollingController {
       p1p2: '${_algorithmIdHex(algorithm)}$slotNumber',
       data: hex.encode(data),
     );
-    return SmartCard.isOK(resp);
-  }
-
-  Future<bool> _importRsaKeyInSession(
-      String slotNumber,
-      RSAPrivateKey rsaPrivateKey,
-      PinPolicy pinPolicy,
-      TouchPolicy touchPolicy) async {
-    // Get p and q from the private key
-    BigInt p = rsaPrivateKey.p!;
-    BigInt q = rsaPrivateKey.q!;
-    BigInt d = rsaPrivateKey.exponent!;
-
-    // Compute dp = d mod (p-1)
-    BigInt dp = d.remainder(p - BigInt.one);
-
-    // Compute dq = d mod (q-1)
-    BigInt dq = d.remainder(q - BigInt.one);
-
-    // Compute qinv = q^(-1) mod p
-    BigInt qinv = q.modInverse(p);
-
-    // Convert parameters to fixed-length byte arrays
-    int keyLength = rsaPrivateKey.modulus!.bitLength ~/ 8;
-    int halfLength = keyLength ~/ 2;
-
-    // Pad numbers to correct length
-    String pHex = p.toRadixString(16).padLeft(halfLength * 2, '0');
-    String qHex = q.toRadixString(16).padLeft(halfLength * 2, '0');
-    String dpHex = dp.toRadixString(16).padLeft(halfLength * 2, '0');
-    String dqHex = dq.toRadixString(16).padLeft(halfLength * 2, '0');
-    String qinvHex = qinv.toRadixString(16).padLeft(halfLength * 2, '0');
-
-    // Build TLV for each component
-    // Tag: 0x01 for P, 0x02 for Q, 0x03 for dP, 0x04 for dQ, 0x05 for qInv
-    String pTlv = '0182${halfLength.toRadixString(16).padLeft(4, '0')}$pHex';
-    String qTlv = '0282${halfLength.toRadixString(16).padLeft(4, '0')}$qHex';
-    String dpTlv = '0382${halfLength.toRadixString(16).padLeft(4, '0')}$dpHex';
-    String dqTlv = '0482${halfLength.toRadixString(16).padLeft(4, '0')}$dqHex';
-    String qinvTlv =
-        '0582${halfLength.toRadixString(16).padLeft(4, '0')}$qinvHex';
-
-    // Build the data field for the APDU
-    String data =
-        '$pTlv$qTlv$dpTlv$dqTlv${qinvTlv}AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}'; // Finally touch policy TLV
-
-    AlgorithmType algorithm;
-    switch (keyLength) {
-      case 128: // RSA1024
-        algorithm = AlgorithmType.rsa1024;
-        break;
-      case 256: // RSA2048
-        algorithm = AlgorithmType.rsa2048;
-        break;
-      case 384: // RSA3072
-        algorithm = AlgorithmType.rsa3072;
-        break;
-      case 512: // RSA4096
-        algorithm = AlgorithmType.rsa4096;
-        break;
-      default:
-        throw Exception('Unsupported RSA key length: ${keyLength * 8} bits');
-    }
-
-    // Send the APDU command
-    // INS: 0xFE, P1: algorithm ID, P2: slot number
-    String capdu =
-        '00FE${_algorithmIdHex(algorithm)}$slotNumber${(data.length ~/ 2).toRadixString(16).padLeft(6, '0')}$data';
-
-    String resp = await SmartCard.transceive(capdu);
     return SmartCard.isOK(resp);
   }
 
@@ -1236,22 +1103,11 @@ class PivController extends PollingController {
 
   String _buildAuthenticateData(
       AlgorithmType algorithm, Uint8List data, PivPublicKey? publicKey) {
-    final input = switch (algorithm) {
-      AlgorithmType.rsa1024 ||
-      AlgorithmType.rsa2048 ||
-      AlgorithmType.rsa3072 ||
-      AlgorithmType.rsa4096 =>
-        _pkcs1DigestBlock(data, algorithm),
-      AlgorithmType.eccp256 ||
-      AlgorithmType.eccp384 ||
-      AlgorithmType.eccp521 ||
-      AlgorithmType.secp256k1 =>
-        _shaDigest(data, _ecDigestBits(algorithm)),
-      AlgorithmType.sm2 => _sm2Digest(data, publicKey),
-      AlgorithmType.ed25519 => data,
-      AlgorithmType.mldsa65 => data,
-      _ => throw ArgumentError('Unsupported signing algorithm: $algorithm'),
-    };
+    final input = preparePivSigningInput(
+      algorithm: algorithm.value,
+      data: data,
+      publicKey: publicKey?.rawPublicKey,
+    );
     final inner = '820081${_hexLength(input.length)}${hex.encode(input)}';
     return '7C${_hexLength(inner.length ~/ 2)}$inner';
   }
@@ -1312,50 +1168,6 @@ class PivController extends PollingController {
     return resp;
   }
 
-  Uint8List _pkcs1DigestBlock(Uint8List data, AlgorithmType algorithm) {
-    final digest = _shaDigest(data, 256);
-    final digestInfo = [
-      0x30,
-      0x31,
-      0x30,
-      0x0D,
-      0x06,
-      0x09,
-      0x60,
-      0x86,
-      0x48,
-      0x01,
-      0x65,
-      0x03,
-      0x04,
-      0x02,
-      0x01,
-      0x05,
-      0x00,
-      0x04,
-      0x20,
-      ...digest,
-    ];
-    final keySize = switch (algorithm) {
-      AlgorithmType.rsa1024 => 128,
-      AlgorithmType.rsa2048 => 256,
-      AlgorithmType.rsa3072 => 384,
-      AlgorithmType.rsa4096 => 512,
-      _ => throw ArgumentError('Unsupported RSA algorithm: $algorithm'),
-    };
-    final paddingLength = keySize - digestInfo.length - 3;
-    if (paddingLength < 8) {
-      throw ArgumentError('RSA key is too small for SHA-256 PKCS#1 v1.5');
-    }
-    return Uint8List.fromList([
-      0x00,
-      0x01,
-      ...List<int>.filled(paddingLength, 0xFF),
-      0x00,
-      ...digestInfo,
-    ]);
-  }
-
   String _algorithmIdHex(AlgorithmType algorithm) {
     return algorithmExtensionConfig
         .idFor(algorithm)
@@ -1369,30 +1181,6 @@ class PivController extends PollingController {
         'AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}'
         'AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';
     return 'AC${_hexLength(inner.length ~/ 2)}$inner';
-  }
-
-  int _ecDigestBits(AlgorithmType algorithm) {
-    return switch (algorithm) {
-      AlgorithmType.eccp384 => 384,
-      AlgorithmType.eccp521 => 512,
-      _ => 256,
-    };
-  }
-
-  Uint8List _shaDigest(Uint8List data, int bits) {
-    return switch (bits) {
-      384 => sha384Digest(data: data),
-      512 => sha512Digest(data: data),
-      _ => sha256Digest(data: data),
-    };
-  }
-
-  Uint8List _sm2Digest(Uint8List data, PivPublicKey? publicKey) {
-    final point = publicKey?.rawPublicKey;
-    if (point == null || point.length != 65 || point.first != 0x04) {
-      throw ArgumentError('Invalid SM2 public key');
-    }
-    return sm2MessageDigest(data: data, publicKey: point);
   }
 
   Uint8List _parseAuthenticateSignature(List<int> data) {
@@ -1444,18 +1232,7 @@ class PivController extends PollingController {
   }
 
   Future<SlotInfo?> _readCredentialMetadata(int slot) async {
-    final resp = await _transceive('00F700${hex.encode([slot])}00');
-    if (!SmartCard.isOK(resp) || _isMissingMetadataResponse(resp)) {
-      return null;
-    }
-    return SlotInfo.parse(slot, hex.decode(SmartCard.dropSW(resp)));
-  }
-
-  bool _isMissingMetadataResponse(String resp) {
-    return switch (resp.toUpperCase()) {
-      '6A88' || '6700' => true,
-      _ => false,
-    };
+    return _client.readMetadata(slot);
   }
 
   Future<bool> _authenticateManagementKeyOrPinOnly(

@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:canokey_console/helper/utils/piv_csr.dart';
 import 'package:canokey_console/models/piv.dart';
 import 'package:canokey_console/src/rust/api/crypto.dart';
-import 'package:pointycastle/asn1/primitives/asn1_sequence.dart';
 
 class PivSignatureProtocol {
   static const int classicEd25519MaxMessageLength = 544;
@@ -33,24 +32,13 @@ class PivSignatureTest {
     }
     final certBytes = slot.certBytes;
     if (certBytes != null && certBytes.isNotEmpty) {
+      final cert = slot.cert ?? parseX509CertFromDer(der: certBytes);
       return PivPublicKey.fromSubjectPublicKeyInfo(
         slot.algorithm,
-        subjectPublicKeyInfoFromCertificate(certBytes),
+        cert.subjectPublicKeyInfo,
       );
     }
     return null;
-  }
-
-  static Uint8List subjectPublicKeyInfoFromCertificate(List<int> certBytes) {
-    final cert = ASN1Sequence.fromBytes(Uint8List.fromList(certBytes));
-    final tbs = cert.elements![0] as ASN1Sequence;
-    var index = 0;
-    if (tbs.elements![index].tag == 0xA0) {
-      index++;
-    }
-    index += 5;
-    final spki = tbs.elements![index] as ASN1Sequence;
-    return spki.encode();
   }
 
   static Future<bool> verify({

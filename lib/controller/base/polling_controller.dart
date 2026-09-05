@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:canokey_console/controller/base/base_controller.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/utils/screenshot_mode.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
@@ -24,6 +25,17 @@ abstract class PollingController extends Controller {
   void onReady() async {
     super.onReady();
     _closed = false;
+
+    if (ScreenshotMode.enabled) {
+      try {
+        await refreshData();
+      } catch (e) {
+        log.w('Failed to load screenshot data', error: e);
+        polled = false;
+        update();
+      }
+      return;
+    }
 
     if (isWeb()) {
       // Web platform: initial read and polling

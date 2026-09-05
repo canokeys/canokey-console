@@ -1,7 +1,7 @@
 cargo:
   debug:
-    toolchain: 1.88.0
+    toolchain: 1.98.1
   profile:
-    toolchain: 1.88.0
+    toolchain: 1.98.1
   release:
-    toolchain: 1.88.0
+    toolchain: 1.98.1
