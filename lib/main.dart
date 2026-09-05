@@ -6,6 +6,7 @@ import 'package:canokey_console/helper/localization/preserving_app_localization_
 import 'package:canokey_console/helper/services/navigation_service.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/app_notifier.dart';
+import 'package:canokey_console/helper/theme/snap_fonts.dart';
 import 'package:canokey_console/helper/theme/app_style.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
@@ -35,6 +36,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 Future<void> main() async {
   if (ScreenshotMode.enabled) {
     WidgetsFlutterBinding.ensureInitialized();
+    await loadSnapChineseFont();
     await LocalStorage.init();
     AppStyle.init();
     ThemeCustomizer.instance.currentLanguage = Language.languages[1];
@@ -50,6 +52,7 @@ Future<void> main() async {
 
   await runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+    await loadSnapChineseFont();
 
     await RustLib.init();
     await LocalStorage.init();

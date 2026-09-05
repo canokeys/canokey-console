@@ -57,6 +57,7 @@ class AppTheme {
   /// -------------------------- Light Theme  -------------------------------------------- ///
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: false,
+    fontFamilyFallback: CustomizedTextStyle.cjkFontFallback,
 
     /// Brightness
     brightness: Brightness.light,
@@ -183,6 +184,7 @@ class AppTheme {
   /// -------------------------- Dark Theme  -------------------------------------------- ///
   static final ThemeData darkTheme = ThemeData(
     useMaterial3: false,
+    fontFamilyFallback: CustomizedTextStyle.cjkFontFallback,
 
     /// Brightness
     brightness: Brightness.dark,

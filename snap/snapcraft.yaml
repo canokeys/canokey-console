@@ -48,6 +48,7 @@ parts:
       rm -f "$CRAFT_PART_INSTALL/lib/libdartjni.so"
     stage-packages:
       - libpcsclite1
+      - fonts-wqy-microhei
 
   desktop-metadata:
     plugin: nil

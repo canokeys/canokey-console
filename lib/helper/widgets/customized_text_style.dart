@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_generic_function_type_aliases
 
 import 'package:canokey_console/helper/theme/app_theme.dart';
+import 'package:canokey_console/helper/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:chinese_font_library/chinese_font_library.dart' if (dart.library.html) 'package:canokey_console/helper/theme/chinese_font_dummy.dart';
@@ -47,6 +48,18 @@ typedef TextStyle GoogleFontFunction({
 });
 
 class CustomizedTextStyle {
+  static const List<String> cjkFontFallback = [
+    snapChineseFontFamily,
+    'Noto Sans CJK SC',
+    'Noto Sans CJK TC',
+    'Noto Sans CJK JP',
+    'Noto Sans CJK KR',
+    'Droid Sans Fallback',
+    'PingFang SC',
+    'Microsoft YaHei',
+    'sans-serif',
+  ];
+
   static GoogleFontFunction _fontFamily = GoogleFonts.ibmPlexSans;
 
   static void changeFontFamily(GoogleFontFunction value) {
@@ -93,7 +106,7 @@ class CustomizedTextStyle {
     Color finalColor = color ?? theme.colorScheme.onSurface;
     finalColor = xMuted ? finalColor.withAlpha(160) : (muted ? finalColor.withAlpha(200) : finalColor);
 
-    return _fontFamily(
+    final style = _fontFamily(
             fontSize: finalFontSize,
             fontWeight: _defaultFontWeight[fontWeight],
             letterSpacing: letterSpacing,
@@ -102,6 +115,13 @@ class CustomizedTextStyle {
             height: height,
             wordSpacing: wordSpacing)
         .useSystemChineseFont();
+
+    return style.copyWith(
+      fontFamilyFallback: [
+        ...cjkFontFallback,
+        ...?style.fontFamilyFallback,
+      ],
+    );
   }
 
   // Material Design 3
