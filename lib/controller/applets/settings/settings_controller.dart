@@ -104,8 +104,7 @@ class SettingsController extends PollingController with AdminApplet {
         return;
       }
 
-      SmartCard.assertOK(await SmartCard.transceive(
-          '00210000${newPin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(newPin.codeUnits)}'));
+      await _client.changePin(newPin);
       log.i('Successfully changed PIN');
 
       Navigator.pop(Get.context!);

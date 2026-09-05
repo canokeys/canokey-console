@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/utils/admin_card.dart';
 import 'package:canokey_console/helper/utils/audio.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
-import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -21,6 +21,7 @@ final log = Logging.logger('AdminApplet');
 /// If the user allows to save the PIN, the cache is also saved in the local storage, which
 /// is identified by the sn.
 mixin AdminApplet {
+  final AdminCardClient _adminCardClient = AdminCardClient();
   final Map<String, String> _localPinCache = {};
   final String _tag = 'ADMIN';
 
@@ -62,7 +63,9 @@ mixin AdminApplet {
         SmartCard.nfcState = NfcState.processWithInput;
         if (!await SmartCard.pollNfcOrWebUsb()) {
           Prompts.stopPromptAndroidPolling();
-          Prompts.showPrompt(S.of(Get.context!).noCard, ContentThemeColor.warning, level: 'W');
+          Prompts.showPrompt(
+              S.of(Get.context!).noCard, ContentThemeColor.warning,
+              level: 'W');
           Audio.error();
           return; // timeout, do not close the dialog
         }
@@ -74,7 +77,8 @@ mixin AdminApplet {
           await SmartCard.stopPollingNfc(withInput: true);
           log.e('_selectAndVerifyPin failed', error: e);
           if (e.code == '500') {
-            Prompts.showPrompt(S.of(Get.context!).interrupted, ContentThemeColor.danger);
+            Prompts.showPrompt(
+                S.of(Get.context!).interrupted, ContentThemeColor.danger);
             Audio.error();
           }
         }
@@ -105,13 +109,11 @@ mixin AdminApplet {
 
   /// Returns true if pin is verified
   Future<bool> _selectAndVerifyPin(String pin) async {
-    String resp = await SmartCard.transceive('00A4040005F000000000');
-    SmartCard.assertOK(resp);
-    resp = await SmartCard.transceive('00200000${pin.length.toRadixString(16).padLeft(2, '0')}${hex.encode(pin.codeUnits)}');
-    if (SmartCard.isOK(resp)) {
+    await _adminCardClient.select();
+    if (await _adminCardClient.verifyPin(pin)) {
       return true;
     } else {
-      Prompts.promptPinFailureResult(resp);
+      Prompts.promptPinFailureResult(_adminCardClient.lastResponse ?? '');
       return false;
     }
   }

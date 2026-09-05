@@ -109,6 +109,20 @@ void main() {
     expect((await client.select()).version, OathVersion.v1);
     expect(await client.calculateAll('0000000000000001'), '6A80');
   });
+
+  test('stops pagination on an empty successful response', () async {
+    final transport = _QueueApduTransport(['7101416102', '9000']);
+    final client = OathCardClient(transport: transport);
+
+    expect(
+      await client.calculateAll('0000000000000001'),
+      '7101419000',
+    );
+    expect(transport.commands, [
+      '00A400010a74080000000000000001',
+      '00A50000FF',
+    ]);
+  });
 }
 
 class _QueueApduTransport implements ApduTransport {

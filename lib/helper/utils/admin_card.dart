@@ -18,17 +18,27 @@ class AdminCardClient {
   }) : _transport = transport;
 
   final ApduTransport _transport;
+  String? lastResponse;
 
   Future<void> select() async {
     SmartCard.assertOK(await _transport.transceive('00A4040005F000000000'));
   }
 
   Future<bool> verifyPin(String pin) async {
-    final data = hex.encode(pin.codeUnits);
-    final response = await _transport.transceive(
-      '00200000${pin.length.toRadixString(16).padLeft(2, '0')}$data',
+    final data = utf8.encode(pin);
+    final response = lastResponse = await _transport.transceive(
+      '00200000${data.length.toRadixString(16).padLeft(2, '0')}'
+      '${hex.encode(data)}',
     );
     return SmartCard.isOK(response);
+  }
+
+  Future<void> changePin(String pin) async {
+    final data = utf8.encode(pin);
+    SmartCard.assertOK(await _transport.transceive(
+      '00210000${data.length.toRadixString(16).padLeft(2, '0')}'
+      '${hex.encode(data)}',
+    ));
   }
 
   Future<String> readFirmwareVersion() => _readText('0031000000');

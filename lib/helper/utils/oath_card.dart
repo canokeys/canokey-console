@@ -128,7 +128,11 @@ class OathCardClient {
     final result = StringBuffer();
     while (true) {
       final statusWord = SmartCard.sw(response);
-      result.write(SmartCard.dropSW(response));
+      final data = SmartCard.dropSW(response);
+      result.write(data);
+      if (statusWord == '9000' && data.isEmpty) {
+        return '${result}9000';
+      }
       if (statusWord.startsWith('61') || statusWord == '9000') {
         final getResponse =
             version == OathVersion.legacy ? '00060000FF' : '00A50000FF';

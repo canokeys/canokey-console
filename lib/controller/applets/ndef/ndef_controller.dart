@@ -135,7 +135,6 @@ class NdefController extends PollingController {
       });
     } on NdefReadOnlyException {
       Prompts.showPrompt(S.current.ndefReadOnly, ContentThemeColor.danger);
-      throw StateError('NDEF file is read-only');
     } finally {
       writing = false;
       update();

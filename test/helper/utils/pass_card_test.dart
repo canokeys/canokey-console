@@ -43,6 +43,19 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test('rejects invalid slots and non-ASCII static passwords', () async {
+    final client = PassCardClient(transport: _QueueApduTransport([]));
+
+    expect(
+      () => client.setSlot(0, PassSlotType.none, '', false),
+      throwsArgumentError,
+    );
+    expect(
+      () => client.setSlot(1, PassSlotType.static, 'pässword', false),
+      throwsArgumentError,
+    );
+  });
 }
 
 class _QueueApduTransport implements ApduTransport {

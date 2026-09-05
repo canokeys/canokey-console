@@ -37,6 +37,7 @@ Future<void> main() async {
   if (ScreenshotMode.enabled) {
     WidgetsFlutterBinding.ensureInitialized();
     await loadSnapChineseFont();
+    await RustLib.init();
     await LocalStorage.init();
     AppStyle.init();
     ThemeCustomizer.instance.currentLanguage = Language.languages[1];

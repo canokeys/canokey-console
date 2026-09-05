@@ -27,7 +27,11 @@ abstract class PollingController extends Controller {
     _closed = false;
 
     if (ScreenshotMode.enabled) {
-      await refreshData();
+      try {
+        await refreshData();
+      } catch (e) {
+        log.w('Failed to load screenshot data', error: e);
+      }
       return;
     }
 

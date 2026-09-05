@@ -904,11 +904,10 @@ class PivController extends PollingController {
       0x01,
       touchPolicy.value,
     ];
-    final encodedLength =
-        data.length.toRadixString(16).padLeft(data.length <= 0xFF ? 2 : 6, '0');
-    final resp = await SmartCard.transceive(
-      '00FE${_algorithmIdHex(algorithm)}$slotNumber'
-      '$encodedLength${hex.encode(data)}',
+    final resp = await _sendChainedData(
+      instruction: 'FE',
+      p1p2: '${_algorithmIdHex(algorithm)}$slotNumber',
+      data: hex.encode(data),
     );
     return SmartCard.isOK(resp);
   }

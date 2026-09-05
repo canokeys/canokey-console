@@ -83,6 +83,19 @@ void main() {
     );
   });
 
+  test('encodes admin PIN operations as UTF-8 bytes', () async {
+    final transport = _QueueApduTransport(['9000', '9000']);
+    final client = AdminCardClient(transport: transport);
+
+    expect(await client.verifyPin('CanoKey密码'), isTrue);
+    await client.changePin('CanoKey密码');
+
+    expect(transport.commands, [
+      '002000000d43616e6f4b6579e5af86e7a081',
+      '002100000d43616e6f4b6579e5af86e7a081',
+    ]);
+  });
+
   test('rejects invalid admin response data and configuration indexes',
       () async {
     final client = AdminCardClient(transport: _QueueApduTransport([]));

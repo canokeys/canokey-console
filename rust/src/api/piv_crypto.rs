@@ -233,6 +233,9 @@ pub fn finish_piv_csr(
 ) -> Result<String, String> {
     let info = CertReqInfo::from_der(&certification_request_info)
         .map_err(|_| "invalid certification request info")?;
+    if algorithm_from_spki(&info.public_key)? != algorithm {
+        return Err("CSR signature algorithm does not match public key".into());
+    }
     let request = CertReq {
         info,
         algorithm: signature_algorithm(algorithm)?,
@@ -938,6 +941,21 @@ mod tests {
         .unwrap();
         let pem = finish_piv_csr(info, PIV_ECC_P256, vec![1; 64]).unwrap();
         assert!(pem.starts_with("-----BEGIN CERTIFICATE REQUEST-----"));
+    }
+
+    #[test]
+    fn rejects_csr_signature_algorithm_mismatches() {
+        let key = p256::SecretKey::from_slice(&[7; 32]).unwrap();
+        let public = key.public_key().to_sec1_point(false).as_bytes().to_vec();
+        let spki = public_key_data(PIV_ECC_P256, public)
+            .unwrap()
+            .subject_public_key_info;
+        let info = prepare_piv_csr("CanoKey".into(), None, None, None, spki, Vec::new()).unwrap();
+
+        assert_eq!(
+            finish_piv_csr(info, PIV_ECC_P384, vec![1; 96]).unwrap_err(),
+            "CSR signature algorithm does not match public key"
+        );
     }
 
     #[test]
