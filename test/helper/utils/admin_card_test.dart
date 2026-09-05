@@ -96,6 +96,16 @@ void main() {
     ]);
   });
 
+  test('rejects admin PINs that exceed short APDU length', () async {
+    final transport = _QueueApduTransport([]);
+    final client = AdminCardClient(transport: transport);
+    final pin = List.filled(64, '\u{1F600}').join();
+
+    await expectLater(client.verifyPin(pin), throwsArgumentError);
+    await expectLater(client.changePin(pin), throwsArgumentError);
+    expect(transport.commands, isEmpty);
+  });
+
   test('rejects invalid admin response data and configuration indexes',
       () async {
     final client = AdminCardClient(transport: _QueueApduTransport([]));

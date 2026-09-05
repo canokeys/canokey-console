@@ -31,6 +31,8 @@ abstract class PollingController extends Controller {
         await refreshData();
       } catch (e) {
         log.w('Failed to load screenshot data', error: e);
+        polled = false;
+        update();
       }
       return;
     }

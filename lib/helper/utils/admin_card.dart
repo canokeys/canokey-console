@@ -25,7 +25,7 @@ class AdminCardClient {
   }
 
   Future<bool> verifyPin(String pin) async {
-    final data = utf8.encode(pin);
+    final data = _encodePin(pin);
     final response = lastResponse = await _transport.transceive(
       '00200000${data.length.toRadixString(16).padLeft(2, '0')}'
       '${hex.encode(data)}',
@@ -34,11 +34,23 @@ class AdminCardClient {
   }
 
   Future<void> changePin(String pin) async {
-    final data = utf8.encode(pin);
+    final data = _encodePin(pin);
     SmartCard.assertOK(await _transport.transceive(
       '00210000${data.length.toRadixString(16).padLeft(2, '0')}'
       '${hex.encode(data)}',
     ));
+  }
+
+  List<int> _encodePin(String pin) {
+    final data = utf8.encode(pin);
+    if (data.length > 0xff) {
+      throw ArgumentError.value(
+        data.length,
+        'encodedPinLength',
+        'UTF-8 encoded PIN must fit in a short APDU',
+      );
+    }
+    return data;
   }
 
   Future<String> readFirmwareVersion() => _readText('0031000000');

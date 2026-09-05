@@ -11,7 +11,7 @@ Future<bool> loadSnapChineseFont() async {
   if (snapRoot == null) return false;
 
   final font = File(
-    '$snapRoot/usr/share/fonts/truetype/wqy/wqy-microhei.ttc',
+    '$snapRoot/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf',
   );
   if (!await font.exists()) return false;
 
