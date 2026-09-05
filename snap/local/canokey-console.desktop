@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=CanoKey Console
+Comment=Manage CanoKey security keys
+Exec=canokey-console
+Icon=${SNAP}/meta/gui/canokey-console.png
+Terminal=false
+Type=Application
+Categories=Utility;Security;
+StartupNotify=true

@@ -84,8 +84,34 @@ flutter build ios
 ```bash
 flutter build windows
 flutter build macos
-flutter build linux
 ```
+
+### Linux Snap
+
+Install the Linux build dependencies and Snapcraft, then build the release
+bundle and package it:
+
+```bash
+sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev \
+  liblzma-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+  libcurl4-openssl-dev openjdk-17-jdk
+sudo snap install snapcraft --classic
+flutter build linux --release
+sudo sh -c 'umask 022; exec /snap/bin/snapcraft pack --destructive-mode'
+```
+
+The CI builds Snap packages natively for both AMD64 and ARM64.
+
+Install and run the locally built package:
+
+```bash
+sudo snap install --dangerous ./canokey-console_*.snap
+sudo snap connect canokey-console:pcscd
+snap run canokey-console
+```
+
+The `pcscd` interface does not auto-connect by default. A Snap Store
+auto-connection grant can remove the manual connection step for store installs.
 
 ## USB/IP Compatibility Tests
 
