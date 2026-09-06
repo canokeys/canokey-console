@@ -22,47 +22,41 @@ class QrScannerDialog extends StatefulWidget {
   State<QrScannerDialog> createState() => _QrScannerDialogState();
 }
 
-class _QrScannerDialogState extends State<QrScannerDialog> with UIMixin, WidgetsBindingObserver {
-  final MobileScannerController scannerController = MobileScannerController(formats: [BarcodeFormat.qrCode]);
-  StreamSubscription<Object?>? _subscription;
+class _QrScannerDialogState extends State<QrScannerDialog>
+    with UIMixin, WidgetsBindingObserver {
+  final MobileScannerController scannerController =
+      MobileScannerController(formats: [BarcodeFormat.qrCode]);
+  bool _handledBarcode = false;
 
   void _handleBarcode(BarcodeCapture event) {
-    var barcode = event.barcodes.firstOrNull;
-    if (barcode != null) {
+    final value = event.barcodes.firstOrNull?.rawValue;
+    if (mounted && !_handledBarcode && value != null && value.isNotEmpty) {
+      _handledBarcode = true;
       Navigator.pop(context);
-      widget.onQrCodeScanned(barcode.rawValue!);
+      widget.onQrCodeScanned(value);
     }
   }
 
   @override
   void initState() {
     super.initState();
-    // Start listening to lifecycle changes.
     WidgetsBinding.instance.addObserver(this);
-    // Start listening to the barcode events.
-    _subscription = scannerController.barcodes.listen(_handleBarcode);
-    // Finally, start the scanner itself.
-    unawaited(scannerController.start());
   }
 
   @override
-  void dispose() async {
-    // Stop listening to lifecycle changes.
+  void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    // Stop listening to the barcode events.
-    unawaited(_subscription?.cancel());
-    _subscription = null;
-    // Dispose the widget itself.
+    unawaited(scannerController.dispose());
     super.dispose();
-    // Finally, dispose of the controller.
-    await scannerController.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // If the controller is not ready, do not try to start or stop it.
     // Permission dialogs can trigger lifecycle changes before the controller is ready.
-    if (!scannerController.value.isInitialized) {
+    if (!scannerController.value.isInitialized ||
+        scannerController.value.isStarting ||
+        _handledBarcode) {
       return;
     }
 
@@ -72,15 +66,8 @@ class _QrScannerDialogState extends State<QrScannerDialog> with UIMixin, Widgets
       case AppLifecycleState.paused:
         return;
       case AppLifecycleState.resumed:
-        // Restart the scanner when the app is resumed.
-        // Don't forget to resume listening to the barcode events.
-        _subscription = scannerController.barcodes.listen(_handleBarcode);
-        unawaited(scannerController.stop());
+        unawaited(scannerController.start());
       case AppLifecycleState.inactive:
-        // Stop the scanner when the app is paused.
-        // Also stop the barcode events subscription.
-        unawaited(_subscription?.cancel());
-        _subscription = null;
         unawaited(scannerController.stop());
     }
   }
@@ -117,7 +104,8 @@ class _QrScannerDialogState extends State<QrScannerDialog> with UIMixin, Widgets
                     elevation: 0,
                     padding: Spacing.xy(20, 16),
                     backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
+                    child: CustomizedText.labelMedium(S.of(context).cancel,
+                        color: contentTheme.onSecondary),
                   ),
                 ],
               ),
