@@ -72,7 +72,7 @@
   "readingAlertMessage": "请紧贴 CanoKey 直到读取结束",
   "interrupted": "通讯中断。尝试紧贴 CanoKey 直到读取结束。",
   "noCard": "未找到 CanoKey",
-  "browserNotSupported": "不支持该浏览器",
+  "browserNotSupported": "当前环境无法使用 WebUSB",
   "notSupported": "不支持该操作",
   "notSupportedInNFC": "该操作不支持在 NFC 模式下执行",
   "openpgpCardInfo": "卡片信息",

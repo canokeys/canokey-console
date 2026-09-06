@@ -1,6 +1,5 @@
-New in 1.2.3:
+New in 1.2.4:
 
-- Added Linux Snap packages for AMD64 and ARM64.
-- Expanded PIV support, including post-quantum algorithms and safer key, CSR, and certificate handling.
-- Improved iPad, desktop, and compact-screen layouts.
-- Updated dependencies and improved CanoKey firmware compatibility.
+- Added Traditional Chinese and improved automatic language selection.
+- Updated privacy policy links and feedback addresses by interface language.
+- Added Ctrl+F and Command+F shortcuts to focus credential search.

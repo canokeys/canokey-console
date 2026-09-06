@@ -18,7 +18,7 @@ class PreservingAppLocalizationDelegate extends LocalizationsDelegate<S> {
     final appLocale = ThemeCustomizer.instance.currentLanguage.locale;
     final localization = await S.delegate.load(locale);
 
-    if (locale.languageCode != appLocale.languageCode) {
+    if (locale != appLocale) {
       await S.delegate.load(appLocale);
     }
 

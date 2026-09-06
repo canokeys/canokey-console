@@ -99,7 +99,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "beforeSourceLink": MessageLookupByLibrary.simpleMessage(
       "可在 GitHub 获得源代码：",
     ),
-    "browserNotSupported": MessageLookupByLibrary.simpleMessage("不支持该浏览器"),
+    "browserNotSupported": MessageLookupByLibrary.simpleMessage(
+      "当前环境无法使用 WebUSB",
+    ),
     "cancel": MessageLookupByLibrary.simpleMessage("取消"),
     "change": MessageLookupByLibrary.simpleMessage("修改"),
     "changePin": MessageLookupByLibrary.simpleMessage("修改 PIN"),

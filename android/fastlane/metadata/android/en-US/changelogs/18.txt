@@ -1,0 +1,1 @@
+Added Traditional Chinese and improved automatic language selection. Updated privacy policy links and feedback addresses by interface language. Added Ctrl+F and Command+F shortcuts to focus credential search.
