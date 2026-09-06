@@ -186,6 +186,7 @@ class _OathPageState extends State<OathPage> with UIMixin {
   }
 
   void _showScreenCapture() async {
+    log.t('Call _OathPageState._showScreenCapture');
     var sources = <webrtc.DesktopCapturerSource?>[null];
     if (webrtc.WebRTC.platformIsDesktop) {
       try {
@@ -195,7 +196,7 @@ class _OathPageState extends State<OathPage> with UIMixin {
           sources = desktopSources;
         }
       } catch (e) {
-        log.w('Cannot enumerate screens, using the default screen: $e');
+        log.w('Cannot enumerate screens, using the default screen', error: e);
       }
     }
 
@@ -205,12 +206,14 @@ class _OathPageState extends State<OathPage> with UIMixin {
         final buffer = await _captureScreen(source);
         final start = DateTime.now();
         final result = decodePngQrcode(pngFile: buffer.asUint8List());
+        log.d('Decoded QR code: $result');
         log.i(
             'Rust decodePngQrcode took: ${DateTime.now().difference(start).inMilliseconds}ms');
         controller.parseUri(result);
         return;
       } catch (e) {
-        log.w('Cannot decode QR code from ${source?.name ?? 'default'}: $e');
+        log.w('Cannot decode QR code from ${source?.name ?? 'default'}',
+            error: e);
       }
     }
 

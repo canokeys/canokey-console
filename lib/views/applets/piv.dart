@@ -60,6 +60,7 @@ class _PivPageState extends State<PivPage>
     required List<int> bytes,
     MimeType mimeType = MimeType.other,
   }) async {
+    controller.log.t('Call _PivPageState._savePivFile');
     final l10n = S.of(context);
     try {
       final fileBytes = Uint8List.fromList(bytes);
@@ -389,6 +390,7 @@ class _PivPageState extends State<PivPage>
     List<FieldValidatorRule> validators = const [],
     required Function(String, String) handler,
   }) {
+    controller.log.t('Call _PivPageState._showChangePinDialog');
     RxBool showOldPin = false.obs;
     RxBool showNewPin = false.obs;
     FormValidator validator = FormValidator();
@@ -627,6 +629,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showAlgorithmExtensionConfigDialog() {
+    controller.log.t('Call _PivPageState._showAlgorithmExtensionConfigDialog');
     final config = controller.algorithmExtensionConfig;
     bool enabled = config.enabled;
     bool usePinOnly = controller.pinOnlyMode;
@@ -872,6 +875,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showSetPinRetriesDialog() {
+    controller.log.t('Call _PivPageState._showSetPinRetriesDialog');
     bool usePinOnly = controller.pinOnlyMode;
     FormValidator validator = FormValidator();
     validator.addField('pin',
@@ -1038,6 +1042,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showEnablePinOnlyDialog() {
+    controller.log.t('Call _PivPageState._showEnablePinOnlyDialog');
     FormValidator validator = FormValidator();
     validator.addField('pin',
         required: true,
@@ -1145,6 +1150,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showDisablePinOnlyDialog() {
+    controller.log.t('Call _PivPageState._showDisablePinOnlyDialog');
     bool usePinOnly = controller.pinOnlyMode;
     FormValidator validator = FormValidator();
     validator.addField('pin',
@@ -1309,6 +1315,7 @@ class _PivPageState extends State<PivPage>
   }
 
   Future<String> showVerifyManagementKeyDialog() {
+    controller.log.t('Call _PivPageState.showVerifyManagementKeyDialog');
     Completer<String> c = new Completer<String>();
 
     FormValidator validator = FormValidator();
@@ -1416,6 +1423,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showChangeManagementKeyDialog() {
+    controller.log.t('Call _PivPageState._showChangeManagementKeyDialog');
     bool usePinOnly = controller.pinOnlyMode;
     bool storeOnDevice = controller.pinOnlyMode;
     TouchPolicy managementKeyTouchPolicy = controller.managementKeyTouchPolicy;
@@ -1711,6 +1719,7 @@ class _PivPageState extends State<PivPage>
 
   Future<void> _showSlotDetailDialog(
       String title, String slotNumber, SlotInfo? slot) async {
+    controller.log.t('Call _PivPageState._showSlotDetailDialog');
     final slotId = int.parse(slotNumber, radix: 16);
     if (controller.supportsMetadataDirectory) {
       slot = await controller.loadSlotDetails(slotId) ?? slot;
@@ -2060,6 +2069,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showExportDialog(Uint8List certificateBytes) {
+    controller.log.t('Call _PivPageState._showExportDialog');
     AppDialog.show(AppDialogSurface(
         child: SizedBox(
             width: AppDialogWidth.compact,
@@ -2120,6 +2130,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showExportPublicKeyDialog(SlotInfo slot) {
+    controller.log.t('Call _PivPageState._showExportPublicKeyDialog');
     final publicKey = controller.publicKeyForSlot(slot);
     if (publicKey == null) {
       Prompts.showPrompt(
@@ -2195,6 +2206,7 @@ class _PivPageState extends State<PivPage>
 
   void _showMessageSignDialog(
       BuildContext currentDialogContext, String slotNumber, SlotInfo slot) {
+    controller.log.t('Call _PivPageState._showMessageSignDialog');
     FormValidator validator = FormValidator();
     validator.addField('pin',
         required: true,
@@ -2329,6 +2341,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showFileSignDialog(String slotNumber, SlotInfo slot) {
+    controller.log.t('Call _PivPageState._showFileSignDialog');
     FormValidator validator = FormValidator();
     validator.addField('pin',
         required: true,
@@ -2465,6 +2478,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showFileVerifyDialog(SlotInfo slot) {
+    controller.log.t('Call _PivPageState._showFileVerifyDialog');
     final selectedFileName = ''.obs;
     final selectedSignatureName = ''.obs;
     final verifyResult = ''.obs;
@@ -2611,6 +2625,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showImportDialog(String slotNumber) {
+    controller.log.t('Call _PivPageState._showImportDialog');
     Rx<int> step = 0.obs;
     Rx<bool> hasCert = false.obs;
     Rx<bool> hasKey = false.obs;
@@ -3049,6 +3064,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showGenerateDialog(String slotNumber, {required bool selfSigned}) {
+    controller.log.t('Call _PivPageState._showGenerateDialog');
     Rx<int> step = 0.obs;
     AlgorithmType algorithm = AlgorithmType.eccp256;
     PinPolicy pinPolicy = recommendedPivPinPolicy(slotNumber);
@@ -3474,6 +3490,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showGenerateKeyDialog(String slotNumber) {
+    controller.log.t('Call _PivPageState._showGenerateKeyDialog');
     final algorithms = <AlgorithmType>[
       if (slotNumber == '9D') AlgorithmType.x25519,
       AlgorithmType.mlkem768,
@@ -3657,6 +3674,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showCsrResultDialog(String slotNumber, String csr) {
+    controller.log.t('Call _PivPageState._showCsrResultDialog');
     AppDialog.show(AppDialogSurface(
       child: SizedBox(
         width: AppDialogWidth.large,
@@ -3734,6 +3752,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showCertificateResultDialog(String slotNumber, Uint8List cert) {
+    controller.log.t('Call _PivPageState._showCertificateResultDialog');
     final pem = _certificatePem(cert);
     AppDialog.show(AppDialogSurface(
       child: SizedBox(
@@ -3802,6 +3821,7 @@ class _PivPageState extends State<PivPage>
   }
 
   Future<void> _downloadAttestation(String slotNumber) async {
+    controller.log.t('Call _PivPageState._downloadAttestation');
     AppLoaderOverlay.show();
     try {
       final certificate = await controller.attestKey(slotNumber);
@@ -3823,6 +3843,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showMoveKeyDialog(String sourceSlot) {
+    controller.log.t('Call _PivPageState._showMoveKeyDialog');
     final source = int.parse(sourceSlot, radix: 16);
     final candidateSlots = <int>[
       0x9A,
@@ -4014,6 +4035,7 @@ class _PivPageState extends State<PivPage>
   }
 
   void _showDeleteDialog(String slotNumber) {
+    controller.log.t('Call _PivPageState._showDeleteDialog');
     bool usePinOnly = controller.pinOnlyMode;
     FormValidator validator = FormValidator();
     validator.addField('pin',

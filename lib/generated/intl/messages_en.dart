@@ -165,6 +165,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "iosPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "Pull down or tap refresh, then hold your iPhone near your CanoKey, or insert it into the USB port",
     ),
+    "logsCopied": MessageLookupByLibrary.simpleMessage("Log copied"),
+    "logsCopyFailed": MessageLookupByLibrary.simpleMessage(
+      "Could not copy log",
+    ),
+    "logsEmpty": MessageLookupByLibrary.simpleMessage(
+      "No logs in this session",
+    ),
+    "logsRecording": MessageLookupByLibrary.simpleMessage("Record logs"),
+    "logsTitle": MessageLookupByLibrary.simpleMessage("View Logs"),
     "ndefAbsoluteUri": MessageLookupByLibrary.simpleMessage("Absolute URI"),
     "ndefAddRecord": MessageLookupByLibrary.simpleMessage("Add record"),
     "ndefAndroidApplication": MessageLookupByLibrary.simpleMessage("AAR"),

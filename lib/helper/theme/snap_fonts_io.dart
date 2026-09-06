@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:canokey_console/helper/theme/app_fonts.dart';
-import 'package:flutter/foundation.dart';
+import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:flutter/services.dart';
 
 Future<bool> loadSnapChineseFont() async {
@@ -26,7 +26,8 @@ Future<bool> loadSnapChineseFont() async {
     await loader.load();
     return true;
   } on Object catch (error) {
-    debugPrint('Unable to load the Snap Chinese font: $error');
+    Logging.logger('Fonts')
+        .w('Unable to load the Snap Chinese font', error: error);
     return false;
   }
 }

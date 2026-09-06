@@ -4,6 +4,7 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/localization/language.dart';
 import 'package:canokey_console/helper/localization/preserving_app_localization_delegate.dart';
 import 'package:canokey_console/helper/services/navigation_service.dart';
+import 'package:canokey_console/helper/services/log_navigation_observer.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/app_notifier.dart';
 import 'package:canokey_console/helper/theme/snap_fonts.dart';
@@ -15,11 +16,10 @@ import 'package:canokey_console/helper/utils/audio.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/rust_license.dart';
 import 'package:canokey_console/helper/utils/screenshot_mode.dart';
-import 'package:canokey_console/helper/utils/sentry_setup.dart';
+import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/routes.dart';
 import 'package:canokey_console/src/rust/frb_generated.dart';
 import 'package:canokey_console/views/layout/layout.dart';
-import 'package:canokey_console/views/privacy_consent_dialog.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -31,9 +31,16 @@ import 'package:get/get.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:platform_detector/platform_detector.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 Future<void> main() async {
+  final log = Logging.logger('Application');
+  final previousErrorHandler = FlutterError.onError;
+  FlutterError.onError = (details) {
+    log.e('Flutter framework error',
+        error: details.exception, stackTrace: details.stack);
+    previousErrorHandler?.call(details);
+  };
+  log.i('CanoKey Console started');
   if (ScreenshotMode.enabled) {
     WidgetsFlutterBinding.ensureInitialized();
     await loadSnapChineseFont();
@@ -83,24 +90,17 @@ Future<void> main() async {
       child: MyApp(),
     );
 
-    // OPPO compliance: Chinese users on iOS/Android who have not agreed to
-    // the privacy policy must not initialize Sentry before giving consent.
-    if (requiresPrivacyConsent()) {
-      runApp(app);
-    } else {
-      markSentryInitialized();
-      await SentryFlutter.init(
-        configureSentry,
-        appRunner: () => runApp(app),
-      );
-    }
-  }, (exception, stackTrace) async {
-    await Sentry.captureException(exception, stackTrace: stackTrace);
+    runApp(app);
+  }, (exception, stackTrace) {
+    log.e('Unhandled application error',
+        error: exception, stackTrace: stackTrace);
   });
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
+  static final _navigationObserver = LogNavigationObserver();
 
   @override
   Widget build(BuildContext context) {
@@ -123,6 +123,7 @@ class MyApp extends StatelessWidget {
             darkTheme: AppTheme.darkTheme,
             themeMode: ThemeCustomizer.instance.theme,
             navigatorKey: NavigationService.navigatorKey,
+            navigatorObservers: [_navigationObserver],
             initialRoute: ScreenshotMode.enabled
                 ? ScreenshotMode.initialRoute
                 : LocalStorage.getStartPage() ?? '/',

@@ -1,11 +1,36 @@
-import 'dart:convert';
-
 import 'package:logger/logger.dart';
+import 'package:canokey_console/helper/utils/log_store.dart';
+
+export 'log_store.dart';
 
 class Logging {
+  static final store = LogStore();
+
   static Logger logger(String tag) {
-    return Logger(printer: SimplePrinter(tag));
-    // return Logger(printer: PrettyPrinter(methodCount: 100));
+    return DiagnosticLogger(tag, store: store);
+  }
+}
+
+class DiagnosticLogger extends Logger {
+  DiagnosticLogger(this.tag, {required this.store, super.output, super.filter})
+      : super(printer: SimplePrinter(tag));
+
+  final String tag;
+  final LogStore store;
+
+  @override
+  void log(Level level, dynamic message,
+      {DateTime? time, Object? error, StackTrace? stackTrace}) {
+    if (store.enabled) {
+      // Evaluate lazy messages once for both the viewer and console.
+      message = stringifyLogMessage(message);
+      time ??= DateTime.now();
+      store.record(
+          tag,
+          LogEvent(level, message,
+              time: time, error: error, stackTrace: stackTrace));
+    }
+    super.log(level, message, time: time, error: error, stackTrace: stackTrace);
   }
 }
 
@@ -34,10 +59,13 @@ class SimplePrinter extends LogPrinter {
 
   @override
   List<String> log(LogEvent event) {
-    var messageStr = _stringifyMessage(event.message);
+    var messageStr = stringifyLogMessage(event.message);
     var errorStr = event.error != null ? '  ERROR: ${event.error}' : '';
     var timeStr = event.time.toIso8601String();
-    return ['${_labelFor(event.level)} [$tag] $timeStr $messageStr$errorStr'];
+    return [
+      '${_labelFor(event.level)} [$tag] $timeStr $messageStr$errorStr',
+      if (event.stackTrace != null) event.stackTrace.toString()
+    ];
   }
 
   String _labelFor(Level level) {
@@ -45,15 +73,5 @@ class SimplePrinter extends LogPrinter {
     var color = levelColors[level]!;
 
     return color(prefix);
-  }
-
-  String _stringifyMessage(dynamic message) {
-    final finalMessage = message is Function ? message() : message;
-    if (finalMessage is Map || finalMessage is Iterable) {
-      var encoder = const JsonEncoder.withIndent(null);
-      return encoder.convert(finalMessage);
-    } else {
-      return finalMessage.toString();
-    }
   }
 }

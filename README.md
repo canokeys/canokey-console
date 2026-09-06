@@ -54,6 +54,23 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
    flutter run
    ```
 
+## Diagnostic Logs
+
+Open **Settings > View Logs** to inspect this session's local logs without a
+connected key. Recording is enabled by default and can be paused with the switch.
+All levels from TRACE up are captured, keeping the latest 500 events in memory.
+The read-only text box displays full messages, errors, and stack traces, with
+text selection and a button to copy all displayed logs. Logs are cleared on
+restart or browser reload; pausing recording retains the existing text.
+
+Application logging uses `Logging.logger(tag)` with ordinary messages. Logs are
+not redacted, truncated, or deduplicated: protocol payloads, account identifiers,
+QR contents, and exception details remain visible and are included when copied.
+
+The recording switch does not affect Debug console output or its existing level
+filter. Page navigation and applet operation calls are logged alongside protocol
+traffic. Logs and unhandled errors remain local and are not uploaded.
+
 ## Building
 
 If you change any Rust dependencies (`Cargo.lock`), please run:

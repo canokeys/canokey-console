@@ -140,6 +140,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "iosPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "请下拉页面或点击刷新按钮，然后用 iPhone 顶部靠近 CanoKey；也可将其插入 USB 接口",
     ),
+    "logsCopied": MessageLookupByLibrary.simpleMessage("已复制日志"),
+    "logsCopyFailed": MessageLookupByLibrary.simpleMessage("无法复制日志"),
+    "logsEmpty": MessageLookupByLibrary.simpleMessage("本次运行暂无日志"),
+    "logsRecording": MessageLookupByLibrary.simpleMessage("记录日志"),
+    "logsTitle": MessageLookupByLibrary.simpleMessage("查看日志"),
     "ndefAbsoluteUri": MessageLookupByLibrary.simpleMessage("绝对 URI"),
     "ndefAddRecord": MessageLookupByLibrary.simpleMessage("添加记录"),
     "ndefAndroidApplication": MessageLookupByLibrary.simpleMessage("AAR"),

@@ -20,7 +20,10 @@ class Layout extends StatelessWidget {
   final Widget? topActions;
   final Future<void> Function()? onRefresh;
 
-  final LayoutController controller = LayoutController();
+  /// Disable the outer scroll view for tools that manage their own viewport.
+  final bool scrollable;
+
+  final LayoutController controller;
   final topBarTheme = AdminTheme.theme.topBarTheme;
   final contentTheme = AdminTheme.theme.contentTheme;
 
@@ -30,21 +33,22 @@ class Layout extends StatelessWidget {
     this.topActions,
     this.onRefresh,
     this.title = "",
-  });
+    this.scrollable = true,
+    LayoutController? controller,
+  }) : controller = controller ?? LayoutController();
 
   @override
   Widget build(BuildContext context) {
     return Responsive(builder: (BuildContext context, _, screenMT) {
-      return _KeyboardStablePage(
-        child: GetBuilder(
-            init: controller,
-            builder: (_) {
-              if (notSupported) return notSupportedScreen();
-              return screenMT.isMobile
-                  ? mobileScreen(context)
-                  : largeScreen(context);
-            }),
-      );
+      final page = GetBuilder(
+          init: controller,
+          builder: (_) {
+            if (notSupported) return notSupportedScreen();
+            return screenMT.isMobile
+                ? mobileScreen(context)
+                : largeScreen(context);
+          });
+      return scrollable ? _KeyboardStablePage(child: page) : page;
     });
   }
 
@@ -53,7 +57,7 @@ class Layout extends StatelessWidget {
 
     return Scaffold(
       key: controller.scaffoldKey,
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: !scrollable,
       appBar: AppBar(
         elevation: 0,
         centerTitle: true,
@@ -92,19 +96,21 @@ class Layout extends StatelessWidget {
       drawer: LeftBar(),
       body: SafeArea(
         top: false,
-        child: CustomScrollView(
-          key: controller.scrollKey,
-          physics: canPullToRefresh
-              ? const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                )
-              : null,
-          slivers: [
-            if (canPullToRefresh)
-              CupertinoSliverRefreshControl(onRefresh: onRefresh!),
-            SliverToBoxAdapter(child: child ?? const SizedBox.shrink()),
-          ],
-        ),
+        child: !scrollable
+            ? child ?? const SizedBox.shrink()
+            : CustomScrollView(
+                key: controller.scrollKey,
+                physics: canPullToRefresh
+                    ? const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
+                      )
+                    : null,
+                slivers: [
+                  if (canPullToRefresh)
+                    CupertinoSliverRefreshControl(onRefresh: onRefresh!),
+                  SliverToBoxAdapter(child: child ?? const SizedBox.shrink()),
+                ],
+              ),
       ),
     );
   }
@@ -142,7 +148,7 @@ class Layout extends StatelessWidget {
 
     return Scaffold(
       key: controller.scaffoldKey,
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: !scrollable,
       body: Row(
         children: [
           LeftBar(isCondensed: ThemeCustomizer.instance.leftBarCondensed),
@@ -156,11 +162,17 @@ class Layout extends StatelessWidget {
                 bottom: 0,
                 child: SafeArea(
                   top: false,
-                  child: SingleChildScrollView(
-                      padding: Spacing.fromLTRB(
-                          0, topInset + 58 + flexSpacing, 0, flexSpacing),
-                      key: controller.scrollKey,
-                      child: child),
+                  child: !scrollable
+                      ? Padding(
+                          padding: Spacing.fromLTRB(
+                              0, topInset + 58 + flexSpacing, 0, flexSpacing),
+                          child: child,
+                        )
+                      : SingleChildScrollView(
+                          padding: Spacing.fromLTRB(
+                              0, topInset + 58 + flexSpacing, 0, flexSpacing),
+                          key: controller.scrollKey,
+                          child: child),
                 ),
               ),
               Positioned(

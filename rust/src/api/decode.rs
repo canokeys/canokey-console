@@ -46,7 +46,9 @@ pub fn decode_png_qrcode(png_file: Vec<u8>) -> Result<String, String> {
         .immutable_decode(&mut bitmap)
         .map_err(|error| format!("Cannot decode QR code: {error}"))?;
     let text: String = result.getText().into();
-    log::info!("Decoded QR code: {:?}", text);
+    // Raw QR diagnostics are emitted at the Dart boundary, gated by Flutter's
+    // debug mode. Rust's build profile can differ from Flutter's build mode.
+    log::info!("Decoded QR code");
 
     Ok(text)
 }

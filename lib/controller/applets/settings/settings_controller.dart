@@ -27,6 +27,7 @@ class SettingsController extends PollingController with AdminApplet {
 
   @override
   Future<void> doRefreshData() async {
+    log.t('Call SettingsController.doRefreshData');
     if (ScreenshotMode.enabled) {
       key = ScreenshotMode.canoKey();
       polled = true;
@@ -44,6 +45,7 @@ class SettingsController extends PollingController with AdminApplet {
   }
 
   void changeSwitch(Func func, bool value) async {
+    log.t('Call SettingsController.changeSwitch');
     await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
         return;
@@ -62,6 +64,7 @@ class SettingsController extends PollingController with AdminApplet {
   }
 
   Future<void> changeSwitches(Map<Func, bool> values) async {
+    log.t('Call SettingsController.changeSwitches');
     if (values.isEmpty) {
       Navigator.pop(Get.context!);
       return;
@@ -99,6 +102,7 @@ class SettingsController extends PollingController with AdminApplet {
   }
 
   Future<void> changePin(String newPin, bool savePin) async {
+    log.t('Call SettingsController.changePin');
     await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
         return;
@@ -117,6 +121,7 @@ class SettingsController extends PollingController with AdminApplet {
   }
 
   Future<void> resetApplet(Applet applet) async {
+    log.t('Call SettingsController.resetApplet');
     await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
         return;
@@ -133,6 +138,7 @@ class SettingsController extends PollingController with AdminApplet {
   }
 
   void resetCanokey() {
+    log.t('Call SettingsController.resetCanokey');
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));
       AppLoaderOverlay.show();
@@ -156,6 +162,7 @@ class SettingsController extends PollingController with AdminApplet {
   }
 
   void changeKeyboardKeymap(KeyboardKeymapPreset preset) async {
+    log.t('Call SettingsController.changeKeyboardKeymap');
     await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
         return;

@@ -43,7 +43,6 @@ dependencies:
   logger: ^2.5.0
   package_info_plus: ^10.1.0
   chinese_font_library: ^1.2.0
-  sentry_flutter: ^9.29.0
   share_plus: ^13.3.0
 
 dev_dependencies:

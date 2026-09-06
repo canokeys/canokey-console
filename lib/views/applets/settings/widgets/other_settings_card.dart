@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
 import 'package:canokey_console/helper/utils/icp_filing.dart';
@@ -17,6 +18,7 @@ import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -53,6 +55,7 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
   }
 
   Future<void> _launchUrl(Uri url) async {
+    Logging.logger('Settings:Page').t('Call _OtherSettingsCardState._launchUrl');
     await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
@@ -113,6 +116,12 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                       onTap: () => NfcSoundDialog.show()),
                   Spacing.height(16),
                 },
+                InfoItem(
+                    iconData: LucideIcons.fileText,
+                    title: S.of(context).logsTitle,
+                    value: '',
+                    onTap: () => Get.toNamed('/logs')),
+                Spacing.height(16),
                 InfoItem(
                     iconData: LucideIcons.info,
                     title: S.of(context).about,

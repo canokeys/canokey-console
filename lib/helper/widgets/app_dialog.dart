@@ -1,4 +1,5 @@
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -22,6 +23,8 @@ abstract final class AppDialog {
   }
 
   static Future<T?> show<T>(Widget dialog, {bool useSafeArea = true}) async {
+    final log = Logging.logger('Dialog');
+    log.t('Open ${dialog.runtimeType}');
     SmartCard.beginDialogInputScope();
     var released = false;
     void releaseNfcScope() {
@@ -44,6 +47,7 @@ abstract final class AppDialog {
       );
     } finally {
       releaseNfcScope();
+      log.t('Close ${dialog.runtimeType}');
     }
   }
 }

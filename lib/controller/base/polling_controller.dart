@@ -126,14 +126,21 @@ abstract class PollingController extends Controller {
   Future<void> refreshData() {
     final activeRefresh = _refreshFuture;
     if (activeRefresh != null) {
+      log.t('refreshData: joining active refresh');
       return activeRefresh;
     }
 
+    final timer = Stopwatch()..start();
+    log.t('refreshData: started');
     late final Future<void> refresh;
     refresh = Future<void>.sync(doRefreshData).then((_) {
       _wasNfcConnection = SmartCard.connectionType == ConnectionType.nfc;
       log.t("wasNfcConnection = $_wasNfcConnection");
+    }, onError: (Object error, StackTrace stack) {
+      log.e('refreshData: failed', error: error, stackTrace: stack);
+      Error.throwWithStackTrace(error, stack);
     }).whenComplete(() {
+      log.t('refreshData: finished in ${timer.elapsedMilliseconds}ms');
       if (identical(_refreshFuture, refresh)) {
         _refreshFuture = null;
       }
