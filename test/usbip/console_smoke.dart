@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:canokey_console/helper/utils/admin_card.dart';
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/ctap_transmitter.dart';
+import 'package:canokey_console/helper/utils/fido2_backend.dart';
 import 'package:canokey_console/helper/utils/ndef_card.dart';
 import 'package:canokey_console/helper/utils/oath_card.dart';
 import 'package:canokey_console/helper/utils/openpgp_card.dart';
@@ -1018,6 +1019,7 @@ void main() {
 }
 
 Future<void> _runSmoke() async {
+  await initializeFido2Backend();
   final environment = Platform.environment;
   _expect(environment['CANOKEY_USBIP'] == '1', 'CANOKEY_USBIP must be 1');
   final expectedVersion = _requiredEnvironment('CANOKEY_FIRMWARE_VERSION');

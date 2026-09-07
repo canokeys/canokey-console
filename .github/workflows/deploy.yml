@@ -49,6 +49,11 @@ jobs:
         cargo install wasm-pack --version "$WASM_PACK_VERSION" --locked
         flutter_rust_bridge_codegen build-web --release \
           --wasm-pack-rustup-toolchain "$RUST_NIGHTLY"
+    - name: Build FIDO2 Web backend
+      run: |
+        dart run fido2:setup --web --output=build/fido2
+        mkdir -p web/fido2
+        cp build/fido2/web/fido2_crypto* web/fido2/
     - run: flutter build web --verbose
     - uses: actions/upload-artifact@v7
       with:

@@ -142,6 +142,16 @@ jobs:
       - name: Resolve Console dependencies
         run: flutter pub get
 
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.98.1
+
+      - name: Build FIDO2 backend
+        run: cargo build --manifest-path rust/Cargo.toml --release --locked
+
+      - name: Test FIDO2 backend and client integration
+        run: flutter test --no-pub test/helper/utils/fido2_backend_test.dart
+
       - name: Check USB/IP runner environment
         shell: bash
         run: |

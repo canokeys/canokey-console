@@ -5,6 +5,7 @@ build
 *.iml
 .flutter-plugins*
 dist/
+web/fido2/
 app-store-screenshots/
 android/fastlane/report.xml
 ios/fastlane/report.xml

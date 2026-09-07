@@ -34,6 +34,14 @@ x509-parser = "^0.18.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "^0.4.3", features = ["wasm_js"] }
+# Keep the wasm-bindgen family compatible with fido2 2.0.0's exact pin.
+wasm-bindgen = "=0.2.100"
+js-sys = "=0.3.77"
+web-sys = "=0.3.77"
+wasm-bindgen-futures = "=0.4.50"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+fido2_crypto = { git = "https://github.com/nfcim/fido2", rev = "623bf7de456bb4475b67c14a90bcc46b81d1095d" }
 
 [dev-dependencies]
 rand = "^0.10.0"
