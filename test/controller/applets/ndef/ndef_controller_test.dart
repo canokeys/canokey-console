@@ -1,16 +1,12 @@
 import 'dart:typed_data';
 
 import 'package:canokey_console/controller/applets/ndef/ndef_controller.dart';
-import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:logger/logger.dart';
 import 'package:ndef/ndef.dart';
 
 void main() {
-  test('editing records logs operations without changing editor behavior', () {
-    final store = LogStore();
-    addTearDown(store.dispose);
-    final controller = _LoggedNdefController(store);
+  test('editing records updates their order and marks the document dirty', () {
+    final controller = NdefController();
     final first = TextRecord(text: 'first');
     final second = TextRecord(text: 'second');
     controller.addRecord(first);
@@ -20,14 +16,8 @@ void main() {
     controller.removeRecord(0);
     expect(controller.records, [first]);
     expect(controller.dirty, isTrue);
-    expect(store.text, contains('Call NdefController.addRecord'));
-    expect(store.text, contains('Call NdefController.moveRecord'));
-    expect(store.text, contains('Call NdefController.removeRecord'));
-    final before = store.text;
-    store.setEnabled(false);
     controller.updateRecord(0, second);
     expect(controller.records, [second]);
-    expect(store.text, before);
   });
 
   group('NdefController APDUs', () {
@@ -50,12 +40,4 @@ void main() {
       );
     });
   });
-}
-
-class _LoggedNdefController extends NdefController {
-  _LoggedNdefController(LogStore store)
-      : log = DiagnosticLogger('NDEF:Controller', store: store);
-
-  @override
-  final Logger log;
 }

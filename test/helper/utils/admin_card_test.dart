@@ -3,6 +3,73 @@ import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('reads current SM2 defaults and writes big-endian signed IDs', () async {
+    final transport = _QueueApduTransport([
+      '00000009ffffffca9000',
+      '00000009ffffffca9000',
+      '9000',
+    ]);
+    final client = AdminCardClient(transport: transport);
+    final config = await client.readSm2Config();
+    expect(config.enabled, isTrue);
+    expect(config.canChangeEnabled, isFalse);
+    expect(config.curveId, 9);
+    expect(config.algoId, -54);
+    await client.writeSm2Config(
+      enabled: false,
+      curveId: -2147483648,
+      algoId: 2147483647,
+    );
+    expect(transport.commands, [
+      '0011000000',
+      '0011000000',
+      '0012000008800000007fffffff',
+    ]);
+  });
+
+  test(
+    'preserves the legacy enabled byte when writing SM2 configuration',
+    () async {
+      final transport = _QueueApduTransport(['0100000009ffffffd09000', '9000']);
+      final client = AdminCardClient(transport: transport);
+      await client.writeSm2Config(enabled: false, curveId: 9, algoId: -48);
+      expect(transport.commands, [
+        '0011000000',
+        '00120000090000000009ffffffd0',
+      ]);
+    },
+  );
+
+  test('rejects reserved current SM2 IDs before sending a write', () async {
+    final transport = _QueueApduTransport(['00000009ffffffca9000']);
+    await expectLater(
+      AdminCardClient(
+        transport: transport,
+      ).writeSm2Config(enabled: true, curveId: 1, algoId: -54),
+      throwsArgumentError,
+    );
+    expect(transport.commands, ['0011000000']);
+  });
+
+  test('rejects failed and malformed SM2 reads', () async {
+    await expectLater(
+      AdminCardClient(transport: _QueueApduTransport(['6982'])).readSm2Config(),
+      throwsA(
+        isA<Exception>().having(
+          (error) => error.toString(),
+          'message',
+          'Exception: SW is not ok',
+        ),
+      ),
+    );
+    await expectLater(
+      AdminCardClient(
+        transport: _QueueApduTransport(['00009000']),
+      ).readSm2Config(),
+      throwsFormatException,
+    );
+  });
+
   test('reads and updates admin data through the injected transport', () async {
     final transport = _QueueApduTransport([
       '9000',
@@ -45,43 +112,45 @@ void main() {
     ]);
   });
 
-  test('runs optional admin operations and handles unavailable core commit',
-      () async {
-    final transport = _QueueApduTransport(List.filled(5, '9000'));
-    final client = AdminCardClient(transport: transport);
+  test(
+    'runs optional admin operations and handles unavailable core commit',
+    () async {
+      final transport = _QueueApduTransport(List.filled(5, '9000'));
+      final client = AdminCardClient(transport: transport);
 
-    await client.setNfcEnabled(true);
-    await client.setNfcEnabled(false);
-    await client.setNdefReadOnly(true);
-    await client.setNdefReadOnly(false);
-    await client.resetNdef();
+      await client.setNfcEnabled(true);
+      await client.setNfcEnabled(false);
+      await client.setNdefReadOnly(true);
+      await client.setNdefReadOnly(false);
+      await client.resetNdef();
 
-    expect(transport.commands, [
-      '00140101',
-      '00140100',
-      '00080100',
-      '00080000',
-      '00070000',
-    ]);
-    expect(
-      await AdminCardClient(
-        transport: _QueueApduTransport(['6162639000']),
-      ).readCoreCommit(),
-      'abc',
-    );
-    expect(
-      await AdminCardClient(
-        transport: _QueueApduTransport(['9000']),
-      ).readCoreCommit(),
-      isNull,
-    );
-    expect(
-      await AdminCardClient(
-        transport: _QueueApduTransport(['6D00']),
-      ).readCoreCommit(),
-      isNull,
-    );
-  });
+      expect(transport.commands, [
+        '00140101',
+        '00140100',
+        '00080100',
+        '00080000',
+        '00070000',
+      ]);
+      expect(
+        await AdminCardClient(
+          transport: _QueueApduTransport(['6162639000']),
+        ).readCoreCommit(),
+        'abc',
+      );
+      expect(
+        await AdminCardClient(
+          transport: _QueueApduTransport(['9000']),
+        ).readCoreCommit(),
+        isNull,
+      );
+      expect(
+        await AdminCardClient(
+          transport: _QueueApduTransport(['6D00']),
+        ).readCoreCommit(),
+        isNull,
+      );
+    },
+  );
 
   test('encodes admin PIN operations as UTF-8 bytes', () async {
     final transport = _QueueApduTransport(['9000', '9000']);
@@ -106,25 +175,27 @@ void main() {
     expect(transport.commands, isEmpty);
   });
 
-  test('rejects invalid admin response data and configuration indexes',
-      () async {
-    final client = AdminCardClient(transport: _QueueApduTransport([]));
+  test(
+    'rejects invalid admin response data and configuration indexes',
+    () async {
+      final client = AdminCardClient(transport: _QueueApduTransport([]));
 
-    expect(() => client.writeConfigByte(-1, 0), throwsRangeError);
-    expect(() => client.writeConfigByte(1, 256), throwsRangeError);
-    expect(
-      AdminCardClient(
-        transport: _QueueApduTransport(['029000']),
-      ).readNfcEnabled(),
-      throwsFormatException,
-    );
-    expect(
-      AdminCardClient(
-        transport: _QueueApduTransport(['019000']),
-      ).readStorageUsage(),
-      throwsFormatException,
-    );
-  });
+      expect(() => client.writeConfigByte(-1, 0), throwsRangeError);
+      expect(() => client.writeConfigByte(1, 256), throwsRangeError);
+      expect(
+        AdminCardClient(
+          transport: _QueueApduTransport(['029000']),
+        ).readNfcEnabled(),
+        throwsFormatException,
+      );
+      expect(
+        AdminCardClient(
+          transport: _QueueApduTransport(['019000']),
+        ).readStorageUsage(),
+        throwsFormatException,
+      );
+    },
+  );
 }
 
 class _QueueApduTransport implements ApduTransport {

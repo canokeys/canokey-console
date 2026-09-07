@@ -51,6 +51,8 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 3. Run the application:
    ```bash
    flutter_rust_bridge_codegen build-web --release # for web only, remove --release for debug Rust build (very slow when decoding qrcode!)
+   dart run fido2:setup --web --output=build/fido2 # for web only
+   mkdir -p web/fido2 && cp build/fido2/web/fido2_crypto* web/fido2/ # for web only
    flutter run
    ```
 
@@ -79,10 +81,24 @@ If you change any Rust dependencies (`Cargo.lock`), please run:
 cd rust && cargo bundle-licenses -f json | jq '.third_party_libraries | del(.[].licenses)' > THIRD_PARTY_LICENSES.json
 ```
 
+The fido2 Dart package and native Rust revision are pinned together at 2.0.0.
+Its native C ABI is linked into the existing console Rust library. The
+wasm-bindgen dependency family is pinned to versions compatible with fido2 2.0.0.
+Web uses the separate JS/WASM loader distributed with the Dart package.
+
+Before running backend or USB/IP tests locally, build the native backend:
+
+```bash
+cargo build --manifest-path rust/Cargo.toml --release --locked
+flutter test test/helper/utils/fido2_backend_test.dart
+```
+
 ### Web
 
 ```bash
 flutter_rust_bridge_codegen build-web --release
+dart run fido2:setup --web --output=build/fido2
+mkdir -p web/fido2 && cp build/fido2/web/fido2_crypto* web/fido2/
 flutter build web
 ```
 

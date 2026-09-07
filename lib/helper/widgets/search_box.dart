@@ -31,11 +31,11 @@ class _SearchBoxState extends State<SearchBox> with UIMixin {
   }
 
   KeyEventResult _handleFindShortcut(KeyEvent event) {
-    if (!mounted ||
-        ModalRoute.of(context)?.isCurrent == false ||
+    if (ModalRoute.of(context)?.isCurrent == false ||
         !_focusNode.canRequestFocus ||
         !_findShortcuts.any(
-            (shortcut) => shortcut.accepts(event, HardwareKeyboard.instance))) {
+          (shortcut) => shortcut.accepts(event, HardwareKeyboard.instance),
+        )) {
       return KeyEventResult.ignored;
     }
 
@@ -80,7 +80,11 @@ class _SearchBoxState extends State<SearchBox> with UIMixin {
             child: Icon(LucideIcons.search, size: 14),
           ),
           prefixIconConstraints: const BoxConstraints(
-              minWidth: 36, maxWidth: 36, minHeight: 32, maxHeight: 32),
+            minWidth: 36,
+            maxWidth: 36,
+            minHeight: 32,
+            maxHeight: 32,
+          ),
           contentPadding: Spacing.xy(16, 12),
           isCollapsed: true,
           floatingLabelBehavior: FloatingLabelBehavior.never,

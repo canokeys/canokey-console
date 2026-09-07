@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:canokey_console/controller/base/polling_controller.dart';
-import 'package:canokey_console/helper/utils/logging.dart' as diagnostic;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart';
 
@@ -24,22 +23,14 @@ void main() {
     await third;
   });
 
-  test('refresh logging preserves failures and allows retry', () async {
-    final store = diagnostic.LogStore();
-    addTearDown(store.dispose);
-    final controller = _TestPollingController(
-        logger: diagnostic.DiagnosticLogger('Test', store: store));
+  test('refresh preserves failures and allows retry', () async {
+    final controller = _TestPollingController();
     final error = StateError('raw device error');
     final stack = StackTrace.fromString('original refresh stack');
     final first = controller.refreshData();
     final assertion = expectLater(first, throwsA(same(error)));
     controller.failRefresh(error, stack);
     await assertion;
-    expect(store.text, contains('refreshData: started'));
-    expect(store.text, contains('refreshData: failed'));
-    expect(store.text, contains('raw device error'));
-    expect(store.text, contains('original refresh stack'));
-    expect(store.text, contains('refreshData: finished in'));
 
     final retry = controller.refreshData();
     expect(controller.refreshCount, 2);
@@ -49,13 +40,11 @@ void main() {
 }
 
 class _TestPollingController extends PollingController {
-  _TestPollingController({Logger? logger})
-      : log = logger ?? Logger(printer: SimplePrinter());
   Completer<void> _completer = Completer<void>();
   int refreshCount = 0;
 
   @override
-  final Logger log;
+  final Logger log = Logger(printer: SimplePrinter());
 
   @override
   Future<void> doRefreshData() {

@@ -59,7 +59,7 @@ class TopActions extends StatelessWidget with UIMixin {
                   }
                   await Sm2ConfigDialog.show(
                     config: config,
-                    canChangeEnabled: true,
+                    canChangeEnabled: config.canChangeEnabled,
                     onConfirm: controller.changeSm2Config,
                   );
                 },

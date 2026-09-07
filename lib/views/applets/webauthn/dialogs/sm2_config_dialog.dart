@@ -43,7 +43,8 @@ class Sm2ConfigDialog extends BaseDialog with UIMixin {
   State<Sm2ConfigDialog> createState() => _Sm2ConfigDialogState();
 }
 
-class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog> with UIMixin {
+class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
+    with UIMixin {
   final FormValidator validator = FormValidator();
 
   late final RxBool enabled;
@@ -52,15 +53,33 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog> with UIMixi
   void initState() {
     super.initState();
     enabled = (widget.canChangeEnabled ? widget.config.enabled : true).obs;
-    validator.addField('curveId', controller: TextEditingController(), validators: [IntValidator(min: -65536, max: 65535)]);
-    validator.addField('algoId', controller: TextEditingController(), validators: [IntValidator(min: -65536, max: 65535)]);
+    validator.addField(
+      'curveId',
+      required: true,
+      controller: TextEditingController(),
+      validators: [
+        Sm2IdentifierValidator(curve: true, legacy: widget.canChangeEnabled),
+      ],
+    );
+    validator.addField(
+      'algoId',
+      required: true,
+      controller: TextEditingController(),
+      validators: [
+        Sm2IdentifierValidator(curve: false, legacy: widget.canChangeEnabled),
+      ],
+    );
     validator.getController('curveId')!.text = widget.config.curveId.toString();
     validator.getController('algoId')!.text = widget.config.algoId.toString();
   }
 
   void _onSubmit() {
     if (validator.formKey.currentState!.validate()) {
-      widget.onConfirm(enabled.value, int.parse(validator.getController('curveId')!.text), int.parse(validator.getController('algoId')!.text));
+      widget.onConfirm(
+        enabled.value,
+        int.parse(validator.getController('curveId')!.text),
+        int.parse(validator.getController('algoId')!.text),
+      );
     }
   }
 
@@ -73,7 +92,9 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog> with UIMixi
         children: [
           Padding(
             padding: Spacing.all(16),
-            child: CustomizedText.labelLarge(S.of(context).settingsWebAuthnSm2Support),
+            child: CustomizedText.labelLarge(
+              S.of(context).settingsWebAuthnSm2Support,
+            ),
           ),
           Divider(height: 0, thickness: 1),
           Padding(
@@ -89,7 +110,8 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog> with UIMixi
                           onChanged: (value) => enabled.value = value!,
                           value: enabled.value,
                           activeColor: contentTheme.primary,
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
                           visualDensity: getCompactDensity,
                         ),
                         Spacing.width(16),
@@ -127,8 +149,12 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog> with UIMixi
           if (errorMessage.value.isNotEmpty)
             Padding(
               padding: Spacing.all(16),
-              child: CustomizedText.bodyMedium(errorMessage.value,
-                  color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color),
+              child: CustomizedText.bodyMedium(
+                errorMessage.value,
+                color: errorLevel.value == 'E'
+                    ? ContentThemeColor.danger.color
+                    : ContentThemeColor.warning.color,
+              ),
             ),
           Divider(height: 0, thickness: 1),
           Padding(
@@ -141,7 +167,10 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog> with UIMixi
                   elevation: 0,
                   padding: Spacing.xy(20, 16),
                   backgroundColor: contentTheme.secondary,
-                  child: CustomizedText.labelMedium(S.of(context).close, color: contentTheme.onSecondary),
+                  child: CustomizedText.labelMedium(
+                    S.of(context).close,
+                    color: contentTheme.onSecondary,
+                  ),
                 ),
                 Spacing.width(16),
                 CustomizedButton.rounded(
@@ -149,7 +178,10 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog> with UIMixi
                   elevation: 0,
                   padding: Spacing.xy(20, 16),
                   backgroundColor: contentTheme.primary,
-                  child: CustomizedText.labelMedium(S.of(context).save, color: contentTheme.onPrimary),
+                  child: CustomizedText.labelMedium(
+                    S.of(context).save,
+                    color: contentTheme.onPrimary,
+                  ),
                 ),
               ],
             ),
@@ -157,5 +189,26 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog> with UIMixi
         ],
       ),
     );
+  }
+}
+
+class Sm2IdentifierValidator extends IntValidator {
+  final bool curve;
+  final bool legacy;
+
+  Sm2IdentifierValidator({required this.curve, required this.legacy})
+    : super(min: -2147483648, max: 2147483647);
+
+  @override
+  String? validate(String? value, bool required, Map<String, dynamic> data) {
+    final error = super.validate(value, required, data);
+    if (error != null || legacy) return error;
+    final id = int.parse(value!);
+    final valid = curve
+        ? WebAuthnSm2Config.isValidCurveId(id)
+        : WebAuthnSm2Config.isValidAlgorithmId(id);
+    return valid
+        ? null
+        : 'This identifier is reserved for another algorithm or curve';
   }
 }

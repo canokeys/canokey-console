@@ -1,5 +1,3 @@
-New in 1.2.4:
+New in 1.2.5:
 
-- Added Traditional Chinese and improved automatic language selection.
-- Updated privacy policy links and feedback addresses by interface language.
-- Added Ctrl+F and Command+F shortcuts to focus credential search.
+- Improved WebAuthn SM2 configuration compatibility.

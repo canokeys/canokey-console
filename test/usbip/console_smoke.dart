@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:canokey_console/helper/utils/admin_card.dart';
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/ctap_transmitter.dart';
+import 'package:canokey_console/helper/utils/fido2_backend.dart';
 import 'package:canokey_console/helper/utils/ndef_card.dart';
 import 'package:canokey_console/helper/utils/oath_card.dart';
 import 'package:canokey_console/helper/utils/openpgp_card.dart';
@@ -236,6 +237,7 @@ class ConsoleSmoke {
       );
     }
     if (_functionSet == FunctionSetVersion.v5) {
+      await _sm2Configuration();
       final storage = await _adminClient.readStorageUsage();
       _expect(
         storage.usedKiB <= storage.totalKiB,
@@ -258,6 +260,35 @@ class ConsoleSmoke {
       );
     }
     stdout.writeln('ok: admin.client.read_and_restore_config');
+  }
+
+  Future<void> _sm2Configuration() async {
+    final original = await _adminClient.readSm2Config();
+    _expect(
+        !original.canChangeEnabled, 'Current SM2 config must use eight bytes');
+    _expect(original.enabled, 'Current firmware always enables SM2');
+    try {
+      await _adminClient.writeSm2Config(
+        enabled: true,
+        curveId: 0x1234567,
+        algoId: -0x1234568,
+      );
+      final changed = await _adminClient.readSm2Config();
+      _expect(changed.curveId == 0x1234567 && changed.algoId == -0x1234568,
+          'SM2 identifiers did not roundtrip in big-endian order');
+    } finally {
+      await _adminClient.writeSm2Config(
+        enabled: original.enabled,
+        curveId: original.curveId,
+        algoId: original.algoId,
+      );
+    }
+    final restored = await _adminClient.readSm2Config();
+    _expect(
+        restored.curveId == original.curveId &&
+            restored.algoId == original.algoId,
+        'SM2 configuration was not restored');
+    stdout.writeln('ok: admin.client.sm2_config');
   }
 
   Future<void> _openPgpApplet() async {
@@ -988,6 +1019,7 @@ void main() {
 }
 
 Future<void> _runSmoke() async {
+  await initializeFido2Backend();
   final environment = Platform.environment;
   _expect(environment['CANOKEY_USBIP'] == '1', 'CANOKEY_USBIP must be 1');
   final expectedVersion = _requiredEnvironment('CANOKEY_FIRMWARE_VERSION');
