@@ -49,7 +49,16 @@ jobs:
         cargo install wasm-pack --version "$WASM_PACK_VERSION" --locked
         flutter_rust_bridge_codegen build-web --release \
           --wasm-pack-rustup-toolchain "$RUST_NIGHTLY"
+    - name: Restore FIDO2 Web backend
+      id: fido2_web_cache
+      uses: actions/cache@v5
+      with:
+        path: web/fido2
+        key: fido2-web-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.RUST_NIGHTLY }}-${{ steps.wasm_pack.outputs.version }}-${{ hashFiles('pubspec.lock') }}
     - name: Build FIDO2 Web backend
+      if: steps.fido2_web_cache.outputs.cache-hit != 'true'
+      env:
+        RUSTUP_TOOLCHAIN: ${{ env.RUST_NIGHTLY }}
       run: |
         dart run fido2:setup --web --output=build/fido2
         mkdir -p web/fido2

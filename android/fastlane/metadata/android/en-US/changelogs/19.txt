@@ -1,0 +1,1 @@
+Improved WebAuthn SM2 configuration compatibility.
