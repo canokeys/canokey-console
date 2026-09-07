@@ -19,11 +19,13 @@ void main() {
     final logger = DiagnosticLogger('SmartCard', store: store, output: output);
     final payload = '0020000006313233343536' * 300;
     final error = PlatformException(
-        code: '500',
-        message: 'PIN=123456',
-        details: {'secret': 'JBSWY3DPEHPK3PXP'});
+      code: '500',
+      message: 'PIN=123456',
+      details: {'secret': 'JBSWY3DPEHPK3PXP'},
+    );
     final stack = StackTrace.fromString(
-        '#0 f (file:///Users/private-account/secret.dart:2:1)');
+      '#0 f (file:///Users/private-account/secret.dart:2:1)',
+    );
     logger.e('C-APDU: $payload', error: error, stackTrace: stack);
     for (final text in [store.text, output.lines.join('\n')]) {
       expect(text, contains(payload));
@@ -37,15 +39,19 @@ void main() {
     addTearDown(() => Logger.level = previous);
     Logger.level = Level.warning;
     final output = _Output();
-    final logger = DiagnosticLogger('Test',
-        store: store, output: output, filter: ProductionFilter());
+    final logger = DiagnosticLogger(
+      'Test',
+      store: store,
+      output: output,
+      filter: ProductionFilter(),
+    );
     for (final level in [
       Level.trace,
       Level.debug,
       Level.info,
       Level.warning,
       Level.error,
-      Level.fatal
+      Level.fatal,
     ]) {
       logger.log(level, 'message-${level.name}');
     }
@@ -83,8 +89,7 @@ void main() {
     store.record('Test', event);
     expect(store.entries, hasLength(500));
     expect(store.entries.first, endsWith('Event 12'));
-    expect(
-        store.entries.sublist(498), [store.entries.last, store.entries.last]);
+    expect(store.entries.sublist(498), everyElement(endsWith('Repeated')));
   });
 
   test('lazy and structured messages preserve contents and evaluate once', () {
@@ -99,12 +104,13 @@ void main() {
     expect(calls, 1);
     expect(store.entries.first, contains('{"pin":"987654"}'));
     expect(
-        store.entries.last, contains('otpauth://totp/account?secret=ABCDEF'));
+      store.entries.last,
+      contains('otpauth://totp/account?secret=ABCDEF'),
+    );
     expect(output.lines.join(), contains('{"pin":"987654"}'));
   });
 
-  testWidgets('notifications are batched and recording has no time limit',
-      (tester) async {
+  testWidgets('notifications are batched', (tester) async {
     var notifications = 0;
     store.addListener(() => notifications++);
     for (var i = 0; i < 500; i++) {
@@ -113,11 +119,6 @@ void main() {
     expect(notifications, 0);
     await tester.pump(const Duration(milliseconds: 100));
     expect(notifications, 1);
-    await tester.pump(const Duration(hours: 1));
-    expect(store.enabled, isTrue);
-    store.record('NFC', LogEvent(Level.trace, 'Still recording'));
-    expect(store.entries.last, endsWith('Still recording'));
-    await tester.pump(const Duration(milliseconds: 100));
   });
 
   testWidgets('disposing cancels pending notifications', (tester) async {

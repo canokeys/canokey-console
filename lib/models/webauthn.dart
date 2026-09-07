@@ -36,16 +36,17 @@ class WebAuthnSm2Config {
   static bool isInt32(int value) => value >= -2147483648 && value <= 2147483647;
 
   static bool isValidCurveId(int value) =>
-      isInt32(value) &&
       value != 0 &&
       !(value >= 1 && value <= 8) &&
       !(value >= 256 && value <= 259);
 
-  static bool isValidAlgorithmId(int value) =>
-      isInt32(value) && !{-7, -8, -49}.contains(value);
+  static bool isValidAlgorithmId(int value) => !{-7, -8, -49}.contains(value);
 
-  Uint8List encode(
-      {required bool enabled, required int curveId, required int algoId}) {
+  Uint8List encode({
+    required bool enabled,
+    required int curveId,
+    required int algoId,
+  }) {
     if (!isInt32(curveId) ||
         !isInt32(algoId) ||
         (!canChangeEnabled &&
