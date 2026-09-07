@@ -28,10 +28,9 @@ class S {
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name =
-        (locale.countryCode?.isEmpty ?? false)
-            ? locale.languageCode
-            : locale.toString();
+    final name = (locale.countryCode?.isEmpty ?? false)
+        ? locale.languageCode
+        : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -4914,6 +4913,46 @@ class S {
       args: [],
     );
   }
+
+  /// `View Logs`
+  String get logsTitle {
+    return Intl.message('View Logs', name: 'logsTitle', desc: '', args: []);
+  }
+
+  /// `Record logs`
+  String get logsRecording {
+    return Intl.message(
+      'Record logs',
+      name: 'logsRecording',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No logs in this session`
+  String get logsEmpty {
+    return Intl.message(
+      'No logs in this session',
+      name: 'logsEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Log copied`
+  String get logsCopied {
+    return Intl.message('Log copied', name: 'logsCopied', desc: '', args: []);
+  }
+
+  /// `Could not copy log`
+  String get logsCopyFailed {
+    return Intl.message(
+      'Could not copy log',
+      name: 'logsCopyFailed',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
@@ -4923,6 +4962,7 @@ class AppLocalizationDelegate extends LocalizationsDelegate<S> {
     return const <Locale>[
       Locale.fromSubtags(languageCode: 'en'),
       Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
+      Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
     ];
   }
 

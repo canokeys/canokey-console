@@ -26,6 +26,7 @@ class LocalStorage {
   }
 
   static Future<bool> setLanguage(Language language) {
+    log.t('Call LocalStorage.setLanguage');
     return preferences.setString(_languageKey, language.locale.toString());
   }
 
@@ -34,6 +35,7 @@ class LocalStorage {
   }
 
   static Future<bool> setStartPage(String page) {
+    log.t('Call LocalStorage.setStartPage');
     return preferences.setString(_startPageKey, page);
   }
 
@@ -46,6 +48,7 @@ class LocalStorage {
   }
 
   static Future<bool> setPinCache(String sn, String tag, String? pin) {
+    log.t('Call LocalStorage.setPinCache');
     if (pin == null) {
       return preferences.remove('pin:$sn:$tag');
     }
@@ -57,16 +60,19 @@ class LocalStorage {
   }
 
   static Future<void> clearPinCache() async {
+    log.t('Call LocalStorage.clearPinCache');
     final keys = preferences.getKeys().where((key) => key.startsWith('pin:'));
     log.i('Clearing pin cache: $keys');
     await Future.wait(keys.map((key) => preferences.remove(key)));
   }
 
   static Future<bool> setNfcSound(int sound) {
+    log.t('Call LocalStorage.setNfcSound');
     return preferences.setInt(_nfcSoundKey, sound);
   }
 
   static Future<bool> setOathSortAlphabetically(bool value) {
+    log.t('Call LocalStorage.setOathSortAlphabetically');
     return preferences.setBool(_oathSortKey, value);
   }
 
@@ -75,6 +81,7 @@ class LocalStorage {
   }
 
   static Future<bool> setWebAuthnSortAlphabetically(bool value) {
+    log.t('Call LocalStorage.setWebAuthnSortAlphabetically');
     return preferences.setBool(_webauthnSortKey, value);
   }
 
@@ -83,6 +90,7 @@ class LocalStorage {
   }
 
   static Future<bool> setPrivacyAgreed(bool value) {
+    log.t('Call LocalStorage.setPrivacyAgreed');
     return preferences.setBool(_privacyAgreedKey, value);
   }
 

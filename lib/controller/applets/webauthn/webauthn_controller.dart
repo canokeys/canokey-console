@@ -40,6 +40,7 @@ class WebAuthnController extends PollingController with AdminApplet {
 
   @override
   Future<void> doRefreshData() async {
+    log.t('Call WebAuthnController.doRefreshData');
     await SmartCard.process((String sn) async {
       final switchStatus = await AppletSwitches.readStatus();
       firmwareVersion = switchStatus.firmwareVersion;
@@ -93,6 +94,7 @@ class WebAuthnController extends PollingController with AdminApplet {
   }
 
   Future<void> changePin(String newPin, bool savePin) async {
+    log.t('Call WebAuthnController.changePin');
     await SmartCard.process((String sn) async {
       String? pinToTry = _loadPin(sn);
       if (pinToTry == null) {
@@ -125,6 +127,7 @@ class WebAuthnController extends PollingController with AdminApplet {
   }
 
   Future<WebAuthnSm2Config?> readSm2Config() async {
+    log.t('Call WebAuthnController.readSm2Config');
     if (!supportsSm2Settings) {
       return null;
     }
@@ -142,6 +145,7 @@ class WebAuthnController extends PollingController with AdminApplet {
   }
 
   Future<void> changeSm2Config(bool enabled, int curveId, int algoId) async {
+    log.t('Call WebAuthnController.changeSm2Config');
     if (!supportsSm2Settings) {
       Prompts.showPrompt(
           S.of(Get.context!).notSupported, ContentThemeColor.warning);
@@ -164,6 +168,7 @@ class WebAuthnController extends PollingController with AdminApplet {
   }
 
   Future<void> delete(PublicKeyCredentialDescriptor credentialId) async {
+    log.t('Call WebAuthnController.delete');
     await SmartCard.process((String sn) async {
       String? pinToTry = _loadPin(sn);
       if (pinToTry == null) {

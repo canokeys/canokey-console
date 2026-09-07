@@ -6,12 +6,10 @@ list(APPEND FLUTTER_PLUGIN_LIST
   ccid
   file_saver
   flutter_webrtc
-  sentry_flutter
   url_launcher_linux
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
-  jni
   rust_lib_canokey_console
 )
 

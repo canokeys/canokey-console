@@ -61,6 +61,7 @@ class OathController extends PollingController {
 
   @override
   Future<void> doRefreshData() async {
+    log.t('Call OathController.doRefreshData');
     await SmartCard.process((String sn) async {
       if (!await _authenticate(sn)) {
         return;
@@ -72,6 +73,7 @@ class OathController extends PollingController {
 
   Future<void> addAccount(String name, String secretHex, OathType type,
       OathAlgorithm algo, int digits, bool requireTouch, int initValue) async {
+    log.t('Call OathController.addAccount');
     await SmartCard.process((String sn) async {
       if (!await _authenticate(sn)) {
         return;
@@ -109,6 +111,7 @@ class OathController extends PollingController {
   }
 
   Future<void> setCode(String newCode, bool saveCode) async {
+    log.t('Call OathController.setCode');
     await SmartCard.process((String sn) async {
       String resp = await _transceive('00A4040007A0000005272101');
       SmartCard.assertOK(resp);
@@ -152,6 +155,7 @@ class OathController extends PollingController {
   }
 
   Future<String> calculate(String name, OathType type) async {
+    log.t('Call OathController.calculate');
     late String code;
     await SmartCard.process((String sn) async {
       if (!await _authenticate(sn)) {
@@ -181,6 +185,7 @@ class OathController extends PollingController {
   }
 
   Future<void> delete(String name) async {
+    log.t('Call OathController.delete');
     await SmartCard.process((String sn) async {
       if (!await _authenticate(sn)) {
         return;
@@ -197,6 +202,7 @@ class OathController extends PollingController {
   }
 
   Future<void> setDefault(String name, int slot, bool withEnter) async {
+    log.t('Call OathController.setDefault');
     await SmartCard.process((String sn) async {
       if (!await _authenticate(sn)) {
         return;
@@ -217,6 +223,7 @@ class OathController extends PollingController {
   }
 
   void setDefaultLegacy(String name) {
+    log.t('Call OathController.setDefaultLegacy');
     SmartCard.process((String sn) async {
       if (!await _authenticate(sn)) {
         return;
@@ -233,6 +240,7 @@ class OathController extends PollingController {
   }
 
   void parseUri(String keyUri) {
+    log.t('Call OathController.parseUri');
     final uri = Uri.parse(keyUri);
     if (uri.scheme != 'otpauth') {
       return;

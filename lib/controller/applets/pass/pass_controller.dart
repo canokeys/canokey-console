@@ -28,6 +28,7 @@ class PassController extends PollingController with AdminApplet {
 
   @override
   Future<void> doRefreshData() async {
+    log.t('Call PassController.doRefreshData');
     if (ScreenshotMode.enabled) {
       slots = ScreenshotMode.passSlots();
       hmacSha1Supported = true;
@@ -75,6 +76,7 @@ class PassController extends PollingController with AdminApplet {
 
   Future<void> setSlot(
       int index, PassSlotType type, String password, bool withEnter) async {
+    log.t('Call PassController.setSlot');
     await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
         return;

@@ -1,7 +1,6 @@
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/localization/language.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
-import 'package:canokey_console/helper/utils/sentry_setup.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
@@ -90,7 +89,6 @@ class PrivacyConsentDialog extends StatelessWidget with UIMixin {
                   CustomizedButton.rounded(
                     onPressed: () async {
                       await LocalStorage.setPrivacyAgreed(true);
-                      await initSentry();
                       if (context.mounted) Navigator.pop(context);
                     },
                     elevation: 0,

@@ -1,4 +1,5 @@
 import 'package:canokey_console/helper/localization/language.dart';
+import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/services/navigation_service.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_notifier.dart';
@@ -43,6 +44,7 @@ class ThemeCustomizer {
   }
 
   static void setTheme(ThemeMode theme) {
+    Logging.logger('Theme').t('Call ThemeCustomizer.setTheme');
     oldInstance = instance.clone();
     instance.theme = theme;
     instance.leftBarTheme = theme;
@@ -52,11 +54,13 @@ class ThemeCustomizer {
   }
 
   static Future<void> changeLanguage(Language language) async {
+    Logging.logger('Theme').t('Call ThemeCustomizer.changeLanguage');
     oldInstance = instance.clone();
     ThemeCustomizer.instance.currentLanguage = language;
   }
 
   static void toggleLeftBarCondensed() {
+    Logging.logger('Theme').t('Call ThemeCustomizer.toggleLeftBarCondensed');
     instance.leftBarCondensed = !instance.leftBarCondensed;
     _notify();
   }

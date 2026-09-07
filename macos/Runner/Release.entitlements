@@ -6,6 +6,9 @@
 	<true/>
 	<key>com.apple.security.files.user-selected.read-write</key>
 	<true/>
+	<!-- Google Fonts downloads fonts when they are not cached locally. -->
+	<key>com.apple.security.network.client</key>
+	<true/>
 	<key>com.apple.security.smartcard</key>
 	<true/>
 </dict>

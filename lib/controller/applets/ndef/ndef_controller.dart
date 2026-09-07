@@ -44,6 +44,7 @@ class NdefController extends PollingController {
 
   @override
   Future<void> doRefreshData() async {
+    log.t('Call NdefController.doRefreshData');
     if (ScreenshotMode.enabled) {
       records = ScreenshotMode.ndefRecords();
       maxMessageLength = defaultMaxMessageLength;
@@ -85,21 +86,25 @@ class NdefController extends PollingController {
   }
 
   void addRecord(NDEFRecord record) {
+    log.t('Call NdefController.addRecord');
     records.add(record);
     _markDirty();
   }
 
   void updateRecord(int index, NDEFRecord record) {
+    log.t('Call NdefController.updateRecord');
     records[index] = record;
     _markDirty();
   }
 
   void removeRecord(int index) {
+    log.t('Call NdefController.removeRecord');
     records.removeAt(index);
     _markDirty();
   }
 
   void moveRecord(int from, int to) {
+    log.t('Call NdefController.moveRecord');
     if (from == to || from < 0 || from >= records.length) return;
     if (to < 0 || to >= records.length) return;
     final record = records.removeAt(from);
@@ -108,6 +113,7 @@ class NdefController extends PollingController {
   }
 
   Future<void> save() async {
+    log.t('Call NdefController.save');
     if (!canSave) return;
 
     final message = NdefDocument(records).encode();

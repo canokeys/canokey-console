@@ -365,6 +365,8 @@ class SmartCard {
 
   static Future<void> process(Function(String sn) f) async {
     final processGeneration = ++_cardProcessGeneration;
+    final timer = Stopwatch()..start();
+    log.t('process #$processGeneration: started; connection=$connectionType');
     _activeCardOperations++;
     try {
       if (connectionType == ConnectionType.ccid) {
@@ -377,6 +379,7 @@ class SmartCard {
           nfcState = NfcState.processWithInput;
         }
         if (!await pollNfcOrWebUsb()) {
+          log.t('process #$processGeneration: polling canceled');
           return;
         }
         try {
@@ -395,7 +398,9 @@ class SmartCard {
                 '[process] CanoKey (NFC) Polled. SN: $sn. Connection Type updated to NFC.');
           }
           await f(sn);
-        } on PlatformException catch (e) {
+        } on PlatformException catch (e, stack) {
+          log.e('process #$processGeneration: communication failed',
+              error: e, stackTrace: stack);
           if (e.message?.contains('SecurityError') == true) {
             // This is for WebUSB, handled by PollingController
             rethrow;
@@ -448,7 +453,13 @@ class SmartCard {
               operation: _androidNfcOperation, process: processGeneration);
         }
       }
+    } catch (error, stack) {
+      log.e('process #$processGeneration: failed',
+          error: error, stackTrace: stack);
+      rethrow;
     } finally {
+      log.t(
+          'process #$processGeneration: finished in ${timer.elapsedMilliseconds}ms');
       _activeCardOperations--;
     }
   }

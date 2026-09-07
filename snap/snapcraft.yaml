@@ -1,6 +1,6 @@
 name: canokey-console
 base: core24
-version: '1.2.3'
+version: '1.2.4'
 title: CanoKey Console
 summary: Manage CanoKey security keys
 icon: assets/images/logo/logo_icon_dark.png
@@ -45,8 +45,6 @@ parts:
         exit 1
       fi
       cp --archive "$bundle_dir/." "$CRAFT_PART_INSTALL/"
-      # mobile_scanner's transitive JNI library is not used on Linux.
-      rm -f "$CRAFT_PART_INSTALL/lib/libdartjni.so"
     stage-packages:
       - libpcsclite1
       - fonts-droid-fallback

@@ -568,5 +568,10 @@
   "privacyConsentBeforeLink": "Thank you for using CanoKey Console. Please read and agree to our ",
   "privacyConsentAfterLink": " before continuing. We collect, use, and protect your personal information in accordance with the policy.",
   "agreeAndContinue": "Agree and Continue",
-  "disagreeAndExit": "Disagree and Exit"
+  "disagreeAndExit": "Disagree and Exit",
+  "logsTitle": "View Logs",
+  "logsRecording": "Record logs",
+  "logsEmpty": "No logs in this session",
+  "logsCopied": "Log copied",
+  "logsCopyFailed": "Could not copy log"
 }

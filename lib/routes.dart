@@ -7,6 +7,7 @@ import 'package:canokey_console/views/applets/webauthn/webauthn_page.dart';
 import 'package:canokey_console/views/applets/settings/settings_page.dart';
 import 'package:canokey_console/views/starter_screen.dart';
 import 'package:get/get.dart';
+import 'package:canokey_console/views/logs/logs_page.dart';
 
 List<GetPage<dynamic>> getPageRoute() {
   var routes = [
@@ -21,6 +22,7 @@ List<GetPage<dynamic>> getPageRoute() {
     GetPage(name: '/applets/ndef', page: () => const NdefPage()),
 
     GetPage(name: '/settings', page: () => const SettingsPage()),
+    GetPage(name: '/logs', page: () => const LogsPage()),
   ];
 
   return routes

@@ -9,6 +9,25 @@ import 'package:intl/intl.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test('restores traditional Chinese after a simplified Chinese override',
+      () async {
+    final originalLanguage = ThemeCustomizer.instance.currentLanguage;
+    final originalDefaultLocale = Intl.defaultLocale;
+    try {
+      ThemeCustomizer.instance.currentLanguage =
+          Language.getLanguageFromCode('zh_Hant');
+      await const PreservingAppLocalizationDelegate().load(
+        const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
+      );
+      expect(Intl.defaultLocale, 'zh_Hant');
+      expect(S.current.settings, '設定');
+    } finally {
+      ThemeCustomizer.instance.currentLanguage = originalLanguage;
+      await S.delegate.load(originalLanguage.locale);
+      Intl.defaultLocale = originalDefaultLocale;
+    }
+  });
+
   test('restores the selected app locale after an en-US override', () async {
     final originalLanguage = ThemeCustomizer.instance.currentLanguage;
     final originalDefaultLocale = Intl.defaultLocale;

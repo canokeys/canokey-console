@@ -10,6 +10,9 @@
 	<true/>
 	<key>com.apple.security.network.client</key>
 	<true/>
+	<!-- Flutter's VM service listens for debugger connections. -->
+	<key>com.apple.security.network.server</key>
+	<true/>
 	<key>com.apple.security.smartcard</key>
 	<true/>
 </dict>

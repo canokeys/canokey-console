@@ -23,6 +23,7 @@ class OpenPgpController extends PollingController {
 
   @override
   Future<void> doRefreshData() async {
+    log.t('Call OpenPgpController.doRefreshData');
     await SmartCard.process((String sn) async {
       final switchStatus = await AppletSwitches.readStatus();
       supportsPinRetryConfig =
@@ -43,30 +44,36 @@ class OpenPgpController extends PollingController {
   }
 
   Future<void> changeUserPin(String oldPin, String newPin) async {
+    log.t('Call OpenPgpController.changeUserPin');
     await _runPinOperation(() => _client.changeUserPin(oldPin, newPin));
   }
 
   Future<void> changeAdminPin(String oldPin, String newPin) async {
+    log.t('Call OpenPgpController.changeAdminPin');
     await _runPinOperation(() => _client.changeAdminPin(oldPin, newPin));
   }
 
   Future<void> unblockUserPinWithAdmin(String adminPin, String newPin) async {
+    log.t('Call OpenPgpController.unblockUserPinWithAdmin');
     await _runPinOperation(
         () => _client.unblockUserPinWithAdmin(adminPin, newPin));
   }
 
   Future<void> unblockUserPinWithResetCode(
       String resetCode, String newPin) async {
+    log.t('Call OpenPgpController.unblockUserPinWithResetCode');
     await _runPinOperation(
         () => _client.unblockUserPinWithResetCode(resetCode, newPin));
   }
 
   Future<void> setResetCode(String adminPin, String resetCode) async {
+    log.t('Call OpenPgpController.setResetCode');
     await _runPinOperation(() => _client.setResetCode(adminPin, resetCode));
   }
 
   Future<void> setPinRetries(String adminPin, int userRetries, int resetRetries,
       int adminRetries) async {
+    log.t('Call OpenPgpController.setPinRetries');
     if (!supportsPinRetryConfig) {
       return;
     }
@@ -76,12 +83,14 @@ class OpenPgpController extends PollingController {
 
   Future<void> setSignaturePinPolicy(
       String adminPin, bool verifyForEverySignature) async {
+    log.t('Call OpenPgpController.setSignaturePinPolicy');
     await _runPinOperation(
         () => _client.setSignaturePinPolicy(adminPin, verifyForEverySignature));
   }
 
   Future<void> setTouchPolicy(OpenPgpKeyType keyType, OpenPgpTouchPolicy policy,
       String adminPin) async {
+    log.t('Call OpenPgpController.setTouchPolicy');
     await SmartCard.process((String sn) async {
       final ok = await _client.setTouchPolicy(keyType, policy, adminPin);
       if (!ok) {
@@ -100,6 +109,7 @@ class OpenPgpController extends PollingController {
   }
 
   Future<void> setTouchCacheTime(String adminPin, int seconds) async {
+    log.t('Call OpenPgpController.setTouchCacheTime');
     await SmartCard.process((String sn) async {
       final ok = await _client.setTouchCacheTime(adminPin, seconds);
       if (!ok) {

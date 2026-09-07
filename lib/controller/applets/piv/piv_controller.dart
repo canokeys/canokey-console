@@ -90,6 +90,7 @@ class PivController extends PollingController {
 
   @override
   Future<void> doRefreshData() async {
+    log.t('Call PivController.doRefreshData');
     await SmartCard.process((String sn) async {
       final switchStatus = await AppletSwitches.readStatus();
       firmwareVersion = switchStatus.firmwareVersion;
@@ -182,6 +183,7 @@ class PivController extends PollingController {
       certificateSlots.contains(slot) || certificateBytes.containsKey(slot);
 
   Future<SlotInfo?> loadSlotDetails(int slot) async {
+    log.t('Call PivController.loadSlotDetails');
     final current = slots[slot];
     final needsKeyMetadata = current != null && current.public.isEmpty;
     final needsCertificate =
@@ -253,6 +255,7 @@ class PivController extends PollingController {
   }
 
   Future<bool> verifyPin(String pin) async {
+    log.t('Call PivController.verifyPin');
     final c = Completer<bool>();
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
@@ -270,6 +273,7 @@ class PivController extends PollingController {
   }
 
   void changePin(String oldPin, String newPin) {
+    log.t('Call PivController.changePin');
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       String oldPinHex = _padPin(oldPin);
@@ -287,6 +291,7 @@ class PivController extends PollingController {
   }
 
   void changePUK(String oldPin, String newPin) {
+    log.t('Call PivController.changePUK');
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       String oldPinHex = _padPin(oldPin);
@@ -304,6 +309,7 @@ class PivController extends PollingController {
   }
 
   void unblockPin(String puk, String newPin) {
+    log.t('Call PivController.unblockPin');
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       String pukHex = _padPin(puk);
@@ -321,6 +327,7 @@ class PivController extends PollingController {
   }
 
   Future<bool> verifyManagementKey(String key) {
+    log.t('Call PivController.verifyManagementKey');
     final c = new Completer<bool>();
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
@@ -337,6 +344,7 @@ class PivController extends PollingController {
     bool storeOnDevice = false,
     TouchPolicy? touchPolicy,
   }) async {
+    log.t('Call PivController.changeManagementKey');
     final c = Completer<bool>();
     if ((usePinOnly || storeOnDevice) && !supportsPinOnlyMode) {
       return false;
@@ -390,6 +398,7 @@ class PivController extends PollingController {
       Map<String, String> subject,
       List<String> subjectAlternativeNames,
       bool usePinOnly) async {
+    log.t('Call PivController.generateCsr');
     final c = Completer<String?>();
     final data = _generateAsymmetricKeyData(algorithm, pinPolicy, touchPolicy);
     final capdu =
@@ -452,6 +461,7 @@ class PivController extends PollingController {
       List<String> subjectAlternativeNames,
       int validityDays,
       bool usePinOnly) async {
+    log.t('Call PivController.generateSelfSignedCertificate');
     final c = Completer<Uint8List?>();
     final data = _generateAsymmetricKeyData(algorithm, pinPolicy, touchPolicy);
     final capdu =
@@ -518,6 +528,7 @@ class PivController extends PollingController {
       String pin,
       String managementKey,
       bool usePinOnly) async {
+    log.t('Call PivController.generateKey');
     final c = Completer<bool>();
     final data = _generateAsymmetricKeyData(algorithm, pinPolicy, touchPolicy);
     final capdu =
@@ -542,6 +553,7 @@ class PivController extends PollingController {
 
   Future<bool> setPinRetries(String pin, String managementKey, int pinRetries,
       int pukRetries, bool usePinOnly) async {
+    log.t('Call PivController.setPinRetries');
     if (!supportsPinRetryConfig) {
       return false;
     }
@@ -567,6 +579,7 @@ class PivController extends PollingController {
 
   Future<bool> enablePinOnlyMode(
       String pin, String currentManagementKey) async {
+    log.t('Call PivController.enablePinOnlyMode');
     if (!supportsPinOnlyMode) {
       return false;
     }
@@ -602,6 +615,7 @@ class PivController extends PollingController {
 
   Future<bool> disablePinOnlyMode(String pin, String currentManagementKey,
       String newManagementKey, bool usePinOnly) async {
+    log.t('Call PivController.disablePinOnlyMode');
     if (!supportsPinOnlyMode) {
       return false;
     }
@@ -635,6 +649,7 @@ class PivController extends PollingController {
 
   Future<Uint8List?> deriveX25519Secret(
       String slot, String pin, Uint8List peerPublicKey) async {
+    log.t('Call PivController.deriveX25519Secret');
     final c = Completer<Uint8List?>();
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
@@ -658,6 +673,7 @@ class PivController extends PollingController {
 
   Future<Uint8List?> decapsulateMlKem768(
       String slot, String pin, Uint8List ciphertext) async {
+    log.t('Call PivController.decapsulateMlKem768');
     if (!supportsAlgorithm(AlgorithmType.mlkem768)) {
       return null;
     }
@@ -696,6 +712,7 @@ class PivController extends PollingController {
 
   Future<Uint8List?> signData(
       String slot, SlotInfo slotInfo, String pin, Uint8List data) async {
+    log.t('Call PivController.signData');
     final publicKey = publicKeyForSlot(slotInfo);
     if (publicKey == null) {
       return null;
@@ -738,6 +755,7 @@ class PivController extends PollingController {
 
   Future<bool> verifySignature(
       SlotInfo slotInfo, Uint8List data, Uint8List signature) async {
+    log.t('Call PivController.verifySignature');
     final publicKey = publicKeyForSlot(slotInfo);
     if (publicKey == null) {
       return false;
@@ -755,6 +773,7 @@ class PivController extends PollingController {
 
   Future<bool> importPostQuantumSeed(String slotNumber, AlgorithmType algorithm,
       Uint8List seed, PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
+    log.t('Call PivController.importPostQuantumSeed');
     if (!supportsAlgorithm(algorithm)) {
       return false;
     }
@@ -791,6 +810,7 @@ class PivController extends PollingController {
     required String managementKey,
     required bool usePinOnly,
   }) async {
+    log.t('Call PivController.changeAlgorithmExtensionConfigAuthenticated');
     final c = Completer<bool>();
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
@@ -826,6 +846,7 @@ class PivController extends PollingController {
     required PinPolicy pinPolicy,
     required TouchPolicy touchPolicy,
   }) async {
+    log.t('Call PivController.importAuthenticated');
     if ((mlDsaSeed != null && !supportsAlgorithm(AlgorithmType.mldsa65)) ||
         (mlKemSeed != null && !supportsAlgorithm(AlgorithmType.mlkem768))) {
       return false;
@@ -973,6 +994,7 @@ class PivController extends PollingController {
   }
 
   Future<bool> importCert(String slot, Uint8List cert) async {
+    log.t('Call PivController.importCert');
     final c = new Completer<bool>();
     SmartCard.process((String sn) async {
       c.complete(await _importCertInSession(slot, cert));
@@ -1014,6 +1036,7 @@ class PivController extends PollingController {
     required String managementKey,
     required bool usePinOnly,
   }) async {
+    log.t('Call PivController.clearSlotAuthenticated');
     if (!supportsCurrentDevelopmentFeatures) {
       return false;
     }
@@ -1046,6 +1069,7 @@ class PivController extends PollingController {
     required String managementKey,
     required bool usePinOnly,
   }) async {
+    log.t('Call PivController.moveKeyAuthenticated');
     if (!supportsCurrentDevelopmentFeatures) {
       return false;
     }
@@ -1069,6 +1093,7 @@ class PivController extends PollingController {
   }
 
   Future<Uint8List?> attestKey(String slot) async {
+    log.t('Call PivController.attestKey');
     if (!supportsCurrentDevelopmentFeatures) {
       return null;
     }

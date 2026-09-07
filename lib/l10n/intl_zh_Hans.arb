@@ -72,7 +72,7 @@
   "readingAlertMessage": "请紧贴 CanoKey 直到读取结束",
   "interrupted": "通讯中断。尝试紧贴 CanoKey 直到读取结束。",
   "noCard": "未找到 CanoKey",
-  "browserNotSupported": "不支持该浏览器",
+  "browserNotSupported": "当前环境无法使用 WebUSB",
   "notSupported": "不支持该操作",
   "notSupportedInNFC": "该操作不支持在 NFC 模式下执行",
   "openpgpCardInfo": "卡片信息",
@@ -644,5 +644,10 @@
   "privacyConsentBeforeLink": "感谢您使用 CanoKey Console。请仔细阅读并同意《",
   "privacyConsentAfterLink": "》后继续使用。我们将严格按照政策收集、使用和保护您的个人信息。",
   "agreeAndContinue": "同意并继续",
-  "disagreeAndExit": "不同意并退出"
+  "disagreeAndExit": "不同意并退出",
+  "logsTitle": "查看日志",
+  "logsRecording": "记录日志",
+  "logsEmpty": "本次运行暂无日志",
+  "logsCopied": "已复制日志",
+  "logsCopyFailed": "无法复制日志"
 }

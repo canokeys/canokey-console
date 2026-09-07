@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
 import 'package:canokey_console/helper/utils/icp_filing.dart';
@@ -17,7 +18,9 @@ import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:platform_detector/platform_detector.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OtherSettingsCard extends StatefulWidget {
@@ -53,12 +56,20 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
   }
 
   Future<void> _launchUrl(Uri url) async {
+    Logging.logger('Settings:Page')
+        .t('Call _OtherSettingsCardState._launchUrl');
     await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
   @override
   Widget build(BuildContext context) {
     final languageName = ThemeCustomizer.instance.currentLanguage.languageName;
+    final isChinese = Localizations.localeOf(context).languageCode == 'zh';
+    final privacyPolicyUrl = isChinese
+        ? 'https://www.canokeys.com/privacy/'
+        : 'https://www.canokeys.org/privacy/';
+    final feedbackEmail =
+        isChinese ? 'support@canokeys.com' : 'support@canokeys.org';
     final startPage =
         StartPageDialog.pageName(context, LocalStorage.getStartPage() ?? '/');
     final icpFiling = icpFilingNumber();
@@ -114,6 +125,12 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                   Spacing.height(16),
                 },
                 InfoItem(
+                    iconData: LucideIcons.fileText,
+                    title: S.of(context).logsTitle,
+                    value: '',
+                    onTap: () => Get.toNamed('/logs')),
+                Spacing.height(16),
+                InfoItem(
                     iconData: LucideIcons.info,
                     title: S.of(context).about,
                     value: '',
@@ -153,35 +170,37 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                               ],
                               style: CustomizedTextStyle.bodyMedium(),
                             )),
-                            Spacing.height(12),
-                            RichText(
-                                text: TextSpan(
-                              children: [
-                                TextSpan(
-                                    text: S.of(context).privacyPolicy,
-                                    style: TextStyle(
-                                        color: contentTheme.primary,
-                                        decoration: TextDecoration.underline),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () => _launchUrl(Uri.parse(
-                                          'https://canokeys.com/privacy/'))),
-                              ],
-                              style: CustomizedTextStyle.bodyMedium(),
-                            )),
+                            if (isIOSApp() || isAndroidApp()) ...[
+                              Spacing.height(12),
+                              RichText(
+                                  text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                      text: S.of(context).privacyPolicy,
+                                      style: TextStyle(
+                                          color: contentTheme.primary,
+                                          decoration: TextDecoration.underline),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () => _launchUrl(
+                                            Uri.parse(privacyPolicyUrl))),
+                                ],
+                                style: CustomizedTextStyle.bodyMedium(),
+                              )),
+                            ],
                             Spacing.height(12),
                             RichText(
                                 text: TextSpan(
                               children: [
                                 TextSpan(text: '${S.of(context).feedback}: '),
                                 TextSpan(
-                                    text: 'support@canokeys.com',
+                                    text: feedbackEmail,
                                     style: TextStyle(
                                         color: contentTheme.primary,
                                         decoration: TextDecoration.underline),
                                     recognizer: TapGestureRecognizer()
                                       ..onTap = () => _launchUrl(Uri(
                                           scheme: 'mailto',
-                                          path: 'support@canokeys.com'))),
+                                          path: feedbackEmail))),
                               ],
                               style: CustomizedTextStyle.bodyMedium(),
                             )),
@@ -199,8 +218,7 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                                       text: icpFiling,
                                       style: TextStyle(
                                           color: contentTheme.primary,
-                                          decoration:
-                                              TextDecoration.underline),
+                                          decoration: TextDecoration.underline),
                                       recognizer: TapGestureRecognizer()
                                         ..onTap = () async {
                                           await _launchUrl(
