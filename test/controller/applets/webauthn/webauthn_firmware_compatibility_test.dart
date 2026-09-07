@@ -11,17 +11,20 @@ void main() {
     return controller;
   }
 
-  test('shows SM2 settings only on supported firmware before 3.1.0', () {
-    for (final version in ['3.0.0', '3.0.3']) {
+  test('shows SM2 settings on legacy and current supported firmware', () {
+    for (final version in [
+      '3.0.0',
+      '3.0.3',
+      '3.1.0-28-gd2820836',
+      '3.1.0',
+      '3.1.1'
+    ]) {
       expect(controllerFor(version).supportsSm2Settings, isTrue,
           reason: version);
     }
 
     for (final version in [
       '2.0.1',
-      '3.1.0-28-gd2820836',
-      '3.1.0',
-      '3.1.1',
     ]) {
       expect(controllerFor(version).supportsSm2Settings, isFalse,
           reason: version);
@@ -29,7 +32,7 @@ void main() {
   });
 
   test('does not access the card when SM2 settings are hidden', () async {
-    final controller = controllerFor('3.1.1');
+    final controller = controllerFor('2.0.1');
 
     expect(await controller.readSm2Config(), isNull);
   });

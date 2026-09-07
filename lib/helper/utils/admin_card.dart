@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/models/webauthn.dart';
 import 'package:convert/convert.dart';
 
 class AdminStorageUsage {
@@ -56,6 +57,26 @@ class AdminCardClient {
   Future<String> readFirmwareVersion() => _readText('0031000000');
 
   Future<String> readModel() => _readText('0031010000');
+
+  Future<WebAuthnSm2Config> readSm2Config() async {
+    final response = await _transport.transceive('0011000000');
+    SmartCard.assertOK(response);
+    return WebAuthnSm2Config.decode(
+      hex.decode(SmartCard.dropSW(response)),
+    );
+  }
+
+  Future<void> writeSm2Config(
+      {required bool enabled,
+      required int curveId,
+      required int algoId}) async {
+    final current = await readSm2Config();
+    final data =
+        current.encode(enabled: enabled, curveId: curveId, algoId: algoId);
+    SmartCard.assertOK(await _transport.transceive(
+      '00120000${data.length.toRadixString(16).padLeft(2, '0')}${hex.encode(data)}',
+    ));
+  }
 
   Future<String> readSerial() => _readHex('0032000000');
 

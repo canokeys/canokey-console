@@ -6,6 +6,7 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/applet_switches.dart';
+import 'package:canokey_console/helper/utils/admin_card.dart';
 import 'package:canokey_console/helper/utils/ctap_transmitter.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
@@ -15,9 +16,7 @@ import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/webauthn.dart';
 import 'package:canokey_console/views/applets/webauthn/dialogs/force_pin_change_dialog.dart';
-import 'package:convert/convert.dart';
 import 'package:fido2/fido2.dart';
-import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -32,7 +31,6 @@ class WebAuthnController extends PollingController with AdminApplet {
   String? disabledMessage;
 
   bool get supportsSm2Settings =>
-      firmwareVersion.compareTo(const FirmwareVersion(3, 1, 0)) < 0 &&
       CanoKey.functionSet(functionSetVersion).contains(Func.webAuthnSm2Support);
 
   @override
@@ -137,9 +135,7 @@ class WebAuthnController extends PollingController with AdminApplet {
       if (!await authenticate(sn)) {
         return;
       }
-      final resp = await SmartCard.transceive('0011000000');
-      SmartCard.assertOK(resp);
-      config = _decodeSm2Config(SmartCard.dropSW(resp));
+      config = await AdminCardClient().readSm2Config();
     });
     return config;
   }
@@ -156,9 +152,11 @@ class WebAuthnController extends PollingController with AdminApplet {
       if (!await authenticate(sn)) {
         return;
       }
-      final cmdData = _encodeSm2Config(enabled, curveId, algoId);
-      SmartCard.assertOK(await SmartCard.transceive(
-          '00120000${(cmdData.length ~/ 2).toRadixString(16).padLeft(2, '0')}$cmdData'));
+      await AdminCardClient().writeSm2Config(
+        enabled: enabled,
+        curveId: curveId,
+        algoId: algoId,
+      );
       log.i('Successfully changed WebAuthn SM2 config');
       Navigator.pop(Get.context!);
       Prompts.showPrompt(
@@ -472,24 +470,6 @@ class WebAuthnController extends PollingController with AdminApplet {
     } else {
       Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
     }
-  }
-
-  String _encodeSm2Config(bool enabled, int curveId, int algoId) {
-    final attrData = hex.encode(Int32(curveId).toBytes().reversed.toList()) +
-        hex.encode(Int32(algoId).toBytes().reversed.toList());
-    return (enabled ? '01' : '00') + attrData;
-  }
-
-  WebAuthnSm2Config _decodeSm2Config(String data) {
-    if (data.length < 18) {
-      throw Exception(
-          'Invalid WebAuthn SM2 config length: ${data.length ~/ 2}');
-    }
-    return WebAuthnSm2Config(
-      enabled: data.substring(0, 2) == '01',
-      curveId: Int32.parseHex(data.substring(2, 10)).toInt(),
-      algoId: Int32.parseHex(data.substring(10, 18)).toInt(),
-    );
   }
 
   Future<void> _setPinCache(

@@ -3,6 +3,56 @@ import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('reads current SM2 defaults and writes big-endian signed IDs', () async {
+    final transport = _QueueApduTransport([
+      '00000009ffffffca9000',
+      '00000009ffffffca9000',
+      '9000',
+    ]);
+    final client = AdminCardClient(transport: transport);
+    final config = await client.readSm2Config();
+    expect(config.enabled, isTrue);
+    expect(config.canChangeEnabled, isFalse);
+    expect(config.curveId, 9);
+    expect(config.algoId, -54);
+    await client.writeSm2Config(
+        enabled: false, curveId: -2147483648, algoId: 2147483647);
+    expect(transport.commands, [
+      '0011000000',
+      '0011000000',
+      '0012000008800000007fffffff',
+    ]);
+  });
+
+  test('preserves the legacy enabled byte when writing SM2 configuration',
+      () async {
+    final transport = _QueueApduTransport(['0100000009ffffffd09000', '9000']);
+    final client = AdminCardClient(transport: transport);
+    await client.writeSm2Config(enabled: false, curveId: 9, algoId: -48);
+    expect(transport.commands, ['0011000000', '00120000090000000009ffffffd0']);
+  });
+
+  test('rejects reserved current SM2 IDs before sending a write', () async {
+    final transport = _QueueApduTransport(['00000009ffffffca9000']);
+    await expectLater(
+      AdminCardClient(transport: transport)
+          .writeSm2Config(enabled: true, curveId: 1, algoId: -54),
+      throwsArgumentError,
+    );
+    expect(transport.commands, ['0011000000']);
+  });
+
+  test('rejects failed and malformed SM2 reads', () async {
+    await expectLater(
+        AdminCardClient(transport: _QueueApduTransport(['6982']))
+            .readSm2Config(),
+        throwsA(anything));
+    await expectLater(
+        AdminCardClient(transport: _QueueApduTransport(['00009000']))
+            .readSm2Config(),
+        throwsFormatException);
+  });
+
   test('reads and updates admin data through the injected transport', () async {
     final transport = _QueueApduTransport([
       '9000',
