@@ -703,7 +703,7 @@ class MessageLookup extends MessageLookupByLibrary {
         ),
     "pivDisablePinProtectedManagementKeyPrompt":
         MessageLookupByLibrary.simpleMessage(
-          "A new management key will be set before the PIN-protected copy is cleared.",
+          "A new management key will be set before the PIN-protected copy is cleared. PUK will remain blocked. To restore it, reset PIN/PUK retries after disabling this mode; this also resets the PIN.",
         ),
     "pivDisablePinProtectedManagementKeySuccess":
         MessageLookupByLibrary.simpleMessage(
@@ -725,7 +725,7 @@ class MessageLookup extends MessageLookupByLibrary {
         ),
     "pivEnablePinProtectedManagementKeyPrompt":
         MessageLookupByLibrary.simpleMessage(
-          "A random management key will be set and stored on the card, protected by PIN.",
+          "A random management key will be set and stored on the card, protected by PIN. PUK will be blocked and cannot recover a forgotten or blocked PIN. PIN/PUK retries cannot be reset while this mode is enabled.",
         ),
     "pivEnablePinProtectedManagementKeySuccess":
         MessageLookupByLibrary.simpleMessage(
@@ -912,11 +912,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Set PIN/PUK Retries",
     ),
     "pivSetPinPukRetriesPrompt": MessageLookupByLibrary.simpleMessage(
-      "This resets PIN to 123456 and PUK to 12345678.",
+      "This resets PIN to 123456 and PUK to 12345678. Disable PIN-protected management key mode first.",
     ),
     "pivSetRetriesFailed": MessageLookupByLibrary.simpleMessage(
       "Set retries failed",
     ),
+    "pivSetRetriesMetadataFailed": MessageLookupByLibrary.simpleMessage("PIN/PUK retries were set and PIN/PUK were reset, but management metadata could not be updated. PIN is now 123456 and PUK is 12345678."),
     "pivSetRetriesSuccess": MessageLookupByLibrary.simpleMessage(
       "PIN/PUK retries set. PIN and PUK were reset.",
     ),
@@ -962,7 +963,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Store the new management key on this card",
     ),
     "pivStoreManagementKeyOnCardPrompt": MessageLookupByLibrary.simpleMessage(
-      "When enabled, future management operations can authenticate with PIN.",
+      "When enabled, future management operations can authenticate with PIN. This blocks PUK and prevents PIN recovery with PUK.",
     ),
     "pivTouchPolicy": MessageLookupByLibrary.simpleMessage("Touch Policy"),
     "pivTouchPolicyAlways": MessageLookupByLibrary.simpleMessage("Always"),

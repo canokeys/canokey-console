@@ -1,3 +1,4 @@
+import 'package:canokey_console/helper/utils/piv_pin_retries.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -1004,7 +1005,7 @@ class _PivPageState extends State<PivPage>
                         }
                         AppLoaderOverlay.show();
                         try {
-                          final ok = await controller.setPinRetries(
+                          final result = await controller.setPinRetries(
                             validator.getController('pin')!.text,
                             validator.getController('managementKey')!.text,
                             int.parse(
@@ -1013,14 +1014,21 @@ class _PivPageState extends State<PivPage>
                                 validator.getController('pukRetries')!.text),
                             usePinOnly,
                           );
-                          if (!ok) {
+                          if (result == PivPinRetryResetResult.failed) {
                             Prompts.showPrompt(S.current.pivSetRetriesFailed,
                                 ContentThemeColor.danger);
                             return;
                           }
                           await controller.refreshData();
-                          Prompts.showPrompt(S.current.pivSetRetriesSuccess,
-                              ContentThemeColor.success);
+                          final metadataFailed = result ==
+                              PivPinRetryResetResult.metadataUpdateFailed;
+                          Prompts.showPrompt(
+                              metadataFailed
+                                  ? S.current.pivSetRetriesMetadataFailed
+                                  : S.current.pivSetRetriesSuccess,
+                              metadataFailed
+                                  ? ContentThemeColor.warning
+                                  : ContentThemeColor.success);
                           Get.back();
                         } finally {
                           AppLoaderOverlay.hide();

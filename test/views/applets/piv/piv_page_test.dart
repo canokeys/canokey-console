@@ -43,6 +43,27 @@ void main() {
     await Get.delete<PivController>(force: true);
   });
 
+  testWidgets('legacy PIN-only cards retain recovery while PUK is usable',
+      (tester) async {
+    final controller = _TestPivController()
+      ..polled = true
+      ..pinOnlyMode = true
+      ..pinInfo = SlotInfo(0x80, AlgorithmType.pin, PinPolicy.once,
+          TouchPolicy.never, Origin.generated, const [], false, 3, 0)
+      ..pukInfo = SlotInfo(0x81, AlgorithmType.pin, PinPolicy.once,
+          TouchPolicy.never, Origin.generated, const [], false, 3, 3);
+    Get.put<PivController>(controller);
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    expect(_actionButton(tester, S.current.pivUnblockPin).onPressed, isNotNull);
+
+    controller.pukInfo = SlotInfo(0x81, AlgorithmType.pin, PinPolicy.once,
+        TouchPolicy.never, Origin.generated, const [], false, 3, 0);
+    controller.update();
+    await tester.pumpAndSettle();
+    expect(_actionButton(tester, S.current.pivUnblockPin).onPressed, isNull);
+  });
+
   testWidgets('does not expose X25519 shared-secret derivation',
       (tester) async {
     final controller = _TestPivController()

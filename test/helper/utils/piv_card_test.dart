@@ -42,6 +42,51 @@ void main() {
     ]);
   });
 
+  test(
+    'blocks PUK through CHANGE REFERENCE DATA until confirmed blocked',
+    () async {
+      final transport = _QueueApduTransport(['63C2', '63C1', '63C0', '6983']);
+      expect(await PivCardClient(transport: transport).blockPuk(), isTrue);
+      expect(transport.commands, hasLength(4));
+      for (final command in transport.commands) {
+        expect(command, startsWith('0024008110'));
+        expect(command.length, 42);
+        expect(command.substring(10, 26), command.substring(26));
+      }
+    },
+  );
+
+  test(
+    'accepts an already blocked PUK and retries an accidental match',
+    () async {
+      for (final responses in [
+        ['6983'],
+        ['9000', '63C0', '6983'],
+      ]) {
+        final transport = _QueueApduTransport(responses);
+        expect(await PivCardClient(transport: transport).blockPuk(), isTrue);
+        expect(transport.commands, hasLength(responses.length));
+      }
+    },
+  );
+
+  test(
+    'does not report PUK blocked on unexpected status or endless retries',
+    () async {
+      for (final responses in [
+        ['6982'],
+        ['6A80'],
+        ['63C0', '6F00'],
+        List.filled(257, '9000'),
+        List.filled(257, '63C1'),
+      ]) {
+        final transport = _QueueApduTransport(responses);
+        expect(await PivCardClient(transport: transport).blockPuk(), isFalse);
+        expect(transport.commands, hasLength(responses.length));
+      }
+    },
+  );
+
   test('reads optional algorithm extensions and missing metadata', () async {
     final config = await PivCardClient(
       transport: _QueueApduTransport([

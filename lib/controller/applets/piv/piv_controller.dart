@@ -9,6 +9,7 @@ import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/piv_card.dart';
+import 'package:canokey_console/helper/utils/piv_pin_retries.dart';
 import 'package:canokey_console/helper/utils/piv_csr.dart';
 import 'package:canokey_console/helper/utils/piv_management_key.dart';
 import 'package:canokey_console/helper/utils/piv_metadata_directory.dart';
@@ -360,6 +361,10 @@ class PivController extends PollingController {
         c.complete(false);
         return;
       }
+      if (storeOnDevice && !await _client.blockPuk()) {
+        c.complete(false);
+        return;
+      }
       if (!await _setManagementKeyInSession(
         newKey,
         touchPolicy: touchPolicy ?? managementKeyTouchPolicy,
@@ -551,28 +556,45 @@ class PivController extends PollingController {
     return c.future;
   }
 
-  Future<bool> setPinRetries(String pin, String managementKey, int pinRetries,
+  Future<PivPinRetryResetResult> setPinRetries(String pin, String managementKey, int pinRetries,
       int pukRetries, bool usePinOnly) async {
     log.t('Call PivController.setPinRetries');
-    if (!supportsPinRetryConfig) {
-      return false;
+    if (!supportsPinRetryConfig || pinOnlyMode || usePinOnly) {
+      return PivPinRetryResetResult.failed;
     }
-    final c = Completer<bool>();
+    final c = Completer<PivPinRetryResetResult>();
     SmartCard.process((String sn) async {
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
+      // Read the card as well: the UI state may be stale or the card changed.
+      if (await _readPinOnlyModeInSession()) {
+        c.complete(PivPinRetryResetResult.failed);
+        return;
+      }
       if (!await _verifyPinInSession(pin)) {
-        c.complete(false);
+        c.complete(PivPinRetryResetResult.failed);
         return;
       }
       if (!await _authenticateManagementKeyOrPinOnly(
           pin, managementKey, usePinOnly)) {
-        c.complete(false);
+        c.complete(PivPinRetryResetResult.failed);
         return;
       }
-      final resp = await SmartCard.transceive(
-          '00FA${pinRetries.toRadixString(16).padLeft(2, '0')}'
-          '${pukRetries.toRadixString(16).padLeft(2, '0')}');
-      c.complete(SmartCard.isOK(resp));
+      c.complete(await resetPivPinRetries(
+        reset: () async => SmartCard.isOK(await SmartCard.transceive(
+            '00FA${pinRetries.toRadixString(16).padLeft(2, '0')}'
+            '${pukRetries.toRadixString(16).padLeft(2, '0')}')),
+        authenticateManagementKey: () => _authenticateManagementKey(managementKey),
+        updateMetadata: () async {
+          final adminData = await _getDataObject(_pivmanDataObject);
+          if (adminData == null) return false;
+          final flags = _pivmanFlags(adminData);
+          if (flags & _pivmanPukBlockedFlag == 0) return true;
+          return _putDataObject(
+            _pivmanDataObject,
+            _buildPivmanData(adminData, flags & ~_pivmanPukBlockedFlag),
+          );
+        },
+      ));
     });
     return c.future;
   }
@@ -591,6 +613,10 @@ class PivController extends PollingController {
         return;
       }
       if (!await _authenticateManagementKey(currentManagementKey)) {
+        c.complete(false);
+        return;
+      }
+      if (!await _client.blockPuk()) {
         c.complete(false);
         return;
       }
@@ -1359,7 +1385,9 @@ class PivController extends PollingController {
       {required bool enabled}) async {
     final adminData = await _getDataObject(_pivmanDataObject);
     final newFlags = enabled
-        ? _pivmanFlags(adminData) | _pivmanManagementKeyProtectedFlag
+        ? _pivmanFlags(adminData) |
+            _pivmanManagementKeyProtectedFlag |
+            _pivmanPukBlockedFlag
         : _pivmanFlags(adminData) & ~_pivmanManagementKeyProtectedFlag;
     final adminOk = await _putDataObject(
       _pivmanDataObject,
@@ -1532,5 +1560,6 @@ class PivController extends PollingController {
   static const int _pivmanPinTimestampTag = 0x83;
   static const int _pivmanProtectedDataTag = 0x88;
   static const int _pivmanProtectedKeyTag = 0x89;
+  static const int _pivmanPukBlockedFlag = 0x01;
   static const int _pivmanManagementKeyProtectedFlag = 0x02;
 }

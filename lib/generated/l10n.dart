@@ -3174,10 +3174,10 @@ class S {
     );
   }
 
-  /// `This resets PIN to 123456 and PUK to 12345678.`
+  /// `This resets PIN to 123456 and PUK to 12345678. Disable PIN-protected management key mode first.`
   String get pivSetPinPukRetriesPrompt {
     return Intl.message(
-      'This resets PIN to 123456 and PUK to 12345678.',
+      'This resets PIN to 123456 and PUK to 12345678. Disable PIN-protected management key mode first.',
       name: 'pivSetPinPukRetriesPrompt',
       desc: '',
       args: [],
@@ -3214,6 +3214,16 @@ class S {
     );
   }
 
+  /// `PIN/PUK retries were set and PIN/PUK were reset, but management metadata could not be updated. PIN is now 123456 and PUK is 12345678.`
+  String get pivSetRetriesMetadataFailed {
+    return Intl.message(
+      'PIN/PUK retries were set and PIN/PUK were reset, but management metadata could not be updated. PIN is now 123456 and PUK is 12345678.',
+      name: 'pivSetRetriesMetadataFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `PIN/PUK retries set. PIN and PUK were reset.`
   String get pivSetRetriesSuccess {
     return Intl.message(
@@ -3234,10 +3244,10 @@ class S {
     );
   }
 
-  /// `A random management key will be set and stored on the card, protected by PIN.`
+  /// `A random management key will be set and stored on the card, protected by PIN. PUK will be blocked and cannot recover a forgotten or blocked PIN. PIN/PUK retries cannot be reset while this mode is enabled.`
   String get pivEnablePinProtectedManagementKeyPrompt {
     return Intl.message(
-      'A random management key will be set and stored on the card, protected by PIN.',
+      'A random management key will be set and stored on the card, protected by PIN. PUK will be blocked and cannot recover a forgotten or blocked PIN. PIN/PUK retries cannot be reset while this mode is enabled.',
       name: 'pivEnablePinProtectedManagementKeyPrompt',
       desc: '',
       args: [],
@@ -3274,10 +3284,10 @@ class S {
     );
   }
 
-  /// `A new management key will be set before the PIN-protected copy is cleared.`
+  /// `A new management key will be set before the PIN-protected copy is cleared. PUK will remain blocked. To restore it, reset PIN/PUK retries after disabling this mode; this also resets the PIN.`
   String get pivDisablePinProtectedManagementKeyPrompt {
     return Intl.message(
-      'A new management key will be set before the PIN-protected copy is cleared.',
+      'A new management key will be set before the PIN-protected copy is cleared. PUK will remain blocked. To restore it, reset PIN/PUK retries after disabling this mode; this also resets the PIN.',
       name: 'pivDisablePinProtectedManagementKeyPrompt',
       desc: '',
       args: [],
@@ -3314,10 +3324,10 @@ class S {
     );
   }
 
-  /// `When enabled, future management operations can authenticate with PIN.`
+  /// `When enabled, future management operations can authenticate with PIN. This blocks PUK and prevents PIN recovery with PUK.`
   String get pivStoreManagementKeyOnCardPrompt {
     return Intl.message(
-      'When enabled, future management operations can authenticate with PIN.',
+      'When enabled, future management operations can authenticate with PIN. This blocks PUK and prevents PIN recovery with PUK.',
       name: 'pivStoreManagementKeyOnCardPrompt',
       desc: '',
       args: [],

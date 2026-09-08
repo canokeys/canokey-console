@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
@@ -49,6 +50,28 @@ class PivCardClient {
     );
     lastStatusWord = SmartCard.sw(response);
     return SmartCard.isOK(response);
+  }
+
+  /// Exhaust PUK retries without changing or unblocking the PIN.
+  /// Only an explicit blocked response counts as success.
+  Future<bool> blockPuk() async {
+    final random = Random.secure();
+    // A byte-sized retry counter plus one final blocked-status probe.
+    for (var attempt = 0; attempt < 257; attempt++) {
+      final candidate = List.generate(8, (_) => random.nextInt(10)).join();
+      final encoded = _padPin(candidate);
+      final response = await _transport.transceive(
+        '0024008110$encoded$encoded',
+      );
+      final status = SmartCard.sw(response).toUpperCase();
+      lastStatusWord = status;
+      if (status == '6983') return true;
+      // An accidental match leaves the PUK unchanged; try another candidate.
+      if (status != '9000' && !RegExp(r'^63C[0-9A-F]$').hasMatch(status)) {
+        return false;
+      }
+    }
+    return false;
   }
 
   Future<void> logout() async {

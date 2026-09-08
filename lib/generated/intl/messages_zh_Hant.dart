@@ -551,7 +551,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivDisablePinProtectedManagementKeyFailed":
         MessageLookupByLibrary.simpleMessage("改為手動管理金鑰失敗"),
     "pivDisablePinProtectedManagementKeyPrompt":
-        MessageLookupByLibrary.simpleMessage("清除 PIN 保護的副本前會先設定新的管理金鑰。"),
+        MessageLookupByLibrary.simpleMessage("清除 PIN 保護的副本前會先設定新的管理金鑰。 PUK 仍保持鎖定。退出此模式後，可透過重設 PIN/PUK 重試次數復原 PUK，但這也會重置 PIN。"),
     "pivDisablePinProtectedManagementKeySuccess":
         MessageLookupByLibrary.simpleMessage("之後需要手動輸入管理金鑰"),
     "pivDnsSans": MessageLookupByLibrary.simpleMessage("DNS SAN，使用逗號分隔"),
@@ -563,7 +563,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivEnablePinProtectedManagementKeyFailed":
         MessageLookupByLibrary.simpleMessage("儲存 PIN 保護管理金鑰失敗"),
     "pivEnablePinProtectedManagementKeyPrompt":
-        MessageLookupByLibrary.simpleMessage("將設定隨機管理金鑰，並以 PIN 保護的形式儲存在卡內。"),
+        MessageLookupByLibrary.simpleMessage("將設定隨機管理金鑰，並以 PIN 保護的形式儲存在卡內。 PUK 將被鎖死，無法再用於復原遺忘或鎖定的 PIN。此模式下不能重設 PIN/PUK 重試次數。"),
     "pivEnablePinProtectedManagementKeySuccess":
         MessageLookupByLibrary.simpleMessage("管理金鑰已由 PIN 保護"),
     "pivExport": MessageLookupByLibrary.simpleMessage("匯出"),
@@ -703,9 +703,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "設定 PIN/PUK 重試次數",
     ),
     "pivSetPinPukRetriesPrompt": MessageLookupByLibrary.simpleMessage(
-      "此操作會將 PIN 重置為 123456，PUK 重置為 12345678。",
+      "此操作會將 PIN 重置為 123456，PUK 重置為 12345678。 請先關閉 PIN 保護的管理金鑰模式。",
     ),
     "pivSetRetriesFailed": MessageLookupByLibrary.simpleMessage("設定重試次數失敗"),
+    "pivSetRetriesMetadataFailed": MessageLookupByLibrary.simpleMessage("PIN/PUK 重試次數已設定，PIN/PUK 已重置，但管理中繼資料更新失敗。目前 PIN 為 123456，PUK 為 12345678。"),
     "pivSetRetriesSuccess": MessageLookupByLibrary.simpleMessage(
       "PIN/PUK 重試次數已設定，PIN 和 PUK 已重置。",
     ),
@@ -747,7 +748,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "將新管理金鑰儲存在卡內",
     ),
     "pivStoreManagementKeyOnCardPrompt": MessageLookupByLibrary.simpleMessage(
-      "啟用後，後續管理操作可用 PIN 完成驗證。",
+      "啟用後，後續管理操作可用 PIN 完成驗證。 此操作會鎖死 PUK，之後無法透過 PUK 復原 PIN。",
     ),
     "pivTouchPolicy": MessageLookupByLibrary.simpleMessage("觸碰策略"),
     "pivTouchPolicyAlways": MessageLookupByLibrary.simpleMessage("總是驗證"),
