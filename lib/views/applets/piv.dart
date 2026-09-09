@@ -1,3 +1,8 @@
+import 'package:canokey_console/views/applets/piv/widgets/piv_macos_setup_dialog.dart';
+import 'package:canokey_console/views/applets/piv/widgets/piv_slot_manager.dart';
+import 'package:canokey_console/views/applets/piv/widgets/piv_macos_next_step.dart';
+import 'package:canokey_console/models/piv_self_sign_options.dart';
+import 'package:canokey_console/views/applets/piv/widgets/piv_certificate_extensions.dart';
 import 'package:canokey_console/helper/utils/piv_pin_retries.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -348,11 +353,13 @@ class _PivPageState extends State<PivPage>
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Container(
-                            color: contentTheme.primary.withValues(alpha: 0.2),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerLow,
                             padding: Spacing.xy(16, 12),
                             child: Row(
                               children: [
-                                Icon(LucideIcons.keyboard,
+                                Icon(Icons.view_agenda_outlined,
                                     color: contentTheme.primary, size: 16),
                                 Spacing.width(12),
                                 CustomizedText.titleMedium(
@@ -367,7 +374,17 @@ class _PivPageState extends State<PivPage>
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  ..._buildSlotList(),
+                                  PivSlotManager(
+                                    slots: controller.slots,
+                                    retiredSlots: _retiredSlots(),
+                                    hasCertificate: controller.hasCertificate,
+                                    onOpenSlot: _showSlotDetailDialog,
+                                    onSetupMac: () => showDialog<void>(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (_) => PivMacOsSetupDialog(controller: controller),
+                                    ),
+                                  ),
                                 ],
                               )),
                         ],
@@ -1639,51 +1656,11 @@ class _PivPageState extends State<PivPage>
     ));
   }
 
-  Widget _buildInfo(String title, String slotNumber, SlotInfo? slot) {
-    final slotId = int.parse(slotNumber, radix: 16);
-    return PivSlotListItem(
-      title: title,
-      slotNumber: slotNumber,
-      slot: slot,
-      hasCertificate: controller.hasCertificate(slotId),
-      onTap: () => _showSlotDetailDialog(title, slotNumber, slot),
-    );
-  }
-
-  List<Widget> _buildSlotList() {
-    final slots = [
-      (title: S.of(context).pivAuthentication, number: '9A'),
-      (title: S.of(context).pivSignature, number: '9C'),
-      (title: S.of(context).pivKeyManagement, number: '9D'),
-      (title: S.of(context).pivCardAuthentication, number: '9E'),
-      for (final slot in _retiredSlots())
-        (
-          title: _retiredSlotTitle(slot - 0x81),
-          number: slot.toRadixString(16).toUpperCase()
-        ),
-    ];
-
-    return [
-      for (var index = 0; index < slots.length; index++) ...[
-        _buildInfo(
-          slots[index].title,
-          slots[index].number,
-          controller.slots[int.parse(slots[index].number, radix: 16)],
-        ),
-        if (index != slots.length - 1) Spacing.height(16),
-      ]
-    ];
-  }
-
   List<int> _retiredSlots() {
     if (!controller.extendedRetiredSlots) {
       return [0x82, 0x83];
     }
     return [for (var slot = 0x82; slot <= 0x95; slot++) slot];
-  }
-
-  String _retiredSlotTitle(int index) {
-    return S.of(context).pivRetiredSlot(index);
   }
 
   Widget _slotActionSection(String title, List<Widget> actions) {
@@ -1712,15 +1689,24 @@ class _PivPageState extends State<PivPage>
     required String text,
     required VoidCallback onPressed,
     bool danger = false,
+    bool primary = false,
   }) {
     return CustomizedButton.rounded(
       onPressed: onPressed,
       elevation: 0,
       padding: Spacing.xy(20, 16),
-      backgroundColor: danger ? contentTheme.danger : contentTheme.primary,
+      backgroundColor: danger
+          ? contentTheme.danger
+          : primary
+              ? contentTheme.primary
+              : Theme.of(context).colorScheme.surfaceContainerHighest,
       child: CustomizedText.labelMedium(
         text,
-        color: danger ? contentTheme.onDanger : contentTheme.onPrimary,
+        color: danger
+            ? contentTheme.onDanger
+            : primary
+                ? contentTheme.onPrimary
+                : Theme.of(context).colorScheme.onSurface,
       ),
     );
   }
@@ -1737,7 +1723,6 @@ class _PivPageState extends State<PivPage>
     }
     final certBytes = controller.certificateBytes[slotId];
     final certificate = controller.certificates[slotId];
-    final hasSlotData = slot != null || controller.hasCertificate(slotId);
     final isX25519Slot = slot?.algorithm == AlgorithmType.x25519;
     final isPostQuantumSlot = slot?.algorithm == AlgorithmType.mldsa65 ||
         slot?.algorithm == AlgorithmType.mlkem768;
@@ -1754,8 +1739,8 @@ class _PivPageState extends State<PivPage>
     final provisioningActions = <Widget>[
       if (canGenerateCsr)
         _slotActionButton(
+          primary: true,
           text: S.of(context).pivGenerateCsr,
-          danger: hasSlotData,
           onPressed: () {
             Navigator.pop(Get.context!);
             _showGenerateDialog(slotNumber, selfSigned: false);
@@ -1763,8 +1748,8 @@ class _PivPageState extends State<PivPage>
         ),
       if (canSelfSign)
         _slotActionButton(
+          primary: true,
           text: S.of(context).pivSelfSign,
-          danger: hasSlotData,
           onPressed: () {
             Navigator.pop(Get.context!);
             _showGenerateDialog(slotNumber, selfSigned: true);
@@ -1772,16 +1757,16 @@ class _PivPageState extends State<PivPage>
         ),
       if (canGenerateStandaloneKey)
         _slotActionButton(
+          primary: true,
           text: S.of(context).pivGenerateKey,
-          danger: hasSlotData,
           onPressed: () {
             Navigator.pop(Get.context!);
             _showGenerateKeyDialog(slotNumber);
           },
         ),
       _slotActionButton(
+        primary: true,
         text: S.of(context).pivImport,
-        danger: hasSlotData,
         onPressed: () {
           Navigator.pop(Get.context!);
           _showImportDialog(slotNumber);
@@ -1885,6 +1870,11 @@ class _PivPageState extends State<PivPage>
                 child: CustomizedText.labelLarge('$title - $slotNumber'),
               ),
               Divider(height: 0, thickness: 1),
+              if (slot != null)
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: PivSlotPolicies(slot: slot),
+                ),
               if (certificate != null && certBytes != null) ...[
                 Flexible(
                   child: SingleChildScrollView(
@@ -2028,20 +2018,31 @@ class _PivPageState extends State<PivPage>
                             if (diagnosticActions.isNotEmpty)
                               _slotActionSection(S.of(context).pivDiagnostics,
                                   diagnosticActions),
-                            if (dangerActions.isNotEmpty)
-                              _slotActionSection(
-                                  S.of(context).pivDangerZone, dangerActions),
                           ];
-                          return Wrap(
-                            spacing: spacing,
-                            runSpacing: spacing,
-                            crossAxisAlignment: WrapCrossAlignment.start,
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              for (final section in sections)
-                                SizedBox(
-                                  width: sectionWidth,
-                                  child: section,
+                              Wrap(
+                                spacing: spacing,
+                                runSpacing: spacing,
+                                crossAxisAlignment: WrapCrossAlignment.start,
+                                children: [
+                                  for (final section in sections)
+                                    SizedBox(
+                                      width: sectionWidth,
+                                      child: section,
+                                    ),
+                                ],
+                              ),
+                              if (dangerActions.isNotEmpty) ...[
+                                const SizedBox(height: 24),
+                                const Divider(),
+                                const SizedBox(height: 12),
+                                _slotActionSection(
+                                  S.of(context).pivDangerZone,
+                                  dangerActions,
                                 ),
+                              ],
                             ],
                           );
                         },
@@ -3073,10 +3074,12 @@ class _PivPageState extends State<PivPage>
 
   void _showGenerateDialog(String slotNumber, {required bool selfSigned}) {
     controller.log.t('Call _PivPageState._showGenerateDialog');
-    Rx<int> step = 0.obs;
-    AlgorithmType algorithm = AlgorithmType.eccp256;
-    PinPolicy pinPolicy = recommendedPivPinPolicy(slotNumber);
-    TouchPolicy touchPolicy = TouchPolicy.never;
+    int step = 0;
+    final options = PivSelfSignOptions(
+      slotNumber: slotNumber,
+      pinPolicy: recommendedPivPinPolicy(slotNumber),
+    );
+    late StateSetter updateOptions;
     bool usePinOnly = controller.pinOnlyMode;
     FormValidator pinValidator = FormValidator();
     FormValidator subjectValidator = FormValidator();
@@ -3103,15 +3106,15 @@ class _PivPageState extends State<PivPage>
         required: true, controller: TextEditingController(text: '365'));
 
     Future<void> nextStep() async {
-      if (step.value == 0) {
+      if (step == 0) {
         if (!pinValidator.validateForm()) {
           return;
         }
-        step.value++;
+        updateOptions(() => step++);
         return;
       }
-      if (step.value == 1) {
-        step.value++;
+      if (step == 1) {
+        updateOptions(() => step++);
         return;
       }
       if (!subjectValidator.validateForm()) return;
@@ -3154,16 +3157,21 @@ class _PivPageState extends State<PivPage>
                   .trim()) ??
               365;
           final cert = await controller.generateSelfSignedCertificate(
-              slotNumber,
-              algorithm,
-              pinPolicy,
-              touchPolicy,
-              pinValidator.getController('pin')!.text,
-              pinValidator.getController('managementKey')!.text,
-              subject,
-              sans,
-              validityDays,
-              usePinOnly);
+            slotNumber,
+            options.algorithm,
+            options.pinPolicy,
+            options.touchPolicy,
+            pinValidator.getController('pin')!.text,
+            pinValidator.getController('managementKey')!.text,
+            subject,
+            sans,
+            validityDays,
+            usePinOnly,
+            keyUsage: options.keyUsage,
+            keyUsageCritical: options.keyUsageCritical,
+            extendedKeyUsage: options.extendedKeyUsage.toList(),
+            includeBasicConstraints: options.includeBasicConstraints,
+          );
           if (cert == null) {
             Prompts.showPrompt(
                 S.current.pivCreateCertificateFailed, ContentThemeColor.danger);
@@ -3173,13 +3181,17 @@ class _PivPageState extends State<PivPage>
           Prompts.showPrompt(
               S.current.pivCertificateCreated, ContentThemeColor.success);
           Navigator.pop(Get.context!);
-          _showCertificateResultDialog(slotNumber, cert);
+          _showCertificateResultDialog(
+            slotNumber,
+            cert,
+            macOsLogin: options.matchesMacOsLogin,
+          );
         } else {
           final csr = await controller.generateCsr(
               slotNumber,
-              algorithm,
-              pinPolicy,
-              touchPolicy,
+              options.algorithm,
+              options.pinPolicy,
+              options.touchPolicy,
               pinValidator.getController('pin')!.text,
               pinValidator.getController('managementKey')!.text,
               subject,
@@ -3203,296 +3215,310 @@ class _PivPageState extends State<PivPage>
     }
 
     void prevStep() {
-      if (step.value == 0) {
+      if (step == 0) {
         Get.back();
       } else {
-        step.value--;
+        updateOptions(() => step--);
       }
     }
 
     AppDialog.show(AppDialogSurface(
-      child: Obx(
-        () => SizedBox(
-          width: AppDialogWidth.medium,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: Spacing.all(16),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: CustomizedText.labelLarge(
-                    selfSigned
-                        ? S.of(context).pivSelfSignCertificate
-                        : S.of(context).pivGenerateCsr,
+      child: StatefulBuilder(
+        builder: (context, setDialogState) {
+          updateOptions = setDialogState;
+          return SizedBox(
+            width: AppDialogWidth.medium,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: Spacing.all(16),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: CustomizedText.labelLarge(
+                      selfSigned
+                          ? S.of(context).pivSelfSignCertificate
+                          : S.of(context).pivGenerateCsr,
+                    ),
                   ),
                 ),
-              ),
-              Divider(height: 0, thickness: 1),
-              Flexible(
-                child: Stepper(
-                  currentStep: step.value,
-                  onStepContinue: nextStep,
-                  onStepCancel: prevStep,
-                  stepIconBuilder: (stepIndex, stepState) {
-                    final active = stepIndex == step.value;
-                    return Container(
-                      width: 32,
-                      height: 32,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: active
-                            ? ContentThemeColor.primary.color
-                            : AppTheme.theme.colorScheme.onSurface
-                                .withAlpha(96),
-                        shape: BoxShape.circle,
-                      ),
-                      child: CustomizedText.labelMedium(
-                        '${stepIndex + 1}',
-                        color: active
-                            ? ContentThemeColor.primary.onColor
-                            : AppTheme.theme.colorScheme.surface,
-                        fontWeight: 600,
-                      ),
-                    );
-                  },
-                  controlsBuilder:
-                      (BuildContext context, ControlsDetails details) {
-                    return Row(
-                      children: [
-                        CustomizedButton.rounded(
-                          onPressed: details.onStepContinue,
-                          elevation: 0,
-                          backgroundColor: ContentThemeColor.primary.color,
-                          child: CustomizedText.labelMedium(
-                              step.value == 2
-                                  ? (selfSigned
-                                      ? S.of(context).pivCreateCertificate
-                                      : S.of(context).pivGenerateCsr)
-                                  : S.of(context).next,
-                              color: ContentThemeColor.primary.onColor),
+                Divider(height: 0, thickness: 1),
+                Flexible(
+                  child: Stepper(
+                    currentStep: step,
+                    onStepContinue: nextStep,
+                    onStepCancel: prevStep,
+                    stepIconBuilder: (stepIndex, stepState) {
+                      final active = stepIndex == step;
+                      return Container(
+                        width: 32,
+                        height: 32,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: active
+                              ? ContentThemeColor.primary.color
+                              : AppTheme.theme.colorScheme.onSurface
+                                  .withAlpha(96),
+                          shape: BoxShape.circle,
                         ),
-                        Spacing.width(12),
-                        CustomizedButton.rounded(
-                          onPressed: details.onStepCancel,
-                          elevation: 0,
-                          backgroundColor: ContentThemeColor.secondary.color,
-                          child: CustomizedText.labelMedium(
-                              step.value == 0
-                                  ? S.of(context).cancel
-                                  : S.of(context).back,
-                              color: ContentThemeColor.secondary.onColor),
+                        child: CustomizedText.labelMedium(
+                          '${stepIndex + 1}',
+                          color: active
+                              ? ContentThemeColor.primary.onColor
+                              : AppTheme.theme.colorScheme.surface,
+                          fontWeight: 600,
                         ),
-                      ],
-                    );
-                  },
-                  steps: [
-                    Step(
-                      isActive: step.value == 0,
-                      state: step.value == 0
-                          ? StepState.editing
-                          : StepState.indexed,
-                      title: Text(S.of(context).pivVerifyPinAndManagementKey),
-                      content: Padding(
-                        padding: Spacing.top(10),
-                        child: Form(
-                          key: pinValidator.formKey,
-                          child: Column(
-                            children: [
-                              TextFormField(
-                                autofocus: true,
-                                onTap: SmartCard.eject,
-                                obscureText: true,
-                                controller: pinValidator.getController('pin'),
-                                validator: pinValidator.getValidator('pin'),
-                                decoration: InputDecoration(
-                                    labelText: 'PIN',
-                                    border: outlineInputBorder),
-                              ),
-                              if (controller.pinOnlyMode) ...[
-                                Spacing.height(12),
-                                _buildManagementKeyAuthModeControl(
-                                  usePinOnly: usePinOnly,
-                                  onChanged: (value) =>
-                                      setState(() => usePinOnly = value),
-                                ),
-                              ],
-                              if (!usePinOnly) ...[
-                                Spacing.height(18),
-                                _buildManagementKeyField(
-                                  pinValidator,
-                                  'managementKey',
-                                ),
-                              ],
-                            ],
+                      );
+                    },
+                    controlsBuilder:
+                        (BuildContext context, ControlsDetails details) {
+                      return Row(
+                        children: [
+                          CustomizedButton.rounded(
+                            onPressed: details.onStepContinue,
+                            elevation: 0,
+                            backgroundColor: ContentThemeColor.primary.color,
+                            child: CustomizedText.labelMedium(
+                                step == 2
+                                    ? (selfSigned
+                                        ? S.of(context).pivCreateCertificate
+                                        : S.of(context).pivGenerateCsr)
+                                    : S.of(context).next,
+                                color: ContentThemeColor.primary.onColor),
                           ),
-                        ),
-                      ),
-                    ),
-                    Step(
-                      isActive: step.value == 1,
-                      state: step.value == 1
-                          ? StepState.editing
-                          : StepState.indexed,
-                      title: Text(S.of(context).pivKeyOptions),
-                      content: Padding(
-                        padding: Spacing.top(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CustomizedText.bodySmall(
-                              selfSigned
-                                  ? S
-                                      .of(context)
-                                      .pivSelfSignedCertificateWarning
-                                  : S.of(context).pivCsrGenerationPrompt,
-                              color: contentTheme.onBackground.withAlpha(180),
-                            ),
-                            Spacing.height(12),
-                            DropdownButtonFormField(
-                              initialValue: algorithm,
-                              items: [
-                                AlgorithmType.eccp256,
-                                AlgorithmType.eccp384,
-                                AlgorithmType.eccp521,
-                                AlgorithmType.secp256k1,
-                                AlgorithmType.sm2,
-                                AlgorithmType.ed25519,
-                                if (selfSigned) AlgorithmType.mldsa65,
-                                AlgorithmType.rsa2048,
-                                AlgorithmType.rsa3072,
-                                AlgorithmType.rsa4096,
-                              ]
-                                  .where(controller.supportsAlgorithm)
-                                  .map((e) => DropdownMenuItem(
-                                      value: e, child: Text(e.label)))
-                                  .toList(),
-                              onChanged: (value) =>
-                                  setState(() => algorithm = value!),
-                              decoration: InputDecoration(
-                                  labelText: S.of(context).pivAlgorithm),
-                              dropdownColor: contentTheme.background,
-                            ),
-                            Spacing.height(18),
-                            DropdownButtonFormField(
-                              initialValue: pinPolicy,
-                              items: [
-                                PinPolicy.never,
-                                PinPolicy.once,
-                                PinPolicy.always
-                              ]
-                                  .map((e) => DropdownMenuItem(
-                                      value: e, child: Text(e.toString())))
-                                  .toList(),
-                              onChanged: (value) =>
-                                  setState(() => pinPolicy = value!),
-                              decoration: InputDecoration(
-                                  labelText: S.of(context).pivPinPolicy),
-                              dropdownColor: contentTheme.background,
-                            ),
-                            Spacing.height(18),
-                            DropdownButtonFormField(
-                              initialValue: touchPolicy,
-                              items: [
-                                TouchPolicy.never,
-                                TouchPolicy.cached,
-                                TouchPolicy.always
-                              ]
-                                  .map((e) => DropdownMenuItem(
-                                      value: e, child: Text(e.toString())))
-                                  .toList(),
-                              onChanged: (value) =>
-                                  setState(() => touchPolicy = value!),
-                              decoration: InputDecoration(
-                                  labelText: S.of(context).pivTouchPolicy),
-                              dropdownColor: contentTheme.background,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Step(
-                      isActive: step.value == 2,
-                      state: step.value == 2
-                          ? StepState.editing
-                          : StepState.indexed,
-                      title: Text(selfSigned
-                          ? S.of(context).pivCertificateSubjectStep
-                          : S.of(context).pivCsrSubject),
-                      content: Padding(
-                        padding: Spacing.top(10),
-                        child: Form(
-                          key: subjectValidator.formKey,
-                          child: Column(
-                            children: [
-                              TextFormField(
-                                controller:
-                                    subjectValidator.getController('cn'),
-                                validator: subjectValidator.getValidator('cn'),
-                                decoration: InputDecoration(
-                                    labelText: S.of(context).pivCommonName,
-                                    border: outlineInputBorder),
-                              ),
-                              Spacing.height(18),
-                              TextFormField(
-                                controller: subjectValidator.getController('o'),
-                                validator: subjectValidator.getValidator('o'),
-                                decoration: InputDecoration(
-                                    labelText: S.of(context).pivOrganization,
-                                    border: outlineInputBorder),
-                              ),
-                              Spacing.height(18),
-                              TextFormField(
-                                controller:
-                                    subjectValidator.getController('ou'),
-                                validator: subjectValidator.getValidator('ou'),
-                                decoration: InputDecoration(
-                                    labelText:
-                                        S.of(context).pivOrganizationalUnit,
-                                    border: outlineInputBorder),
-                              ),
-                              Spacing.height(18),
-                              TextFormField(
-                                controller: subjectValidator.getController('c'),
-                                validator: subjectValidator.getValidator('c'),
-                                decoration: InputDecoration(
-                                    labelText: S.of(context).pivCountryCode,
-                                    border: outlineInputBorder),
-                              ),
-                              Spacing.height(18),
-                              TextFormField(
-                                controller:
-                                    subjectValidator.getController('sans'),
-                                validator:
-                                    subjectValidator.getValidator('sans'),
-                                decoration: InputDecoration(
-                                    labelText: S.of(context).pivDnsSans,
-                                    border: outlineInputBorder),
-                              ),
-                              if (selfSigned) ...[
-                                Spacing.height(18),
+                          Spacing.width(12),
+                          CustomizedButton.rounded(
+                            onPressed: details.onStepCancel,
+                            elevation: 0,
+                            backgroundColor: ContentThemeColor.secondary.color,
+                            child: CustomizedText.labelMedium(
+                                step == 0
+                                    ? S.of(context).cancel
+                                    : S.of(context).back,
+                                color: ContentThemeColor.secondary.onColor),
+                          ),
+                        ],
+                      );
+                    },
+                    steps: [
+                      Step(
+                        isActive: step == 0,
+                        state:
+                            step == 0 ? StepState.editing : StepState.indexed,
+                        title: Text(S.of(context).pivVerifyPinAndManagementKey),
+                        content: Padding(
+                          padding: Spacing.top(10),
+                          child: Form(
+                            key: pinValidator.formKey,
+                            child: Column(
+                              children: [
                                 TextFormField(
-                                  controller: subjectValidator
-                                      .getController('validityDays'),
-                                  validator: subjectValidator
-                                      .getValidator('validityDays'),
-                                  keyboardType: TextInputType.number,
+                                  autofocus: true,
+                                  onTap: SmartCard.eject,
+                                  obscureText: true,
+                                  controller: pinValidator.getController('pin'),
+                                  validator: pinValidator.getValidator('pin'),
                                   decoration: InputDecoration(
-                                      labelText: S.of(context).pivValidityDays,
+                                      labelText: 'PIN',
                                       border: outlineInputBorder),
                                 ),
+                                if (controller.pinOnlyMode) ...[
+                                  Spacing.height(12),
+                                  _buildManagementKeyAuthModeControl(
+                                    usePinOnly: usePinOnly,
+                                    onChanged: (value) =>
+                                        updateOptions(() => usePinOnly = value),
+                                  ),
+                                ],
+                                if (!usePinOnly) ...[
+                                  Spacing.height(18),
+                                  _buildManagementKeyField(
+                                    pinValidator,
+                                    'managementKey',
+                                  ),
+                                ],
                               ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Step(
+                        isActive: step == 1,
+                        state:
+                            step == 1 ? StepState.editing : StepState.indexed,
+                        title: Text(S.of(context).pivKeyOptions),
+                        content: Padding(
+                          padding: Spacing.top(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomizedText.bodySmall(
+                                selfSigned
+                                    ? S
+                                        .of(context)
+                                        .pivSelfSignedCertificateWarning
+                                    : S.of(context).pivCsrGenerationPrompt,
+                                color: contentTheme.onBackground.withAlpha(180),
+                              ),
+                              Spacing.height(12),
+                              DropdownButtonFormField(
+                                key: ValueKey(options.algorithm),
+                                initialValue: options.algorithm,
+                                items: [
+                                  AlgorithmType.eccp256,
+                                  AlgorithmType.eccp384,
+                                  AlgorithmType.eccp521,
+                                  AlgorithmType.secp256k1,
+                                  AlgorithmType.sm2,
+                                  AlgorithmType.ed25519,
+                                  if (selfSigned) AlgorithmType.mldsa65,
+                                  AlgorithmType.rsa2048,
+                                  AlgorithmType.rsa3072,
+                                  AlgorithmType.rsa4096,
+                                ]
+                                    .where(controller.supportsAlgorithm)
+                                    .map((e) => DropdownMenuItem(
+                                        value: e, child: Text(e.label)))
+                                    .toList(),
+                                onChanged: (value) => updateOptions(
+                                    () => options.algorithm = value!),
+                                decoration: InputDecoration(
+                                    labelText: S.of(context).pivAlgorithm),
+                                dropdownColor: contentTheme.background,
+                              ),
+                              Spacing.height(18),
+                              DropdownButtonFormField(
+                                key: ValueKey(options.pinPolicy),
+                                initialValue: options.pinPolicy,
+                                items: [
+                                  PinPolicy.never,
+                                  PinPolicy.once,
+                                  PinPolicy.always
+                                ]
+                                    .map((e) => DropdownMenuItem(
+                                        value: e, child: Text(e.toString())))
+                                    .toList(),
+                                onChanged: (value) => updateOptions(
+                                    () => options.pinPolicy = value!),
+                                decoration: InputDecoration(
+                                    labelText: S.of(context).pivPinPolicy),
+                                dropdownColor: contentTheme.background,
+                              ),
+                              Spacing.height(18),
+                              DropdownButtonFormField(
+                                initialValue: options.touchPolicy,
+                                items: [
+                                  TouchPolicy.never,
+                                  TouchPolicy.cached,
+                                  TouchPolicy.always
+                                ]
+                                    .map((e) => DropdownMenuItem(
+                                        value: e, child: Text(e.toString())))
+                                    .toList(),
+                                onChanged: (value) => updateOptions(
+                                    () => options.touchPolicy = value!),
+                                decoration: InputDecoration(
+                                    labelText: S.of(context).pivTouchPolicy),
+                                dropdownColor: contentTheme.background,
+                              ),
                             ],
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      Step(
+                        isActive: step == 2,
+                        state:
+                            step == 2 ? StepState.editing : StepState.indexed,
+                        title: Text(selfSigned
+                            ? S.of(context).pivCertificateSubjectAndExtensions
+                            : S.of(context).pivCsrSubject),
+                        content: Padding(
+                          padding: Spacing.top(10),
+                          child: Form(
+                            key: subjectValidator.formKey,
+                            child: Column(
+                              children: [
+                                if (selfSigned) ...[
+                                  PivCertificateExtensions(
+                                    options: options,
+                                    onChanged: updateOptions,
+                                  ),
+                                  const SizedBox(height: 16),
+                                ],
+                                TextFormField(
+                                  controller:
+                                      subjectValidator.getController('cn'),
+                                  validator:
+                                      subjectValidator.getValidator('cn'),
+                                  decoration: InputDecoration(
+                                      labelText: S.of(context).pivCommonName,
+                                      border: outlineInputBorder),
+                                ),
+                                Spacing.height(18),
+                                TextFormField(
+                                  controller:
+                                      subjectValidator.getController('o'),
+                                  validator: subjectValidator.getValidator('o'),
+                                  decoration: InputDecoration(
+                                      labelText: S.of(context).pivOrganization,
+                                      border: outlineInputBorder),
+                                ),
+                                Spacing.height(18),
+                                TextFormField(
+                                  controller:
+                                      subjectValidator.getController('ou'),
+                                  validator:
+                                      subjectValidator.getValidator('ou'),
+                                  decoration: InputDecoration(
+                                      labelText:
+                                          S.of(context).pivOrganizationalUnit,
+                                      border: outlineInputBorder),
+                                ),
+                                Spacing.height(18),
+                                TextFormField(
+                                  controller:
+                                      subjectValidator.getController('c'),
+                                  validator: subjectValidator.getValidator('c'),
+                                  decoration: InputDecoration(
+                                      labelText: S.of(context).pivCountryCode,
+                                      border: outlineInputBorder),
+                                ),
+                                Spacing.height(18),
+                                TextFormField(
+                                  controller:
+                                      subjectValidator.getController('sans'),
+                                  validator:
+                                      subjectValidator.getValidator('sans'),
+                                  decoration: InputDecoration(
+                                      labelText: S.of(context).pivDnsSans,
+                                      border: outlineInputBorder),
+                                ),
+                                if (selfSigned) ...[
+                                  Spacing.height(18),
+                                  TextFormField(
+                                    controller: subjectValidator
+                                        .getController('validityDays'),
+                                    validator: subjectValidator
+                                        .getValidator('validityDays'),
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                        labelText:
+                                            S.of(context).pivValidityDays,
+                                        border: outlineInputBorder),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
+              ],
+            ),
+          );
+        },
       ),
     ));
   }
@@ -3759,7 +3785,11 @@ class _PivPageState extends State<PivPage>
     ));
   }
 
-  void _showCertificateResultDialog(String slotNumber, Uint8List cert) {
+  void _showCertificateResultDialog(
+    String slotNumber,
+    Uint8List cert, {
+    bool macOsLogin = false,
+  }) {
     controller.log.t('Call _PivPageState._showCertificateResultDialog');
     final pem = _certificatePem(cert);
     AppDialog.show(AppDialogSurface(
@@ -3777,8 +3807,25 @@ class _PivPageState extends State<PivPage>
             Padding(
               padding: Spacing.all(16),
               child: CustomizedText.bodyMedium(
-                  S.of(context).pivCertificateWritten(slotNumber)),
+                S.of(context).pivCertificateWritten(slotNumber),
+              ),
             ),
+            if (macOsLogin)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: PivMacOsNextStep(
+                  completedSlot: slotNumber,
+                  onOpenSlot: (nextSlot) async {
+                    Navigator.pop(Get.context!);
+                    final nextId = int.parse(nextSlot, radix: 16);
+                    await _showSlotDetailDialog(
+                      nextSlot == '9A' ? S.current.pivAuthentication : S.current.pivKeyManagement,
+                      nextSlot,
+                      controller.slots[nextId],
+                    );
+                  },
+                ),
+              ),
             Divider(height: 0, thickness: 1),
             Padding(
               padding: Spacing.all(16),

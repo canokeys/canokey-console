@@ -33,10 +33,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   SelfSignedCertificateParams
-      dco_decode_box_autoadd_self_signed_certificate_params(dynamic raw);
+  dco_decode_box_autoadd_self_signed_certificate_params(dynamic raw);
 
   @protected
   X509CertData dco_decode_box_autoadd_x_509_cert_data(dynamic raw);
+
+  @protected
+  PlatformInt64 dco_decode_i_64(dynamic raw);
 
   @protected
   List<String> dco_decode_list_String(dynamic raw);
@@ -52,7 +55,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PivPrivateKeyData? dco_decode_opt_box_autoadd_piv_private_key_data(
-      dynamic raw);
+    dynamic raw,
+  );
 
   @protected
   X509CertData? dco_decode_opt_box_autoadd_x_509_cert_data(dynamic raw);
@@ -71,7 +75,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   SelfSignedCertificateParams dco_decode_self_signed_certificate_params(
-      dynamic raw);
+    dynamic raw,
+  );
+
+  @protected
+  int dco_decode_u_16(dynamic raw);
 
   @protected
   int dco_decode_u_32(dynamic raw);
@@ -96,16 +104,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PivPrivateKeyData sse_decode_box_autoadd_piv_private_key_data(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   SelfSignedCertificateParams
-      sse_decode_box_autoadd_self_signed_certificate_params(
-          SseDeserializer deserializer);
+  sse_decode_box_autoadd_self_signed_certificate_params(
+    SseDeserializer deserializer,
+  );
 
   @protected
   X509CertData sse_decode_box_autoadd_x_509_cert_data(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
 
   @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
@@ -121,29 +135,37 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PivPrivateKeyData? sse_decode_opt_box_autoadd_piv_private_key_data(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   X509CertData? sse_decode_opt_box_autoadd_x_509_cert_data(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   Uint8List? sse_decode_opt_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
   PivImportFileData sse_decode_piv_import_file_data(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   PivPrivateKeyData sse_decode_piv_private_key_data(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   PivPublicKeyData sse_decode_piv_public_key_data(SseDeserializer deserializer);
 
   @protected
   SelfSignedCertificateParams sse_decode_self_signed_certificate_params(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  int sse_decode_u_16(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer);
@@ -171,15 +193,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_piv_private_key_data(
-      PivPrivateKeyData self, SseSerializer serializer);
+    PivPrivateKeyData self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_self_signed_certificate_params(
-      SelfSignedCertificateParams self, SseSerializer serializer);
+    SelfSignedCertificateParams self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_x_509_cert_data(
-      X509CertData self, SseSerializer serializer);
+    X509CertData self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
@@ -189,38 +220,57 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_list_prim_u_8_strict(
-      Uint8List self, SseSerializer serializer);
+    Uint8List self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_piv_private_key_data(
-      PivPrivateKeyData? self, SseSerializer serializer);
+    PivPrivateKeyData? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_box_autoadd_x_509_cert_data(
-      X509CertData? self, SseSerializer serializer);
+    X509CertData? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_list_prim_u_8_strict(
-      Uint8List? self, SseSerializer serializer);
+    Uint8List? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_piv_import_file_data(
-      PivImportFileData self, SseSerializer serializer);
+    PivImportFileData self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_piv_private_key_data(
-      PivPrivateKeyData self, SseSerializer serializer);
+    PivPrivateKeyData self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_piv_public_key_data(
-      PivPublicKeyData self, SseSerializer serializer);
+    PivPublicKeyData self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_self_signed_certificate_params(
-      SelfSignedCertificateParams self, SseSerializer serializer);
+    SelfSignedCertificateParams self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_u_16(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);

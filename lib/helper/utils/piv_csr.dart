@@ -115,6 +115,10 @@ class PivCertificateBuilder {
     required DateTime notBefore,
     required DateTime notAfter,
     required List<String> subjectAlternativeNames,
+    int keyUsage = 0,
+    bool keyUsageCritical = true,
+    List<String> extendedKeyUsage = const [],
+    bool includeBasicConstraints = false,
   }) {
     var serialHex = serialNumber.toRadixString(16);
     if (serialHex.length.isOdd) serialHex = '0$serialHex';
@@ -129,6 +133,10 @@ class PivCertificateBuilder {
         notBefore: _x509Time(notBefore),
         notAfter: _x509Time(notAfter),
         subjectAlternativeNames: subjectAlternativeNames,
+        keyUsage: keyUsage,
+        keyUsageCritical: keyUsageCritical,
+        extendedKeyUsage: extendedKeyUsage,
+        includeBasicConstraints: includeBasicConstraints,
       ),
     );
   }

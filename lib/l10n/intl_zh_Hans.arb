@@ -146,7 +146,12 @@
   "ndefNoRecordsDescription": "添加 URI 或文本记录，使其他设备可以读取该标签。",
   "ndefCapacity": "容量",
   "ndefBytesUsed": "已使用 {used} / {total} 字节",
-  "@ndefBytesUsed": {"placeholders": {"used": {}, "total": {}}},
+  "@ndefBytesUsed": {
+    "placeholders": {
+      "used": {},
+      "total": {}
+    }
+  },
   "ndefWritable": "可写",
   "ndefReadOnlyStatus": "只读",
   "ndefReadOnly": "NDEF 标签当前为只读。",
@@ -213,7 +218,11 @@
   "ndefInvalidMacAddress": "请输入类似 AA:BB:CC:DD:EE:FF 的 MAC 地址。",
   "ndefInvalidUuid": "请输入标准格式的 UUID。",
   "ndefInvalidRecord": "ndef 库拒绝了此记录：{error}",
-  "@ndefInvalidRecord": {"placeholders": {"error": {}}},
+  "@ndefInvalidRecord": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "ndefRequiredField": "此项为必填项。",
   "ndefTnfRequiresEmptyType": "此 TNF 要求类型名称为空。",
   "ndefTnfEmpty": "空记录",
@@ -415,7 +424,11 @@
   "fileSaved": "保存成功",
   "fileSaveFailed": "保存文件失败",
   "fileSaveFailedWithError": "保存失败：{error}",
-  "@fileSaveFailedWithError": {"placeholders": {"error": {}}},
+  "@fileSaveFailedWithError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "pivSlotAuthenticationHint": "认证槽。用于登录时应选择可签名密钥。",
   "pivSlotSignatureHint": "数字签名槽。PIN 策略默认总是验证。",
   "pivSlotKeyManagementHint": "密钥管理槽。X25519 只能用于派生共享密钥。",
@@ -426,14 +439,24 @@
   "pivExtendedAlgorithmCompatibilityWarning": "使用此算法前请确认客户端兼容性。",
   "pivOverwriteKey": "覆盖密钥",
   "pivOverwriteKeyPrompt": "{action} 将替换 {slot} 槽中的私钥。依赖此密钥的认证或签名可能会失效。",
-  "@pivOverwriteKeyPrompt": {"placeholders": {"action": {}, "slot": {}}},
+  "@pivOverwriteKeyPrompt": {
+    "placeholders": {
+      "action": {},
+      "slot": {}
+    }
+  },
   "pivOverwrite": "覆盖",
   "pivAlgorithmIds": "算法 ID",
   "pivUnblockPin": "解锁 PIN",
   "pivUnblockPinPrompt": "输入当前 PUK 并设置新的 PIN。",
   "pivRetriesUnknown": "剩余次数：未知",
   "pivRetries": "剩余次数：{remaining}/{total}",
-  "@pivRetries": {"placeholders": {"remaining": {}, "total": {}}},
+  "@pivRetries": {
+    "placeholders": {
+      "remaining": {},
+      "total": {}
+    }
+  },
   "pivPinProtectedManagementKeyDescription": "使用 PIN 解锁保存在卡内的管理密钥。",
   "pivManualManagementKeyDescription": "为本次操作输入 24 字节管理密钥。",
   "pivAlgorithmIdsTitle": "PIV 算法 ID",
@@ -459,21 +482,33 @@
   "pivStoreManagementKeyOnCard": "将新管理密钥保存在卡内",
   "pivStoreManagementKeyOnCardPrompt": "启用后，后续管理操作可用 PIN 完成认证。 此操作会锁死 PUK，之后无法通过 PUK 恢复 PIN。",
   "pivRetiredSlot": "退役密钥 {index}",
-  "@pivRetiredSlot": {"placeholders": {"index": {}}},
+  "@pivRetiredSlot": {
+    "placeholders": {
+      "index": {}
+    }
+  },
   "pivDownloadAttestation": "下载证明证书",
   "pivGenerateCsr": "生成 CSR",
   "pivSelfSign": "生成自签证书",
   "pivGenerateX25519Key": "生成 X25519 密钥",
   "pivGenerateKey": "生成密钥",
   "pivGeneratingKey": "正在生成 {algorithm} 密钥",
-  "@pivGeneratingKey": {"placeholders": {"algorithm": {}}},
+  "@pivGeneratingKey": {
+    "placeholders": {
+      "algorithm": {}
+    }
+  },
   "pivGenerateKeyFailed": "生成密钥失败",
   "pivKeyGenerated": "密钥已生成",
   "pivExportPublicKey": "导出公钥",
   "pivSignMessage": "签名消息",
   "pivNoPublicKeyAvailable": "没有可用的公钥",
   "pivAlgorithmValue": "算法：{algorithm}",
-  "@pivAlgorithmValue": {"placeholders": {"algorithm": {}}},
+  "@pivAlgorithmValue": {
+    "placeholders": {
+      "algorithm": {}
+    }
+  },
   "pivMessage": "消息",
   "pivSignatureHex": "签名（十六进制）",
   "pivMessageSigningFailed": "消息签名失败",
@@ -547,31 +582,59 @@
   "pivGenerateX25519": "生成 X25519",
   "pivCsrCopied": "CSR 已复制",
   "pivCertificateWritten": "自签证书已写入 {slot} 槽。",
-  "@pivCertificateWritten": {"placeholders": {"slot": {}}},
+  "@pivCertificateWritten": {
+    "placeholders": {
+      "slot": {}
+    }
+  },
   "pivCertificateCopied": "证书已复制",
   "pivCopyPem": "复制 PEM",
   "pivSavePem": "保存 PEM",
   "pivAttestationUnavailable": "无法生成证明证书。设备必须已配置 F9 证明密钥和证书。",
   "pivNoEmptyDestinationSlot": "没有可用的空目标槽。",
   "pivMoveKeyFrom": "移动 {sourceSlot} 中的密钥",
-  "@pivMoveKeyFrom": {"placeholders": {"sourceSlot": {}}},
+  "@pivMoveKeyFrom": {
+    "placeholders": {
+      "sourceSlot": {}
+    }
+  },
   "pivMoveKeyPrompt": "仅移动私钥；证书会保留在原来的槽中。",
   "pivDestinationSlot": "目标槽",
   "pivMoveKeyFailed": "移动密钥失败。目标槽必须不包含密钥。",
   "pivKeyMoved": "密钥已移动",
   "pivClearSlotTitle": "清空槽 {slot}",
-  "@pivClearSlotTitle": {"placeholders": {"slot": {}}},
+  "@pivClearSlotTitle": {
+    "placeholders": {
+      "slot": {}
+    }
+  },
   "pivClearSlotPrompt": "此操作会删除此槽中的私钥和证书。请确认您仍有其他认证方式。",
   "pivClearSlotFailed": "清空槽失败。请确认固件支持删除私钥。",
   "pivSlotCleared": "槽已清空",
   "pivPinPolicyChip": "PIN：{policy}",
-  "@pivPinPolicyChip": {"placeholders": {"policy": {}}},
+  "@pivPinPolicyChip": {
+    "placeholders": {
+      "policy": {}
+    }
+  },
   "pivTouchPolicyChip": "触摸：{policy}",
-  "@pivTouchPolicyChip": {"placeholders": {"policy": {}}},
+  "@pivTouchPolicyChip": {
+    "placeholders": {
+      "policy": {}
+    }
+  },
   "validationAtLeastCharacters": "至少 {min} 个字符",
-  "@validationAtLeastCharacters": {"placeholders": {"min": {}}},
+  "@validationAtLeastCharacters": {
+    "placeholders": {
+      "min": {}
+    }
+  },
   "validationAtMostCharacters": "最多 {max} 个字符",
-  "@validationAtMostCharacters": {"placeholders": {"max": {}}},
+  "@validationAtMostCharacters": {
+    "placeholders": {
+      "max": {}
+    }
+  },
   "pinConfirmationMismatch": "两次输入的 PIN 不一致",
   "openpgpUserPinLength": "User PIN 长度必须为 6 到 64 个字符。",
   "openpgpCurrentAdminPin": "当前 Admin PIN",
@@ -586,7 +649,11 @@
   "openpgpTouchPermanentCachedLabel": "触摸：永久缓存",
   "openpgpTouchCacheOff": "0 秒（不缓存）",
   "openpgpTouchCacheSeconds": "{seconds} 秒",
-  "@openpgpTouchCacheSeconds": {"placeholders": {"seconds": {}}},
+  "@openpgpTouchCacheSeconds": {
+    "placeholders": {
+      "seconds": {}
+    }
+  },
   "openpgpTouchNone": "无需触摸",
   "openpgpTouchRequired": "需要触摸",
   "openpgpTouchPermanent": "永久开启",
@@ -598,7 +665,11 @@
   "openpgpVerifyOnceAfterInsertion": "插入后验证一次",
   "openpgpRetriesUnknown": "剩余次数：未知",
   "openpgpRetries": "剩余次数：{remaining}",
-  "@openpgpRetries": {"placeholders": {"remaining": {}}},
+  "@openpgpRetries": {
+    "placeholders": {
+      "remaining": {}
+    }
+  },
   "openpgpUnblockUserPin": "解锁 User PIN",
   "openpgpSetResetCode": "设置 Reset Code",
   "openpgpSetPinRetries": "设置 PIN 重试次数",
@@ -650,5 +721,69 @@
   "logsRecording": "记录日志",
   "logsEmpty": "本次运行暂无日志",
   "logsCopied": "已复制日志",
-  "logsCopyFailed": "无法复制日志"
+  "logsCopyFailed": "无法复制日志",
+  "pivMacOsApply": "应用 Mac 登录设置",
+  "pivMacOsDescription": "设置 9A，让 Mac 登录时验证你的身份。还需要在 9D 创建密钥和证书，用来解锁登录钥匙串。",
+  "pivMacOsOtherSlot": "登录 Mac，请设置 9A 和 9D 两个槽位。",
+  "pivCertificateCustom": "自定义设置",
+  "pivCertificateExtensions": "证书扩展",
+  "pivEndEntityConstraint": "添加 Basic Constraints：CA=false",
+  "pivKeyUsage": "密钥用途（Key Usage）",
+  "pivKeyUsageCritical": "将 Key Usage 标记为 critical",
+  "pivExtendedKeyUsage": "扩展密钥用途（EKU）",
+  "pivUsageOmitted": "不选择任何用途时省略此扩展。",
+  "pivMainSlots": "主要槽位",
+  "pivRetiredSlots": "历史密钥槽位",
+  "pivSlotKeyOnly": "仅密钥",
+  "pivSlotCertificateOnly": "仅证书",
+  "pivSlotKeyAndCertificate": "密钥与证书",
+  "pivCertificateSubjectAndExtensions": "证书信息与扩展",
+  "pivOccupiedSlots": "{count} 个已占用",
+  "@pivOccupiedSlots": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pivMacOsKeychainDescription": "设置 9D，用来解锁 Mac 的登录钥匙串。还需要在 9A 配置登录证书。",
+  "pivMacOsSlotApplied": "已为 {slot} 应用推荐设置",
+  "pivMacOsGuideTitle": "用 CanoKey 登录 Mac",
+  "pivMacOsGuide": "先设置 9A 用于登录验证，再设置 9D 用于解锁登录钥匙串。两个槽位都配置好后，重新插入 CanoKey，在 Mac 上与账户配对。",
+  "pivMacOsAuthenticationSlot": "9A · 登录验证",
+  "pivMacOsKeychainSlot": "9D · 解锁钥匙串",
+  "pivMacOsAfterAuthentication": "9A 已配置。下一步请检查 9D：Mac 还需要它的密钥和证书来解锁登录钥匙串。",
+  "pivMacOsAfterKeychain": "9D 已配置。请确认 9A 也已配置，再重新插入 CanoKey，在 Mac 上与账户配对。",
+  "pivMacOsCheckSlot": "检查 {slot}",
+  "@pivMacOsSlotApplied": {
+    "placeholders": {
+      "slot": {
+        "type": "String"
+      }
+    }
+  },
+  "@pivMacOsCheckSlot": {
+    "placeholders": {
+      "slot": {
+        "type": "String"
+      }
+    }
+  },
+  "pivMacSetupTitle": "设置 Mac 登录",
+  "pivMacSetupIntro": "检查 9A 和 9D，保留可用的密钥和证书，补齐缺少的配置。",
+  "pivMacSetupInspect": "检查 CanoKey",
+  "pivMacSetupError": "未能完成。请检查设备连接和凭据，再重新检查。已经完成的配置会保留。不支持无法读取密钥信息的旧版固件。",
+  "pivMacSetupKeep": "保留现有配置",
+  "pivMacSetupCreate": "新建密钥和证书",
+  "pivMacSetupIssue": "保留密钥，添加证书",
+  "pivMacSetupReplaceCert": "保留密钥，替换证书",
+  "pivMacSetupReplaceKey": "替换密钥和证书",
+  "pivMacSetupConsent": "我同意替换上面列出的内容。被替换的密钥无法恢复。",
+  "pivMacSetupStart": "配置 CanoKey",
+  "pivMacSetupDone": "CanoKey 已配置好。请重新插入 Mac，按照系统提示配对。还需要在 Mac 上完成账户配对。",
+  "pivMacSetupWorking": "正在配置",
+  "pivMacSetupFinished": "已完成",
+  "pivMacSetupCredentials": "请输入 PIV PIN 和管理密钥。",
+  "pivMacSetupManagementKey": "管理密钥（十六进制）",
+  "pivMacSetupInvalid": "请检查 PIN 和管理密钥的格式。"
 }

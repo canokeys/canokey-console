@@ -11,76 +11,97 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `EcSignature`, `SignedDerObject`, `TbsCertificate`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `decode_value`, `decode_value`, `decode_value`, `encode_value`, `encode_value`, `encode_value`, `value_len`, `value_len`, `value_len`
 
-PivPublicKeyData buildPivPublicKey(
-        {required int algorithm,
-        required List<int> cardData,
-        required bool generatedResponse}) =>
-    RustLib.instance.api.crateApiPivCryptoBuildPivPublicKey(
-        algorithm: algorithm,
-        cardData: cardData,
-        generatedResponse: generatedResponse);
+PivPublicKeyData buildPivPublicKey({
+  required int algorithm,
+  required List<int> cardData,
+  required bool generatedResponse,
+}) => RustLib.instance.api.crateApiPivCryptoBuildPivPublicKey(
+  algorithm: algorithm,
+  cardData: cardData,
+  generatedResponse: generatedResponse,
+);
 
-PivPublicKeyData parsePivPublicKeyInfo(
-        {required int algorithm, required List<int> subjectPublicKeyInfo}) =>
-    RustLib.instance.api.crateApiPivCryptoParsePivPublicKeyInfo(
-        algorithm: algorithm, subjectPublicKeyInfo: subjectPublicKeyInfo);
+PivPublicKeyData parsePivPublicKeyInfo({
+  required int algorithm,
+  required List<int> subjectPublicKeyInfo,
+}) => RustLib.instance.api.crateApiPivCryptoParsePivPublicKeyInfo(
+  algorithm: algorithm,
+  subjectPublicKeyInfo: subjectPublicKeyInfo,
+);
 
 PivImportFileData parsePivImportFile({required List<int> bytes}) =>
     RustLib.instance.api.crateApiPivCryptoParsePivImportFile(bytes: bytes);
 
-Uint8List preparePivCsr(
-        {required String commonName,
-        String? organization,
-        String? organizationalUnit,
-        String? country,
-        required List<int> subjectPublicKeyInfo,
-        required List<String> subjectAlternativeNames}) =>
-    RustLib.instance.api.crateApiPivCryptoPreparePivCsr(
-        commonName: commonName,
-        organization: organization,
-        organizationalUnit: organizationalUnit,
-        country: country,
-        subjectPublicKeyInfo: subjectPublicKeyInfo,
-        subjectAlternativeNames: subjectAlternativeNames);
+Uint8List preparePivCsr({
+  required String commonName,
+  String? organization,
+  String? organizationalUnit,
+  String? country,
+  required List<int> subjectPublicKeyInfo,
+  required List<String> subjectAlternativeNames,
+}) => RustLib.instance.api.crateApiPivCryptoPreparePivCsr(
+  commonName: commonName,
+  organization: organization,
+  organizationalUnit: organizationalUnit,
+  country: country,
+  subjectPublicKeyInfo: subjectPublicKeyInfo,
+  subjectAlternativeNames: subjectAlternativeNames,
+);
 
-String finishPivCsr(
-        {required List<int> certificationRequestInfo,
-        required int algorithm,
-        required List<int> signature}) =>
-    RustLib.instance.api.crateApiPivCryptoFinishPivCsr(
-        certificationRequestInfo: certificationRequestInfo,
-        algorithm: algorithm,
-        signature: signature);
+String finishPivCsr({
+  required List<int> certificationRequestInfo,
+  required int algorithm,
+  required List<int> signature,
+}) => RustLib.instance.api.crateApiPivCryptoFinishPivCsr(
+  certificationRequestInfo: certificationRequestInfo,
+  algorithm: algorithm,
+  signature: signature,
+);
 
-Uint8List prepareSelfSignedCertificate(
-        {required SelfSignedCertificateParams params}) =>
-    RustLib.instance.api
-        .crateApiPivCryptoPrepareSelfSignedCertificate(params: params);
+/// Check the certificate's role and validity, not macOS trust or account policy.
+bool pivCertificateSupportsMacos({
+  required List<int> der,
+  required List<int> expectedPublicKey,
+  required int slot,
+  required PlatformInt64 nowUnix,
+}) => RustLib.instance.api.crateApiPivCryptoPivCertificateSupportsMacos(
+  der: der,
+  expectedPublicKey: expectedPublicKey,
+  slot: slot,
+  nowUnix: nowUnix,
+);
 
-Uint8List finishSelfSignedCertificate(
-        {required List<int> tbsCertificate,
-        required int algorithm,
-        required List<int> signature}) =>
-    RustLib.instance.api.crateApiPivCryptoFinishSelfSignedCertificate(
-        tbsCertificate: tbsCertificate,
-        algorithm: algorithm,
-        signature: signature);
+Uint8List prepareSelfSignedCertificate({
+  required SelfSignedCertificateParams params,
+}) => RustLib.instance.api.crateApiPivCryptoPrepareSelfSignedCertificate(
+  params: params,
+);
 
-Uint8List preparePivSigningInput(
-        {required int algorithm,
-        required List<int> data,
-        Uint8List? publicKey}) =>
-    RustLib.instance.api.crateApiPivCryptoPreparePivSigningInput(
-        algorithm: algorithm, data: data, publicKey: publicKey);
+Uint8List finishSelfSignedCertificate({
+  required List<int> tbsCertificate,
+  required int algorithm,
+  required List<int> signature,
+}) => RustLib.instance.api.crateApiPivCryptoFinishSelfSignedCertificate(
+  tbsCertificate: tbsCertificate,
+  algorithm: algorithm,
+  signature: signature,
+);
+
+Uint8List preparePivSigningInput({
+  required int algorithm,
+  required List<int> data,
+  Uint8List? publicKey,
+}) => RustLib.instance.api.crateApiPivCryptoPreparePivSigningInput(
+  algorithm: algorithm,
+  data: data,
+  publicKey: publicKey,
+);
 
 class PivImportFileData {
   final PivPrivateKeyData? privateKey;
   final X509CertData? certificate;
 
-  const PivImportFileData({
-    this.privateKey,
-    this.certificate,
-  });
+  const PivImportFileData({this.privateKey, this.certificate});
 
   @override
   int get hashCode => privateKey.hashCode ^ certificate.hashCode;
@@ -153,6 +174,12 @@ class SelfSignedCertificateParams {
   final String notAfter;
   final List<String> subjectAlternativeNames;
 
+  /// RFC 5280 bits 0–4; zero omits Key Usage. CA usages are not supported.
+  final int keyUsage;
+  final bool keyUsageCritical;
+  final List<String> extendedKeyUsage;
+  final bool includeBasicConstraints;
+
   const SelfSignedCertificateParams({
     required this.commonName,
     this.organization,
@@ -163,6 +190,10 @@ class SelfSignedCertificateParams {
     required this.notBefore,
     required this.notAfter,
     required this.subjectAlternativeNames,
+    required this.keyUsage,
+    required this.keyUsageCritical,
+    required this.extendedKeyUsage,
+    required this.includeBasicConstraints,
   });
 
   @override
@@ -175,7 +206,11 @@ class SelfSignedCertificateParams {
       serialNumber.hashCode ^
       notBefore.hashCode ^
       notAfter.hashCode ^
-      subjectAlternativeNames.hashCode;
+      subjectAlternativeNames.hashCode ^
+      keyUsage.hashCode ^
+      keyUsageCritical.hashCode ^
+      extendedKeyUsage.hashCode ^
+      includeBasicConstraints.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -190,5 +225,9 @@ class SelfSignedCertificateParams {
           serialNumber == other.serialNumber &&
           notBefore == other.notBefore &&
           notAfter == other.notAfter &&
-          subjectAlternativeNames == other.subjectAlternativeNames;
+          subjectAlternativeNames == other.subjectAlternativeNames &&
+          keyUsage == other.keyUsage &&
+          keyUsageCritical == other.keyUsageCritical &&
+          extendedKeyUsage == other.extendedKeyUsage &&
+          includeBasicConstraints == other.includeBasicConstraints;
 }

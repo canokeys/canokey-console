@@ -54,30 +54,36 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m16(algorithm) => "正在生成 ${algorithm} 密钥";
 
-  static String m17(sourceSlot) => "移动 ${sourceSlot} 中的密钥";
+  static String m17(slot) => "检查 ${slot}";
 
-  static String m18(action, slot) =>
+  static String m18(slot) => "已为 ${slot} 应用推荐设置";
+
+  static String m19(sourceSlot) => "移动 ${sourceSlot} 中的密钥";
+
+  static String m20(count) => "${count} 个已占用";
+
+  static String m21(action, slot) =>
       "${action} 将替换 ${slot} 槽中的私钥。依赖此密钥的认证或签名可能会失效。";
 
-  static String m19(policy) => "PIN：${policy}";
+  static String m22(policy) => "PIN：${policy}";
 
-  static String m20(index) => "退役密钥 ${index}";
+  static String m23(index) => "退役密钥 ${index}";
 
-  static String m21(remaining, total) => "剩余次数：${remaining}/${total}";
+  static String m24(remaining, total) => "剩余次数：${remaining}/${total}";
 
-  static String m22(policy) => "触摸：${policy}";
+  static String m25(policy) => "触摸：${policy}";
 
-  static String m23(layout) => "当前：${layout}";
+  static String m26(layout) => "当前：${layout}";
 
-  static String m24(applet) => "该操作将抹除 ${applet} 的全部数据！";
+  static String m27(applet) => "该操作将抹除 ${applet} 的全部数据！";
 
-  static String m25(min) => "至少 ${min} 个字符";
+  static String m28(min) => "至少 ${min} 个字符";
 
-  static String m26(max) => "最多 ${max} 个字符";
+  static String m29(max) => "最多 ${max} 个字符";
 
-  static String m27(length) => "需要 ${length} 个字符";
+  static String m30(length) => "需要 ${length} 个字符";
 
-  static String m28(name) => "您正在删除 ${name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。";
+  static String m31(name) => "您正在删除 ${name}，删除该项目后无法恢复！请确认您有其他方式登录该服务。";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -490,8 +496,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivCertificate": MessageLookupByLibrary.simpleMessage("证书"),
     "pivCertificateCopied": MessageLookupByLibrary.simpleMessage("证书已复制"),
     "pivCertificateCreated": MessageLookupByLibrary.simpleMessage("证书已创建"),
+    "pivCertificateCustom": MessageLookupByLibrary.simpleMessage("自定义设置"),
     "pivCertificateDoesNotMatchPrivateKey":
         MessageLookupByLibrary.simpleMessage("证书公钥与所选私钥不匹配。"),
+    "pivCertificateExtensions": MessageLookupByLibrary.simpleMessage("证书扩展"),
     "pivCertificateIssuer": MessageLookupByLibrary.simpleMessage("签发者"),
     "pivCertificateKey": MessageLookupByLibrary.simpleMessage("证书公钥"),
     "pivCertificateMatchesPrivateKey": MessageLookupByLibrary.simpleMessage(
@@ -506,6 +514,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivCertificateSerial": MessageLookupByLibrary.simpleMessage("序列号"),
     "pivCertificateSize": MessageLookupByLibrary.simpleMessage("证书大小"),
     "pivCertificateSubject": MessageLookupByLibrary.simpleMessage("使用者"),
+    "pivCertificateSubjectAndExtensions": MessageLookupByLibrary.simpleMessage(
+      "证书信息与扩展",
+    ),
     "pivCertificateSubjectStep": MessageLookupByLibrary.simpleMessage("证书主题"),
     "pivCertificateValidFrom": MessageLookupByLibrary.simpleMessage("生效时间"),
     "pivCertificateValidTo": MessageLookupByLibrary.simpleMessage("失效时间"),
@@ -551,7 +562,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivDisablePinProtectedManagementKeyFailed":
         MessageLookupByLibrary.simpleMessage("改为手动管理密钥失败"),
     "pivDisablePinProtectedManagementKeyPrompt":
-        MessageLookupByLibrary.simpleMessage("清除 PIN 保护的副本前会先设置新的管理密钥。 PUK 仍保持锁定。退出此模式后，可通过重设 PIN/PUK 重试次数恢复 PUK，但这也会重置 PIN。"),
+        MessageLookupByLibrary.simpleMessage(
+          "清除 PIN 保护的副本前会先设置新的管理密钥。 PUK 仍保持锁定。退出此模式后，可通过重设 PIN/PUK 重试次数恢复 PUK，但这也会重置 PIN。",
+        ),
     "pivDisablePinProtectedManagementKeySuccess":
         MessageLookupByLibrary.simpleMessage("之后需要手动输入管理密钥"),
     "pivDnsSans": MessageLookupByLibrary.simpleMessage("DNS SAN，使用逗号分隔"),
@@ -563,14 +576,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivEnablePinProtectedManagementKeyFailed":
         MessageLookupByLibrary.simpleMessage("保存 PIN 保护管理密钥失败"),
     "pivEnablePinProtectedManagementKeyPrompt":
-        MessageLookupByLibrary.simpleMessage("将设置随机管理密钥，并以 PIN 保护的形式保存在卡内。 PUK 将被锁死，无法再用于恢复遗忘或锁定的 PIN。此模式下不能重设 PIN/PUK 重试次数。"),
+        MessageLookupByLibrary.simpleMessage(
+          "将设置随机管理密钥，并以 PIN 保护的形式保存在卡内。 PUK 将被锁死，无法再用于恢复遗忘或锁定的 PIN。此模式下不能重设 PIN/PUK 重试次数。",
+        ),
     "pivEnablePinProtectedManagementKeySuccess":
         MessageLookupByLibrary.simpleMessage("管理密钥已由 PIN 保护"),
+    "pivEndEntityConstraint": MessageLookupByLibrary.simpleMessage(
+      "添加 Basic Constraints：CA=false",
+    ),
     "pivExport": MessageLookupByLibrary.simpleMessage("导出"),
     "pivExportCertificate": MessageLookupByLibrary.simpleMessage("导出证书"),
     "pivExportPublicKey": MessageLookupByLibrary.simpleMessage("导出公钥"),
     "pivExtendedAlgorithmCompatibilityWarning":
         MessageLookupByLibrary.simpleMessage("使用此算法前请确认客户端兼容性。"),
+    "pivExtendedKeyUsage": MessageLookupByLibrary.simpleMessage("扩展密钥用途（EKU）"),
     "pivFile": MessageLookupByLibrary.simpleMessage("文件"),
     "pivFileSigningFailed": MessageLookupByLibrary.simpleMessage("文件签名失败"),
     "pivGenerate": MessageLookupByLibrary.simpleMessage("生成"),
@@ -609,6 +628,70 @@ class MessageLookup extends MessageLookupByLibrary {
       "只导入私钥会保留现有证书。如证书不再匹配，请替换或清空证书。",
     ),
     "pivKeyOptions": MessageLookupByLibrary.simpleMessage("密钥选项"),
+    "pivKeyUsage": MessageLookupByLibrary.simpleMessage("密钥用途（Key Usage）"),
+    "pivKeyUsageCritical": MessageLookupByLibrary.simpleMessage(
+      "将 Key Usage 标记为 critical",
+    ),
+    "pivMacOsAfterAuthentication": MessageLookupByLibrary.simpleMessage(
+      "9A 已配置。下一步请检查 9D：Mac 还需要它的密钥和证书来解锁登录钥匙串。",
+    ),
+    "pivMacOsAfterKeychain": MessageLookupByLibrary.simpleMessage(
+      "9D 已配置。请确认 9A 也已配置，再重新插入 CanoKey，在 Mac 上与账户配对。",
+    ),
+    "pivMacOsApply": MessageLookupByLibrary.simpleMessage("应用 Mac 登录设置"),
+    "pivMacOsAuthenticationSlot": MessageLookupByLibrary.simpleMessage(
+      "9A · 登录验证",
+    ),
+    "pivMacOsCheckSlot": m17,
+    "pivMacOsDescription": MessageLookupByLibrary.simpleMessage(
+      "设置 9A，让 Mac 登录时验证你的身份。还需要在 9D 创建密钥和证书，用来解锁登录钥匙串。",
+    ),
+    "pivMacOsGuide": MessageLookupByLibrary.simpleMessage(
+      "先设置 9A 用于登录验证，再设置 9D 用于解锁登录钥匙串。两个槽位都配置好后，重新插入 CanoKey，在 Mac 上与账户配对。",
+    ),
+    "pivMacOsGuideTitle": MessageLookupByLibrary.simpleMessage(
+      "用 CanoKey 登录 Mac",
+    ),
+    "pivMacOsKeychainDescription": MessageLookupByLibrary.simpleMessage(
+      "设置 9D，用来解锁 Mac 的登录钥匙串。还需要在 9A 配置登录证书。",
+    ),
+    "pivMacOsKeychainSlot": MessageLookupByLibrary.simpleMessage("9D · 解锁钥匙串"),
+    "pivMacOsOtherSlot": MessageLookupByLibrary.simpleMessage(
+      "登录 Mac，请设置 9A 和 9D 两个槽位。",
+    ),
+    "pivMacOsSlotApplied": m18,
+    "pivMacSetupConsent": MessageLookupByLibrary.simpleMessage(
+      "我同意替换上面列出的内容。被替换的密钥无法恢复。",
+    ),
+    "pivMacSetupCreate": MessageLookupByLibrary.simpleMessage("新建密钥和证书"),
+    "pivMacSetupCredentials": MessageLookupByLibrary.simpleMessage(
+      "请输入 PIV PIN 和管理密钥。",
+    ),
+    "pivMacSetupDone": MessageLookupByLibrary.simpleMessage(
+      "CanoKey 已配置好。请重新插入 Mac，按照系统提示配对。还需要在 Mac 上完成账户配对。",
+    ),
+    "pivMacSetupError": MessageLookupByLibrary.simpleMessage(
+      "未能完成。请检查设备连接和凭据，再重新检查。已经完成的配置会保留。不支持无法读取密钥信息的旧版固件。",
+    ),
+    "pivMacSetupFinished": MessageLookupByLibrary.simpleMessage("已完成"),
+    "pivMacSetupInspect": MessageLookupByLibrary.simpleMessage("检查 CanoKey"),
+    "pivMacSetupIntro": MessageLookupByLibrary.simpleMessage(
+      "检查 9A 和 9D，保留可用的密钥和证书，补齐缺少的配置。",
+    ),
+    "pivMacSetupInvalid": MessageLookupByLibrary.simpleMessage(
+      "请检查 PIN 和管理密钥的格式。",
+    ),
+    "pivMacSetupIssue": MessageLookupByLibrary.simpleMessage("保留密钥，添加证书"),
+    "pivMacSetupKeep": MessageLookupByLibrary.simpleMessage("保留现有配置"),
+    "pivMacSetupManagementKey": MessageLookupByLibrary.simpleMessage(
+      "管理密钥（十六进制）",
+    ),
+    "pivMacSetupReplaceCert": MessageLookupByLibrary.simpleMessage("保留密钥，替换证书"),
+    "pivMacSetupReplaceKey": MessageLookupByLibrary.simpleMessage("替换密钥和证书"),
+    "pivMacSetupStart": MessageLookupByLibrary.simpleMessage("配置 CanoKey"),
+    "pivMacSetupTitle": MessageLookupByLibrary.simpleMessage("设置 Mac 登录"),
+    "pivMacSetupWorking": MessageLookupByLibrary.simpleMessage("正在配置"),
+    "pivMainSlots": MessageLookupByLibrary.simpleMessage("主要槽位"),
     "pivManagementKey": MessageLookupByLibrary.simpleMessage("管理密钥"),
     "pivManagementKeyAuthentication": MessageLookupByLibrary.simpleMessage(
       "管理密钥认证",
@@ -627,7 +710,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivMoveKeyFailed": MessageLookupByLibrary.simpleMessage(
       "移动密钥失败。目标槽必须不包含密钥。",
     ),
-    "pivMoveKeyFrom": m17,
+    "pivMoveKeyFrom": m19,
     "pivMoveKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "仅移动私钥；证书会保留在原来的槽中。",
     ),
@@ -640,6 +723,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivNoFileSelected": MessageLookupByLibrary.simpleMessage("未选择文件"),
     "pivNoPublicKeyAvailable": MessageLookupByLibrary.simpleMessage("没有可用的公钥"),
     "pivNotSelected": MessageLookupByLibrary.simpleMessage("未选择"),
+    "pivOccupiedSlots": m20,
     "pivOldManagementKey": MessageLookupByLibrary.simpleMessage("当前密钥"),
     "pivOldPUK": MessageLookupByLibrary.simpleMessage("当前 PUK"),
     "pivOrganization": MessageLookupByLibrary.simpleMessage("组织"),
@@ -649,12 +733,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivOriginImported": MessageLookupByLibrary.simpleMessage("外部导入"),
     "pivOverwrite": MessageLookupByLibrary.simpleMessage("覆盖"),
     "pivOverwriteKey": MessageLookupByLibrary.simpleMessage("覆盖密钥"),
-    "pivOverwriteKeyPrompt": m18,
+    "pivOverwriteKeyPrompt": m21,
     "pivPinAndTouchPolicy": MessageLookupByLibrary.simpleMessage("PIN 和触摸策略"),
     "pivPinManagement": MessageLookupByLibrary.simpleMessage("管理 PIN"),
     "pivPinPolicy": MessageLookupByLibrary.simpleMessage("PIN 策略"),
     "pivPinPolicyAlways": MessageLookupByLibrary.simpleMessage("总是验证"),
-    "pivPinPolicyChip": m19,
+    "pivPinPolicyChip": m22,
     "pivPinPolicyDefault": MessageLookupByLibrary.simpleMessage("默认"),
     "pivPinPolicyNever": MessageLookupByLibrary.simpleMessage("从不验证"),
     "pivPinPolicyOnce": MessageLookupByLibrary.simpleMessage("会话内验证一次"),
@@ -673,8 +757,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage("随机值"),
     "pivRetired1": MessageLookupByLibrary.simpleMessage("退役密钥 1"),
     "pivRetired2": MessageLookupByLibrary.simpleMessage("退役密钥 2"),
-    "pivRetiredSlot": m20,
-    "pivRetries": m21,
+    "pivRetiredSlot": m23,
+    "pivRetiredSlots": MessageLookupByLibrary.simpleMessage("历史密钥槽位"),
+    "pivRetries": m24,
     "pivRetriesUnknown": MessageLookupByLibrary.simpleMessage("剩余次数：未知"),
     "pivReview": MessageLookupByLibrary.simpleMessage("确认"),
     "pivSavePem": MessageLookupByLibrary.simpleMessage("保存 PEM"),
@@ -704,7 +789,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "此操作会将 PIN 重置为 123456，PUK 重置为 12345678。 请先关闭 PIN 保护的管理密钥模式。",
     ),
     "pivSetRetriesFailed": MessageLookupByLibrary.simpleMessage("设置重试次数失败"),
-    "pivSetRetriesMetadataFailed": MessageLookupByLibrary.simpleMessage("PIN/PUK 重试次数已设置，PIN/PUK 已重置，但管理元数据更新失败。当前 PIN 为 123456，PUK 为 12345678。"),
+    "pivSetRetriesMetadataFailed": MessageLookupByLibrary.simpleMessage(
+      "PIN/PUK 重试次数已设置，PIN/PUK 已重置，但管理元数据更新失败。当前 PIN 为 123456，PUK 为 12345678。",
+    ),
     "pivSetRetriesSuccess": MessageLookupByLibrary.simpleMessage(
       "PIN/PUK 重试次数已设置，PIN 和 PUK 已重置。",
     ),
@@ -731,10 +818,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivSlotCardAuthenticationHint": MessageLookupByLibrary.simpleMessage(
       "卡认证槽。部分用途可能不需要 PIN。",
     ),
+    "pivSlotCertificateOnly": MessageLookupByLibrary.simpleMessage("仅证书"),
     "pivSlotCleared": MessageLookupByLibrary.simpleMessage("槽已清空"),
+    "pivSlotKeyAndCertificate": MessageLookupByLibrary.simpleMessage("密钥与证书"),
     "pivSlotKeyManagementHint": MessageLookupByLibrary.simpleMessage(
       "密钥管理槽。X25519 只能用于派生共享密钥。",
     ),
+    "pivSlotKeyOnly": MessageLookupByLibrary.simpleMessage("仅密钥"),
     "pivSlotRetiredHint": MessageLookupByLibrary.simpleMessage(
       "退役密钥管理槽，用于保存旧解密私钥及其证书。",
     ),
@@ -751,7 +841,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivTouchPolicy": MessageLookupByLibrary.simpleMessage("触摸策略"),
     "pivTouchPolicyAlways": MessageLookupByLibrary.simpleMessage("总是验证"),
     "pivTouchPolicyCached": MessageLookupByLibrary.simpleMessage("缓存 15 秒"),
-    "pivTouchPolicyChip": m22,
+    "pivTouchPolicyChip": m25,
     "pivTouchPolicyDefault": MessageLookupByLibrary.simpleMessage("默认"),
     "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("从不验证"),
     "pivUnblockPin": MessageLookupByLibrary.simpleMessage("解锁 PIN"),
@@ -761,6 +851,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivUnsupportedImportFile": MessageLookupByLibrary.simpleMessage(
       "不支持的文件。请使用 PEM 或 DER 格式的证书/私钥文件。",
     ),
+    "pivUsageOmitted": MessageLookupByLibrary.simpleMessage("不选择任何用途时省略此扩展。"),
     "pivUseDefaultManagementKey": MessageLookupByLibrary.simpleMessage("默认值"),
     "pivValidityDays": MessageLookupByLibrary.simpleMessage("有效天数"),
     "pivVerify": MessageLookupByLibrary.simpleMessage("验证"),
@@ -828,7 +919,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "请输入您的管理应用 PIN（默认值为 123456）。请注意，该 PIN 与其他应用的 PIN 无关。",
     ),
     "settingsKeyboardLayout": MessageLookupByLibrary.simpleMessage("键盘布局"),
-    "settingsKeyboardLayoutCurrent": m23,
+    "settingsKeyboardLayoutCurrent": m26,
     "settingsKeyboardLayoutCustom": MessageLookupByLibrary.simpleMessage(
       "自定义布局",
     ),
@@ -858,7 +949,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsResetAllPrompt": MessageLookupByLibrary.simpleMessage(
       "即将抹除全部数据。当您确认后，CanoKey 将会多次闪烁，请在每次看到闪烁时触摸，直到提示成功。",
     ),
-    "settingsResetApplet": m24,
+    "settingsResetApplet": m27,
     "settingsResetConditionNotSatisfying": MessageLookupByLibrary.simpleMessage(
       "PIN 尚未锁定",
     ),
@@ -888,9 +979,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "storageFull": MessageLookupByLibrary.simpleMessage("CanoKey 存储空间不足"),
     "successfullyChanged": MessageLookupByLibrary.simpleMessage("修改成功"),
-    "validationAtLeastCharacters": m25,
-    "validationAtMostCharacters": m26,
-    "validationExactLength": m27,
+    "validationAtLeastCharacters": m28,
+    "validationAtMostCharacters": m29,
+    "validationExactLength": m30,
     "validationHexString": MessageLookupByLibrary.simpleMessage("请输入十六进制字符串"),
     "viewUserId": MessageLookupByLibrary.simpleMessage("查看用户 ID"),
     "warning": MessageLookupByLibrary.simpleMessage("警告"),
@@ -900,7 +991,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
       "该密钥不支持 WebAuthn PIN。",
     ),
-    "webauthnDelete": m28,
+    "webauthnDelete": m31,
     "webauthnInputPinPrompt": MessageLookupByLibrary.simpleMessage(
       "请输入您的 WebAuthn PIN。",
     ),

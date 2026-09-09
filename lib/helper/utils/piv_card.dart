@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/piv.dart';
@@ -109,6 +110,40 @@ class PivCardClient {
       data,
       algorithmExtensionConfig: algorithmExtensionConfig,
     );
+  }
+
+  /// Read the DER bytes from a PIV certificate object (5FC1xx).
+  /// Tag 70 contains the certificate; tags 71 and FE are object metadata.
+  Future<Uint8List?> readCertificate(int objectId) async {
+    final response = await transceive(
+      '00CB3FFF055C035FC1${hex.encode([objectId])}00',
+    );
+    if (!SmartCard.isOK(response)) return null;
+    try {
+      final object = TLV.parse(hex.decode(SmartCard.dropSW(response)))[0x53];
+      if (object is! Uint8List) {
+        throw FormatException('Missing PIV certificate object (53)');
+      }
+      final fields = TLV.parse(object);
+      final certificate = fields[0x70];
+      if (certificate is! Uint8List || certificate.isEmpty) {
+        throw FormatException('Missing PIV certificate data (70)');
+      }
+      final info = fields[0x71];
+      if (info != null) {
+        if (info is! Uint8List || info.length != 1) {
+          throw FormatException('Invalid PIV certificate information (71)');
+        }
+        if (info[0] & 1 != 0) {
+          throw FormatException(
+            'Compressed PIV certificates are not supported',
+          );
+        }
+      }
+      return certificate;
+    } on RangeError {
+      throw FormatException('Truncated PIV certificate object');
+    }
   }
 
   Future<String> transceive(String capdu) async {

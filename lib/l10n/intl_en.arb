@@ -122,7 +122,12 @@
   "ndefNoRecordsDescription": "Add a URI or text record to make the tag discoverable.",
   "ndefCapacity": "Capacity",
   "ndefBytesUsed": "{used} of {total} bytes",
-  "@ndefBytesUsed": {"placeholders": {"used": {}, "total": {}}},
+  "@ndefBytesUsed": {
+    "placeholders": {
+      "used": {},
+      "total": {}
+    }
+  },
   "ndefWritable": "Writable",
   "ndefReadOnlyStatus": "Read-only",
   "ndefReadOnly": "The NDEF tag is read-only.",
@@ -189,7 +194,11 @@
   "ndefInvalidMacAddress": "Enter a MAC address such as AA:BB:CC:DD:EE:FF.",
   "ndefInvalidUuid": "Enter a UUID in canonical form.",
   "ndefInvalidRecord": "The ndef library rejected this record: {error}",
-  "@ndefInvalidRecord": {"placeholders": {"error": {}}},
+  "@ndefInvalidRecord": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "ndefRequiredField": "This field is required.",
   "ndefTnfRequiresEmptyType": "This TNF requires an empty type name.",
   "ndefTnfEmpty": "Empty",
@@ -346,7 +355,11 @@
   "fileSaved": "Saved",
   "fileSaveFailed": "Failed to save file",
   "fileSaveFailedWithError": "Save failed: {error}",
-  "@fileSaveFailedWithError": {"placeholders": {"error": {}}},
+  "@fileSaveFailedWithError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "pivSlotAuthenticationHint": "Authentication slot. Use a signing-capable key for login.",
   "pivSlotSignatureHint": "Digital signature slot. PIN policy defaults to always.",
   "pivSlotKeyManagementHint": "Key management slot. X25519 can derive shared secrets only.",
@@ -357,14 +370,24 @@
   "pivExtendedAlgorithmCompatibilityWarning": "Check client compatibility before using this algorithm.",
   "pivOverwriteKey": "Overwrite Key",
   "pivOverwriteKeyPrompt": "{action} will replace the private key in slot {slot}. Existing authentication or signing that depends on this key may stop working.",
-  "@pivOverwriteKeyPrompt": {"placeholders": {"action": {}, "slot": {}}},
+  "@pivOverwriteKeyPrompt": {
+    "placeholders": {
+      "action": {},
+      "slot": {}
+    }
+  },
   "pivOverwrite": "Overwrite",
   "pivAlgorithmIds": "Algorithm IDs",
   "pivUnblockPin": "Unblock PIN",
   "pivUnblockPinPrompt": "Enter the current PUK and set a new PIN.",
   "pivRetriesUnknown": "Retries: unknown",
   "pivRetries": "Retries: {remaining}/{total}",
-  "@pivRetries": {"placeholders": {"remaining": {}, "total": {}}},
+  "@pivRetries": {
+    "placeholders": {
+      "remaining": {},
+      "total": {}
+    }
+  },
   "pivPinProtectedManagementKeyDescription": "Use the PIN to unlock the management key stored on this card.",
   "pivManualManagementKeyDescription": "Enter the 24-byte management key for this operation.",
   "pivAlgorithmIdsTitle": "PIV Algorithm IDs",
@@ -390,21 +413,33 @@
   "pivStoreManagementKeyOnCard": "Store the new management key on this card",
   "pivStoreManagementKeyOnCardPrompt": "When enabled, future management operations can authenticate with PIN. This blocks PUK and prevents PIN recovery with PUK.",
   "pivRetiredSlot": "Retired {index}",
-  "@pivRetiredSlot": {"placeholders": {"index": {}}},
+  "@pivRetiredSlot": {
+    "placeholders": {
+      "index": {}
+    }
+  },
   "pivDownloadAttestation": "Download Attestation",
   "pivGenerateCsr": "Generate CSR",
   "pivSelfSign": "Self-sign",
   "pivGenerateX25519Key": "Generate X25519 Key",
   "pivGenerateKey": "Generate Key",
   "pivGeneratingKey": "Generating a {algorithm} key",
-  "@pivGeneratingKey": {"placeholders": {"algorithm": {}}},
+  "@pivGeneratingKey": {
+    "placeholders": {
+      "algorithm": {}
+    }
+  },
   "pivGenerateKeyFailed": "Generate Key Failed",
   "pivKeyGenerated": "Key Generated",
   "pivExportPublicKey": "Export Public Key",
   "pivSignMessage": "Sign Message",
   "pivNoPublicKeyAvailable": "No public key available",
   "pivAlgorithmValue": "Algorithm: {algorithm}",
-  "@pivAlgorithmValue": {"placeholders": {"algorithm": {}}},
+  "@pivAlgorithmValue": {
+    "placeholders": {
+      "algorithm": {}
+    }
+  },
   "pivMessage": "Message",
   "pivSignatureHex": "Signature (hex)",
   "pivMessageSigningFailed": "Message signing failed",
@@ -478,31 +513,59 @@
   "pivGenerateX25519": "Generate X25519",
   "pivCsrCopied": "CSR Copied",
   "pivCertificateWritten": "A self-signed certificate was written to slot {slot}.",
-  "@pivCertificateWritten": {"placeholders": {"slot": {}}},
+  "@pivCertificateWritten": {
+    "placeholders": {
+      "slot": {}
+    }
+  },
   "pivCertificateCopied": "Certificate Copied",
   "pivCopyPem": "Copy PEM",
   "pivSavePem": "Save PEM",
   "pivAttestationUnavailable": "Attestation is unavailable. The device must have an F9 attestation key and certificate.",
   "pivNoEmptyDestinationSlot": "No empty destination slot is available.",
   "pivMoveKeyFrom": "Move Key from {sourceSlot}",
-  "@pivMoveKeyFrom": {"placeholders": {"sourceSlot": {}}},
+  "@pivMoveKeyFrom": {
+    "placeholders": {
+      "sourceSlot": {}
+    }
+  },
   "pivMoveKeyPrompt": "Only the private key is moved. Certificates remain in their current slots.",
   "pivDestinationSlot": "Destination slot",
   "pivMoveKeyFailed": "Key move failed. The destination must not contain a key.",
   "pivKeyMoved": "Key moved",
   "pivClearSlotTitle": "Clear Slot {slot}",
-  "@pivClearSlotTitle": {"placeholders": {"slot": {}}},
+  "@pivClearSlotTitle": {
+    "placeholders": {
+      "slot": {}
+    }
+  },
   "pivClearSlotPrompt": "This removes both the private key and certificate from this slot. Make sure you have another way to authenticate.",
   "pivClearSlotFailed": "Clear slot failed. Make sure the firmware supports key deletion.",
   "pivSlotCleared": "Slot cleared",
   "pivPinPolicyChip": "PIN: {policy}",
-  "@pivPinPolicyChip": {"placeholders": {"policy": {}}},
+  "@pivPinPolicyChip": {
+    "placeholders": {
+      "policy": {}
+    }
+  },
   "pivTouchPolicyChip": "Touch: {policy}",
-  "@pivTouchPolicyChip": {"placeholders": {"policy": {}}},
+  "@pivTouchPolicyChip": {
+    "placeholders": {
+      "policy": {}
+    }
+  },
   "validationAtLeastCharacters": "At least {min} characters",
-  "@validationAtLeastCharacters": {"placeholders": {"min": {}}},
+  "@validationAtLeastCharacters": {
+    "placeholders": {
+      "min": {}
+    }
+  },
   "validationAtMostCharacters": "At most {max} characters",
-  "@validationAtMostCharacters": {"placeholders": {"max": {}}},
+  "@validationAtMostCharacters": {
+    "placeholders": {
+      "max": {}
+    }
+  },
   "pinConfirmationMismatch": "PIN confirmation does not match",
   "openpgpUserPinLength": "User PIN length must be between 6 and 64 characters.",
   "openpgpCurrentAdminPin": "Current Admin PIN",
@@ -517,7 +580,11 @@
   "openpgpTouchPermanentCachedLabel": "Touch: Permanent cached",
   "openpgpTouchCacheOff": "0 sec (off)",
   "openpgpTouchCacheSeconds": "{seconds} sec",
-  "@openpgpTouchCacheSeconds": {"placeholders": {"seconds": {}}},
+  "@openpgpTouchCacheSeconds": {
+    "placeholders": {
+      "seconds": {}
+    }
+  },
   "openpgpTouchNone": "No touch",
   "openpgpTouchRequired": "Requires touch",
   "openpgpTouchPermanent": "Permanent",
@@ -529,7 +596,11 @@
   "openpgpVerifyOnceAfterInsertion": "Verify once after insertion",
   "openpgpRetriesUnknown": "Retries: unknown",
   "openpgpRetries": "Retries: {remaining}",
-  "@openpgpRetries": {"placeholders": {"remaining": {}}},
+  "@openpgpRetries": {
+    "placeholders": {
+      "remaining": {}
+    }
+  },
   "openpgpUnblockUserPin": "Unblock User PIN",
   "openpgpSetResetCode": "Set Reset Code",
   "openpgpSetPinRetries": "Set PIN Retries",
@@ -574,5 +645,69 @@
   "logsRecording": "Record logs",
   "logsEmpty": "No logs in this session",
   "logsCopied": "Log copied",
-  "logsCopyFailed": "Could not copy log"
+  "logsCopyFailed": "Could not copy log",
+  "pivMacOsApply": "Apply Mac login settings",
+  "pivMacOsDescription": "Set up 9A to verify your identity when you sign in to your Mac. You also need a key and certificate in 9D to unlock your login keychain.",
+  "pivMacOsOtherSlot": "For Mac login, set up 9A and 9D.",
+  "pivCertificateCustom": "Custom settings",
+  "pivCertificateExtensions": "Certificate extensions",
+  "pivEndEntityConstraint": "Include Basic Constraints: CA=false",
+  "pivKeyUsage": "Key Usage",
+  "pivKeyUsageCritical": "Mark Key Usage as critical",
+  "pivExtendedKeyUsage": "Extended Key Usage",
+  "pivUsageOmitted": "No selection omits this extension.",
+  "pivMainSlots": "Primary slots",
+  "pivRetiredSlots": "Retired key slots",
+  "pivSlotKeyOnly": "Key only",
+  "pivSlotCertificateOnly": "Certificate only",
+  "pivSlotKeyAndCertificate": "Key + certificate",
+  "pivCertificateSubjectAndExtensions": "Certificate information and extensions",
+  "pivOccupiedSlots": "{count} occupied",
+  "@pivOccupiedSlots": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pivMacOsKeychainDescription": "Set up 9D to unlock your Mac’s login keychain. Set up the login certificate in 9A as well.",
+  "pivMacOsSlotApplied": "Recommended settings applied to {slot}",
+  "pivMacOsGuideTitle": "Sign in to your Mac with CanoKey",
+  "pivMacOsGuide": "Set up 9A to verify your identity and 9D to unlock your login keychain. Once both are configured, reconnect CanoKey and pair it with your Mac account.",
+  "pivMacOsAuthenticationSlot": "9A · Sign in",
+  "pivMacOsKeychainSlot": "9D · Unlock keychain",
+  "pivMacOsAfterAuthentication": "9A is configured. Next, check 9D: your Mac also needs its key and certificate to unlock your login keychain.",
+  "pivMacOsAfterKeychain": "9D is configured. Check that 9A is also configured, then reconnect CanoKey and pair it with your Mac account.",
+  "pivMacOsCheckSlot": "Check {slot}",
+  "@pivMacOsSlotApplied": {
+    "placeholders": {
+      "slot": {
+        "type": "String"
+      }
+    }
+  },
+  "@pivMacOsCheckSlot": {
+    "placeholders": {
+      "slot": {
+        "type": "String"
+      }
+    }
+  },
+  "pivMacSetupTitle": "Set up Mac login",
+  "pivMacSetupIntro": "Check 9A and 9D, keep usable keys and certificates, and add what is missing.",
+  "pivMacSetupInspect": "Check CanoKey",
+  "pivMacSetupError": "Could not finish. Check the card connection and credentials, then check again. Completed changes are kept. Older firmware without key metadata is not supported.",
+  "pivMacSetupKeep": "Keep existing configuration",
+  "pivMacSetupCreate": "Create key and certificate",
+  "pivMacSetupIssue": "Keep key; add certificate",
+  "pivMacSetupReplaceCert": "Keep key; replace certificate",
+  "pivMacSetupReplaceKey": "Replace key and certificate",
+  "pivMacSetupConsent": "I agree to the replacements listed above. Replaced keys cannot be recovered.",
+  "pivMacSetupStart": "Configure CanoKey",
+  "pivMacSetupDone": "CanoKey is ready. Reconnect it to your Mac and follow the pairing prompt. Pairing with your Mac account is still required.",
+  "pivMacSetupWorking": "Configuring",
+  "pivMacSetupFinished": "Done",
+  "pivMacSetupCredentials": "Enter your PIV PIN and management key.",
+  "pivMacSetupManagementKey": "Management key (hex)",
+  "pivMacSetupInvalid": "Check the PIN and management key format."
 }

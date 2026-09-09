@@ -1,8 +1,4 @@
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/widgets/customized_container.dart';
-import 'package:canokey_console/helper/widgets/customized_text.dart';
-import 'package:canokey_console/helper/widgets/lucide_icons.dart';
-import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/piv.dart';
 import 'package:flutter/material.dart';
 
@@ -24,84 +20,123 @@ class PivSlotListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final certificateLabel = hasCertificate
-        ? S.of(context).pivCertificate
-        : S.of(context).pivNoCertificate;
-
+    final s = S.of(context);
+    final theme = Theme.of(context);
+    final occupied = slot != null || hasCertificate;
+    final status = slot != null
+        ? (hasCertificate ? s.pivSlotKeyAndCertificate : s.pivSlotKeyOnly)
+        : (hasCertificate ? s.pivSlotCertificateOnly : s.pivEmpty);
+    final statusWidget = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          hasCertificate
+              ? Icons.description_outlined
+              : slot != null
+              ? Icons.key_outlined
+              : Icons.radio_button_unchecked,
+          size: 15,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            status,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ],
+    );
     return InkWell(
+      borderRadius: BorderRadius.circular(12),
       onTap: onTap,
       child: Padding(
-        padding: Spacing.y(4),
-        child: Row(
-          children: [
-            CustomizedContainer(
-              paddingAll: 4,
-              height: 32,
-              width: 32,
-              child: Icon(LucideIcons.fileLock, size: 20),
-            ),
-            Spacing.width(12),
-            Expanded(
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  CustomizedText.bodyMedium(
-                    '$title - $slotNumber',
-                    fontSize: 15,
-                    fontWeight: 600,
-                    softWrap: true,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final narrow = constraints.maxWidth < 440;
+            return Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: occupied
+                        ? theme.colorScheme.primaryContainer
+                        : theme.colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  if (slot == null) ...[
-                    _chip(context, S.of(context).pivEmpty, muted: true),
-                    if (hasCertificate) _chip(context, certificateLabel),
-                  ] else ...[
-                    _chip(context, slot!.algorithm.label),
-                    _chip(context, certificateLabel, muted: !hasCertificate),
-                    _chip(context, _pinPolicyLabel(context, slot!.pinPolicy),
-                        muted: true),
-                    _chip(
-                        context, _touchPolicyLabel(context, slot!.touchPolicy),
-                        muted: true),
-                  ],
+                  child: Text(
+                    slotNumber,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.w700,
+                      color: occupied
+                          ? theme.colorScheme.onPrimaryContainer
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (slot != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          slot!.algorithm.label,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                      if (narrow) ...[const SizedBox(height: 6), statusWidget],
+                    ],
+                  ),
+                ),
+                if (!narrow) ...[
+                  const SizedBox(width: 16),
+                  SizedBox(width: 155, child: statusWidget),
                 ],
-              ),
-            ),
-            Icon(Icons.arrow_forward_ios, size: 16),
-          ],
+                const SizedBox(width: 12),
+                Icon(
+                  Icons.chevron_right,
+                  size: 20,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
+}
 
-  Widget _chip(BuildContext context, String text, {bool muted = false}) {
-    final theme = Theme.of(context);
-    final background = muted
-        ? theme.colorScheme.surfaceContainerHighest
-        : theme.colorScheme.primaryContainer;
-    final foreground = muted
-        ? theme.colorScheme.onSurface
-        : theme.colorScheme.onPrimaryContainer;
-    final border = muted
-        ? theme.dividerColor
-        : theme.colorScheme.primary.withValues(alpha: 0.45);
+class PivSlotPolicies extends StatelessWidget {
+  const PivSlotPolicies({super.key, required this.slot});
+  final SlotInfo slot;
 
-    return CustomizedContainer.bordered(
-      padding: Spacing.xy(8, 4),
-      borderRadiusAll: 6,
-      color: background,
-      borderColor: border,
-      child: CustomizedText.bodySmall(
-        text,
-        color: foreground,
-        fontSize: 12,
-        fontWeight: 600,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
+  @override
+  Widget build(BuildContext context) => Wrap(
+    spacing: 20,
+    runSpacing: 8,
+    children: [
+      Text(slot.algorithm.label),
+      Text(_pinPolicyLabel(context, slot.pinPolicy)),
+      Text(_touchPolicyLabel(context, slot.touchPolicy)),
+    ],
+  );
 
   String _pinPolicyLabel(BuildContext context, PinPolicy policy) {
     final value = switch (policy) {

@@ -13,12 +13,15 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 Uint8List tdesEde3Enc({required List<int> key, required List<int> data}) =>
     RustLib.instance.api.crateApiCryptoTdesEde3Enc(key: key, data: data);
 
-Uint8List encryptPivManagementKeyChallenge(
-        {required int algorithm,
-        required List<int> key,
-        required List<int> challenge}) =>
-    RustLib.instance.api.crateApiCryptoEncryptPivManagementKeyChallenge(
-        algorithm: algorithm, key: key, challenge: challenge);
+Uint8List encryptPivManagementKeyChallenge({
+  required int algorithm,
+  required List<int> key,
+  required List<int> challenge,
+}) => RustLib.instance.api.crateApiCryptoEncryptPivManagementKeyChallenge(
+  algorithm: algorithm,
+  key: key,
+  challenge: challenge,
+);
 
 Uint8List sha256Digest({required List<int> data}) =>
     RustLib.instance.api.crateApiCryptoSha256Digest(data: data);
@@ -29,21 +32,25 @@ Uint8List sha384Digest({required List<int> data}) =>
 Uint8List sha512Digest({required List<int> data}) =>
     RustLib.instance.api.crateApiCryptoSha512Digest(data: data);
 
-Uint8List sm2MessageDigest(
-        {required List<int> data, required List<int> publicKey}) =>
-    RustLib.instance.api
-        .crateApiCryptoSm2MessageDigest(data: data, publicKey: publicKey);
+Uint8List sm2MessageDigest({
+  required List<int> data,
+  required List<int> publicKey,
+}) => RustLib.instance.api.crateApiCryptoSm2MessageDigest(
+  data: data,
+  publicKey: publicKey,
+);
 
-bool verifyPivSignature(
-        {required int algorithm,
-        required List<int> publicKey,
-        required List<int> data,
-        required List<int> signature}) =>
-    RustLib.instance.api.crateApiCryptoVerifyPivSignature(
-        algorithm: algorithm,
-        publicKey: publicKey,
-        data: data,
-        signature: signature);
+bool verifyPivSignature({
+  required int algorithm,
+  required List<int> publicKey,
+  required List<int> data,
+  required List<int> signature,
+}) => RustLib.instance.api.crateApiCryptoVerifyPivSignature(
+  algorithm: algorithm,
+  publicKey: publicKey,
+  data: data,
+  signature: signature,
+);
 
 X509CertData parseX509CertFromPem({required String pem}) =>
     RustLib.instance.api.crateApiCryptoParseX509CertFromPem(pem: pem);
@@ -51,13 +58,17 @@ X509CertData parseX509CertFromPem({required String pem}) =>
 X509CertData parseX509CertFromDer({required List<int> der}) =>
     RustLib.instance.api.crateApiCryptoParseX509CertFromDer(der: der);
 
-Uint8List pbkdf2HmacSha1(
-        {required String password,
-        required List<int> salt,
-        required int iterations,
-        required int keyLen}) =>
-    RustLib.instance.api.crateApiCryptoPbkdf2HmacSha1(
-        password: password, salt: salt, iterations: iterations, keyLen: keyLen);
+Uint8List pbkdf2HmacSha1({
+  required String password,
+  required List<int> salt,
+  required int iterations,
+  required int keyLen,
+}) => RustLib.instance.api.crateApiCryptoPbkdf2HmacSha1(
+  password: password,
+  salt: salt,
+  iterations: iterations,
+  keyLen: keyLen,
+);
 
 Uint8List hmacSha1({required List<int> key, required List<int> data}) =>
     RustLib.instance.api.crateApiCryptoHmacSha1(key: key, data: data);
