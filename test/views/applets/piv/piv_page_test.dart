@@ -1,3 +1,5 @@
+import 'package:canokey_console/models/piv_macos_setup.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 import 'dart:typed_data';
 
 import 'package:canokey_console/controller/applets/piv/piv_controller.dart';
@@ -43,8 +45,58 @@ void main() {
     await Get.delete<PivController>(force: true);
   });
 
-  testWidgets('does not expose X25519 shared-secret derivation',
-      (tester) async {
+  testWidgets('legacy PIN-only cards retain recovery while PUK is usable', (
+    tester,
+  ) async {
+    final controller = _TestPivController()
+      ..polled = true
+      ..pinOnlyMode = true
+      ..pinInfo = SlotInfo(
+        0x80,
+        AlgorithmType.pin,
+        PinPolicy.once,
+        TouchPolicy.never,
+        Origin.generated,
+        const [],
+        false,
+        3,
+        0,
+      )
+      ..pukInfo = SlotInfo(
+        0x81,
+        AlgorithmType.pin,
+        PinPolicy.once,
+        TouchPolicy.never,
+        Origin.generated,
+        const [],
+        false,
+        3,
+        3,
+      );
+    Get.put<PivController>(controller);
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    expect(_actionButton(tester, S.current.pivUnblockPin).onPressed, isNotNull);
+
+    controller.pukInfo = SlotInfo(
+      0x81,
+      AlgorithmType.pin,
+      PinPolicy.once,
+      TouchPolicy.never,
+      Origin.generated,
+      const [],
+      false,
+      3,
+      0,
+    );
+    controller.update();
+    await tester.pumpAndSettle();
+    expect(_actionButton(tester, S.current.pivUnblockPin).onPressed, isNull);
+  });
+
+  testWidgets('does not expose X25519 shared-secret derivation', (
+    tester,
+  ) async {
     final controller = _TestPivController()
       ..polled = true
       ..slots[0x9D] = _slot(0x9D, AlgorithmType.x25519);
@@ -77,8 +129,9 @@ void main() {
     expect(find.byType(Dialog), findsNothing);
   });
 
-  testWidgets('slot actions expose a scrollable key operations section',
-      (tester) async {
+  testWidgets('slot actions expose a scrollable key operations section', (
+    tester,
+  ) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(800, 480);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -119,8 +172,9 @@ void main() {
     expect(find.text('Close'), findsOneWidget);
   });
 
-  testWidgets('slot action groups flow into columns on wide layouts',
-      (tester) async {
+  testWidgets('slot action groups flow into columns on wide layouts', (
+    tester,
+  ) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(2000, 1000);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -147,8 +201,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('offers message signing without immediate verification',
-      (tester) async {
+  testWidgets('offers message signing without immediate verification', (
+    tester,
+  ) async {
     final controller = _TestPivController()
       ..polled = true
       ..slots[0x9C] = _slot(0x9C, AlgorithmType.eccp256);
@@ -164,8 +219,9 @@ void main() {
     expect(find.text('Sign / Verify'), findsNothing);
   });
 
-  testWidgets('message signing dialog suspends page NFC refresh',
-      (tester) async {
+  testWidgets('message signing dialog suspends page NFC refresh', (
+    tester,
+  ) async {
     SmartCard.nfcState = NfcState.idle;
     final controller = _TestPivController()
       ..polled = true
@@ -188,10 +244,7 @@ void main() {
           widget is InputDecorator && widget.decoration.labelText == 'PIN',
     );
     final pinField = tester.widget<EditableText>(
-      find.descendant(
-        of: pinDecorator,
-        matching: find.byType(EditableText),
-      ),
+      find.descendant(of: pinDecorator, matching: find.byType(EditableText)),
     );
     expect(
       find.byWidgetPredicate(
@@ -207,8 +260,149 @@ void main() {
     expect(SmartCard.nfcState, NfcState.idle);
   });
 
-  testWidgets('marks provisioning actions dangerous when slot has a key',
+  for (final scenario in [
+    (slot: '9A', algorithm: AlgorithmType.eccp256, keyUsage: 1),
+    (slot: '9A', algorithm: AlgorithmType.rsa2048, keyUsage: 1),
+    (slot: '9D', algorithm: AlgorithmType.eccp256, keyUsage: 16),
+    (slot: '9D', algorithm: AlgorithmType.rsa2048, keyUsage: 4),
+  ]) {
+    testWidgets(
+      'self-sign ${scenario.slot} ${scenario.algorithm.name} forwards its profile and guides to the other slot',
       (tester) async {
+        tester.view.physicalSize = const Size(1200, 1400);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final otherSlot = scenario.slot == '9A' ? '9D' : '9A';
+        final otherId = int.parse(otherSlot, radix: 16);
+        final existingOtherKey = _slot(otherId, AlgorithmType.eccp256);
+        final controller = _TestPivController()
+          ..polled = true
+          ..selfSignResult = Uint8List.fromList([0x30, 0x00])
+          ..slots[otherId] = existingOtherKey;
+        Get.put<PivController>(controller);
+        await tester.pumpWidget(GlobalLoaderOverlay(child: _app()));
+        await tester.pumpAndSettle();
+        tester.widget<PivSlotListItem>(_slotItem(scenario.slot)).onTap();
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Self-sign'));
+        await tester.pumpAndSettle();
+        final credentials = find.byType(TextFormField);
+        await tester.enterText(credentials.at(0), '123456');
+        await tester.enterText(
+          credentials.at(1),
+          '010203040506070801020304050607080102030405060708',
+        );
+        tester.widget<Stepper>(find.byType(Stepper)).onStepContinue!();
+        await tester.pumpAndSettle();
+        tester
+            .widget<DropdownButtonFormField<AlgorithmType>>(
+              find.byType(DropdownButtonFormField<AlgorithmType>),
+            )
+            .onChanged!(
+          scenario.algorithm == AlgorithmType.rsa2048
+              ? AlgorithmType.rsa2048
+              : AlgorithmType.eccp384,
+        );
+        tester
+            .widget<DropdownButtonFormField<PinPolicy>>(
+              find.byType(DropdownButtonFormField<PinPolicy>),
+            )
+            .onChanged!(PinPolicy.never);
+        tester
+            .widget<DropdownButtonFormField<TouchPolicy>>(
+              find.byType(DropdownButtonFormField<TouchPolicy>),
+            )
+            .onChanged!(TouchPolicy.always);
+        await tester.pumpAndSettle();
+        tester.widget<Stepper>(find.byType(Stepper)).onStepContinue!();
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text(S.current.pivMacOsApply));
+        await tester.tap(find.text(S.current.pivMacOsApply));
+        await tester.pumpAndSettle();
+        tester.widget<Stepper>(find.byType(Stepper)).onStepCancel!();
+        await tester.pumpAndSettle();
+        expect(
+          tester
+              .widget<DropdownButton<AlgorithmType>>(
+                find.byType(DropdownButton<AlgorithmType>),
+              )
+              .value,
+          scenario.algorithm,
+        );
+        expect(
+          tester
+              .widget<DropdownButton<PinPolicy>>(
+                find.byType(DropdownButton<PinPolicy>),
+              )
+              .value,
+          PinPolicy.once,
+        );
+        expect(
+          tester
+              .widget<DropdownButton<TouchPolicy>>(
+                find.byType(DropdownButton<TouchPolicy>),
+              )
+              .value,
+          TouchPolicy.always,
+        );
+        tester.widget<Stepper>(find.byType(Stepper)).onStepContinue!();
+        await tester.pumpAndSettle();
+        for (final entry in {
+          S.current.pivCommonName: 'My Mac',
+          S.current.pivDnsSans: 'example.com',
+          S.current.pivValidityDays: '730',
+        }.entries) {
+          final field = find.byWidgetPredicate(
+            (w) => w is TextField && w.decoration?.labelText == entry.key,
+          );
+          await tester.ensureVisible(field);
+          await tester.enterText(field, entry.value);
+        }
+        tester.widget<Stepper>(find.byType(Stepper)).onStepContinue!();
+        await tester.pumpAndSettle();
+        expect(controller.selfSignArguments, isNull);
+        expect(find.text(S.current.pivOverwriteKey), findsOneWidget);
+        await tester.tap(find.text(S.current.pivOverwrite));
+        await tester.pumpAndSettle();
+        expect(controller.selfSignArguments, {
+          'slot': scenario.slot,
+          'algorithm': scenario.algorithm,
+          'pinPolicy': PinPolicy.once,
+          'touchPolicy': TouchPolicy.always,
+          'subject': {'CN': 'My Mac'},
+          'sans': ['example.com'],
+          'validityDays': 730,
+          'keyUsage': scenario.keyUsage,
+          'keyUsageCritical': true,
+          'extendedKeyUsage': scenario.slot == '9A'
+              ? ['1.3.6.1.5.5.7.3.2']
+              : <String>[],
+          'includeBasicConstraints': true,
+        });
+        expect(
+          find.text(
+            scenario.slot == '9A'
+                ? S.current.pivMacOsAfterAuthentication
+                : S.current.pivMacOsAfterKeychain,
+          ),
+          findsOneWidget,
+        );
+        expect(controller.slots[otherId], same(existingOtherKey));
+        final generation = controller.selfSignArguments;
+        await tester.tap(find.text(S.current.pivMacOsCheckSlot(otherSlot)));
+        await tester.pumpAndSettle();
+        expect(controller.selfSignArguments, same(generation));
+        expect(controller.slots[otherId], same(existingOtherKey));
+        expect(find.byType(Stepper), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets('keeps provisioning actions primary when slot has a key', (
+    tester,
+  ) async {
     final controller = _TestPivController()
       ..polled = true
       ..slots[0x9A] = _slot(0x9A, AlgorithmType.eccp256);
@@ -220,30 +414,36 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final label in ['Generate CSR', 'Self-sign', 'Import']) {
-      expect(_actionButton(tester, label).backgroundColor,
-          AdminTheme.theme.contentTheme.danger);
+      expect(
+        _actionButton(tester, label).backgroundColor,
+        AdminTheme.theme.contentTheme.primary,
+      );
     }
   });
 
   testWidgets(
-      'marks provisioning actions dangerous when slot only has a certificate',
-      (tester) async {
-    final controller = _TestPivController()
-      ..polled = true
-      ..certificateBytes[0x9A] = Uint8List.fromList([1]);
-    Get.put<PivController>(controller);
+    'keeps provisioning actions primary when slot only has a certificate',
+    (tester) async {
+      final controller = _TestPivController()
+        ..polled = true
+        ..certificateBytes[0x9A] = Uint8List.fromList([1]);
+      Get.put<PivController>(controller);
 
-    await tester.pumpWidget(_app());
-    await tester.pumpAndSettle();
-    tester.widget<PivSlotListItem>(_slotItem('9A')).onTap();
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      tester.widget<PivSlotListItem>(_slotItem('9A')).onTap();
+      await tester.pumpAndSettle();
 
-    expect(_actionButton(tester, 'Import').backgroundColor,
-        AdminTheme.theme.contentTheme.danger);
-  });
+      expect(
+        _actionButton(tester, 'Import').backgroundColor,
+        AdminTheme.theme.contentTheme.primary,
+      );
+    },
+  );
 
-  testWidgets('loads a certificate-only v5 slot when details are opened',
-      (tester) async {
+  testWidgets('loads a certificate-only v5 slot when details are opened', (
+    tester,
+  ) async {
     final controller = _TestPivController()
       ..polled = true
       ..functionSetVersion = FunctionSetVersion.v5
@@ -265,8 +465,9 @@ void main() {
     expect(find.text('Export Certificate'), findsOneWidget);
   });
 
-  testWidgets('limits ML-KEM slots to compatible management actions',
-      (tester) async {
+  testWidgets('limits ML-KEM slots to compatible management actions', (
+    tester,
+  ) async {
     final controller = _TestPivController()
       ..polled = true
       ..functionSetVersion = FunctionSetVersion.v5
@@ -288,36 +489,37 @@ void main() {
   });
 
   testWidgets(
-      'offers ML-DSA self-signing and attestation but not standalone generation',
-      (tester) async {
-    final controller = _TestPivController()
-      ..polled = true
-      ..functionSetVersion = FunctionSetVersion.v5
-      ..extendedRetiredSlots = true
-      ..slots[0x9C] = _slot(0x9C, AlgorithmType.mldsa65);
-    Get.put<PivController>(controller);
+    'offers ML-DSA self-signing and attestation but not standalone generation',
+    (tester) async {
+      final controller = _TestPivController()
+        ..polled = true
+        ..functionSetVersion = FunctionSetVersion.v5
+        ..extendedRetiredSlots = true
+        ..slots[0x9C] = _slot(0x9C, AlgorithmType.mldsa65);
+      Get.put<PivController>(controller);
 
-    await tester.pumpWidget(_app());
-    await tester.pumpAndSettle();
-    tester.widget<PivSlotListItem>(_slotItem('9C')).onTap();
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      tester.widget<PivSlotListItem>(_slotItem('9C')).onTap();
+      await tester.pumpAndSettle();
 
-    expect(controller.detailsLoadCount, 1);
-    expect(find.text('Self-sign'), findsOneWidget);
-    expect(find.text('Generate CSR'), findsNothing);
-    expect(find.text('Download Attestation'), findsOneWidget);
-    await tester.tap(find.text('Generate Key'));
-    await tester.pumpAndSettle();
+      expect(controller.detailsLoadCount, 1);
+      expect(find.text('Self-sign'), findsOneWidget);
+      expect(find.text('Generate CSR'), findsNothing);
+      expect(find.text('Download Attestation'), findsOneWidget);
+      await tester.tap(find.text('Generate Key'));
+      await tester.pumpAndSettle();
 
-    final algorithmDropdown = tester.widget<DropdownButton<AlgorithmType>>(
-      find.byWidgetPredicate(
-          (widget) => widget is DropdownButton<AlgorithmType>),
-    );
-    expect(
-      algorithmDropdown.items!.map((item) => item.value),
-      [AlgorithmType.mlkem768],
-    );
-  });
+      final algorithmDropdown = tester.widget<DropdownButton<AlgorithmType>>(
+        find.byWidgetPredicate(
+          (widget) => widget is DropdownButton<AlgorithmType>,
+        ),
+      );
+      expect(algorithmDropdown.items!.map((item) => item.value), [
+        AlgorithmType.mlkem768,
+      ]);
+    },
+  );
 }
 
 Finder _slotItem(String slotNumber) {
@@ -327,27 +529,68 @@ Finder _slotItem(String slotNumber) {
 }
 
 CustomizedButton _actionButton(WidgetTester tester, String label) {
-  return tester.widget<CustomizedButton>(find.ancestor(
-    of: find.text(label),
-    matching: find.byType(CustomizedButton),
-  ));
+  return tester.widget<CustomizedButton>(
+    find.ancestor(
+      of: find.text(label),
+      matching: find.byType(CustomizedButton),
+    ),
+  );
 }
 
 SlotInfo _slot(int number, AlgorithmType algorithm) => SlotInfo(
-      number,
-      algorithm,
-      PinPolicy.once,
-      TouchPolicy.never,
-      Origin.generated,
-      const [],
-      false,
-      0,
-      0,
-    );
+  number,
+  algorithm,
+  PinPolicy.once,
+  TouchPolicy.never,
+  Origin.generated,
+  const [],
+  false,
+  0,
+  0,
+);
 
 class _TestPivController extends PivController {
   int refreshCount = 0;
   int detailsLoadCount = 0;
+
+  Map<String, Object>? selfSignArguments;
+  Uint8List? selfSignResult;
+
+  @override
+  Future<Uint8List?> generateSelfSignedCertificate(
+    String slot,
+    AlgorithmType algorithm,
+    PinPolicy pinPolicy,
+    TouchPolicy touchPolicy,
+    String pin,
+    String managementKey,
+    Map<String, String> subject,
+    List<String> subjectAlternativeNames,
+    int validityDays,
+    bool usePinOnly, {
+    int keyUsage = 0,
+    bool keyUsageCritical = true,
+    List<String> extendedKeyUsage = const [],
+    bool includeBasicConstraints = false,
+    bool reuseExistingKey = false,
+    PivMacOsSetupSlot? expectedState,
+    String? expectedSerial,
+  }) async {
+    selfSignArguments = {
+      'slot': slot,
+      'algorithm': algorithm,
+      'pinPolicy': pinPolicy,
+      'touchPolicy': touchPolicy,
+      'subject': subject,
+      'sans': subjectAlternativeNames,
+      'validityDays': validityDays,
+      'keyUsage': keyUsage,
+      'keyUsageCritical': keyUsageCritical,
+      'extendedKeyUsage': extendedKeyUsage,
+      'includeBasicConstraints': includeBasicConstraints,
+    };
+    return selfSignResult;
+  }
 
   @override
   void onReady() {}

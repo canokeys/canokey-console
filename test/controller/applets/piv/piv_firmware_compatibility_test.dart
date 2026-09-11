@@ -1,3 +1,4 @@
+import 'package:canokey_console/helper/utils/piv_pin_retries.dart';
 import 'package:canokey_console/controller/applets/piv/piv_controller.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/piv.dart';
@@ -64,11 +65,22 @@ void main() {
     expect(config.idFor(AlgorithmType.mlkem768), 0xE3);
   });
 
+  test(
+    'rejects retry resets in PIN-only mode before contacting the card',
+    () async {
+      final controller = controllerFor('3.1.1');
+      controller.pinOnlyMode = true;
+      expect(await controller.setPinRetries('', '', 3, 3, false), PivPinRetryResetResult.failed);
+      controller.pinOnlyMode = false;
+      expect(await controller.setPinRetries('', '', 3, 3, true), PivPinRetryResetResult.failed);
+    },
+  );
+
   test('rejects current development commands before contacting old firmware',
       () async {
     final controller = controllerFor('3.0.3');
 
-    expect(await controller.setPinRetries('', '', 3, 3, false), isFalse);
+    expect(await controller.setPinRetries('', '', 3, 3, false), PivPinRetryResetResult.failed);
     expect(await controller.enablePinOnlyMode('', ''), isFalse);
     expect(
       await controller.clearSlotAuthenticated(

@@ -15,7 +15,7 @@ use sm2::elliptic_curve::sec1::ToEncodedPoint as Sm2ToEncodedPoint;
 use x509_cert::attr::Attributes;
 use x509_cert::certificate::Version as CertificateVersion;
 use x509_cert::ext::pkix::name::GeneralName;
-use x509_cert::ext::pkix::SubjectAltName;
+use x509_cert::ext::pkix::{BasicConstraints, ExtendedKeyUsage, KeyUsage, SubjectAltName};
 use x509_cert::ext::{Extension, ToExtension};
 use x509_cert::name::Name;
 use x509_cert::request::{CertReq, CertReqInfo, ExtensionReq, Version as RequestVersion};
@@ -81,6 +81,11 @@ pub struct SelfSignedCertificateParams {
     pub not_before: String,
     pub not_after: String,
     pub subject_alternative_names: Vec<String>,
+    /// RFC 5280 bits 0–4; zero omits Key Usage. CA usages are not supported.
+    pub key_usage: u16,
+    pub key_usage_critical: bool,
+    pub extended_key_usage: Vec<String>,
+    pub include_basic_constraints: bool,
 }
 
 #[derive(Sequence)]
@@ -245,6 +250,35 @@ pub fn finish_piv_csr(
     request.to_pem(der::pem::LineEnding::LF).map_err(der_error)
 }
 
+/// Check the certificate's role and validity, not macOS trust or account policy.
+pub fn piv_certificate_supports_macos(
+    der: Vec<u8>,
+    expected_public_key: Vec<u8>,
+    slot: u8,
+    now_unix: i64,
+) -> bool {
+    let Ok((remaining, cert)) = x509_parser::parse_x509_certificate(&der) else { return false; };
+    if !remaining.is_empty() || cert.public_key().raw != expected_public_key { return false; }
+    let Ok(now) = x509_parser::time::ASN1Time::from_timestamp(now_unix) else { return false; };
+    if !cert.validity().is_valid_at(now) { return false; }
+    let Ok(basic) = cert.basic_constraints() else { return false; };
+    if basic.is_some_and(|ext| ext.value.ca) { return false; }
+    let Ok(usage) = cert.key_usage() else { return false; };
+    let Ok(eku) = cert.extended_key_usage() else { return false; };
+    let Ok(spki) = SubjectPublicKeyInfo::from_der(&expected_public_key) else { return false; };
+    let Ok(algorithm) = algorithm_from_spki(&spki) else { return false; };
+    if algorithm != PIV_ECC_P256 && algorithm != PIV_RSA2048 { return false; }
+    match slot {
+        0x9A => usage.is_none_or(|ext| ext.value.digital_signature())
+            && eku.is_none_or(|ext| ext.value.any || ext.value.client_auth),
+        0x9D => usage.is_none_or(|ext| if algorithm == PIV_RSA2048 {
+            ext.value.key_encipherment()
+        } else { ext.value.key_agreement() })
+            && eku.is_none_or(|ext| ext.value.any),
+        _ => false,
+    }
+}
+
 pub fn prepare_self_signed_certificate(
     params: SelfSignedCertificateParams,
 ) -> Result<Vec<u8>, String> {
@@ -258,13 +292,53 @@ pub fn prepare_self_signed_certificate(
         .map_err(|_| "invalid subject public key info")?;
     let algorithm = algorithm_from_spki(&public_key)?;
     let signature = signature_algorithm(algorithm)?;
-    let extensions = if params.subject_alternative_names.is_empty() {
-        None
-    } else {
-        Some(vec![subject_alt_name_extension(
+    if params.key_usage & !0x1f != 0 {
+        return Err("unsupported end-entity key usage".into());
+    }
+    let mut extensions = Vec::new();
+    if params.include_basic_constraints {
+        extensions.push(
+            BasicConstraints {
+                ca: false,
+                path_len_constraint: None,
+            }
+            .to_extension(&subject, &[])
+            .map_err(der_error)?,
+        );
+    }
+    if params.key_usage != 0 {
+        let mut extension = KeyUsage(
+            der::flagset::FlagSet::new(params.key_usage).map_err(|_| "invalid key usage")?,
+        )
+        .to_extension(&subject, &[])
+        .map_err(der_error)?;
+        extension.critical = params.key_usage_critical;
+        extensions.push(extension);
+    }
+    if !params.extended_key_usage.is_empty() {
+        let oids = params
+            .extended_key_usage
+            .iter()
+            .map(|oid| {
+                ObjectIdentifier::from_str(oid).map_err(|_| "invalid extended key usage OID")
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        let mut extension = ExtendedKeyUsage(oids)
+            .to_extension(&subject, &[])
+            .map_err(der_error)?;
+        extension.critical = false;
+        extensions.push(extension);
+    }
+    if !params.subject_alternative_names.is_empty() {
+        extensions.push(subject_alt_name_extension(
             &subject,
             params.subject_alternative_names,
-        )?])
+        )?);
+    }
+    let extensions = if extensions.is_empty() {
+        None
+    } else {
+        Some(extensions)
     };
     TbsCertificate {
         version: CertificateVersion::V3,
@@ -975,12 +1049,221 @@ mod tests {
             not_before: "2026-01-01T00:00:00Z".into(),
             not_after: "2027-01-01T00:00:00Z".into(),
             subject_alternative_names: vec!["example.com".into()],
+            key_usage: 0,
+            key_usage_critical: true,
+            extended_key_usage: vec![],
+            include_basic_constraints: false,
         })
         .unwrap();
         let certificate = finish_self_signed_certificate(tbs, PIV_ECC_P256, vec![2; 64]).unwrap();
         let parsed = parse_x509_cert_from_der(certificate).unwrap();
         assert_eq!(parsed.raw_public_key.len(), 65);
         assert!(!parsed.subject_public_key_info.is_empty());
+    }
+
+    fn extension_test_params() -> SelfSignedCertificateParams {
+        let key = p256::SecretKey::from_slice(&[9; 32]).unwrap();
+        let public = key.public_key().to_sec1_point(false).as_bytes().to_vec();
+        SelfSignedCertificateParams {
+            common_name: "CanoKey login".into(),
+            organization: None,
+            organizational_unit: None,
+            country: None,
+            subject_public_key_info: public_key_data(PIV_ECC_P256, public)
+                .unwrap()
+                .subject_public_key_info,
+            serial_number: vec![1],
+            not_before: "2026-01-01T00:00:00Z".into(),
+            not_after: "2027-01-01T00:00:00Z".into(),
+            subject_alternative_names: vec!["example.com".into()],
+            key_usage: 1,
+            key_usage_critical: true,
+            extended_key_usage: vec!["1.3.6.1.5.5.7.3.2".into()],
+            include_basic_constraints: true,
+        }
+    }
+
+    #[test]
+    fn macos_capability_requires_wrapping_usage_and_matching_valid_key() {
+        let now = 1788912000;
+        for (usage, eku, slot, expected) in [
+            (1, true, 0x9A, true), (1, true, 0x9D, false),
+            (16, false, 0x9D, true), (4, false, 0x9D, false),
+            (16, true, 0x9D, false), (0, false, 0x9D, true),
+            (16, false, 0x9A, false),
+        ] {
+            let mut params = extension_test_params();
+            params.key_usage = usage;
+            if !eku { params.extended_key_usage.clear(); }
+            let spki = params.subject_public_key_info.clone();
+            let tbs = prepare_self_signed_certificate(params).unwrap();
+            let cert = finish_self_signed_certificate(tbs, PIV_ECC_P256, vec![1; 64]).unwrap();
+            assert_eq!(piv_certificate_supports_macos(cert.clone(), spki.clone(), slot, now), expected);
+            assert!(!piv_certificate_supports_macos(cert.clone(), vec![], slot, now));
+            assert!(!piv_certificate_supports_macos(cert.clone(), spki.clone(), slot, 1900000000));
+            let mut trailing = cert;
+            trailing.push(0);
+            assert!(!piv_certificate_supports_macos(trailing, spki, slot, now));
+        }
+    }
+
+    #[test]
+    fn macos_authentication_certificate_preserves_extensions_and_verifiable_signature() {
+        use const_oid::AssociatedOid;
+        use p256::ecdsa::{
+            signature::{Signer, Verifier},
+            Signature, SigningKey,
+        };
+        let tbs = prepare_self_signed_certificate(extension_test_params()).unwrap();
+        let decoded = TbsCertificate::from_der(&tbs).unwrap();
+        let extensions = decoded.extensions.unwrap();
+        assert_eq!(extensions.len(), 4);
+        let find = |oid| extensions.iter().find(|e| e.extn_id == oid).unwrap();
+        let basic =
+            BasicConstraints::from_der(find(BasicConstraints::OID).extn_value.as_bytes()).unwrap();
+        assert!(!basic.ca);
+        assert!(basic.path_len_constraint.is_none());
+        let usage_extension = find(KeyUsage::OID);
+        assert!(usage_extension.critical);
+        let usage = KeyUsage::from_der(usage_extension.extn_value.as_bytes()).unwrap();
+        assert!(usage.digital_signature());
+        assert!(!usage.key_cert_sign());
+        assert!(!usage.key_encipherment());
+        let eku_extension = find(ExtendedKeyUsage::OID);
+        assert!(!eku_extension.critical);
+        let eku = ExtendedKeyUsage::from_der(eku_extension.extn_value.as_bytes()).unwrap();
+        assert_eq!(
+            eku.0,
+            vec![ObjectIdentifier::new_unwrap("1.3.6.1.5.5.7.3.2")]
+        );
+        assert!(SubjectAltName::from_der(find(SubjectAltName::OID).extn_value.as_bytes()).is_ok());
+        let signing_key = SigningKey::from_slice(&[9; 32]).unwrap();
+        let signature: Signature = signing_key.sign(&tbs);
+        let certificate = finish_self_signed_certificate(
+            tbs.clone(),
+            PIV_ECC_P256,
+            signature.to_bytes().to_vec(),
+        )
+        .unwrap();
+        let signed = SignedDerObject::from_der(&certificate).unwrap();
+        assert_eq!(signed.body.to_der().unwrap(), tbs);
+        let signature = Signature::from_der(signed.signature.as_bytes().unwrap()).unwrap();
+        signing_key
+            .verifying_key()
+            .verify(&tbs, &signature)
+            .unwrap();
+        assert!(parse_x509_cert_from_der(certificate).is_ok());
+    }
+
+    #[test]
+    fn macos_key_management_certificates_allow_wrapping_without_authentication_eku() {
+        use const_oid::AssociatedOid;
+        for is_rsa in [false, true] {
+            let mut params = extension_test_params();
+            params.common_name = "CanoKey Mac keychain".into();
+            params.extended_key_usage.clear();
+            params.key_usage = if is_rsa { 4 } else { 16 };
+            if is_rsa {
+                let key = RsaPrivateKey::new(&mut rsa::rand_core::OsRng, 2048).unwrap();
+                params.subject_public_key_info = key
+                    .to_public_key()
+                    .to_public_key_der()
+                    .unwrap()
+                    .as_bytes()
+                    .to_vec();
+            }
+            let spki = params.subject_public_key_info.clone();
+            let tbs = prepare_self_signed_certificate(params).unwrap();
+            let decoded = TbsCertificate::from_der(&tbs).unwrap();
+            let extensions = decoded.extensions.unwrap();
+            let usage = extensions
+                .iter()
+                .find(|e| e.extn_id == KeyUsage::OID)
+                .unwrap();
+            assert!(usage.critical);
+            let usage = KeyUsage::from_der(usage.extn_value.as_bytes()).unwrap();
+            assert_eq!(usage.key_encipherment(), is_rsa);
+            assert_eq!(usage.key_agreement(), !is_rsa);
+            assert!(!usage.digital_signature());
+            assert!(!usage.key_cert_sign());
+            assert!(extensions
+                .iter()
+                .all(|e| e.extn_id != ExtendedKeyUsage::OID));
+            let basic = extensions
+                .iter()
+                .find(|e| e.extn_id == BasicConstraints::OID)
+                .unwrap();
+            assert!(
+                !BasicConstraints::from_der(basic.extn_value.as_bytes())
+                    .unwrap()
+                    .ca
+            );
+            let (algorithm, signature_len) = if is_rsa {
+                (PIV_RSA2048, 256)
+            } else {
+                (PIV_ECC_P256, 64)
+            };
+            let certificate =
+                finish_self_signed_certificate(tbs, algorithm, vec![1; signature_len]).unwrap();
+            assert!(piv_certificate_supports_macos(certificate.clone(), spki, 0x9D, 1788912000));
+            assert!(parse_x509_cert_from_der(certificate).is_ok());
+        }
+    }
+
+    #[test]
+    fn certificate_extensions_can_be_customized_or_omitted() {
+        use const_oid::AssociatedOid;
+        let mut params = extension_test_params();
+        params.key_usage = 3;
+        params.key_usage_critical = false;
+        params.extended_key_usage.push("1.3.6.1.5.5.7.3.4".into());
+        let encoded = prepare_self_signed_certificate(params).unwrap();
+        let decoded = TbsCertificate::from_der(&encoded).unwrap();
+        let extensions = decoded.extensions.unwrap();
+        let usage = extensions
+            .iter()
+            .find(|e| e.extn_id == KeyUsage::OID)
+            .unwrap();
+        assert!(!usage.critical);
+        assert!(KeyUsage::from_der(usage.extn_value.as_bytes())
+            .unwrap()
+            .non_repudiation());
+        let eku = extensions
+            .iter()
+            .find(|e| e.extn_id == ExtendedKeyUsage::OID)
+            .unwrap();
+        assert_eq!(
+            ExtendedKeyUsage::from_der(eku.extn_value.as_bytes())
+                .unwrap()
+                .0
+                .len(),
+            2
+        );
+
+        let mut params = extension_test_params();
+        params.key_usage = 0;
+        params.extended_key_usage.clear();
+        params.include_basic_constraints = false;
+        params.subject_alternative_names.clear();
+        let encoded = prepare_self_signed_certificate(params).unwrap();
+        assert!(TbsCertificate::from_der(&encoded)
+            .unwrap()
+            .extensions
+            .is_none());
+    }
+
+    #[test]
+    fn rejects_ca_usage_and_invalid_eku_oid() {
+        let mut params = extension_test_params();
+        params.key_usage = 32;
+        assert!(prepare_self_signed_certificate(params)
+            .unwrap_err()
+            .contains("unsupported end-entity"));
+        let mut params = extension_test_params();
+        params.extended_key_usage = vec!["clientAuth".into()];
+        assert!(prepare_self_signed_certificate(params)
+            .unwrap_err()
+            .contains("invalid extended key usage"));
     }
 
     #[test]
@@ -998,6 +1281,10 @@ mod tests {
             not_before: "2026-01-01T00:00:00Z".into(),
             not_after: "2027-01-01T00:00:00Z".into(),
             subject_alternative_names: vec![],
+            key_usage: 0,
+            key_usage_critical: true,
+            extended_key_usage: vec![],
+            include_basic_constraints: false,
         })
         .unwrap();
         let certificate = finish_self_signed_certificate(tbs, PIV_MLDSA65, vec![0; 3309]).unwrap();
@@ -1043,6 +1330,10 @@ mod tests {
             not_before: "2026-01-01T00:00:00Z".into(),
             not_after: "2027-01-01T00:00:00Z".into(),
             subject_alternative_names: vec![],
+            key_usage: 0,
+            key_usage_critical: true,
+            extended_key_usage: vec![],
+            include_basic_constraints: false,
         })
         .unwrap();
         let certificate = finish_self_signed_certificate(tbs, PIV_ECC_P256, vec![1; 64]).unwrap();

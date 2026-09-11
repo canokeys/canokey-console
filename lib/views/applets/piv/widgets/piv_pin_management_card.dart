@@ -65,14 +65,17 @@ class PivPinManagementCard extends StatelessWidget {
             padding: Spacing.xy(16, 12),
             child: Row(
               children: [
-                Icon(LucideIcons.keyboard,
-                    color: contentTheme.primary, size: 16),
+                Icon(
+                  LucideIcons.keyboard,
+                  color: contentTheme.primary,
+                  size: 16,
+                ),
                 Spacing.width(12),
                 CustomizedText.titleMedium(
                   S.of(context).pivPinManagement,
                   fontWeight: 600,
                   color: contentTheme.primary,
-                )
+                ),
               ],
             ),
           ),
@@ -116,17 +119,36 @@ class PivPinManagementCard extends StatelessWidget {
                   runSpacing: 12,
                   children: [
                     _actionButton(
-                        context, S.of(context).changePin, onChangePin),
+                      context,
+                      S.of(context).changePin,
+                      onChangePin,
+                    ),
                     _actionButton(
-                        context, S.of(context).pivChangePUK, onChangePuk),
+                      context,
+                      S.of(context).pivChangePUK,
+                      onChangePuk,
+                      enabled: !pinOnlyMode && pukInfo?.remainingCount != 0,
+                    ),
                     _actionButton(
-                        context, S.of(context).pivUnblockPin, onUnblockPin,
-                        enabled: canUnblockPin),
-                    _actionButton(context, S.of(context).pivChangeManagementKey,
-                        onChangeManagementKey),
+                      context,
+                      S.of(context).pivUnblockPin,
+                      onUnblockPin,
+                      enabled:
+                          canUnblockPin &&
+                          pukInfo?.remainingCount != 0,
+                    ),
+                    _actionButton(
+                      context,
+                      S.of(context).pivChangeManagementKey,
+                      onChangeManagementKey,
+                    ),
                     if (supportsPinRetryConfig)
-                      _actionButton(context, S.of(context).pivSetPinPukRetries,
-                          onSetPinRetries),
+                      _actionButton(
+                        context,
+                        S.of(context).pivSetPinPukRetries,
+                        onSetPinRetries,
+                        enabled: !pinOnlyMode,
+                      ),
                   ],
                 ),
               ],

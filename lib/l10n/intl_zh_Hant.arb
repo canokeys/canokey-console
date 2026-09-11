@@ -465,21 +465,22 @@
   "pivModifyWithCaution": "請謹慎修改",
   "pivAlgorithmIdsWarning": "這些值會影響卡片如何識別 PIV 擴充演算法。除非確認用戶端和韌體需要不同 ID，否則請保持預設值。錯誤的值可能導致已有擴充演算法金鑰顯示為不支援，直到恢復正確 ID。",
   "pivSetPinPukRetries": "設定 PIN/PUK 重試次數",
-  "pivSetPinPukRetriesPrompt": "此操作會將 PIN 重置為 123456，PUK 重置為 12345678。",
+  "pivSetPinPukRetriesPrompt": "此操作會將 PIN 重置為 123456，PUK 重置為 12345678。 請先關閉 PIN 保護的管理金鑰模式。",
   "pivPinRetries": "PIN 重試次數",
   "pivPukRetries": "PUK 重試次數",
   "pivSetRetriesFailed": "設定重試次數失敗",
+  "pivSetRetriesMetadataFailed": "PIN/PUK 重試次數已設定，PIN/PUK 已重置，但管理中繼資料更新失敗。目前 PIN 為 123456，PUK 為 12345678。",
   "pivSetRetriesSuccess": "PIN/PUK 重試次數已設定，PIN 和 PUK 已重置。",
   "pivEnablePinProtectedManagementKey": "使用 PIN 保護管理金鑰",
-  "pivEnablePinProtectedManagementKeyPrompt": "將設定隨機管理金鑰，並以 PIN 保護的形式儲存在卡內。",
+  "pivEnablePinProtectedManagementKeyPrompt": "將設定隨機管理金鑰，並以 PIN 保護的形式儲存在卡內。 PUK 將被鎖死，無法再用於復原遺忘或鎖定的 PIN。此模式下不能重設 PIN/PUK 重試次數。",
   "pivEnablePinProtectedManagementKeyFailed": "儲存 PIN 保護管理金鑰失敗",
   "pivEnablePinProtectedManagementKeySuccess": "管理金鑰已由 PIN 保護",
   "pivDisablePinProtectedManagementKey": "改為手動管理金鑰",
-  "pivDisablePinProtectedManagementKeyPrompt": "清除 PIN 保護的副本前會先設定新的管理金鑰。",
+  "pivDisablePinProtectedManagementKeyPrompt": "清除 PIN 保護的副本前會先設定新的管理金鑰。 PUK 仍保持鎖定。退出此模式後，可透過重設 PIN/PUK 重試次數復原 PUK，但這也會重置 PIN。",
   "pivDisablePinProtectedManagementKeyFailed": "改為手動管理金鑰失敗",
   "pivDisablePinProtectedManagementKeySuccess": "之後需要手動輸入管理金鑰",
   "pivStoreManagementKeyOnCard": "將新管理金鑰儲存在卡內",
-  "pivStoreManagementKeyOnCardPrompt": "啟用後，後續管理操作可用 PIN 完成驗證。",
+  "pivStoreManagementKeyOnCardPrompt": "啟用後，後續管理操作可用 PIN 完成驗證。 此操作會鎖死 PUK，之後無法透過 PUK 復原 PIN。",
   "pivRetiredSlot": "退役金鑰 {index}",
   "@pivRetiredSlot": {
     "placeholders": {
@@ -720,5 +721,69 @@
   "logsRecording": "啟用記錄",
   "logsEmpty": "本次執行尚無記錄",
   "logsCopied": "已複製記錄",
-  "logsCopyFailed": "無法複製記錄"
+  "logsCopyFailed": "無法複製記錄",
+  "pivMacOsApply": "套用 Mac 登入設定",
+  "pivMacOsDescription": "設定 9A，讓 Mac 登入時驗證你的身分。還需要在 9D 建立金鑰和憑證，用來解鎖登入鑰匙圈。",
+  "pivMacOsOtherSlot": "登入 Mac，請設定 9A 和 9D 兩個槽位。",
+  "pivCertificateCustom": "自訂設定",
+  "pivCertificateExtensions": "憑證擴充欄位",
+  "pivEndEntityConstraint": "加入 Basic Constraints：CA=false",
+  "pivKeyUsage": "金鑰用途（Key Usage）",
+  "pivKeyUsageCritical": "將 Key Usage 標示為 critical",
+  "pivExtendedKeyUsage": "延伸金鑰用途（EKU）",
+  "pivUsageOmitted": "未選取任何用途時省略此擴充欄位。",
+  "pivMainSlots": "主要槽位",
+  "pivRetiredSlots": "歷史金鑰槽位",
+  "pivSlotKeyOnly": "僅金鑰",
+  "pivSlotCertificateOnly": "僅憑證",
+  "pivSlotKeyAndCertificate": "金鑰與憑證",
+  "pivCertificateSubjectAndExtensions": "憑證資訊與擴充欄位",
+  "pivOccupiedSlots": "{count} 個已佔用",
+  "@pivOccupiedSlots": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pivMacOsKeychainDescription": "設定 9D，用來解鎖 Mac 的登入鑰匙圈。還需要在 9A 設定登入憑證。",
+  "pivMacOsSlotApplied": "已為 {slot} 套用建議設定",
+  "pivMacOsGuideTitle": "使用 CanoKey 登入 Mac",
+  "pivMacOsGuide": "先設定 9A 用於登入驗證，再設定 9D 用於解鎖登入鑰匙圈。兩個槽位都設定好後，重新插入 CanoKey，在 Mac 上與帳號配對。",
+  "pivMacOsAuthenticationSlot": "9A · 登入驗證",
+  "pivMacOsKeychainSlot": "9D · 解鎖鑰匙圈",
+  "pivMacOsAfterAuthentication": "9A 已設定。下一步請檢查 9D：Mac 還需要它的金鑰和憑證來解鎖登入鑰匙圈。",
+  "pivMacOsAfterKeychain": "9D 已設定。請確認 9A 也已設定，再重新插入 CanoKey，在 Mac 上與帳號配對。",
+  "pivMacOsCheckSlot": "檢查 {slot}",
+  "@pivMacOsSlotApplied": {
+    "placeholders": {
+      "slot": {
+        "type": "String"
+      }
+    }
+  },
+  "@pivMacOsCheckSlot": {
+    "placeholders": {
+      "slot": {
+        "type": "String"
+      }
+    }
+  },
+  "pivMacSetupTitle": "設定 Mac 登入",
+  "pivMacSetupIntro": "檢查 9A 和 9D，保留可用的金鑰和憑證，補齊缺少的設定。",
+  "pivMacSetupInspect": "檢查 CanoKey",
+  "pivMacSetupError": "未能完成。請檢查裝置連線、PIV PIN 和管理金鑰，再重新檢查。已完成的設定會保留。不支援無法讀取金鑰資訊的舊版韌體。",
+  "pivMacSetupKeep": "保留現有設定",
+  "pivMacSetupCreate": "建立金鑰和憑證",
+  "pivMacSetupIssue": "保留金鑰，新增憑證",
+  "pivMacSetupReplaceCert": "保留金鑰，替換憑證",
+  "pivMacSetupReplaceKey": "替換金鑰和憑證",
+  "pivMacSetupConsent": "我同意替換上面列出的內容。被替換的金鑰無法復原。",
+  "pivMacSetupStart": "設定 CanoKey",
+  "pivMacSetupDone": "CanoKey 已設定好。請將 CanoKey 重新插入 Mac，按照系統提示配對。還需要在 Mac 上完成帳戶配對。",
+  "pivMacSetupWorking": "正在設定",
+  "pivMacSetupFinished": "已完成",
+  "pivMacSetupCredentials": "請輸入 PIV PIN 和管理金鑰。",
+  "pivMacSetupManagementKey": "管理金鑰（十六進位）",
+  "pivMacSetupInvalid": "請檢查 PIN 和管理金鑰的格式。"
 }

@@ -13,6 +13,7 @@ void main() {
   Widget buildItem({
     required double width,
     SlotInfo? slot,
+    bool? hasCertificate,
   }) {
     return MaterialApp(
       locale: const Locale('en'),
@@ -32,7 +33,7 @@ void main() {
               title: 'Card Authentication',
               slotNumber: '9E',
               slot: slot,
-              hasCertificate: slot != null,
+              hasCertificate: hasCertificate ?? slot != null,
               onTap: () {},
             ),
           ),
@@ -45,10 +46,12 @@ void main() {
     await tester.pumpWidget(buildItem(width: 520));
     await tester.pumpAndSettle();
 
-    final title = find.text('Card Authentication - 9E');
+    final title = find.text('Card Authentication');
     expect(title, findsOneWidget);
     expect(
-        tester.renderObject<RenderParagraph>(title).didExceedMaxLines, false);
+      tester.renderObject<RenderParagraph>(title).didExceedMaxLines,
+      false,
+    );
     expect(find.text('Empty'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -69,11 +72,19 @@ void main() {
     await tester.pumpWidget(buildItem(width: 280, slot: slot));
     await tester.pumpAndSettle();
 
-    expect(find.text('Card Authentication - 9E'), findsOneWidget);
+    expect(find.text('Card Authentication'), findsOneWidget);
     expect(find.text('RSA 2048'), findsOneWidget);
-    expect(find.text('Certificate'), findsOneWidget);
-    expect(find.text('PIN: Always'), findsOneWidget);
-    expect(find.text('Touch: Cached for 15 seconds'), findsOneWidget);
+    expect(find.text('Key + certificate'), findsOneWidget);
+    expect(find.text('PIN: Always'), findsNothing);
+    expect(find.text('Touch: Cached for 15 seconds'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('certificate-only slot is not labelled empty', (tester) async {
+    await tester.pumpWidget(buildItem(width: 280, hasCertificate: true));
+    await tester.pumpAndSettle();
+    expect(find.text('Certificate only'), findsOneWidget);
+    expect(find.text('Empty'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

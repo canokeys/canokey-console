@@ -1,5 +1,7 @@
+import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/piv.dart';
@@ -51,6 +53,28 @@ class PivCardClient {
     return SmartCard.isOK(response);
   }
 
+  /// Exhaust PUK retries without changing or unblocking the PIN.
+  /// Only an explicit blocked response counts as success.
+  Future<bool> blockPuk() async {
+    final random = Random.secure();
+    // A byte-sized retry counter plus one final blocked-status probe.
+    for (var attempt = 0; attempt < 257; attempt++) {
+      final candidate = List.generate(8, (_) => random.nextInt(10)).join();
+      final encoded = _padPin(candidate);
+      final response = await _transport.transceive(
+        '0024008110$encoded$encoded',
+      );
+      final status = SmartCard.sw(response).toUpperCase();
+      lastStatusWord = status;
+      if (status == '6983') return true;
+      // An accidental match leaves the PUK unchanged; try another candidate.
+      if (status != '9000' && !RegExp(r'^63C[0-9A-F]$').hasMatch(status)) {
+        return false;
+      }
+    }
+    return false;
+  }
+
   Future<void> logout() async {
     SmartCard.assertOK(await _transport.transceive('0020FF8000'));
   }
@@ -86,6 +110,40 @@ class PivCardClient {
       data,
       algorithmExtensionConfig: algorithmExtensionConfig,
     );
+  }
+
+  /// Read the DER bytes from a PIV certificate object (5FC1xx).
+  /// Tag 70 contains the certificate; tags 71 and FE are object metadata.
+  Future<Uint8List?> readCertificate(int objectId) async {
+    final response = await transceive(
+      '00CB3FFF055C035FC1${hex.encode([objectId])}00',
+    );
+    if (!SmartCard.isOK(response)) return null;
+    try {
+      final object = TLV.parse(hex.decode(SmartCard.dropSW(response)))[0x53];
+      if (object is! Uint8List) {
+        throw FormatException('Missing PIV certificate object (53)');
+      }
+      final fields = TLV.parse(object);
+      final certificate = fields[0x70];
+      if (certificate is! Uint8List || certificate.isEmpty) {
+        throw FormatException('Missing PIV certificate data (70)');
+      }
+      final info = fields[0x71];
+      if (info != null) {
+        if (info is! Uint8List || info.length != 1) {
+          throw FormatException('Invalid PIV certificate information (71)');
+        }
+        if (info[0] & 1 != 0) {
+          throw FormatException(
+            'Compressed PIV certificates are not supported',
+          );
+        }
+      }
+      return certificate;
+    } on RangeError {
+      throw FormatException('Truncated PIV certificate object');
+    }
   }
 
   Future<String> transceive(String capdu) async {

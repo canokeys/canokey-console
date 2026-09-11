@@ -3174,10 +3174,10 @@ class S {
     );
   }
 
-  /// `This resets PIN to 123456 and PUK to 12345678.`
+  /// `This resets PIN to 123456 and PUK to 12345678. Disable PIN-protected management key mode first.`
   String get pivSetPinPukRetriesPrompt {
     return Intl.message(
-      'This resets PIN to 123456 and PUK to 12345678.',
+      'This resets PIN to 123456 and PUK to 12345678. Disable PIN-protected management key mode first.',
       name: 'pivSetPinPukRetriesPrompt',
       desc: '',
       args: [],
@@ -3214,6 +3214,16 @@ class S {
     );
   }
 
+  /// `PIN/PUK retries were set and PIN/PUK were reset, but management metadata could not be updated. PIN is now 123456 and PUK is 12345678.`
+  String get pivSetRetriesMetadataFailed {
+    return Intl.message(
+      'PIN/PUK retries were set and PIN/PUK were reset, but management metadata could not be updated. PIN is now 123456 and PUK is 12345678.',
+      name: 'pivSetRetriesMetadataFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `PIN/PUK retries set. PIN and PUK were reset.`
   String get pivSetRetriesSuccess {
     return Intl.message(
@@ -3234,10 +3244,10 @@ class S {
     );
   }
 
-  /// `A random management key will be set and stored on the card, protected by PIN.`
+  /// `A random management key will be set and stored on the card, protected by PIN. PUK will be blocked and cannot recover a forgotten or blocked PIN. PIN/PUK retries cannot be reset while this mode is enabled.`
   String get pivEnablePinProtectedManagementKeyPrompt {
     return Intl.message(
-      'A random management key will be set and stored on the card, protected by PIN.',
+      'A random management key will be set and stored on the card, protected by PIN. PUK will be blocked and cannot recover a forgotten or blocked PIN. PIN/PUK retries cannot be reset while this mode is enabled.',
       name: 'pivEnablePinProtectedManagementKeyPrompt',
       desc: '',
       args: [],
@@ -3274,10 +3284,10 @@ class S {
     );
   }
 
-  /// `A new management key will be set before the PIN-protected copy is cleared.`
+  /// `A new management key will be set before the PIN-protected copy is cleared. PUK will remain blocked. To restore it, reset PIN/PUK retries after disabling this mode; this also resets the PIN.`
   String get pivDisablePinProtectedManagementKeyPrompt {
     return Intl.message(
-      'A new management key will be set before the PIN-protected copy is cleared.',
+      'A new management key will be set before the PIN-protected copy is cleared. PUK will remain blocked. To restore it, reset PIN/PUK retries after disabling this mode; this also resets the PIN.',
       name: 'pivDisablePinProtectedManagementKeyPrompt',
       desc: '',
       args: [],
@@ -3314,10 +3324,10 @@ class S {
     );
   }
 
-  /// `When enabled, future management operations can authenticate with PIN.`
+  /// `When enabled, future management operations can authenticate with PIN. This blocks PUK and prevents PIN recovery with PUK.`
   String get pivStoreManagementKeyOnCardPrompt {
     return Intl.message(
-      'When enabled, future management operations can authenticate with PIN.',
+      'When enabled, future management operations can authenticate with PIN. This blocks PUK and prevents PIN recovery with PUK.',
       name: 'pivStoreManagementKeyOnCardPrompt',
       desc: '',
       args: [],
@@ -4949,6 +4959,426 @@ class S {
     return Intl.message(
       'Could not copy log',
       name: 'logsCopyFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Apply Mac login settings`
+  String get pivMacOsApply {
+    return Intl.message(
+      'Apply Mac login settings',
+      name: 'pivMacOsApply',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Set up 9A to verify your identity when you sign in to your Mac. You also need a key and certificate in 9D to unlock your login keychain.`
+  String get pivMacOsDescription {
+    return Intl.message(
+      'Set up 9A to verify your identity when you sign in to your Mac. You also need a key and certificate in 9D to unlock your login keychain.',
+      name: 'pivMacOsDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `For Mac login, set up 9A and 9D.`
+  String get pivMacOsOtherSlot {
+    return Intl.message(
+      'For Mac login, set up 9A and 9D.',
+      name: 'pivMacOsOtherSlot',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Custom settings`
+  String get pivCertificateCustom {
+    return Intl.message(
+      'Custom settings',
+      name: 'pivCertificateCustom',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Certificate extensions`
+  String get pivCertificateExtensions {
+    return Intl.message(
+      'Certificate extensions',
+      name: 'pivCertificateExtensions',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Include Basic Constraints: CA=false`
+  String get pivEndEntityConstraint {
+    return Intl.message(
+      'Include Basic Constraints: CA=false',
+      name: 'pivEndEntityConstraint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Key Usage`
+  String get pivKeyUsage {
+    return Intl.message('Key Usage', name: 'pivKeyUsage', desc: '', args: []);
+  }
+
+  /// `Mark Key Usage as critical`
+  String get pivKeyUsageCritical {
+    return Intl.message(
+      'Mark Key Usage as critical',
+      name: 'pivKeyUsageCritical',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Extended Key Usage`
+  String get pivExtendedKeyUsage {
+    return Intl.message(
+      'Extended Key Usage',
+      name: 'pivExtendedKeyUsage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No selection omits this extension.`
+  String get pivUsageOmitted {
+    return Intl.message(
+      'No selection omits this extension.',
+      name: 'pivUsageOmitted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Primary slots`
+  String get pivMainSlots {
+    return Intl.message(
+      'Primary slots',
+      name: 'pivMainSlots',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Retired key slots`
+  String get pivRetiredSlots {
+    return Intl.message(
+      'Retired key slots',
+      name: 'pivRetiredSlots',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Key only`
+  String get pivSlotKeyOnly {
+    return Intl.message('Key only', name: 'pivSlotKeyOnly', desc: '', args: []);
+  }
+
+  /// `Certificate only`
+  String get pivSlotCertificateOnly {
+    return Intl.message(
+      'Certificate only',
+      name: 'pivSlotCertificateOnly',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Key + certificate`
+  String get pivSlotKeyAndCertificate {
+    return Intl.message(
+      'Key + certificate',
+      name: 'pivSlotKeyAndCertificate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Certificate information and extensions`
+  String get pivCertificateSubjectAndExtensions {
+    return Intl.message(
+      'Certificate information and extensions',
+      name: 'pivCertificateSubjectAndExtensions',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} occupied`
+  String pivOccupiedSlots(int count) {
+    return Intl.message(
+      '$count occupied',
+      name: 'pivOccupiedSlots',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Set up 9D to unlock your Mac’s login keychain. Set up the login certificate in 9A as well.`
+  String get pivMacOsKeychainDescription {
+    return Intl.message(
+      'Set up 9D to unlock your Mac’s login keychain. Set up the login certificate in 9A as well.',
+      name: 'pivMacOsKeychainDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recommended settings applied to {slot}`
+  String pivMacOsSlotApplied(String slot) {
+    return Intl.message(
+      'Recommended settings applied to $slot',
+      name: 'pivMacOsSlotApplied',
+      desc: '',
+      args: [slot],
+    );
+  }
+
+  /// `Sign in to your Mac with CanoKey`
+  String get pivMacOsGuideTitle {
+    return Intl.message(
+      'Sign in to your Mac with CanoKey',
+      name: 'pivMacOsGuideTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Set up 9A to verify your identity and 9D to unlock your login keychain. Once both are configured, reconnect CanoKey and pair it with your Mac account.`
+  String get pivMacOsGuide {
+    return Intl.message(
+      'Set up 9A to verify your identity and 9D to unlock your login keychain. Once both are configured, reconnect CanoKey and pair it with your Mac account.',
+      name: 'pivMacOsGuide',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `9A · Sign in`
+  String get pivMacOsAuthenticationSlot {
+    return Intl.message(
+      '9A · Sign in',
+      name: 'pivMacOsAuthenticationSlot',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `9D · Unlock keychain`
+  String get pivMacOsKeychainSlot {
+    return Intl.message(
+      '9D · Unlock keychain',
+      name: 'pivMacOsKeychainSlot',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `9A is configured. Next, check 9D: your Mac also needs its key and certificate to unlock your login keychain.`
+  String get pivMacOsAfterAuthentication {
+    return Intl.message(
+      '9A is configured. Next, check 9D: your Mac also needs its key and certificate to unlock your login keychain.',
+      name: 'pivMacOsAfterAuthentication',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `9D is configured. Check that 9A is also configured, then reconnect CanoKey and pair it with your Mac account.`
+  String get pivMacOsAfterKeychain {
+    return Intl.message(
+      '9D is configured. Check that 9A is also configured, then reconnect CanoKey and pair it with your Mac account.',
+      name: 'pivMacOsAfterKeychain',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Check {slot}`
+  String pivMacOsCheckSlot(String slot) {
+    return Intl.message(
+      'Check $slot',
+      name: 'pivMacOsCheckSlot',
+      desc: '',
+      args: [slot],
+    );
+  }
+
+  /// `Set up Mac login`
+  String get pivMacSetupTitle {
+    return Intl.message(
+      'Set up Mac login',
+      name: 'pivMacSetupTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Check 9A and 9D, keep usable keys and certificates, and add what is missing.`
+  String get pivMacSetupIntro {
+    return Intl.message(
+      'Check 9A and 9D, keep usable keys and certificates, and add what is missing.',
+      name: 'pivMacSetupIntro',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Check CanoKey`
+  String get pivMacSetupInspect {
+    return Intl.message(
+      'Check CanoKey',
+      name: 'pivMacSetupInspect',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not finish. Check the card connection and credentials, then check again. Completed changes are kept. Older firmware without key metadata is not supported.`
+  String get pivMacSetupError {
+    return Intl.message(
+      'Could not finish. Check the card connection and credentials, then check again. Completed changes are kept. Older firmware without key metadata is not supported.',
+      name: 'pivMacSetupError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Keep existing configuration`
+  String get pivMacSetupKeep {
+    return Intl.message(
+      'Keep existing configuration',
+      name: 'pivMacSetupKeep',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create key and certificate`
+  String get pivMacSetupCreate {
+    return Intl.message(
+      'Create key and certificate',
+      name: 'pivMacSetupCreate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Keep key; add certificate`
+  String get pivMacSetupIssue {
+    return Intl.message(
+      'Keep key; add certificate',
+      name: 'pivMacSetupIssue',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Keep key; replace certificate`
+  String get pivMacSetupReplaceCert {
+    return Intl.message(
+      'Keep key; replace certificate',
+      name: 'pivMacSetupReplaceCert',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Replace key and certificate`
+  String get pivMacSetupReplaceKey {
+    return Intl.message(
+      'Replace key and certificate',
+      name: 'pivMacSetupReplaceKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `I agree to the replacements listed above. Replaced keys cannot be recovered.`
+  String get pivMacSetupConsent {
+    return Intl.message(
+      'I agree to the replacements listed above. Replaced keys cannot be recovered.',
+      name: 'pivMacSetupConsent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configure CanoKey`
+  String get pivMacSetupStart {
+    return Intl.message(
+      'Configure CanoKey',
+      name: 'pivMacSetupStart',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `CanoKey is ready. Reconnect it to your Mac and follow the pairing prompt. Pairing with your Mac account is still required.`
+  String get pivMacSetupDone {
+    return Intl.message(
+      'CanoKey is ready. Reconnect it to your Mac and follow the pairing prompt. Pairing with your Mac account is still required.',
+      name: 'pivMacSetupDone',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuring`
+  String get pivMacSetupWorking {
+    return Intl.message(
+      'Configuring',
+      name: 'pivMacSetupWorking',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Done`
+  String get pivMacSetupFinished {
+    return Intl.message(
+      'Done',
+      name: 'pivMacSetupFinished',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter your PIV PIN and management key.`
+  String get pivMacSetupCredentials {
+    return Intl.message(
+      'Enter your PIV PIN and management key.',
+      name: 'pivMacSetupCredentials',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Management key (hex)`
+  String get pivMacSetupManagementKey {
+    return Intl.message(
+      'Management key (hex)',
+      name: 'pivMacSetupManagementKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Check the PIN and management key format.`
+  String get pivMacSetupInvalid {
+    return Intl.message(
+      'Check the PIN and management key format.',
+      name: 'pivMacSetupInvalid',
       desc: '',
       args: [],
     );

@@ -335,6 +335,21 @@ mod tests {
     const MESSAGE: &[u8] = b"CanoKey PIV signature test";
 
     #[test]
+    fn parses_reported_piv_certificate_and_rejects_object_metadata() {
+        let der = include_bytes!("../../../test/fixtures/piv/certificate.der").to_vec();
+        let certificate = parse_x509_cert_from_der(der.clone()).unwrap();
+        assert!(certificate
+            .subject
+            .contains("CanoKey F5 full enrollment RSA"));
+        let mut with_metadata = der;
+        with_metadata.extend_from_slice(&[0x71, 0x01, 0x00, 0xfe, 0x00]);
+        assert_eq!(
+            parse_x509_cert_from_der(with_metadata).err().unwrap(),
+            "trailing data after X.509 certificate"
+        );
+    }
+
+    #[test]
     fn hashes_match_known_vectors() {
         assert_eq!(
             sha256_digest(b"abc".to_vec()),
