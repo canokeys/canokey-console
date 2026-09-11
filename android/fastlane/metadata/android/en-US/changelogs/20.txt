@@ -1,5 +1,3 @@
-New in 1.2.6:
-
 - Added guided PIV certificate setup for Mac login and customizable certificate extensions.
 - Improved the PIV slot manager and visibility of key policies.
 - Fixed reading some PIV certificates.

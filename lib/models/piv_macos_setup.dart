@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:canokey_console/models/piv.dart';
 import 'package:flutter/foundation.dart';
 

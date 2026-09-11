@@ -576,7 +576,9 @@ class PivController extends PollingController {
 
     await SmartCard.process((String sn) async {
       if (expectedSerial != null &&
-          expectedSerial != await _readMacOsSetupSerialInSession()) return;
+          expectedSerial != await _readMacOsSetupSerialInSession()) {
+        return;
+      }
       SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
       if (expectedState != null) {
         final actual = await _readMacOsSetupSlotInSession(slot);
