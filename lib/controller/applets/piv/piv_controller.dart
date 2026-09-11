@@ -30,7 +30,9 @@ import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
 class PivController extends PollingController {
-  final PivCardClient _client = PivCardClient();
+  PivController({PivCardClient? client}) : _client = client ?? PivCardClient();
+
+  final PivCardClient _client;
   Map<int, SlotInfo> slots = {};
   final Set<int> certificateSlots = {};
   final Map<int, Uint8List> certificateBytes = {};
@@ -198,7 +200,7 @@ class PivController extends PollingController {
 
     SlotInfo? loaded = current;
     await SmartCard.process((String sn) async {
-      SmartCard.assertOK(await SmartCard.transceive('00A4040005A000000308'));
+      await _client.select();
       if (needsKeyMetadata) {
         loaded = await _readKeyMetadata(slot) ?? current;
       }
@@ -243,16 +245,29 @@ class PivController extends PollingController {
     if (certObject == null) {
       return;
     }
-    final bytes = await _client.readCertificate(certObject);
-    if (bytes == null) {
+    Uint8List? bytes;
+    try {
+      bytes = await _client.readCertificate(certObject);
+    } on FormatException catch (error) {
+      // An unreadable object still occupies the slot: replacement needs consent.
+      certificateSlots.add(slot);
+      log.w('Unable to decode PIV certificate object in slot '
+          '${slot.toRadixString(16)}', error: error);
       return;
     }
-    final cert = parseX509CertFromDer(der: bytes);
+    if (bytes == null) return;
     certificateSlots.add(slot);
     certificateBytes[slot] = bytes;
-    certificates[slot] = cert;
-    slotInfo?.cert = cert;
     slotInfo?.certBytes = bytes;
+    try {
+      final cert = parseX509CertFromDer(der: bytes);
+      certificates[slot] = cert;
+      slotInfo?.cert = cert;
+    } on String catch (error) {
+      // The Rust Result<X509CertData, String> bridge throws decoding errors.
+      log.w('Unable to parse PIV certificate in slot '
+          '${slot.toRadixString(16)}', error: error);
+    }
   }
 
   Future<bool> verifyPin(String pin) async {

@@ -780,7 +780,7 @@
   "pivMacSetupReplaceKey": "替换密钥和证书",
   "pivMacSetupConsent": "我同意替换上面列出的内容。被替换的密钥无法恢复。",
   "pivMacSetupStart": "配置 CanoKey",
-  "pivMacSetupDone": "CanoKey 已配置好。请重新插入 Mac，按照系统提示配对。还需要在 Mac 上完成账户配对。",
+  "pivMacSetupDone": "CanoKey 已配置好。请将 CanoKey 重新插入 Mac，按照系统提示配对。还需要在 Mac 上完成账户配对。",
   "pivMacSetupWorking": "正在配置",
   "pivMacSetupFinished": "已完成",
   "pivMacSetupCredentials": "请输入 PIV PIN 和管理密钥。",

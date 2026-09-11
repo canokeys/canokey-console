@@ -668,10 +668,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "請輸入 PIV PIN 和管理金鑰。",
     ),
     "pivMacSetupDone": MessageLookupByLibrary.simpleMessage(
-      "CanoKey 已設定好。請重新插入 Mac，按照系統提示配對。還需要在 Mac 上完成帳戶配對。",
+      "CanoKey 已設定好。請將 CanoKey 重新插入 Mac，按照系統提示配對。還需要在 Mac 上完成帳戶配對。",
     ),
     "pivMacSetupError": MessageLookupByLibrary.simpleMessage(
-      "未能完成。請檢查裝置連線和憑證，再重新檢查。已完成的設定會保留。不支援無法讀取金鑰資訊的舊版韌體。",
+      "未能完成。請檢查裝置連線、PIV PIN 和管理金鑰，再重新檢查。已完成的設定會保留。不支援無法讀取金鑰資訊的舊版韌體。",
     ),
     "pivMacSetupFinished": MessageLookupByLibrary.simpleMessage("已完成"),
     "pivMacSetupInspect": MessageLookupByLibrary.simpleMessage("檢查 CanoKey"),
