@@ -46,6 +46,8 @@ class PivSlotListItem extends StatelessWidget {
   final String title, slotNumber;
   final SlotInfo? slot;
   final bool hasCertificate;
+  final String? certificateAlgorithm;
+  final bool keyMetadataSupported;
   final VoidCallback onTap;
   final VoidCallback? onImport, onExport, onGenerate;
   const PivSlotListItem({
@@ -54,6 +56,8 @@ class PivSlotListItem extends StatelessWidget {
     required this.slotNumber,
     required this.slot,
     required this.hasCertificate,
+    this.certificateAlgorithm,
+    this.keyMetadataSupported = true,
     required this.onTap,
     this.onImport,
     this.onExport,
@@ -64,15 +68,22 @@ class PivSlotListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = S.of(context);
     final occupied = slot != null || hasCertificate;
+    final algorithm = slot?.algorithm.label ?? certificateAlgorithm;
     final status = slot != null
         ? (hasCertificate ? s.pivSlotKeyAndCertificate : s.pivSlotKeyOnly)
-        : (hasCertificate ? s.pivSlotCertificateOnly : s.pivEmpty);
+        : (hasCertificate
+              ? (keyMetadataSupported
+                    ? s.pivSlotCertificateOnly
+                    : s.pivCertificatePresent)
+              : (keyMetadataSupported ? s.pivEmpty : s.pivStatusUnknown));
     final statusWidget = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         PivStatus(
-          occupied ? s.pivStatusConfigured : s.pivStatusEmpty,
+          occupied
+              ? s.pivStatusConfigured
+              : (keyMetadataSupported ? s.pivStatusEmpty : s.pivStatusUnknown),
           active: occupied,
           pill: false,
         ),
@@ -139,7 +150,7 @@ class PivSlotListItem extends StatelessWidget {
                 number: badge,
                 name: name,
                 algorithm: Text(
-                  slot?.algorithm.label ?? '—',
+                  algorithm ?? '—',
                   style: PivStyle.text(context, 12),
                 ),
                 status: statusWidget,
@@ -213,10 +224,10 @@ class PivSlotListItem extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       name,
-                      if (slot != null) ...[
+                      if (algorithm != null) ...[
                         const SizedBox(height: 4),
                         Text(
-                          slot!.algorithm.label,
+                          algorithm,
                           style: PivStyle.text(context, 12, secondary: true),
                         ),
                       ],

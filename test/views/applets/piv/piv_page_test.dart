@@ -17,6 +17,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:canokey_console/src/rust/frb_generated.dart';
+import '../../../support/piv_certificate_api.dart';
 
 void main() {
   setUp(() {
@@ -26,6 +28,61 @@ void main() {
   tearDown(() {
     Get.reset();
   });
+
+  for (final (version, oid, bits, label) in [
+    ('0.0.0+gcdc54046', '1.2.840.10045.2.1', 521, 'EC, 521 bits'),
+    ('1.4.0', '1.2.840.113549.1.1.1', 2048, 'RSA, 2048 bits'),
+  ]) {
+    for (final width in [390.0, 1440.0]) {
+      testWidgets(
+        'exports certificate public key on $version at $width without metadata',
+        (tester) async {
+          tester.view.devicePixelRatio = 1;
+          tester.view.physicalSize = Size(width, 1000);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          addTearDown(tester.view.resetPhysicalSize);
+          final api = PivCertificateApi(algorithm: oid, bits: bits);
+          RustLib.initMock(api: api);
+          addTearDown(RustLib.dispose);
+          final controller = _TestPivController()
+            ..polled = true
+            ..certificates[0x9A] = api.certificate
+            ..certificateBytes[0x9A] = api.certificate.bytes;
+          _setFirmware(controller, version);
+          Get.put<PivController>(controller);
+
+          await tester.pumpWidget(_app());
+          await tester.pumpAndSettle();
+          expect(find.text(label), findsOneWidget);
+          expect(find.text('Certificate present'), findsOneWidget);
+          expect(find.text('Certificate only'), findsNothing);
+          expect(controller.slots, isEmpty);
+
+          tester.widget<PivSlotListItem>(_slotItem('9A')).onTap();
+          await tester.pumpAndSettle();
+          expect(find.text('Export Public Key'), findsOneWidget);
+          expect(find.text('Sign Message'), findsNothing);
+          expect(find.text('Download Attestation'), findsNothing);
+          final exportButton = tester.widget<PivButton>(
+            find.ancestor(
+              of: find.text('Export Public Key'),
+              matching: find.byType(PivButton),
+            ),
+          );
+          exportButton.onPressed!();
+          await tester.pumpAndSettle();
+          expect(find.text('DER'), findsOneWidget);
+          expect(find.text('PEM'), findsOneWidget);
+          expect(
+            controller.publicKeyDerForSlot(0x9A),
+            api.certificate.subjectPublicKeyInfo,
+          );
+          expect(controller.detailsLoadCount, 0);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
 
   // Expectations deliberately do not use controller capability getters.
   for (final (version, modern, extensions) in [

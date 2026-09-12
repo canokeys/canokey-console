@@ -11,6 +11,8 @@ class PivSlotManager extends StatelessWidget {
     required this.retiredSlots,
     required this.hasCertificate,
     required this.onOpenSlot,
+    this.certificateAlgorithms = const {},
+    this.keyMetadataSupported = true,
     this.onSetupMac,
     this.credentialSettings,
     this.onImportSlot,
@@ -21,6 +23,8 @@ class PivSlotManager extends StatelessWidget {
   final Widget? credentialSettings;
   final void Function(String)? onImportSlot, onExportSlot, onGenerateSlot;
   final Map<int, SlotInfo> slots;
+  final Map<int, String> certificateAlgorithms;
+  final bool keyMetadataSupported;
   final List<int> retiredSlots;
   final bool Function(int) hasCertificate;
   final void Function(String, String, SlotInfo?) onOpenSlot;
@@ -32,6 +36,8 @@ class PivSlotManager extends StatelessWidget {
       slotNumber: slotNumber,
       slot: slot,
       hasCertificate: hasCertificate(slotId),
+      certificateAlgorithm: certificateAlgorithms[slotId],
+      keyMetadataSupported: keyMetadataSupported,
       onTap: () => onOpenSlot(title, slotNumber, slot),
       onImport: onImportSlot == null ? null : () => onImportSlot!(slotNumber),
       onExport: onExportSlot == null ? null : () => onExportSlot!(slotNumber),

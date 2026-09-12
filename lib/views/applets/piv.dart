@@ -111,15 +111,17 @@ class _PivPageState extends State<PivPage>
         .join(':');
   }
 
-  String _certificatePem(List<int> bytes) {
+  String _certificatePem(List<int> bytes) => _pem('CERTIFICATE', bytes);
+
+  String _pem(String label, List<int> bytes) {
     final encoded = base64.encode(bytes);
     final lines = <String>[];
     for (var offset = 0; offset < encoded.length; offset += 64) {
       lines.add(
           encoded.substring(offset, (offset + 64).clamp(0, encoded.length)));
     }
-    return '-----BEGIN CERTIFICATE-----\n${lines.join('\n')}\n'
-        '-----END CERTIFICATE-----';
+    return '-----BEGIN $label-----\n${lines.join('\n')}\n'
+        '-----END $label-----';
   }
 
   String _formatBytes(int bytes) {
@@ -399,6 +401,11 @@ class _PivPageState extends State<PivPage>
                               : _showEnablePinOnlyDialog,
                         ),
                         slots: controller.slots,
+                        certificateAlgorithms: controller.certificates.map(
+                          (slot, cert) =>
+                              MapEntry(slot, _certificateKeySummary(cert)),
+                        ),
+                        keyMetadataSupported: controller.supportsMetadata,
                         retiredSlots: _retiredSlots(),
                         hasCertificate: controller.hasCertificate,
                         onOpenSlot: _showSlotDetailDialog,
@@ -1884,12 +1891,12 @@ class _PivPageState extends State<PivPage>
       ),
     ];
     final exportActions = <Widget>[
-      if (slot != null)
+      if (slot != null || certificate?.subjectPublicKeyInfo.isNotEmpty == true)
         _slotActionButton(
           text: S.of(context).pivExportPublicKey,
           onPressed: () {
             Navigator.pop(Get.context!);
-            _showExportPublicKeyDialog(slot!);
+            _showExportPublicKeyDialog(slotId);
           },
         ),
       if (certBytes != null)
@@ -2016,7 +2023,9 @@ class _PivPageState extends State<PivPage>
                                 PivStatus(
                                   slot != null || certBytes != null
                                       ? s.pivStatusConfigured
-                                      : s.pivStatusEmpty,
+                                      : (controller.supportsMetadata
+                                            ? s.pivStatusEmpty
+                                            : s.pivStatusUnknown),
                                   active: slot != null || certBytes != null,
                                 ),
                               ],
@@ -2392,14 +2401,19 @@ class _PivPageState extends State<PivPage>
                 ]))));
   }
 
-  void _showExportPublicKeyDialog(SlotInfo slot) {
+  void _showExportPublicKeyDialog(int slotId) {
     controller.log.t('Call _PivPageState._showExportPublicKeyDialog');
-    final publicKey = controller.publicKeyForSlot(slot);
+    final publicKey = controller.publicKeyDerForSlot(slotId);
     if (publicKey == null) {
       Prompts.showPrompt(
           S.of(context).pivNoPublicKeyAvailable, ContentThemeColor.danger);
       return;
     }
+    final certificate = controller.certificates[slotId];
+    final algorithm = controller.slots[slotId]?.algorithm.label ??
+        (certificate == null
+            ? S.of(context).pivStatusUnknown
+            : _certificateKeySummary(certificate));
     AppDialog.show(AppDialogSurface(
         child: SizedBox(
             width: AppDialogWidth.compact,
@@ -2419,7 +2433,7 @@ class _PivPageState extends State<PivPage>
                         children: [
                           CustomizedText.bodySmall(S
                               .of(context)
-                              .pivAlgorithmValue(slot.algorithm.label)),
+                              .pivAlgorithmValue(algorithm)),
                           Spacing.height(16),
                           Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -2429,8 +2443,7 @@ class _PivPageState extends State<PivPage>
                                     final saved = await _savePivFile(
                                       name: 'public-key',
                                       extension: 'der',
-                                      bytes:
-                                          publicKey.encodedSubjectPublicKeyInfo,
+                                      bytes: publicKey,
                                     );
                                     if (saved) {
                                       Get.back();
@@ -2448,7 +2461,8 @@ class _PivPageState extends State<PivPage>
                                     final saved = await _savePivFile(
                                       name: 'public-key',
                                       extension: 'pem',
-                                      bytes: utf8.encode(publicKey.toPem()),
+                                      bytes: utf8.encode(
+                                          _pem('PUBLIC KEY', publicKey)),
                                       mimeType: MimeType.text,
                                     );
                                     if (saved) {

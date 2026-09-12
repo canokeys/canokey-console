@@ -293,6 +293,17 @@ class PivController extends PollingController {
     }
   }
 
+  /// Export certificate public keys even when firmware cannot read key metadata.
+  /// A certificate does not establish that the corresponding private key exists.
+  Uint8List? publicKeyDerForSlot(int slot) {
+    final metadata = slots[slot];
+    if (metadata != null) {
+      return publicKeyForSlot(metadata)?.encodedSubjectPublicKeyInfo;
+    }
+    final spki = certificates[slot]?.subjectPublicKeyInfo;
+    return spki == null || spki.isEmpty ? null : spki;
+  }
+
   void changePin(String oldPin, String newPin) {
     log.t('Call PivController.changePin');
     _runPinChange(() => _client.changePin(oldPin, newPin));
