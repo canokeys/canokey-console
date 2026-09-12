@@ -51,9 +51,14 @@ void main() {
         remaining == 0 ? findsOneWidget : findsNothing,
       );
       expect(
-        _actionButton(tester, S.current.pivUnblockPin).onPressed,
-        remaining == 0 ? isNotNull : isNull,
+        find.text(S.current.pivUnblockPin),
+        remaining == 0 ? findsOneWidget : findsNothing,
       );
+      expect(
+        find.text(S.current.changePin),
+        remaining == 0 ? findsNothing : findsOneWidget,
+      );
+      expect(find.text(S.current.pivChangePUK), findsOneWidget);
       expect(controller.pinInfo, isNull);
       expect(controller.pukInfo, isNull);
       expect(tester.takeException(), isNull);
@@ -311,8 +316,17 @@ void main() {
       Get.put<PivController>(controller);
       await tester.pumpWidget(GlobalLoaderOverlay(child: _app()));
       await tester.pumpAndSettle();
-      tester.widget<PivPinManagementCard>(find.byType(PivPinManagementCard))
-          .onTogglePinOnlyMode();
+      expect(find.text(S.current.pivChangePUK), findsNothing);
+      expect(find.text(S.current.pivSetPinPukRetries), findsNothing);
+      final changeAuthentication = find.descendant(
+        of: find.byType(PivPinManagementCard),
+        matching: find.text(S.current.change),
+      );
+      await tester.ensureVisible(changeAuthentication);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(changeAuthentication);
+      await tester.pumpAndSettle();
+      await tester.tap(changeAuthentication);
       await tester.pumpAndSettle();
 
       Finder field(String label) => find.ancestor(
@@ -380,6 +394,9 @@ void main() {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
     expect(_actionButton(tester, S.current.pivUnblockPin).onPressed, isNotNull);
+    expect(find.text(S.current.changePin), findsNothing);
+    expect(find.text(S.current.pivChangePUK), findsNothing);
+    expect(find.text(S.current.pivSetPinPukRetries), findsNothing);
 
     controller.pukInfo = SlotInfo(
       0x81,
@@ -394,7 +411,7 @@ void main() {
     );
     controller.update();
     await tester.pumpAndSettle();
-    expect(_actionButton(tester, S.current.pivUnblockPin).onPressed, isNull);
+    expect(find.text(S.current.pivUnblockPin), findsNothing);
   });
 
   testWidgets('does not expose X25519 shared-secret derivation', (

@@ -54,97 +54,95 @@ class PivPinManagementCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    final pinBlocked = (pinInfo?.remainingCount ?? pinRetriesRemaining) == 0;
+    final pukBlocked = pukInfo?.remainingCount == 0;
+    return ResponsiveGrid(
+      maxColumns: 4,
+      minWidth: 250,
       children: [
-        ResponsiveGrid(
-          maxColumns: 4,
-          minWidth: 250,
-          minChildHeight: MediaQuery.textScalerOf(context).scale(160),
-          children: [
-            _credential(
-              context,
-              'PIN',
-              LucideIcons.lock,
-              s.pivPinDescription,
-              info: pinInfo,
-              remaining: pinRetriesRemaining,
-              credential: true,
-            ),
-            _credential(
-              context,
-              'PUK',
-              LucideIcons.keyRound,
-              s.pivPukDescription,
-              info: pukInfo,
-              credential: true,
-            ),
-            _credential(
-              context,
-              s.pivManagementKey,
-              LucideIcons.shieldCheck,
-              '${managementKeyAlgorithm.label} · ${_touchPolicyLabel(context)}',
-            ),
-            if (supportsPinOnlyMode)
-              _credential(
+        _credential(
+          context,
+          'PIN',
+          LucideIcons.lock,
+          s.pivPinDescription,
+          info: pinInfo,
+          remaining: pinRetriesRemaining,
+          credential: true,
+          actions: [
+            if (!pinBlocked)
+              _actionButton(
                 context,
-                s.pivManagementKeyAuthentication,
-                LucideIcons.shieldCheck,
-                pinOnlyMode
-                    ? s.pivPinProtectedKeyOnCard
-                    : s.pivManualManagementKey,
-                onTap: onTogglePinOnlyMode,
+                s.changePin,
+                onChangePin,
+                primary: true,
+                icon: LucideIcons.lock,
+              ),
+            if (canUnblockPin && !pukBlocked)
+              _actionButton(
+                context,
+                s.pivUnblockPin,
+                onUnblockPin,
+                primary: true,
+                icon: Icons.lock_open_outlined,
+              ),
+            if (supportsPinRetryConfig && !pinOnlyMode && !pinBlocked)
+              _actionButton(
+                context,
+                s.pivSetPinPukRetries,
+                onSetPinRetries,
+                icon: Icons.settings_outlined,
               ),
           ],
         ),
-        const SizedBox(height: 16),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1000),
-            child: ResponsiveGrid(
-              minWidth: 165,
-              maxColumns: 5,
-              children: [
-                _actionButton(
-                  context,
-                  s.changePin,
-                  onChangePin,
-                  primary: true,
-                  icon: LucideIcons.lock,
-                ),
-                _actionButton(
-                  context,
-                  s.pivChangePUK,
-                  onChangePuk,
-                  enabled: !pinOnlyMode && pukInfo?.remainingCount != 0,
-                  icon: LucideIcons.keyRound,
-                ),
-                _actionButton(
-                  context,
-                  s.pivUnblockPin,
-                  onUnblockPin,
-                  enabled: canUnblockPin && pukInfo?.remainingCount != 0,
-                  icon: Icons.lock_open_outlined,
-                ),
-                _actionButton(
-                  context,
-                  s.pivChangeManagementKey,
-                  onChangeManagementKey,
-                  icon: LucideIcons.shieldCheck,
-                ),
-                if (supportsPinRetryConfig)
-                  _actionButton(
-                    context,
-                    s.pivSetPinPukRetries,
-                    onSetPinRetries,
-                    enabled: !pinOnlyMode,
-                    icon: Icons.settings_outlined,
-                  ),
-              ],
-            ),
-          ),
+        _credential(
+          context,
+          'PUK',
+          LucideIcons.keyRound,
+          s.pivPukDescription,
+          info: pukInfo,
+          credential: true,
+          actions: [
+            if (!pinOnlyMode && !pukBlocked)
+              _actionButton(
+                context,
+                s.pivChangePUK,
+                onChangePuk,
+                primary: true,
+                icon: LucideIcons.keyRound,
+              ),
+          ],
         ),
+        _credential(
+          context,
+          s.pivManagementKey,
+          LucideIcons.shieldCheck,
+          '${managementKeyAlgorithm.label} · ${_touchPolicyLabel(context)}',
+          actions: [
+            _actionButton(
+              context,
+              s.pivChangeManagementKey,
+              onChangeManagementKey,
+              primary: true,
+              icon: LucideIcons.shieldCheck,
+            ),
+          ],
+        ),
+        if (supportsPinOnlyMode)
+          _credential(
+            context,
+            s.pivManagementKeyAuthentication,
+            LucideIcons.shieldCheck,
+            pinOnlyMode ? s.pivPinProtectedKeyOnCard : s.pivManualManagementKey,
+            actions: [
+              _actionButton(
+                context,
+                s.change,
+                onTogglePinOnlyMode,
+                primary: true,
+                icon: LucideIcons.shieldCheck,
+              ),
+            ],
+          ),
       ],
     );
   }
@@ -157,100 +155,80 @@ class PivPinManagementCard extends StatelessWidget {
     SlotInfo? info,
     int? remaining,
     bool credential = false,
-    VoidCallback? onTap,
+    List<Widget> actions = const [],
   }) {
     final s = S.of(context);
     final remainingCount = info?.remainingCount ?? remaining;
     final blocked = credential && remainingCount == 0;
     final unknown = credential && remainingCount == null;
-    final content = PivSurface(
+    return PivSurface(
       padding: const EdgeInsets.all(18),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 100),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            PivIcon(icon, size: 44),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: PivStyle.text(context, 15, bold: true),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      PivStatus(
-                        unknown
-                            ? s.pivStatusUnknown
-                            : blocked
-                            ? s.pivStatusBlocked
-                            : s.pivStatusReady,
-                        active: !unknown,
-                        danger: blocked,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    description,
-                    style: PivStyle.text(context, 12, secondary: true),
-                  ),
-                  if (credential) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      '${remainingCount ?? '—'} / ${info?.retriesCount ?? '—'}',
-                      style: PivStyle.text(context, 22, bold: true).copyWith(
-                        color: blocked ? const Color(0xffe63652) : null,
-                        height: 1.1,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      s.pivRetriesRemaining,
-                      style: PivStyle.text(context, 12, secondary: true),
-                    ),
-                  ],
-                  if (onTap != null) ...[
-                    const SizedBox(height: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              PivIcon(icon, size: 44),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Row(
-                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          s.change,
-                          style: PivStyle.text(
-                            context,
-                            12,
-                          ).copyWith(color: PivStyle.primary),
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: PivStyle.text(context, 15, bold: true),
+                          ),
                         ),
-                        const Icon(
-                          Icons.chevron_right,
-                          size: 14,
-                          color: PivStyle.primary,
+                        const SizedBox(width: 6),
+                        PivStatus(
+                          unknown
+                              ? s.pivStatusUnknown
+                              : blocked
+                              ? s.pivStatusBlocked
+                              : s.pivStatusReady,
+                          active: !unknown,
+                          danger: blocked,
                         ),
                       ],
                     ),
+                    const SizedBox(height: 5),
+                    Text(
+                      description,
+                      style: PivStyle.text(context, 12, secondary: true),
+                    ),
+                    if (credential) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        '${remainingCount ?? '—'} / ${info?.retriesCount ?? '—'}',
+                        style: PivStyle.text(context, 22, bold: true).copyWith(
+                          color: blocked ? const Color(0xffe63652) : null,
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        s.pivRetriesRemaining,
+                        style: PivStyle.text(context, 12, secondary: true),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
+            ],
+          ),
+          if (actions.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Wrap(spacing: 8, runSpacing: 8, children: actions),
           ],
-        ),
+        ],
       ),
     );
-    return onTap == null
-        ? content
-        : InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(9),
-            child: content,
-          );
   }
 
   String _touchPolicyLabel(BuildContext context) {
@@ -267,16 +245,14 @@ class PivPinManagementCard extends StatelessWidget {
     BuildContext context,
     String text,
     VoidCallback onTap, {
-    bool enabled = true,
     bool primary = false,
     required IconData icon,
   }) {
     return CustomizedButton(
-      onPressed: enabled ? onTap : null,
+      onPressed: onTap,
       style: ElevatedButton.styleFrom(
         elevation: 0,
         minimumSize: Size(96, PivStyle.buttonHeight(context)),
-        fixedSize: Size.fromHeight(PivStyle.buttonHeight(context)),
         visualDensity: VisualDensity.standard,
         backgroundColor: primary ? PivStyle.primary : PivStyle.soft(context),
         disabledBackgroundColor: PivStyle.soft(context),
@@ -304,21 +280,13 @@ class PivPinManagementCard extends StatelessWidget {
           Icon(
             icon,
             size: 17,
-            color: primary
-                ? contentTheme.onPrimary
-                : enabled
-                ? PivStyle.ink(context)
-                : PivStyle.muted(context).withValues(alpha: .5),
+            color: primary ? contentTheme.onPrimary : PivStyle.ink(context),
           ),
           const SizedBox(width: 8),
           Flexible(
             child: CustomizedText.bodySmall(
               text,
-              color: primary
-                  ? contentTheme.onPrimary
-                  : enabled
-                  ? PivStyle.ink(context)
-                  : PivStyle.muted(context).withValues(alpha: .5),
+              color: primary ? contentTheme.onPrimary : PivStyle.ink(context),
             ),
           ),
         ],
