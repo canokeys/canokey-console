@@ -1060,6 +1060,9 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage(
           "CSR, self-signed certificates, and attestation are unavailable for this algorithm.",
         ),
+    "pivPrintedDataWarning": MessageLookupByLibrary.simpleMessage(
+      "Warning: Do not overwrite the PRINTED (Printed Information) data object while PIN-only mode is enabled. It stores the PIN-protected management key. Overwriting it will lose that key and your ability to manage the PIV application.",
+    ),
     "pivPrivateKey": MessageLookupByLibrary.simpleMessage("Private Key"),
     "pivProvisioning": MessageLookupByLibrary.simpleMessage("Provisioning"),
     "pivProvisioningDescription": MessageLookupByLibrary.simpleMessage(
@@ -1308,6 +1311,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsAppletSwitches": MessageLookupByLibrary.simpleMessage(
       "Applet Switches",
+    ),
+    "settingsAppletSwitchesDescription": MessageLookupByLibrary.simpleMessage(
+      "Choose which applets to enable and how they can communicate.",
     ),
     "settingsChangeLanguage": MessageLookupByLibrary.simpleMessage(
       "Change Language",

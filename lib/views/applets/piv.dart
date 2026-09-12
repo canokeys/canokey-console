@@ -204,9 +204,12 @@ class _PivPageState extends State<PivPage>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(S.of(context).pivOverwriteKey),
+            AppDialogHeader(
+              title: S.of(context).pivOverwriteKey,
+              onClose: () {
+                if (!c.isCompleted) c.complete(false);
+                Get.back();
+              },
             ),
             Divider(height: 0, thickness: 1),
             Padding(
@@ -217,35 +220,27 @@ class _PivPageState extends State<PivPage>
               ),
             ),
             Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  CustomizedButton.rounded(
-                    onPressed: () {
-                      if (!c.isCompleted) c.complete(false);
-                      Get.back();
-                    },
-                    elevation: 0,
-                    backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).cancel,
-                        color: contentTheme.onSecondary),
-                  ),
-                  Spacing.width(12),
-                  CustomizedButton.rounded(
-                    onPressed: () {
-                      if (!c.isCompleted) c.complete(true);
-                      Get.back();
-                    },
-                    elevation: 0,
-                    backgroundColor: contentTheme.danger,
-                    child: CustomizedText.labelMedium(
-                        S.of(context).pivOverwrite,
-                        color: contentTheme.onDanger),
-                  ),
-                ],
-              ),
+            AppDialogActions(
+              children: [
+                AppDialogAction(
+                  label: S.of(context).cancel,
+                  onPressed: () {
+                    if (!c.isCompleted) c.complete(false);
+                    Get.back();
+                  },
+                  secondary: true,
+                  destructive: false,
+                ),
+                AppDialogAction(
+                  label: S.of(context).pivOverwrite,
+                  onPressed: () {
+                    if (!c.isCompleted) c.complete(true);
+                    Get.back();
+                  },
+                  secondary: false,
+                  destructive: true,
+                ),
+              ],
             ),
           ],
         ),
@@ -461,10 +456,7 @@ class _PivPageState extends State<PivPage>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(title),
-            ),
+            AppDialogHeader(title: title),
             Divider(height: 0, thickness: 1),
             Padding(
                 padding: Spacing.all(16),
@@ -535,36 +527,28 @@ class _PivPageState extends State<PivPage>
                       ],
                     ))),
             Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  CustomizedButton.rounded(
-                    onPressed: () => Navigator.pop(Get.context!),
-                    elevation: 0,
-                    padding: Spacing.xy(20, 16),
-                    backgroundColor: ContentThemeColor.secondary.color,
-                    child: CustomizedText.labelMedium(S.of(Get.context!).cancel,
-                        color: ContentThemeColor.secondary.onColor),
-                  ),
-                  Spacing.width(16),
-                  CustomizedButton.rounded(
-                    onPressed: () {
-                      if (validator.validateForm()) {
-                        handler(validator.getController('old')!.text,
-                            validator.getController('new')!.text);
-                      }
-                    },
-                    elevation: 0,
-                    padding: Spacing.xy(20, 16),
-                    backgroundColor: ContentThemeColor.primary.color,
-                    child: CustomizedText.labelMedium(
-                        S.of(Get.context!).confirm,
-                        color: ContentThemeColor.primary.onColor),
-                  ),
-                ],
-              ),
+            AppDialogActions(
+              children: [
+                AppDialogAction(
+                  label: S.of(Get.context!).cancel,
+                  onPressed: () => Navigator.pop(Get.context!),
+                  secondary: true,
+                  destructive: false,
+                ),
+                AppDialogAction(
+                  label: S.of(Get.context!).confirm,
+                  onPressed: () {
+                    if (validator.validateForm()) {
+                      handler(
+                        validator.getController('old')!.text,
+                        validator.getController('new')!.text,
+                      );
+                    }
+                  },
+                  secondary: false,
+                  destructive: false,
+                ),
+              ],
             ),
           ],
         ),
@@ -702,11 +686,7 @@ class _PivPageState extends State<PivPage>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: Spacing.all(16),
-                child: CustomizedText.labelLarge(
-                    S.of(context).pivAlgorithmIdsTitle),
-              ),
+              AppDialogHeader(title: S.of(context).pivAlgorithmIdsTitle),
               Divider(height: 0, thickness: 1),
               Flexible(
                 child: SingleChildScrollView(
@@ -763,71 +743,65 @@ class _PivPageState extends State<PivPage>
                 ),
               ),
               Divider(height: 0, thickness: 1),
-              Padding(
-                padding: Spacing.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CustomizedButton.rounded(
-                      onPressed: () => Get.back(),
-                      elevation: 0,
-                      backgroundColor: contentTheme.secondary,
-                      child: CustomizedText.labelMedium(S.of(context).cancel,
-                          color: contentTheme.onSecondary),
-                    ),
-                    Spacing.width(12),
-                    CustomizedButton.rounded(
-                      onPressed: () async {
-                        if (!validator.validateForm()) return;
-                        if (!_validateManagementKeyInput(
-                            validator, 'managementKey', usePinOnly)) {
+              AppDialogActions(
+                children: [
+                  AppDialogAction(
+                    label: S.of(context).cancel,
+                    onPressed: () => Get.back(),
+                    secondary: true,
+                    destructive: false,
+                  ),
+                  AppDialogAction(
+                    label: S.of(context).save,
+                    onPressed: () async {
+                      if (!validator.validateForm()) return;
+                      if (!_validateManagementKeyInput(
+                        validator,
+                        'managementKey',
+                        usePinOnly,
+                      )) {
+                        return;
+                      }
+                      final successMessage = S.of(context).successfullyChanged;
+                      final newConfig = PivAlgorithmExtensionConfig(
+                        enabled: enabled,
+                        ed25519: idValue('ed25519'),
+                        rsa3072: idValue('rsa3072'),
+                        rsa4096: idValue('rsa4096'),
+                        x25519: idValue('x25519'),
+                        secp256k1: idValue('secp256k1'),
+                        secp521r1: idValue('secp521r1'),
+                        sm2: idValue('sm2'),
+                        mldsa65: idValue('mldsa65'),
+                        mlkem768: idValue('mlkem768'),
+                      );
+                      AppLoaderOverlay.show();
+                      try {
+                        final ok = await controller
+                            .changeAlgorithmExtensionConfigAuthenticated(
+                              config: newConfig,
+                              pin: validator.getController('pin')!.text,
+                              managementKey: validator.getController('managementKey')!.text,
+                              usePinOnly: usePinOnly,
+                            );
+                        if (!ok) {
+                          Prompts.showPrompt(
+                            S.current.pivAlgorithmIdsUpdateFailed,
+                            ContentThemeColor.danger,
+                          );
                           return;
                         }
-                        final successMessage =
-                            S.of(context).successfullyChanged;
-                        final newConfig = PivAlgorithmExtensionConfig(
-                          enabled: enabled,
-                          ed25519: idValue('ed25519'),
-                          rsa3072: idValue('rsa3072'),
-                          rsa4096: idValue('rsa4096'),
-                          x25519: idValue('x25519'),
-                          secp256k1: idValue('secp256k1'),
-                          secp521r1: idValue('secp521r1'),
-                          sm2: idValue('sm2'),
-                          mldsa65: idValue('mldsa65'),
-                          mlkem768: idValue('mlkem768'),
-                        );
-                        AppLoaderOverlay.show();
-                        try {
-                          final ok = await controller
-                              .changeAlgorithmExtensionConfigAuthenticated(
-                            config: newConfig,
-                            pin: validator.getController('pin')!.text,
-                            managementKey:
-                                validator.getController('managementKey')!.text,
-                            usePinOnly: usePinOnly,
-                          );
-                          if (!ok) {
-                            Prompts.showPrompt(
-                                S.current.pivAlgorithmIdsUpdateFailed,
-                                ContentThemeColor.danger);
-                            return;
-                          }
-                          await controller.refreshData();
-                          Prompts.showPrompt(
-                              successMessage, ContentThemeColor.success);
-                          Get.back();
-                        } finally {
-                          AppLoaderOverlay.hide();
-                        }
-                      },
-                      elevation: 0,
-                      backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium(S.of(context).save,
-                          color: contentTheme.onPrimary),
-                    ),
-                  ],
-                ),
+                        await controller.refreshData();
+                        Prompts.showPrompt(successMessage, ContentThemeColor.success);
+                        Get.back();
+                      } finally {
+                        AppLoaderOverlay.hide();
+                      }
+                    },
+                    secondary: false,
+                    destructive: false,
+                  ),
+                ],
               ),
             ],
           ),
@@ -921,11 +895,7 @@ class _PivPageState extends State<PivPage>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: Spacing.all(16),
-                child: CustomizedText.labelLarge(
-                    S.of(context).pivSetPinPukRetries),
-              ),
+              AppDialogHeader(title: S.of(context).pivSetPinPukRetries),
               Divider(height: 0, thickness: 1),
               Padding(
                 padding: Spacing.all(16),
@@ -977,64 +947,61 @@ class _PivPageState extends State<PivPage>
                 ),
               ),
               Divider(height: 0, thickness: 1),
-              Padding(
-                padding: Spacing.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CustomizedButton.rounded(
-                      onPressed: () => Get.back(),
-                      elevation: 0,
-                      backgroundColor: contentTheme.secondary,
-                      child: CustomizedText.labelMedium(S.of(context).cancel,
-                          color: contentTheme.onSecondary),
-                    ),
-                    Spacing.width(12),
-                    CustomizedButton.rounded(
-                      onPressed: () async {
-                        if (!validator.validateForm()) return;
-                        if (!_validateManagementKeyInput(
-                            validator, 'managementKey', usePinOnly)) {
+              AppDialogActions(
+                children: [
+                  AppDialogAction(
+                    label: S.of(context).cancel,
+                    onPressed: () => Get.back(),
+                    secondary: true,
+                    destructive: false,
+                  ),
+                  AppDialogAction(
+                    label: S.of(context).confirm,
+                    onPressed: () async {
+                      if (!validator.validateForm()) return;
+                      if (!_validateManagementKeyInput(
+                        validator,
+                        'managementKey',
+                        usePinOnly,
+                      )) {
+                        return;
+                      }
+                      AppLoaderOverlay.show();
+                      try {
+                        final result = await controller.setPinRetries(
+                          validator.getController('pin')!.text,
+                          validator.getController('managementKey')!.text,
+                          int.parse(validator.getController('pinRetries')!.text),
+                          int.parse(validator.getController('pukRetries')!.text),
+                          usePinOnly,
+                        );
+                        if (result == PivPinRetryResetResult.failed) {
+                          Prompts.showPrompt(
+                            S.current.pivSetRetriesFailed,
+                            ContentThemeColor.danger,
+                          );
                           return;
                         }
-                        AppLoaderOverlay.show();
-                        try {
-                          final result = await controller.setPinRetries(
-                            validator.getController('pin')!.text,
-                            validator.getController('managementKey')!.text,
-                            int.parse(
-                                validator.getController('pinRetries')!.text),
-                            int.parse(
-                                validator.getController('pukRetries')!.text),
-                            usePinOnly,
-                          );
-                          if (result == PivPinRetryResetResult.failed) {
-                            Prompts.showPrompt(S.current.pivSetRetriesFailed,
-                                ContentThemeColor.danger);
-                            return;
-                          }
-                          await controller.refreshData();
-                          final metadataFailed = result ==
-                              PivPinRetryResetResult.metadataUpdateFailed;
-                          Prompts.showPrompt(
-                              metadataFailed
-                                  ? S.current.pivSetRetriesMetadataFailed
-                                  : S.current.pivSetRetriesSuccess,
-                              metadataFailed
-                                  ? ContentThemeColor.warning
-                                  : ContentThemeColor.success);
-                          Get.back();
-                        } finally {
-                          AppLoaderOverlay.hide();
-                        }
-                      },
-                      elevation: 0,
-                      backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium(S.of(context).confirm,
-                          color: contentTheme.onPrimary),
-                    ),
-                  ],
-                ),
+                        await controller.refreshData();
+                        final metadataFailed =
+                            result == PivPinRetryResetResult.metadataUpdateFailed;
+                        Prompts.showPrompt(
+                          metadataFailed
+                              ? S.current.pivSetRetriesMetadataFailed
+                              : S.current.pivSetRetriesSuccess,
+                          metadataFailed
+                              ? ContentThemeColor.warning
+                              : ContentThemeColor.success,
+                        );
+                        Get.back();
+                      } finally {
+                        AppLoaderOverlay.hide();
+                      }
+                    },
+                    secondary: false,
+                    destructive: false,
+                  ),
+                ],
               ),
             ],
           ),
@@ -1062,10 +1029,8 @@ class _PivPageState extends State<PivPage>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(
-                  S.of(context).pivEnablePinProtectedManagementKey),
+            AppDialogHeader(
+              title: S.of(context).pivEnablePinProtectedManagementKey,
             ),
             Divider(height: 0, thickness: 1),
             Padding(
@@ -1077,6 +1042,11 @@ class _PivPageState extends State<PivPage>
                   children: [
                     CustomizedText.bodySmall(
                       S.of(context).pivEnablePinProtectedManagementKeyPrompt,
+                    ),
+                    Spacing.height(12),
+                    CustomizedText.bodySmall(
+                      S.of(context).pivPrintedDataWarning,
+                      color: contentTheme.danger,
                     ),
                     Spacing.height(16),
                     _buildManagementKeyAuthentication(
@@ -1092,51 +1062,45 @@ class _PivPageState extends State<PivPage>
               ),
             ),
             Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  CustomizedButton.rounded(
-                    onPressed: () => Get.back(),
-                    elevation: 0,
-                    backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).cancel,
-                        color: contentTheme.onSecondary),
-                  ),
-                  Spacing.width(12),
-                  CustomizedButton.rounded(
-                    onPressed: () async {
-                      if (!validator.validateForm()) return;
-                      AppLoaderOverlay.show();
-                      try {
-                        final ok = await controller.enablePinOnlyMode(
-                          validator.getController('pin')!.text,
-                          validator.getController('managementKey')!.text,
-                        );
-                        if (!ok) {
-                          Prompts.showPrompt(
-                              S.current
-                                  .pivEnablePinProtectedManagementKeyFailed,
-                              ContentThemeColor.danger);
-                          return;
-                        }
-                        await controller.refreshData();
+            AppDialogActions(
+              children: [
+                AppDialogAction(
+                  label: S.of(context).cancel,
+                  onPressed: () => Get.back(),
+                  secondary: true,
+                  destructive: false,
+                ),
+                AppDialogAction(
+                  label: S.of(context).enable,
+                  onPressed: () async {
+                    if (!validator.validateForm()) return;
+                    AppLoaderOverlay.show();
+                    try {
+                      final ok = await controller.enablePinOnlyMode(
+                        validator.getController('pin')!.text,
+                        validator.getController('managementKey')!.text,
+                      );
+                      if (!ok) {
                         Prompts.showPrompt(
-                            S.current.pivEnablePinProtectedManagementKeySuccess,
-                            ContentThemeColor.success);
-                        Get.back();
-                      } finally {
-                        AppLoaderOverlay.hide();
+                          S.current.pivEnablePinProtectedManagementKeyFailed,
+                          ContentThemeColor.danger,
+                        );
+                        return;
                       }
-                    },
-                    elevation: 0,
-                    backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(S.of(context).enable,
-                        color: contentTheme.onPrimary),
-                  ),
-                ],
-              ),
+                      await controller.refreshData();
+                      Prompts.showPrompt(
+                        S.current.pivEnablePinProtectedManagementKeySuccess,
+                        ContentThemeColor.success,
+                      );
+                      Get.back();
+                    } finally {
+                      AppLoaderOverlay.hide();
+                    }
+                  },
+                  secondary: false,
+                  destructive: false,
+                ),
+              ],
             ),
           ],
         ),
@@ -1172,10 +1136,8 @@ class _PivPageState extends State<PivPage>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: Spacing.all(16),
-                child: CustomizedText.labelLarge(
-                    S.of(context).pivDisablePinProtectedManagementKey),
+              AppDialogHeader(
+                title: S.of(context).pivDisablePinProtectedManagementKey,
               ),
               Divider(height: 0, thickness: 1),
               Padding(
@@ -1233,64 +1195,56 @@ class _PivPageState extends State<PivPage>
                 ),
               ),
               Divider(height: 0, thickness: 1),
-              Padding(
-                padding: Spacing.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CustomizedButton.rounded(
-                      onPressed: () => Get.back(),
-                      elevation: 0,
-                      backgroundColor: contentTheme.secondary,
-                      child: CustomizedText.labelMedium(S.of(context).cancel,
-                          color: contentTheme.onSecondary),
-                    ),
-                    Spacing.width(12),
-                    CustomizedButton.rounded(
-                      onPressed: () async {
-                        if (!validator.validateForm()) return;
-                        if (!_validateManagementKeyInput(
-                            validator, 'currentManagementKey', usePinOnly)) {
+              AppDialogActions(
+                children: [
+                  AppDialogAction(
+                    label: S.of(context).cancel,
+                    onPressed: () => Get.back(),
+                    secondary: true,
+                    destructive: false,
+                  ),
+                  AppDialogAction(
+                    label: S.of(context).disable,
+                    onPressed: () async {
+                      if (!validator.validateForm()) return;
+                      if (!_validateManagementKeyInput(
+                        validator,
+                        'currentManagementKey',
+                        usePinOnly,
+                      )) {
+                        return;
+                      }
+                      AppLoaderOverlay.show();
+                      try {
+                        final ok = await controller.disablePinOnlyMode(
+                          usePinOnly ? validator.getController('pin')!.text : '',
+                          usePinOnly
+                              ? ''
+                              : validator.getController('currentManagementKey')!.text,
+                          validator.getController('newManagementKey')!.text,
+                          usePinOnly,
+                        );
+                        if (!ok) {
+                          Prompts.showPrompt(
+                            S.current.pivDisablePinProtectedManagementKeyFailed,
+                            ContentThemeColor.danger,
+                          );
                           return;
                         }
-                        AppLoaderOverlay.show();
-                        try {
-                          final ok = await controller.disablePinOnlyMode(
-                            usePinOnly
-                                ? validator.getController('pin')!.text
-                                : '',
-                            usePinOnly
-                                ? ''
-                                : validator
-                                    .getController('currentManagementKey')!
-                                    .text,
-                            validator.getController('newManagementKey')!.text,
-                            usePinOnly,
-                          );
-                          if (!ok) {
-                            Prompts.showPrompt(
-                                S.current
-                                    .pivDisablePinProtectedManagementKeyFailed,
-                                ContentThemeColor.danger);
-                            return;
-                          }
-                          await controller.refreshData();
-                          Prompts.showPrompt(
-                              S.current
-                                  .pivDisablePinProtectedManagementKeySuccess,
-                              ContentThemeColor.success);
-                          Get.back();
-                        } finally {
-                          AppLoaderOverlay.hide();
-                        }
-                      },
-                      elevation: 0,
-                      backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium(S.of(context).disable,
-                          color: contentTheme.onPrimary),
-                    ),
-                  ],
-                ),
+                        await controller.refreshData();
+                        Prompts.showPrompt(
+                          S.current.pivDisablePinProtectedManagementKeySuccess,
+                          ContentThemeColor.success,
+                        );
+                        Get.back();
+                      } finally {
+                        AppLoaderOverlay.hide();
+                      }
+                    },
+                    secondary: false,
+                    destructive: false,
+                  ),
+                ],
               ),
             ],
           ),
@@ -1316,10 +1270,13 @@ class _PivPageState extends State<PivPage>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-                padding: Spacing.all(16),
-                child: CustomizedText.labelLarge(
-                    S.of(context).pivVerifyManagementKey)),
+            AppDialogHeader(
+              title: S.of(context).pivVerifyManagementKey,
+              onClose: () {
+                c.completeError(UserCanceledError());
+                Navigator.pop(Get.context!);
+              },
+            ),
             Divider(height: 0, thickness: 1),
             Padding(
                 padding: Spacing.all(16),
@@ -1364,40 +1321,30 @@ class _PivPageState extends State<PivPage>
                       ]),
                     ]))),
             Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  CustomizedButton.rounded(
-                    onPressed: () {
-                      c.completeError(UserCanceledError());
+            AppDialogActions(
+              children: [
+                AppDialogAction(
+                  label: S.of(Get.context!).cancel,
+                  onPressed: () {
+                    c.completeError(UserCanceledError());
+                    Navigator.pop(Get.context!);
+                  },
+                  secondary: true,
+                  destructive: false,
+                ),
+                AppDialogAction(
+                  label: S.of(Get.context!).confirm,
+                  onPressed: () async {
+                    if (validator.validateForm()) {
+                      final key = validator.getController('key')!.text;
+                      c.complete(key);
                       Navigator.pop(Get.context!);
-                    },
-                    elevation: 0,
-                    padding: Spacing.xy(20, 16),
-                    backgroundColor: ContentThemeColor.secondary.color,
-                    child: CustomizedText.labelMedium(S.of(Get.context!).cancel,
-                        color: ContentThemeColor.secondary.onColor),
-                  ),
-                  Spacing.width(16),
-                  CustomizedButton.rounded(
-                    onPressed: () async {
-                      if (validator.validateForm()) {
-                        final key = validator.getController('key')!.text;
-                        c.complete(key);
-                        Navigator.pop(Get.context!);
-                      }
-                    },
-                    elevation: 0,
-                    padding: Spacing.xy(20, 16),
-                    backgroundColor: ContentThemeColor.primary.color,
-                    child: CustomizedText.labelMedium(
-                        S.of(Get.context!).confirm,
-                        color: ContentThemeColor.primary.onColor),
-                  ),
-                ],
-              ),
+                    }
+                  },
+                  secondary: false,
+                  destructive: false,
+                ),
+              ],
             ),
           ],
         ),
@@ -1437,11 +1384,7 @@ class _PivPageState extends State<PivPage>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: Spacing.all(16),
-                child: CustomizedText.labelLarge(
-                    S.of(context).pivChangeManagementKey),
-              ),
+              AppDialogHeader(title: S.of(context).pivChangeManagementKey),
               Divider(height: 0, thickness: 1),
               Padding(
                   padding: Spacing.all(16),
@@ -1530,66 +1473,54 @@ class _PivPageState extends State<PivPage>
                         ],
                       ]))),
               Divider(height: 0, thickness: 1),
-              Padding(
-                padding: Spacing.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CustomizedButton.rounded(
-                      onPressed: () {
-                        Navigator.pop(Get.context!);
-                      },
-                      elevation: 0,
-                      padding: Spacing.xy(20, 16),
-                      backgroundColor: ContentThemeColor.secondary.color,
-                      child: CustomizedText.labelMedium(
-                          S.of(Get.context!).cancel,
-                          color: ContentThemeColor.secondary.onColor),
-                    ),
-                    Spacing.width(16),
-                    CustomizedButton.rounded(
-                      onPressed: () async {
-                        if (!validator.validateForm()) return;
-                        if (!_validateManagementKeyInput(
-                            validator, 'old', usePinOnly)) {
+              AppDialogActions(
+                children: [
+                  AppDialogAction(
+                    label: S.of(Get.context!).cancel,
+                    onPressed: () {
+                      Navigator.pop(Get.context!);
+                    },
+                    secondary: true,
+                    destructive: false,
+                  ),
+                  AppDialogAction(
+                    label: S.of(Get.context!).confirm,
+                    onPressed: () async {
+                      if (!validator.validateForm()) return;
+                      if (!_validateManagementKeyInput(validator, 'old', usePinOnly)) {
+                        return;
+                      }
+                      AppLoaderOverlay.show();
+                      try {
+                        final ok = await controller.changeManagementKey(
+                          validator.getController('old')!.text,
+                          validator.getController('new')!.text,
+                          pin: validator.getController('pin')?.text ?? '',
+                          usePinOnly: usePinOnly,
+                          storeOnDevice: storeOnDevice,
+                          touchPolicy: managementKeyTouchPolicy,
+                        );
+                        if (!ok) {
+                          Prompts.showPrompt(
+                            S.of(Get.context!).pivManagementKeyVerificationFailed,
+                            ContentThemeColor.danger,
+                          );
                           return;
                         }
-                        AppLoaderOverlay.show();
-                        try {
-                          final ok = await controller.changeManagementKey(
-                            validator.getController('old')!.text,
-                            validator.getController('new')!.text,
-                            pin: validator.getController('pin')?.text ?? '',
-                            usePinOnly: usePinOnly,
-                            storeOnDevice: storeOnDevice,
-                            touchPolicy: managementKeyTouchPolicy,
-                          );
-                          if (!ok) {
-                            Prompts.showPrompt(
-                                S
-                                    .of(Get.context!)
-                                    .pivManagementKeyVerificationFailed,
-                                ContentThemeColor.danger);
-                            return;
-                          }
-                          await controller.refreshData();
-                          Navigator.pop(Get.context!);
-                          Prompts.showPrompt(
-                              S.of(Get.context!).successfullyChanged,
-                              ContentThemeColor.success);
-                        } finally {
-                          AppLoaderOverlay.hide();
-                        }
-                      },
-                      elevation: 0,
-                      padding: Spacing.xy(20, 16),
-                      backgroundColor: ContentThemeColor.primary.color,
-                      child: CustomizedText.labelMedium(
-                          S.of(Get.context!).confirm,
-                          color: ContentThemeColor.primary.onColor),
-                    ),
-                  ],
-                ),
+                        await controller.refreshData();
+                        Navigator.pop(Get.context!);
+                        Prompts.showPrompt(
+                          S.of(Get.context!).successfullyChanged,
+                          ContentThemeColor.success,
+                        );
+                      } finally {
+                        AppLoaderOverlay.hide();
+                      }
+                    },
+                    secondary: false,
+                    destructive: false,
+                  ),
+                ],
               ),
             ],
           ),
@@ -2259,55 +2190,45 @@ class _PivPageState extends State<PivPage>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                      padding: Spacing.all(16),
-                      child: CustomizedText.labelLarge(
-                          S.of(context).pivExportCertificate)),
+                  AppDialogHeader(title: S.of(context).pivExportCertificate),
                   Divider(height: 0, thickness: 1),
-                  Padding(
-                      padding: Spacing.all(16),
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CustomizedButton.rounded(
-                              onPressed: () async {
-                                // Export DER
-                                final saved = await _savePivFile(
-                                  name: 'certificate',
-                                  extension: 'der',
-                                  bytes: certificateBytes,
-                                );
-                                if (saved) {
-                                  Get.back();
-                                }
-                              },
-                              elevation: 0,
-                              padding: Spacing.xy(20, 16),
-                              backgroundColor: contentTheme.primary,
-                              child: CustomizedText.labelMedium('DER',
-                                  color: contentTheme.onPrimary),
-                            ),
-                            Spacing.width(12),
-                            CustomizedButton.rounded(
-                              onPressed: () async {
-                                final pem = _certificatePem(certificateBytes);
-                                final saved = await _savePivFile(
-                                  name: 'certificate',
-                                  extension: 'pem',
-                                  bytes: utf8.encode(pem),
-                                  mimeType: MimeType.text,
-                                );
-                                if (saved) {
-                                  Get.back();
-                                }
-                              },
-                              elevation: 0,
-                              padding: Spacing.xy(20, 16),
-                              backgroundColor: contentTheme.primary,
-                              child: CustomizedText.labelMedium('PEM',
-                                  color: contentTheme.onPrimary),
-                            )
-                          ]))
+                  AppDialogActions(
+                    children: [
+                      AppDialogAction(
+                        label: 'DER',
+                        onPressed: () async {
+                          // Export DER
+                          final saved = await _savePivFile(
+                            name: 'certificate',
+                            extension: 'der',
+                            bytes: certificateBytes,
+                          );
+                          if (saved) {
+                            Get.back();
+                          }
+                        },
+                        secondary: false,
+                        destructive: false,
+                      ),
+                      AppDialogAction(
+                        label: 'PEM',
+                        onPressed: () async {
+                          final pem = _certificatePem(certificateBytes);
+                          final saved = await _savePivFile(
+                            name: 'certificate',
+                            extension: 'pem',
+                            bytes: utf8.encode(pem),
+                            mimeType: MimeType.text,
+                          );
+                          if (saved) {
+                            Get.back();
+                          }
+                        },
+                        secondary: false,
+                        destructive: false,
+                      ),
+                    ],
+                  )
                 ]))));
   }
 
@@ -2331,10 +2252,7 @@ class _PivPageState extends State<PivPage>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                      padding: Spacing.all(16),
-                      child: CustomizedText.labelLarge(
-                          S.of(context).pivExportPublicKey)),
+                  AppDialogHeader(title: S.of(context).pivExportPublicKey),
                   Divider(height: 0, thickness: 1),
                   Padding(
                       padding: Spacing.all(16),
@@ -2412,10 +2330,7 @@ class _PivPageState extends State<PivPage>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(S.of(context).pivSignMessage),
-            ),
+            AppDialogHeader(title: S.of(context).pivSignMessage),
             Divider(height: 0, thickness: 1),
             Padding(
               padding: Spacing.all(16),
@@ -2473,48 +2388,44 @@ class _PivPageState extends State<PivPage>
               ),
             ),
             Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  CustomizedButton.rounded(
-                    onPressed: () => Get.back(),
-                    elevation: 0,
-                    backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).cancel,
-                        color: contentTheme.onSecondary),
-                  ),
-                  Spacing.width(12),
-                  CustomizedButton.rounded(
-                    onPressed: () async {
-                      if (!validator.validateForm()) return;
-                      AppLoaderOverlay.show();
-                      try {
-                        final result = await controller.signData(
-                          slotNumber,
-                          slot,
-                          validator.getController('pin')!.text,
-                          Uint8List.fromList(utf8.encode(
-                              validator.getController('message')!.text)),
+            AppDialogActions(
+              children: [
+                AppDialogAction(
+                  label: S.of(context).cancel,
+                  onPressed: () => Get.back(),
+                  secondary: true,
+                  destructive: false,
+                ),
+                AppDialogAction(
+                  label: S.of(context).pivSign,
+                  onPressed: () async {
+                    if (!validator.validateForm()) return;
+                    AppLoaderOverlay.show();
+                    try {
+                      final result = await controller.signData(
+                        slotNumber,
+                        slot,
+                        validator.getController('pin')!.text,
+                        Uint8List.fromList(
+                          utf8.encode(validator.getController('message')!.text),
+                        ),
+                      );
+                      if (result == null) {
+                        Prompts.showPrompt(
+                          S.current.pivMessageSigningFailed,
+                          ContentThemeColor.danger,
                         );
-                        if (result == null) {
-                          Prompts.showPrompt(S.current.pivMessageSigningFailed,
-                              ContentThemeColor.danger);
-                          return;
-                        }
-                        signature.value = hex.encode(result);
-                      } finally {
-                        AppLoaderOverlay.hide();
+                        return;
                       }
-                    },
-                    elevation: 0,
-                    backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(S.of(context).pivSign,
-                        color: contentTheme.onPrimary),
-                  ),
-                ],
-              ),
+                      signature.value = hex.encode(result);
+                    } finally {
+                      AppLoaderOverlay.hide();
+                    }
+                  },
+                  secondary: false,
+                  destructive: false,
+                ),
+              ],
             ),
           ],
         ),
@@ -2545,10 +2456,7 @@ class _PivPageState extends State<PivPage>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: Spacing.all(16),
-                child: CustomizedText.labelLarge(S.of(context).pivSignFile),
-              ),
+              AppDialogHeader(title: S.of(context).pivSignFile),
               Divider(height: 0, thickness: 1),
               Padding(
                 padding: Spacing.all(16),
@@ -2600,62 +2508,59 @@ class _PivPageState extends State<PivPage>
                 ),
               ),
               Divider(height: 0, thickness: 1),
-              Padding(
-                padding: Spacing.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CustomizedButton.rounded(
-                      onPressed: () => Get.back(),
-                      elevation: 0,
-                      backgroundColor: contentTheme.secondary,
-                      child: CustomizedText.labelMedium(S.of(context).cancel,
-                          color: contentTheme.onSecondary),
-                    ),
-                    Spacing.width(12),
-                    CustomizedButton.rounded(
-                      onPressed: () async {
-                        if (!validator.validateForm()) return;
-                        final data = selectedBytes;
-                        if (data == null) {
-                          Prompts.showPrompt(S.of(context).pivSelectFileFirst,
-                              ContentThemeColor.danger);
+              AppDialogActions(
+                children: [
+                  AppDialogAction(
+                    label: S.of(context).cancel,
+                    onPressed: () => Get.back(),
+                    secondary: true,
+                    destructive: false,
+                  ),
+                  AppDialogAction(
+                    label: S.of(context).pivSign,
+                    onPressed: () async {
+                      if (!validator.validateForm()) return;
+                      final data = selectedBytes;
+                      if (data == null) {
+                        Prompts.showPrompt(
+                          S.of(context).pivSelectFileFirst,
+                          ContentThemeColor.danger,
+                        );
+                        return;
+                      }
+                      AppLoaderOverlay.show();
+                      try {
+                        final signature = await controller.signData(
+                          slotNumber,
+                          slot,
+                          validator.getController('pin')!.text,
+                          data,
+                        );
+                        if (signature == null) {
+                          Prompts.showPrompt(
+                            S.current.pivFileSigningFailed,
+                            ContentThemeColor.danger,
+                          );
                           return;
                         }
-                        AppLoaderOverlay.show();
-                        try {
-                          final signature = await controller.signData(
-                            slotNumber,
-                            slot,
-                            validator.getController('pin')!.text,
-                            data,
-                          );
-                          if (signature == null) {
-                            Prompts.showPrompt(S.current.pivFileSigningFailed,
-                                ContentThemeColor.danger);
-                            return;
-                          }
-                          final saved = await _savePivFile(
-                            name: selectedFileName.value.isEmpty
-                                ? 'signature'
-                                : selectedFileName.value,
-                            extension: 'sig',
-                            bytes: signature,
-                          );
-                          if (saved) {
-                            Get.back();
-                          }
-                        } finally {
-                          AppLoaderOverlay.hide();
+                        final saved = await _savePivFile(
+                          name: selectedFileName.value.isEmpty
+                              ? 'signature'
+                              : selectedFileName.value,
+                          extension: 'sig',
+                          bytes: signature,
+                        );
+                        if (saved) {
+                          Get.back();
                         }
-                      },
-                      elevation: 0,
-                      backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium(S.of(context).pivSign,
-                          color: contentTheme.onPrimary),
-                    ),
-                  ],
-                ),
+                      } finally {
+                        AppLoaderOverlay.hide();
+                      }
+                    },
+                    secondary: false,
+                    destructive: false,
+                  ),
+                ],
               ),
             ],
           ),
@@ -2680,11 +2585,7 @@ class _PivPageState extends State<PivPage>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: Spacing.all(16),
-                child: CustomizedText.labelLarge(
-                    S.of(context).pivVerifyFileSignature),
-              ),
+              AppDialogHeader(title: S.of(context).pivVerifyFileSignature),
               Divider(height: 0, thickness: 1),
               Padding(
                 padding: Spacing.all(16),
@@ -2733,45 +2634,35 @@ class _PivPageState extends State<PivPage>
                 ),
               ),
               Divider(height: 0, thickness: 1),
-              Padding(
-                padding: Spacing.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CustomizedButton.rounded(
-                      onPressed: () => Get.back(),
-                      elevation: 0,
-                      backgroundColor: contentTheme.secondary,
-                      child: CustomizedText.labelMedium(S.of(context).close,
-                          color: contentTheme.onSecondary),
-                    ),
-                    Spacing.width(12),
-                    CustomizedButton.rounded(
-                      onPressed: () async {
-                        final data = selectedBytes;
-                        final signature = selectedSignature;
-                        if (data == null || signature == null) {
-                          Prompts.showPrompt(
-                              S.of(context).pivSelectFileAndSignatureFirst,
-                              ContentThemeColor.danger);
-                          return;
-                        }
-                        final ok = await controller.verifySignature(
-                          slot,
-                          data,
-                          signature,
+              AppDialogActions(
+                children: [
+                  AppDialogAction(
+                    label: S.of(context).close,
+                    onPressed: () => Get.back(),
+                    secondary: true,
+                    destructive: false,
+                  ),
+                  AppDialogAction(
+                    label: S.of(context).pivVerify,
+                    onPressed: () async {
+                      final data = selectedBytes;
+                      final signature = selectedSignature;
+                      if (data == null || signature == null) {
+                        Prompts.showPrompt(
+                          S.of(context).pivSelectFileAndSignatureFirst,
+                          ContentThemeColor.danger,
                         );
-                        verifyResult.value = ok
-                            ? S.current.pivSignatureVerified
-                            : S.current.pivSignatureVerificationFailed;
-                      },
-                      elevation: 0,
-                      backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium(S.of(context).pivVerify,
-                          color: contentTheme.onPrimary),
-                    ),
-                  ],
-                ),
+                        return;
+                      }
+                      final ok = await controller.verifySignature(slot, data, signature);
+                      verifyResult.value = ok
+                          ? S.current.pivSignatureVerified
+                          : S.current.pivSignatureVerificationFailed;
+                    },
+                    secondary: false,
+                    destructive: false,
+                  ),
+                ],
               ),
             ],
           ),
@@ -3884,10 +3775,7 @@ class _PivPageState extends State<PivPage>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: Spacing.all(16),
-                child: CustomizedText.labelLarge(S.of(context).pivGenerateKey),
-              ),
+              AppDialogHeader(title: S.of(context).pivGenerateKey),
               Divider(height: 0, thickness: 1),
               Padding(
                 padding: Spacing.all(16),
@@ -3953,64 +3841,63 @@ class _PivPageState extends State<PivPage>
                 ),
               ),
               Divider(height: 0, thickness: 1),
-              Padding(
-                padding: Spacing.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CustomizedButton.rounded(
-                      onPressed: () => Get.back(),
-                      elevation: 0,
-                      backgroundColor: contentTheme.secondary,
-                      child: CustomizedText.labelMedium(S.of(context).cancel,
-                          color: contentTheme.onSecondary),
-                    ),
-                    Spacing.width(12),
-                    CustomizedButton.rounded(
-                      onPressed: () async {
-                        if (!validator.validateForm()) return;
-                        if (!_validateManagementKeyInput(
-                            validator, 'managementKey', usePinOnly)) {
+              AppDialogActions(
+                children: [
+                  AppDialogAction(
+                    label: S.of(context).cancel,
+                    onPressed: () => Get.back(),
+                    secondary: true,
+                    destructive: false,
+                  ),
+                  AppDialogAction(
+                    label: S.of(context).pivGenerate,
+                    onPressed: () async {
+                      if (!validator.validateForm()) return;
+                      if (!_validateManagementKeyInput(
+                        validator,
+                        'managementKey',
+                        usePinOnly,
+                      )) {
+                        return;
+                      }
+                      if (!await _confirmOverwriteKey(
+                        slotNumber: slotNumber,
+                        action: S.of(context).pivGeneratingKey(algorithm.label),
+                      )) {
+                        return;
+                      }
+                      AppLoaderOverlay.show();
+                      try {
+                        final ok = await controller.generateKey(
+                          slotNumber,
+                          algorithm,
+                          pinPolicy,
+                          touchPolicy,
+                          validator.getController('pin')!.text,
+                          validator.getController('managementKey')!.text,
+                          usePinOnly,
+                        );
+                        if (!ok) {
+                          Prompts.showPrompt(
+                            S.current.pivGenerateKeyFailed,
+                            ContentThemeColor.danger,
+                          );
                           return;
                         }
-                        if (!await _confirmOverwriteKey(
-                            slotNumber: slotNumber,
-                            action: S
-                                .of(context)
-                                .pivGeneratingKey(algorithm.label))) {
-                          return;
-                        }
-                        AppLoaderOverlay.show();
-                        try {
-                          final ok = await controller.generateKey(
-                              slotNumber,
-                              algorithm,
-                              pinPolicy,
-                              touchPolicy,
-                              validator.getController('pin')!.text,
-                              validator.getController('managementKey')!.text,
-                              usePinOnly);
-                          if (!ok) {
-                            Prompts.showPrompt(S.current.pivGenerateKeyFailed,
-                                ContentThemeColor.danger);
-                            return;
-                          }
-                          await controller.refreshData();
-                          Prompts.showPrompt(S.current.pivKeyGenerated,
-                              ContentThemeColor.success);
-                          Navigator.pop(Get.context!);
-                        } finally {
-                          AppLoaderOverlay.hide();
-                        }
-                      },
-                      elevation: 0,
-                      backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium(
-                          S.of(context).pivGenerate,
-                          color: contentTheme.onPrimary),
-                    ),
-                  ],
-                ),
+                        await controller.refreshData();
+                        Prompts.showPrompt(
+                          S.current.pivKeyGenerated,
+                          ContentThemeColor.success,
+                        );
+                        Navigator.pop(Get.context!);
+                      } finally {
+                        AppLoaderOverlay.hide();
+                      }
+                    },
+                    secondary: false,
+                    destructive: false,
+                  ),
+                ],
               ),
             ],
           ),
@@ -4028,10 +3915,7 @@ class _PivPageState extends State<PivPage>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(S.current.pivCsrGenerated),
-            ),
+            AppDialogHeader(title: S.current.pivCsrGenerated),
             Divider(height: 0, thickness: 1),
             Padding(
               padding: Spacing.all(16),
@@ -4049,47 +3933,37 @@ class _PivPageState extends State<PivPage>
               ),
             ),
             Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  CustomizedButton.rounded(
-                    onPressed: () async {
-                      await Clipboard.setData(ClipboardData(text: csr));
-                      Prompts.showPrompt(
-                          S.current.pivCsrCopied, ContentThemeColor.success);
-                    },
-                    elevation: 0,
-                    backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(S.of(context).copy,
-                        color: contentTheme.onPrimary),
-                  ),
-                  Spacing.width(12),
-                  CustomizedButton.rounded(
-                    onPressed: () async {
-                      await _savePivFile(
-                        name: 'piv-$slotNumber',
-                        extension: 'csr',
-                        bytes: utf8.encode(csr),
-                        mimeType: MimeType.text,
-                      );
-                    },
-                    elevation: 0,
-                    backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(S.of(context).save,
-                        color: contentTheme.onPrimary),
-                  ),
-                  Spacing.width(12),
-                  CustomizedButton.rounded(
-                    onPressed: () => Get.back(),
-                    elevation: 0,
-                    backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).close,
-                        color: contentTheme.onSecondary),
-                  ),
-                ],
-              ),
+            AppDialogActions(
+              children: [
+                AppDialogAction(
+                  label: S.of(context).copy,
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: csr));
+                    Prompts.showPrompt(S.current.pivCsrCopied, ContentThemeColor.success);
+                  },
+                  secondary: false,
+                  destructive: false,
+                ),
+                AppDialogAction(
+                  label: S.of(context).save,
+                  onPressed: () async {
+                    await _savePivFile(
+                      name: 'piv-$slotNumber',
+                      extension: 'csr',
+                      bytes: utf8.encode(csr),
+                      mimeType: MimeType.text,
+                    );
+                  },
+                  secondary: false,
+                  destructive: false,
+                ),
+                AppDialogAction(
+                  label: S.of(context).close,
+                  onPressed: () => Get.back(),
+                  secondary: true,
+                  destructive: false,
+                ),
+              ],
             ),
           ],
         ),
@@ -4110,10 +3984,7 @@ class _PivPageState extends State<PivPage>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(S.current.pivCertificateCreated),
-            ),
+            AppDialogHeader(title: S.current.pivCertificateCreated),
             Divider(height: 0, thickness: 1),
             Padding(
               padding: Spacing.all(16),
@@ -4122,47 +3993,40 @@ class _PivPageState extends State<PivPage>
               ),
             ),
             Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  CustomizedButton.rounded(
-                    onPressed: () async {
-                      await Clipboard.setData(ClipboardData(text: pem));
-                      Prompts.showPrompt(S.current.pivCertificateCopied,
-                          ContentThemeColor.success);
-                    },
-                    elevation: 0,
-                    backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(S.of(context).pivCopyPem,
-                        color: contentTheme.onPrimary),
-                  ),
-                  Spacing.width(12),
-                  CustomizedButton.rounded(
-                    onPressed: () async {
-                      await _savePivFile(
-                        name: 'piv-$slotNumber',
-                        extension: 'pem',
-                        bytes: utf8.encode(pem),
-                        mimeType: MimeType.text,
-                      );
-                    },
-                    elevation: 0,
-                    backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(S.of(context).pivSavePem,
-                        color: contentTheme.onPrimary),
-                  ),
-                  Spacing.width(12),
-                  CustomizedButton.rounded(
-                    onPressed: () => Get.back(),
-                    elevation: 0,
-                    backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).close,
-                        color: contentTheme.onSecondary),
-                  ),
-                ],
-              ),
+            AppDialogActions(
+              children: [
+                AppDialogAction(
+                  label: S.of(context).pivCopyPem,
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: pem));
+                    Prompts.showPrompt(
+                      S.current.pivCertificateCopied,
+                      ContentThemeColor.success,
+                    );
+                  },
+                  secondary: false,
+                  destructive: false,
+                ),
+                AppDialogAction(
+                  label: S.of(context).pivSavePem,
+                  onPressed: () async {
+                    await _savePivFile(
+                      name: 'piv-$slotNumber',
+                      extension: 'pem',
+                      bytes: utf8.encode(pem),
+                      mimeType: MimeType.text,
+                    );
+                  },
+                  secondary: false,
+                  destructive: false,
+                ),
+                AppDialogAction(
+                  label: S.of(context).close,
+                  onPressed: () => Get.back(),
+                  secondary: true,
+                  destructive: false,
+                ),
+              ],
             ),
           ],
         ),
@@ -4240,11 +4104,8 @@ class _PivPageState extends State<PivPage>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: Spacing.all(16),
-                child: CustomizedText.labelLarge(
-                  S.of(context).pivMoveKeyFrom(sourceSlot),
-                ),
+              AppDialogHeader(
+                title: S.of(context).pivMoveKeyFrom(sourceSlot),
               ),
               Divider(height: 0, thickness: 1),
               Padding(
@@ -4307,67 +4168,58 @@ class _PivPageState extends State<PivPage>
                 ),
               ),
               Divider(height: 0, thickness: 1),
-              Padding(
-                padding: Spacing.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CustomizedButton.rounded(
-                      onPressed: () => Get.back(),
-                      elevation: 0,
-                      backgroundColor: contentTheme.secondary,
-                      child: CustomizedText.labelMedium(
-                        S.of(context).cancel,
-                        color: contentTheme.onSecondary,
-                      ),
-                    ),
-                    Spacing.width(12),
-                    CustomizedButton.rounded(
-                      onPressed: () async {
-                        if (!validator.validateForm() ||
-                            !_validateManagementKeyInput(
-                                validator, 'managementKey', usePinOnly)) {
+              AppDialogActions(
+                children: [
+                  AppDialogAction(
+                    label: S.of(context).cancel,
+                    onPressed: () => Get.back(),
+                    secondary: true,
+                    destructive: false,
+                  ),
+                  AppDialogAction(
+                    label: S.of(context).pivMoveKey,
+                    onPressed: () async {
+                      if (!validator.validateForm() ||
+                          !_validateManagementKeyInput(
+                            validator,
+                            'managementKey',
+                            usePinOnly,
+                          )) {
+                        return;
+                      }
+                      AppLoaderOverlay.show();
+                      try {
+                        final ok = await controller.moveKeyAuthenticated(
+                          sourceSlot: sourceSlot,
+                          targetSlot: targetSlot
+                              .toRadixString(16)
+                              .padLeft(2, '0')
+                              .toUpperCase(),
+                          pin: validator.getController('pin')!.text,
+                          managementKey: validator.getController('managementKey')!.text,
+                          usePinOnly: usePinOnly,
+                        );
+                        if (!ok) {
+                          Prompts.showPrompt(
+                            S.current.pivMoveKeyFailed,
+                            ContentThemeColor.danger,
+                          );
                           return;
                         }
-                        AppLoaderOverlay.show();
-                        try {
-                          final ok = await controller.moveKeyAuthenticated(
-                            sourceSlot: sourceSlot,
-                            targetSlot: targetSlot
-                                .toRadixString(16)
-                                .padLeft(2, '0')
-                                .toUpperCase(),
-                            pin: validator.getController('pin')!.text,
-                            managementKey:
-                                validator.getController('managementKey')!.text,
-                            usePinOnly: usePinOnly,
-                          );
-                          if (!ok) {
-                            Prompts.showPrompt(
-                              S.current.pivMoveKeyFailed,
-                              ContentThemeColor.danger,
-                            );
-                            return;
-                          }
-                          await controller.refreshData();
-                          Get.back();
-                          Prompts.showPrompt(
-                            S.current.pivKeyMoved,
-                            ContentThemeColor.success,
-                          );
-                        } finally {
-                          AppLoaderOverlay.hide();
-                        }
-                      },
-                      elevation: 0,
-                      backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium(
-                        S.of(context).pivMoveKey,
-                        color: contentTheme.onPrimary,
-                      ),
-                    ),
-                  ],
-                ),
+                        await controller.refreshData();
+                        Get.back();
+                        Prompts.showPrompt(
+                          S.current.pivKeyMoved,
+                          ContentThemeColor.success,
+                        );
+                      } finally {
+                        AppLoaderOverlay.hide();
+                      }
+                    },
+                    secondary: false,
+                    destructive: false,
+                  ),
+                ],
               ),
             ],
           ),
@@ -4400,10 +4252,8 @@ class _PivPageState extends State<PivPage>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: Spacing.all(16),
-                child: CustomizedText.labelLarge(
-                    S.of(context).pivClearSlotTitle(slotNumber)),
+              AppDialogHeader(
+                title: S.of(context).pivClearSlotTitle(slotNumber),
               ),
               Divider(height: 0, thickness: 1),
               Padding(
@@ -4429,56 +4279,54 @@ class _PivPageState extends State<PivPage>
                 ),
               ),
               Divider(height: 0, thickness: 1),
-              Padding(
-                padding: Spacing.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CustomizedButton.rounded(
-                      onPressed: () => Get.back(),
-                      elevation: 0,
-                      backgroundColor: contentTheme.secondary,
-                      child: CustomizedText.labelMedium(S.of(context).cancel,
-                          color: contentTheme.onSecondary),
-                    ),
-                    Spacing.width(12),
-                    CustomizedButton.rounded(
-                      onPressed: () async {
-                        if (!validator.validateForm()) return;
-                        if (!_validateManagementKeyInput(
-                            validator, 'managementKey', usePinOnly)) {
+              AppDialogActions(
+                children: [
+                  AppDialogAction(
+                    label: S.of(context).cancel,
+                    onPressed: () => Get.back(),
+                    secondary: true,
+                    destructive: false,
+                  ),
+                  AppDialogAction(
+                    label: S.of(context).pivClearSlot,
+                    onPressed: () async {
+                      if (!validator.validateForm()) return;
+                      if (!_validateManagementKeyInput(
+                        validator,
+                        'managementKey',
+                        usePinOnly,
+                      )) {
+                        return;
+                      }
+                      AppLoaderOverlay.show();
+                      try {
+                        final ok = await controller.clearSlotAuthenticated(
+                          slot: slotNumber,
+                          pin: validator.getController('pin')!.text,
+                          managementKey: validator.getController('managementKey')!.text,
+                          usePinOnly: usePinOnly,
+                        );
+                        if (!ok) {
+                          Prompts.showPrompt(
+                            S.current.pivClearSlotFailed,
+                            ContentThemeColor.danger,
+                          );
                           return;
                         }
-                        AppLoaderOverlay.show();
-                        try {
-                          final ok = await controller.clearSlotAuthenticated(
-                            slot: slotNumber,
-                            pin: validator.getController('pin')!.text,
-                            managementKey:
-                                validator.getController('managementKey')!.text,
-                            usePinOnly: usePinOnly,
-                          );
-                          if (!ok) {
-                            Prompts.showPrompt(S.current.pivClearSlotFailed,
-                                ContentThemeColor.danger);
-                            return;
-                          }
-                          await controller.refreshData();
-                          Get.back();
-                          Prompts.showPrompt(S.current.pivSlotCleared,
-                              ContentThemeColor.success);
-                        } finally {
-                          AppLoaderOverlay.hide();
-                        }
-                      },
-                      elevation: 0,
-                      backgroundColor: contentTheme.danger,
-                      child: CustomizedText.labelMedium(
-                          S.of(context).pivClearSlot,
-                          color: contentTheme.onDanger),
-                    ),
-                  ],
-                ),
+                        await controller.refreshData();
+                        Get.back();
+                        Prompts.showPrompt(
+                          S.current.pivSlotCleared,
+                          ContentThemeColor.success,
+                        );
+                      } finally {
+                        AppLoaderOverlay.hide();
+                      }
+                    },
+                    secondary: false,
+                    destructive: true,
+                  ),
+                ],
               ),
             ],
           ),

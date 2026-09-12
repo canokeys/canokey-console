@@ -4,14 +4,14 @@ import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
-import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
 
 class ForcePinChangeDialog extends BaseDialog {
   final int minPinLength;
-  final Future<bool> Function(String currentPin, String newPin, bool savePin) onSubmit;
+  final Future<bool> Function(String currentPin, String newPin, bool savePin)
+  onSubmit;
   final VoidCallback onCancel;
 
   const ForcePinChangeDialog({
@@ -23,7 +23,12 @@ class ForcePinChangeDialog extends BaseDialog {
 
   static Future<void> show({
     required int minPinLength,
-    required Future<bool> Function(String currentPin, String newPin, bool savePin) onSubmit,
+    required Future<bool> Function(
+      String currentPin,
+      String newPin,
+      bool savePin,
+    )
+    onSubmit,
     required VoidCallback onCancel,
   }) {
     return AppDialog.show(
@@ -72,14 +77,20 @@ class _ForcePinChangeDialogState extends BaseDialogState<ForcePinChangeDialog> {
       return;
     }
     if (_newPin.text != _confirmPin.text) {
-      setState(() => errorMessage.value = S.of(context).pinConfirmationMismatch);
+      setState(
+        () => errorMessage.value = S.of(context).pinConfirmationMismatch,
+      );
       return;
     }
     setState(() {
       _submitting = true;
       errorMessage.value = '';
     });
-    final changed = await widget.onSubmit(_currentPin.text, _newPin.text, _savePin);
+    final changed = await widget.onSubmit(
+      _currentPin.text,
+      _newPin.text,
+      _savePin,
+    );
     if (!mounted) {
       return;
     }
@@ -96,9 +107,15 @@ class _ForcePinChangeDialogState extends BaseDialogState<ForcePinChangeDialog> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: Spacing.all(16),
-          child: CustomizedText.labelLarge(S.of(context).changePin),
+        AppDialogHeader(
+          title: S.of(context).changePin,
+          closeEnabled: !_submitting,
+          onClose: _submitting
+              ? null
+              : () {
+                  Navigator.pop(context);
+                  widget.onCancel();
+                },
         ),
         Divider(height: 0, thickness: 1),
         Padding(
@@ -112,7 +129,8 @@ class _ForcePinChangeDialogState extends BaseDialogState<ForcePinChangeDialog> {
                   label: S.of(context).oldPin,
                   minLength: 4,
                   obscureText: !_showCurrentPin,
-                  onToggleVisibility: () => setState(() => _showCurrentPin = !_showCurrentPin),
+                  onToggleVisibility: () =>
+                      setState(() => _showCurrentPin = !_showCurrentPin),
                 ),
                 Spacing.height(12),
                 _pinField(
@@ -120,7 +138,8 @@ class _ForcePinChangeDialogState extends BaseDialogState<ForcePinChangeDialog> {
                   label: S.of(context).newPin,
                   minLength: widget.minPinLength,
                   obscureText: !_showNewPin,
-                  onToggleVisibility: () => setState(() => _showNewPin = !_showNewPin),
+                  onToggleVisibility: () =>
+                      setState(() => _showNewPin = !_showNewPin),
                 ),
                 Spacing.height(12),
                 _pinField(
@@ -129,12 +148,17 @@ class _ForcePinChangeDialogState extends BaseDialogState<ForcePinChangeDialog> {
                   minLength: widget.minPinLength,
                   obscureText: !_showNewPin,
                   onFieldSubmitted: (_) => _submit(),
-                  onToggleVisibility: () => setState(() => _showNewPin = !_showNewPin),
+                  onToggleVisibility: () =>
+                      setState(() => _showNewPin = !_showNewPin),
                 ),
                 CheckboxListTile(
                   value: _savePin,
-                  onChanged: _submitting ? null : (value) => setState(() => _savePin = value ?? false),
-                  title: CustomizedText.bodyMedium(S.of(context).savePinOnDevice),
+                  onChanged: _submitting
+                      ? null
+                      : (value) => setState(() => _savePin = value ?? false),
+                  title: CustomizedText.bodyMedium(
+                    S.of(context).savePinOnDevice,
+                  ),
                   controlAffinity: ListTileControlAffinity.leading,
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -151,39 +175,26 @@ class _ForcePinChangeDialogState extends BaseDialogState<ForcePinChangeDialog> {
           ),
         ),
         Divider(height: 0, thickness: 1),
-        Padding(
-          padding: Spacing.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              CustomizedButton.rounded(
-                onPressed: _submitting
-                    ? null
-                    : () {
-                        Navigator.pop(context);
-                        widget.onCancel();
-                      },
-                elevation: 0,
-                padding: Spacing.xy(20, 16),
-                backgroundColor: ContentThemeColor.secondary.color,
-                child: CustomizedText.labelMedium(
-                  S.of(context).cancel,
-                  color: ContentThemeColor.secondary.onColor,
-                ),
-              ),
-              Spacing.width(16),
-              CustomizedButton.rounded(
-                onPressed: _submitting ? null : _submit,
-                elevation: 0,
-                padding: Spacing.xy(20, 16),
-                backgroundColor: ContentThemeColor.primary.color,
-                child: CustomizedText.labelMedium(
-                  S.of(context).confirm,
-                  color: ContentThemeColor.primary.onColor,
-                ),
-              ),
-            ],
-          ),
+        AppDialogActions(
+          children: [
+            AppDialogAction(
+              label: S.of(context).cancel,
+              onPressed: _submitting
+                  ? null
+                  : () {
+                      Navigator.pop(context);
+                      widget.onCancel();
+                    },
+              secondary: true,
+              destructive: false,
+            ),
+            AppDialogAction(
+              label: S.of(context).confirm,
+              onPressed: _submitting ? null : _submit,
+              secondary: false,
+              destructive: false,
+            ),
+          ],
         ),
       ],
     );

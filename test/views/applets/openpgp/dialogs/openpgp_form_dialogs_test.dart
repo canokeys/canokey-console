@@ -1,7 +1,6 @@
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
-import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/models/openpgp.dart';
 import 'package:canokey_console/views/applets/openpgp/dialogs/openpgp_pin_retries_dialog.dart';
 import 'package:canokey_console/views/applets/openpgp/dialogs/openpgp_reset_code_dialog.dart';
@@ -141,11 +140,11 @@ void main() {
     await _tap(tester, OpenPgpTouchPolicy.permanent.label);
     final confirm = find.ancestor(
       of: find.text(S.current.confirm),
-      matching: find.byType(CustomizedButton),
+      matching: find.byType(AppDialogAction),
     );
-    expect(tester.widget<CustomizedButton>(confirm).onPressed, isNull);
+    expect(tester.widget<AppDialogAction>(confirm).onPressed, isNull);
     await _tap(tester, S.current.openpgpPermanentTouchConfirmation);
-    expect(tester.widget<CustomizedButton>(confirm).onPressed, isNotNull);
+    expect(tester.widget<AppDialogAction>(confirm).onPressed, isNotNull);
     final field = find.byType(TextFormField);
     await tester.ensureVisible(field);
     await tester.enterText(field, '12345678');
@@ -153,7 +152,7 @@ void main() {
     expect(submitted, OpenPgpTouchPolicy.permanent);
     await _tap(tester, OpenPgpTouchPolicy.off.label);
     await _tap(tester, OpenPgpTouchPolicy.permanent.label);
-    expect(tester.widget<CustomizedButton>(confirm).onPressed, isNull);
+    expect(tester.widget<AppDialogAction>(confirm).onPressed, isNull);
   });
 }
 

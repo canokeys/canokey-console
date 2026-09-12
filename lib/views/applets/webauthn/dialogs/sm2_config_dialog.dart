@@ -4,7 +4,6 @@ import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
-import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
@@ -90,12 +89,7 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: Spacing.all(16),
-            child: CustomizedText.labelLarge(
-              S.of(context).settingsWebAuthnSm2Support,
-            ),
-          ),
+          AppDialogHeader(title: S.of(context).settingsWebAuthnSm2Support),
           Divider(height: 0, thickness: 1),
           Padding(
             padding: Spacing.all(16),
@@ -157,34 +151,21 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
               ),
             ),
           Divider(height: 0, thickness: 1),
-          Padding(
-            padding: Spacing.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                CustomizedButton.rounded(
-                  onPressed: () => Navigator.pop(context),
-                  elevation: 0,
-                  padding: Spacing.xy(20, 16),
-                  backgroundColor: contentTheme.secondary,
-                  child: CustomizedText.labelMedium(
-                    S.of(context).close,
-                    color: contentTheme.onSecondary,
-                  ),
-                ),
-                Spacing.width(16),
-                CustomizedButton.rounded(
-                  onPressed: _onSubmit,
-                  elevation: 0,
-                  padding: Spacing.xy(20, 16),
-                  backgroundColor: contentTheme.primary,
-                  child: CustomizedText.labelMedium(
-                    S.of(context).save,
-                    color: contentTheme.onPrimary,
-                  ),
-                ),
-              ],
-            ),
+          AppDialogActions(
+            children: [
+              AppDialogAction(
+                label: S.of(context).close,
+                onPressed: () => Navigator.pop(context),
+                secondary: true,
+                destructive: false,
+              ),
+              AppDialogAction(
+                label: S.of(context).save,
+                onPressed: _onSubmit,
+                secondary: false,
+                destructive: false,
+              ),
+            ],
           ),
         ],
       ),
@@ -207,8 +188,6 @@ class Sm2IdentifierValidator extends IntValidator {
     final valid = curve
         ? WebAuthnSm2Config.isValidCurveId(id)
         : WebAuthnSm2Config.isValidAlgorithmId(id);
-    return valid
-        ? null
-        : S.current.sm2ReservedId;
+    return valid ? null : S.current.sm2ReservedId;
   }
 }

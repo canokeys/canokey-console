@@ -809,6 +809,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivPinRetries": MessageLookupByLibrary.simpleMessage("PIN 重试次数"),
     "pivPostQuantumCertificateGenerationDisabled":
         MessageLookupByLibrary.simpleMessage("此算法不支持生成 CSR、自签名证书或密钥证明。"),
+    "pivPrintedDataWarning": MessageLookupByLibrary.simpleMessage(
+      "警告：启用 PIN-only 模式后，切勿覆盖 PRINTED（Printed Information）数据对象。该对象保存着受 PIN 保护的管理密钥，覆盖它将导致密钥丢失，失去对 PIV 应用的管理权限。",
+    ),
     "pivPrivateKey": MessageLookupByLibrary.simpleMessage("私钥"),
     "pivProvisioning": MessageLookupByLibrary.simpleMessage("配置"),
     "pivProvisioningDescription": MessageLookupByLibrary.simpleMessage(
@@ -992,6 +995,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "各应用占用空间",
     ),
     "settingsAppletSwitches": MessageLookupByLibrary.simpleMessage("应用开关"),
+    "settingsAppletSwitchesDescription": MessageLookupByLibrary.simpleMessage(
+      "选择要启用的应用及其可用的通信方式。",
+    ),
     "settingsChangeLanguage": MessageLookupByLibrary.simpleMessage("修改语言"),
     "settingsChipId": MessageLookupByLibrary.simpleMessage("芯片 ID"),
     "settingsClearPinCache": MessageLookupByLibrary.simpleMessage("清除已保存的 PIN"),

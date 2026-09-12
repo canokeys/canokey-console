@@ -1,9 +1,7 @@
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
-import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/field_validator.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
@@ -39,7 +37,14 @@ class ChangePinDialog extends StatefulWidget {
     required Future<void> Function(String oldValue, String newValue) onSubmit,
   }) {
     return AppDialog.show(
-      ChangePinDialog(title: title, oldValueLabel: oldValueLabel, newValueLabel: newValueLabel, prompt: prompt, validators: validators, onSubmit: onSubmit),
+      ChangePinDialog(
+        title: title,
+        oldValueLabel: oldValueLabel,
+        newValueLabel: newValueLabel,
+        prompt: prompt,
+        validators: validators,
+        onSubmit: onSubmit,
+      ),
     );
   }
 
@@ -55,8 +60,18 @@ class _ChangePinDialogState extends State<ChangePinDialog> {
   @override
   void initState() {
     super.initState();
-    _validator.addField('old', required: true, controller: TextEditingController(), validators: widget.validators);
-    _validator.addField('new', required: true, controller: TextEditingController(), validators: widget.validators);
+    _validator.addField(
+      'old',
+      required: true,
+      controller: TextEditingController(),
+      validators: widget.validators,
+    );
+    _validator.addField(
+      'new',
+      required: true,
+      controller: TextEditingController(),
+      validators: widget.validators,
+    );
   }
 
   @override
@@ -68,10 +83,7 @@ class _ChangePinDialogState extends State<ChangePinDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(widget.title),
-            ),
+            AppDialogHeader(title: widget.title),
             Divider(height: 0, thickness: 1),
             Padding(
               padding: Spacing.all(16),
@@ -82,72 +94,74 @@ class _ChangePinDialogState extends State<ChangePinDialog> {
               padding: Spacing.all(16),
               child: Form(
                 key: _validator.formKey,
-                child: Obx(() => Column(
-                      children: [
-                        TextFormField(
-                          autofocus: true,
-                          onTap: SmartCard.eject,
-                          obscureText: !showOldPin.value,
-                          controller: _validator.getController('old'),
-                          validator: _validator.getValidator('old'),
-                          decoration: InputDecoration(
-                            labelText: widget.oldValueLabel,
-                            border: _outlineInputBorder,
-                            suffixIcon: IconButton(
-                              icon: Icon(showOldPin.value ? Icons.visibility : Icons.visibility_off),
-                              onPressed: () => showOldPin.toggle(),
+                child: Obx(
+                  () => Column(
+                    children: [
+                      TextFormField(
+                        autofocus: true,
+                        onTap: SmartCard.eject,
+                        obscureText: !showOldPin.value,
+                        controller: _validator.getController('old'),
+                        validator: _validator.getValidator('old'),
+                        decoration: InputDecoration(
+                          labelText: widget.oldValueLabel,
+                          border: _outlineInputBorder,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              showOldPin.value
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
                             ),
+                            onPressed: () => showOldPin.toggle(),
                           ),
                         ),
-                        Spacing.height(16),
-                        TextFormField(
-                          onTap: SmartCard.eject,
-                          obscureText: !showNewPin.value,
-                          controller: _validator.getController('new'),
-                          validator: _validator.getValidator('new'),
-                          decoration: InputDecoration(
-                            labelText: widget.newValueLabel,
-                            border: _outlineInputBorder,
-                            suffixIcon: IconButton(
-                              icon: Icon(showNewPin.value ? Icons.visibility : Icons.visibility_off),
-                              onPressed: () => showNewPin.toggle(),
+                      ),
+                      Spacing.height(16),
+                      TextFormField(
+                        onTap: SmartCard.eject,
+                        obscureText: !showNewPin.value,
+                        controller: _validator.getController('new'),
+                        validator: _validator.getValidator('new'),
+                        decoration: InputDecoration(
+                          labelText: widget.newValueLabel,
+                          border: _outlineInputBorder,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              showNewPin.value
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
                             ),
+                            onPressed: () => showNewPin.toggle(),
                           ),
                         ),
-                      ],
-                    )),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
             Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Wrap(
-                alignment: WrapAlignment.end,
-                spacing: 16,
-                runSpacing: 12,
-                children: [
-                  CustomizedButton.rounded(
-                    onPressed: () => Navigator.pop(Get.context!),
-                    elevation: 0,
-                    padding: Spacing.xy(20, 16),
-                    backgroundColor: ContentThemeColor.secondary.color,
-                    child: CustomizedText.labelMedium(S.of(Get.context!).cancel, color: ContentThemeColor.secondary.onColor),
-                  ),
-                  CustomizedButton.rounded(
-                    onPressed: () {
-                      if (_validator.validateForm()) {
-                        final o = _validator.getController('old')!.text;
-                        final n = _validator.getController('new')!.text;
-                        widget.onSubmit(o, n);
-                      }
-                    },
-                    elevation: 0,
-                    padding: Spacing.xy(20, 16),
-                    backgroundColor: ContentThemeColor.primary.color,
-                    child: CustomizedText.labelMedium(S.of(Get.context!).confirm, color: ContentThemeColor.primary.onColor),
-                  ),
-                ],
-              ),
+            AppDialogActions(
+              children: [
+                AppDialogAction(
+                  label: S.of(Get.context!).cancel,
+                  onPressed: () => Navigator.pop(Get.context!),
+                  secondary: true,
+                  destructive: false,
+                ),
+                AppDialogAction(
+                  label: S.of(Get.context!).confirm,
+                  onPressed: () {
+                    if (_validator.validateForm()) {
+                      final o = _validator.getController('old')!.text;
+                      final n = _validator.getController('new')!.text;
+                      widget.onSubmit(o, n);
+                    }
+                  },
+                  secondary: false,
+                  destructive: false,
+                ),
+              ],
             ),
           ],
         ),
@@ -157,6 +171,10 @@ class _ChangePinDialogState extends State<ChangePinDialog> {
 
   final _outlineInputBorder = OutlineInputBorder(
     borderRadius: BorderRadius.all(Radius.circular(4)),
-    borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onSurface.withAlpha(80)),
+    borderSide: BorderSide(
+      width: 1,
+      strokeAlign: 0,
+      color: AppTheme.theme.colorScheme.onSurface.withAlpha(80),
+    ),
   );
 }

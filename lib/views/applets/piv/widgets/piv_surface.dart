@@ -1,3 +1,4 @@
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:canokey_console/helper/widgets/customized_text_style.dart';
@@ -276,32 +277,5 @@ class PivDialog extends StatelessWidget {
   const PivDialog({super.key, required this.child});
   final Widget child;
   @override
-  Widget build(BuildContext context) => Dialog(
-    backgroundColor: PivStyle.surface(context),
-    surfaceTintColor: Colors.transparent,
-    insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    clipBehavior: Clip.antiAlias,
-    child: Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: PivStyle.dark(context)
-              ? [
-                  const Color(0xff213934),
-                  PivStyle.surface(context),
-                  PivStyle.surface(context),
-                ]
-              : [
-                  const Color(0xfff0fdfa),
-                  Colors.white,
-                  const Color(0xfff7fbfd),
-                ],
-          stops: const [0, .3, 1],
-        ),
-      ),
-      child: child,
-    ),
-  );
+  Widget build(BuildContext context) => AppDialogSurface(child: child);
 }

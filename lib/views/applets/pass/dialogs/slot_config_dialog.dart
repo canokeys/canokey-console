@@ -161,26 +161,7 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(22, 14, 12, 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: CustomizedText.titleLarge(
-                      S.of(context).passSlotConfigTitle,
-                      fontSize: 20,
-                      fontWeight: 600,
-                      color: colors.onSurface,
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: S.of(context).close,
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, size: 22),
-                  ),
-                ],
-              ),
-            ),
+            AppDialogHeader(title: S.of(context).passSlotConfigTitle),
             Divider(height: 1, thickness: 1, color: border),
             Padding(
               padding: const EdgeInsets.all(22),
@@ -328,42 +309,18 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
                 ),
               ),
             Divider(height: 1, thickness: 1, color: border),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Wrap(
-                alignment: WrapAlignment.end,
-                spacing: 16,
-                runSpacing: 10,
-                children: [
-                  OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: colors.onSurface,
-                      backgroundColor: dark
-                          ? const Color(0xff26343d)
-                          : const Color(0xfff5f7f9),
-                      side: BorderSide(color: border),
-                      minimumSize: const Size(100, 46),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(7),
-                      ),
-                    ),
-                    child: Text(S.of(context).cancel),
-                  ),
-                  FilledButton(
-                    onPressed: _onSubmit,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _accent,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(100, 46),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(7),
-                      ),
-                    ),
-                    child: Text(S.of(context).save),
-                  ),
-                ],
-              ),
+            AppDialogActions(
+              children: [
+                AppDialogAction(
+                  label: S.of(context).cancel,
+                  secondary: true,
+                  onPressed: () => Navigator.pop(context),
+                ),
+                AppDialogAction(
+                  label: S.of(context).save,
+                  onPressed: _onSubmit,
+                ),
+              ],
             ),
           ],
         ),

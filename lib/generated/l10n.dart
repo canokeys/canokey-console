@@ -839,6 +839,16 @@ class S {
     );
   }
 
+  /// `Choose which applets to enable and how they can communicate.`
+  String get settingsAppletSwitchesDescription {
+    return Intl.message(
+      'Choose which applets to enable and how they can communicate.',
+      name: 'settingsAppletSwitchesDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Pass`
   String get settingsPassApplet {
     return Intl.message('Pass', name: 'settingsPassApplet', desc: '', args: []);
@@ -3279,6 +3289,16 @@ class S {
     return Intl.message(
       'A random management key will be set and stored on the card, protected by PIN. PUK will be blocked and cannot recover a forgotten or blocked PIN. PIN/PUK retries cannot be reset while this mode is enabled.',
       name: 'pivEnablePinProtectedManagementKeyPrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Warning: Do not overwrite the PRINTED (Printed Information) data object while PIN-only mode is enabled. It stores the PIN-protected management key. Overwriting it will lose that key and your ability to manage the PIV application.`
+  String get pivPrintedDataWarning {
+    return Intl.message(
+      'Warning: Do not overwrite the PRINTED (Printed Information) data object while PIN-only mode is enabled. It stores the PIN-protected management key. Overwriting it will lose that key and your ability to manage the PIV application.',
+      name: 'pivPrintedDataWarning',
       desc: '',
       args: [],
     );

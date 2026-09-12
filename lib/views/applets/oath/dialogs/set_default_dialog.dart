@@ -3,7 +3,6 @@ import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
-import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_container.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
@@ -14,20 +13,30 @@ class SetDefaultDialog extends BaseDialog with UIMixin {
   final String name;
   final Function(int slot, bool withEnter) onSetDefault;
 
-  const SetDefaultDialog({super.key, required this.name, required this.onSetDefault});
+  const SetDefaultDialog({
+    super.key,
+    required this.name,
+    required this.onSetDefault,
+  });
 
   @override
   bool get managesOwnScrolling => true;
 
-  static Future<void> show({required String name, required Function(int slot, bool withEnter) onSetDefault}) {
-    return AppDialog.show(SetDefaultDialog(name: name, onSetDefault: onSetDefault));
+  static Future<void> show({
+    required String name,
+    required Function(int slot, bool withEnter) onSetDefault,
+  }) {
+    return AppDialog.show(
+      SetDefaultDialog(name: name, onSetDefault: onSetDefault),
+    );
   }
 
   @override
   State<SetDefaultDialog> createState() => _SetDefaultDialogState();
 }
 
-class _SetDefaultDialogState extends BaseDialogState<SetDefaultDialog> with UIMixin {
+class _SetDefaultDialogState extends BaseDialogState<SetDefaultDialog>
+    with UIMixin {
   static const double _contentPadding = 16;
   static const double _slotLabelWidth = 80;
   static const double _iconSize = 22;
@@ -58,7 +67,9 @@ class _SetDefaultDialogState extends BaseDialogState<SetDefaultDialog> with UIMi
         child: Row(
           children: <Widget>[
             CustomizedText.labelMedium(
-              slot.value == 1 ? S.of(context).passSlotShort : S.of(context).passSlotLong,
+              slot.value == 1
+                  ? S.of(context).passSlotShort
+                  : S.of(context).passSlotLong,
               color: contentTheme.onBackground,
             ),
             Container(
@@ -68,7 +79,7 @@ class _SetDefaultDialogState extends BaseDialogState<SetDefaultDialog> with UIMi
                 size: _iconSize,
                 color: contentTheme.onBackground,
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -108,16 +119,15 @@ class _SetDefaultDialogState extends BaseDialogState<SetDefaultDialog> with UIMi
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(_contentPadding),
-              child: CustomizedText.labelLarge(S.of(context).oathSetDefault),
-            ),
+            AppDialogHeader(title: S.of(context).oathSetDefault),
             const Divider(height: 0, thickness: 1),
             Padding(
               padding: const EdgeInsets.all(_contentPadding),
               child: Column(
                 children: [
-                  CustomizedText.labelLarge(S.of(context).oathSetDefaultPrompt(widget.name)),
+                  CustomizedText.labelLarge(
+                    S.of(context).oathSetDefaultPrompt(widget.name),
+                  ),
                   Spacing.height(_contentPadding),
                   _buildSlotSelector(),
                   Spacing.height(_contentPadding),
@@ -128,38 +138,30 @@ class _SetDefaultDialogState extends BaseDialogState<SetDefaultDialog> with UIMi
             if (errorMessage.value.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.all(_contentPadding),
-                child: CustomizedText.bodyMedium(errorMessage.value,
-                    color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color),
+                child: CustomizedText.bodyMedium(
+                  errorMessage.value,
+                  color: errorLevel.value == 'E'
+                      ? ContentThemeColor.danger.color
+                      : ContentThemeColor.warning.color,
+                ),
               ),
             const Divider(height: 0, thickness: 1),
-            Padding(
-              padding: const EdgeInsets.all(_contentPadding),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  CustomizedButton.rounded(
-                    onPressed: () => Navigator.pop(context),
-                    elevation: 0,
-                    padding: Spacing.xy(20, _contentPadding),
-                    backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(
-                      S.of(context).cancel,
-                      color: contentTheme.onSecondary,
-                    ),
-                  ),
-                  Spacing.width(_contentPadding),
-                  CustomizedButton.rounded(
-                    onPressed: () => widget.onSetDefault(slot.value, withEnter.value),
-                    elevation: 0,
-                    padding: Spacing.xy(20, _contentPadding),
-                    backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(
-                      S.of(context).save,
-                      color: contentTheme.onPrimary,
-                    ),
-                  ),
-                ],
-              ),
+            AppDialogActions(
+              children: [
+                AppDialogAction(
+                  label: S.of(context).cancel,
+                  onPressed: () => Navigator.pop(context),
+                  secondary: true,
+                  destructive: false,
+                ),
+                AppDialogAction(
+                  label: S.of(context).save,
+                  onPressed: () =>
+                      widget.onSetDefault(slot.value, withEnter.value),
+                  secondary: false,
+                  destructive: false,
+                ),
+              ],
             ),
           ],
         ),

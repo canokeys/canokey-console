@@ -2,13 +2,10 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
-import 'package:canokey_console/helper/widgets/customized_button.dart';
-import 'package:canokey_console/helper/widgets/customized_text.dart';
-import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class StartPageDialog extends StatelessWidget with UIMixin {
+class StartPageDialog extends StatefulWidget {
   const StartPageDialog({super.key});
 
   static Future<void> show() {
@@ -36,73 +33,79 @@ class StartPageDialog extends StatelessWidget with UIMixin {
     }
   }
 
-  Widget _buildStartPageItem(BuildContext context, RxString startPage, String path) {
-    return RadioListTile(
-      dense: true,
-      contentPadding: Spacing.x(16),
-      title: CustomizedText.bodyMedium(pageName(context, path)),
-      value: path,
-      groupValue: startPage.value,
-      activeColor: contentTheme.primary,
-      onChanged: (value) => startPage.value = value!,
+  @override
+  State<StartPageDialog> createState() => _StartPageDialogState();
+}
+
+class _StartPageDialogState extends State<StartPageDialog> with UIMixin {
+  late final startPage = (LocalStorage.getStartPage() ?? '/').obs;
+
+  Widget _buildStartPageItem(
+    BuildContext context,
+    RxString startPage,
+    String path,
+  ) {
+    return AppDialogChoice(
+      title: StartPageDialog.pageName(context, path),
+      selected: startPage.value == path,
+      onTap: () => startPage.value = path,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final startPage = (LocalStorage.getStartPage() ?? '/').obs;
-
     return AppDialogSurface(
       child: SizedBox(
         width: AppDialogWidth.compact,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(S.of(context).settingsStartPage),
-            ),
-            Divider(height: 0, thickness: 1),
-            Obx(() => Column(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppDialogHeader(
+                title: S.of(context).settingsStartPage,
+                icon: Icons.home_outlined,
+              ),
+              Divider(height: 0, thickness: 1),
+              Obx(
+                () => Column(
                   children: [
                     _buildStartPageItem(context, startPage, '/'),
                     _buildStartPageItem(context, startPage, '/applets/oath'),
-                    _buildStartPageItem(context, startPage, '/applets/webauthn'),
+                    _buildStartPageItem(
+                      context,
+                      startPage,
+                      '/applets/webauthn',
+                    ),
                     _buildStartPageItem(context, startPage, '/applets/pass'),
                     _buildStartPageItem(context, startPage, '/applets/piv'),
                     _buildStartPageItem(context, startPage, '/applets/openpgp'),
                     _buildStartPageItem(context, startPage, '/applets/ndef'),
                   ],
-                )),
-            Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                ),
+              ),
+              Divider(height: 0, thickness: 1),
+              AppDialogActions(
                 children: [
-                  CustomizedButton.rounded(
+                  AppDialogAction(
+                    label: S.of(context).cancel,
                     onPressed: () => Navigator.pop(context),
-                    elevation: 0,
-                    padding: Spacing.xy(20, 16),
-                    backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
+                    secondary: true,
+                    destructive: false,
                   ),
-                  Spacing.width(16),
-                  CustomizedButton.rounded(
+                  AppDialogAction(
+                    label: S.of(context).confirm,
                     onPressed: () {
                       LocalStorage.setStartPage(startPage.value);
                       Navigator.pop(context);
                     },
-                    elevation: 0,
-                    padding: Spacing.xy(20, 16),
-                    backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(S.of(context).confirm, color: contentTheme.onPrimary),
+                    secondary: false,
+                    destructive: false,
                   ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

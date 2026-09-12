@@ -7,7 +7,6 @@ import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
-import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
@@ -18,8 +17,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AddAccountDialog extends BaseDialog with UIMixin {
-  final Function(String name, String secretHex, OathType type,
-      OathAlgorithm algo, int digits, bool touch, int initValue) onAddAccount;
+  final Function(
+    String name,
+    String secretHex,
+    OathType type,
+    OathAlgorithm algo,
+    int digits,
+    bool touch,
+    int initValue,
+  )
+  onAddAccount;
   final String? initialIssuer;
   final String? initialAccount;
   final String? initialSecret;
@@ -44,9 +51,16 @@ class AddAccountDialog extends BaseDialog with UIMixin {
   bool get managesOwnScrolling => true;
 
   static Future<void> show(
-    Function(String name, String secretHex, OathType type, OathAlgorithm algo,
-            int digits, bool touch, int initValue)
-        onAddAccount, {
+    Function(
+      String name,
+      String secretHex,
+      OathType type,
+      OathAlgorithm algo,
+      int digits,
+      bool touch,
+      int initValue,
+    )
+    onAddAccount, {
     String? initialIssuer,
     String? initialAccount,
     String? initialSecret,
@@ -123,13 +137,14 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
     }
 
     widget.onAddAccount(
-        name,
-        secretHex,
-        formData.oathType.value,
-        formData.oathAlgorithm.value,
-        formData.oathDigits.value,
-        formData.requireTouch.value,
-        initValue);
+      name,
+      secretHex,
+      formData.oathType.value,
+      formData.oathAlgorithm.value,
+      formData.oathDigits.value,
+      formData.requireTouch.value,
+      initValue,
+    );
   }
 
   String _decodeSecret(String secret, String issuer) {
@@ -152,15 +167,9 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
           autofocus: true,
         ),
         Spacing.height(_kPadding),
-        _buildTextField(
-          label: S.of(context).oathAccount,
-          fieldName: 'account',
-        ),
+        _buildTextField(label: S.of(context).oathAccount, fieldName: 'account'),
         Spacing.height(_kPadding),
-        _buildTextField(
-          label: S.of(context).oathSecret,
-          fieldName: 'secret',
-        ),
+        _buildTextField(label: S.of(context).oathSecret, fieldName: 'secret'),
       ],
     );
   }
@@ -188,13 +197,15 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
       padding: const EdgeInsets.symmetric(vertical: _kPadding),
       child: Row(
         children: [
-          Obx(() => Checkbox(
-                onChanged: (value) => formData.requireTouch.value = value!,
-                value: formData.requireTouch.value,
-                activeColor: contentTheme.primary,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: getCompactDensity,
-              )),
+          Obx(
+            () => Checkbox(
+              onChanged: (value) => formData.requireTouch.value = value!,
+              value: formData.requireTouch.value,
+              activeColor: contentTheme.primary,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: getCompactDensity,
+            ),
+          ),
           Spacing.width(_kPadding),
           CustomizedText.bodyMedium(S.of(context).oathRequireTouch),
         ],
@@ -223,12 +234,14 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
       child: Wrap(
         spacing: _kPadding,
         children: OathType.values
-            .map((type) => _buildRadioOption(
-                  value: type,
-                  groupValue: formData.oathType.value,
-                  onChanged: (type) => formData.oathType.value = type!,
-                  label: type.name.toUpperCase(),
-                ))
+            .map(
+              (type) => _buildRadioOption(
+                value: type,
+                groupValue: formData.oathType.value,
+                onChanged: (type) => formData.oathType.value = type!,
+                label: type.name.toUpperCase(),
+              ),
+            )
             .toList(),
       ),
     );
@@ -240,12 +253,14 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
       child: Wrap(
         spacing: _kPadding,
         children: OathAlgorithm.values
-            .map((algo) => _buildRadioOption(
-                  value: algo,
-                  groupValue: formData.oathAlgorithm.value,
-                  onChanged: (algo) => formData.oathAlgorithm.value = algo!,
-                  label: algo.name.toUpperCase(),
-                ))
+            .map(
+              (algo) => _buildRadioOption(
+                value: algo,
+                groupValue: formData.oathAlgorithm.value,
+                onChanged: (algo) => formData.oathAlgorithm.value = algo!,
+                label: algo.name.toUpperCase(),
+              ),
+            )
             .toList(),
       ),
     );
@@ -257,12 +272,14 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
       child: Wrap(
         spacing: _kPadding,
         children: _kValidDigits
-            .map((digits) => _buildRadioOption(
-                  value: digits,
-                  groupValue: formData.oathDigits.value,
-                  onChanged: (digits) => formData.oathDigits.value = digits!,
-                  label: digits.toString(),
-                ))
+            .map(
+              (digits) => _buildRadioOption(
+                value: digits,
+                groupValue: formData.oathDigits.value,
+                onChanged: (digits) => formData.oathDigits.value = digits!,
+                label: digits.toString(),
+              ),
+            )
             .toList(),
       ),
     );
@@ -271,10 +288,7 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
   Widget _buildOptionRow({required String label, required Widget child}) {
     return Row(
       children: [
-        SizedBox(
-          width: _kLabelWidth,
-          child: CustomizedText.labelLarge(label),
-        ),
+        SizedBox(width: _kLabelWidth, child: CustomizedText.labelLarge(label)),
         Expanded(child: child),
       ],
     );
@@ -346,40 +360,29 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
             if (errorMessage.value.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.all(_kPadding),
-                child: CustomizedText.bodyMedium(errorMessage.value,
-                    color: errorLevel.value == 'E'
-                        ? ContentThemeColor.danger.color
-                        : ContentThemeColor.warning.color),
+                child: CustomizedText.bodyMedium(
+                  errorMessage.value,
+                  color: errorLevel.value == 'E'
+                      ? ContentThemeColor.danger.color
+                      : ContentThemeColor.warning.color,
+                ),
               ),
             const Divider(height: 0, thickness: 1),
-            Padding(
-              padding: const EdgeInsets.all(_kPadding),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  CustomizedButton.rounded(
-                    onPressed: () => Navigator.pop(context),
-                    elevation: 0,
-                    padding: Spacing.xy(20, _kPadding),
-                    backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(
-                      S.of(context).close,
-                      color: contentTheme.onSecondary,
-                    ),
-                  ),
-                  Spacing.width(_kPadding),
-                  CustomizedButton.rounded(
-                    onPressed: _handleSave,
-                    elevation: 0,
-                    padding: Spacing.xy(20, _kPadding),
-                    backgroundColor: contentTheme.primary,
-                    child: CustomizedText.labelMedium(
-                      S.of(context).save,
-                      color: contentTheme.onPrimary,
-                    ),
-                  ),
-                ],
-              ),
+            AppDialogActions(
+              children: [
+                AppDialogAction(
+                  label: S.of(context).close,
+                  onPressed: () => Navigator.pop(context),
+                  secondary: true,
+                  destructive: false,
+                ),
+                AppDialogAction(
+                  label: S.of(context).save,
+                  onPressed: _handleSave,
+                  secondary: false,
+                  destructive: false,
+                ),
+              ],
             ),
           ],
         ),
@@ -413,20 +416,28 @@ class _OathFormData {
     int? initialDigits,
   }) {
     final validator = FormValidator();
-    validator.addField('issuer',
-        required: true, controller: TextEditingController(text: initialIssuer));
-    validator.addField('account',
-        required: true,
-        controller: TextEditingController(text: initialAccount));
-    validator.addField('secret',
-        required: true,
-        controller: TextEditingController(text: initialSecret),
-        validators: [LengthValidator(min: 8, max: 103)]);
+    validator.addField(
+      'issuer',
+      required: true,
+      controller: TextEditingController(text: initialIssuer),
+    );
+    validator.addField(
+      'account',
+      required: true,
+      controller: TextEditingController(text: initialAccount),
+    );
+    validator.addField(
+      'secret',
+      required: true,
+      controller: TextEditingController(text: initialSecret),
+      validators: [LengthValidator(min: 8, max: 103)],
+    );
     validator.addField(
       'counter',
       required: true,
-      controller:
-          TextEditingController(text: initialCounter?.toString() ?? '0'),
+      controller: TextEditingController(
+        text: initialCounter?.toString() ?? '0',
+      ),
       validators: [IntValidator(min: 0, max: 4294967295)],
     );
 
