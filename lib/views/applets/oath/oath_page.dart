@@ -87,7 +87,7 @@ class _OathPageState extends State<OathPage> with UIMixin {
       MediaQuery.sizeOf(context).width,
     ).isMobile;
     return Layout(
-      title: 'TOTP / HOTP',
+      title: 'OTP',
       onRefresh: controller.refreshData,
       topActions: GetBuilder(
         init: controller,
@@ -162,7 +162,7 @@ class _OathPageState extends State<OathPage> with UIMixin {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     CustomizedText.headlineMedium(
-                                      'TOTP / HOTP',
+                                      'OTP',
                                       fontWeight: 700,
                                       color: Theme.of(
                                         context,

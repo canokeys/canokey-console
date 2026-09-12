@@ -363,9 +363,9 @@ class SettingsController extends PollingController with AdminApplet {
     0x01: 'Admin',
     0x02: 'OpenPGP',
     0x03: 'PIV',
-    0x04: 'TOTP / HOTP',
+    0x04: 'OTP',
     0x05: 'WebAuthn',
-    0x06: 'NDEF',
+    0x06: 'NFC Tag',
     0x07: 'Pass',
   };
 

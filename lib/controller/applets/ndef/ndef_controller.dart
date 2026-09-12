@@ -59,7 +59,7 @@ class NdefController extends PollingController {
     await SmartCard.process((_) async {
       final cardData = await _client.read();
       if (cardData == null) {
-        disabledMessage = AppletSwitches.disabledMessage('NDEF');
+        disabledMessage = AppletSwitches.disabledMessage('NFC Tag');
         polled = false;
         update();
         return;
@@ -131,7 +131,7 @@ class NdefController extends PollingController {
     try {
       await SmartCard.process((_) async {
         if (!await _client.write(message)) {
-          disabledMessage = AppletSwitches.disabledMessage('NDEF');
+          disabledMessage = AppletSwitches.disabledMessage('NFC Tag');
           polled = false;
           update();
           return;

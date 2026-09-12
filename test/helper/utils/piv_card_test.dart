@@ -7,6 +7,27 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
+    'empty VERIFY reads remaining attempts without guessing on success',
+    () async {
+      final transport = _QueueApduTransport([
+        '63C3',
+        '63c1',
+        '63C0',
+        '6983',
+        '9000',
+        '6D00',
+        '6A88',
+        '6F00',
+      ]);
+      final client = PivCardClient(transport: transport);
+      for (final expected in [3, 1, 0, 0, null, null, null, null]) {
+        expect(await client.readRemainingPinRetries(), expected);
+      }
+      expect(transport.commands, List.filled(8, '0020008000'));
+    },
+  );
+
+  test(
     'PUK change and PIN unblock share PIN encoding and report failures',
     () async {
       final transport = _QueueApduTransport(['63C2', '9000']);

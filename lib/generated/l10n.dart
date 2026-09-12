@@ -894,10 +894,10 @@ class S {
     );
   }
 
-  /// `NFC Tag Mode (NDEF)`
+  /// `NFC Tag Mode`
   String get settingsNDEF {
     return Intl.message(
-      'NFC Tag Mode (NDEF)',
+      'NFC Tag Mode',
       name: 'settingsNDEF',
       desc: '',
       args: [],
@@ -1089,10 +1089,10 @@ class S {
     );
   }
 
-  /// `The NDEF tag is read-only.`
+  /// `The NFC tag is read-only.`
   String get ndefReadOnly {
     return Intl.message(
-      'The NDEF tag is read-only.',
+      'The NFC tag is read-only.',
       name: 'ndefReadOnly',
       desc: '',
       args: [],
@@ -1109,10 +1109,10 @@ class S {
     );
   }
 
-  /// `Could not read the existing NFC tag content. To start over, reset NDEF in Settings. This deletes the existing tag content.`
+  /// `Could not read the existing NFC tag content. To start over, reset NFC Tag in Settings. This deletes the existing tag content.`
   String get ndefInvalidMessage {
     return Intl.message(
-      'Could not read the existing NFC tag content. To start over, reset NDEF in Settings. This deletes the existing tag content.',
+      'Could not read the existing NFC tag content. To start over, reset NFC Tag in Settings. This deletes the existing tag content.',
       name: 'ndefInvalidMessage',
       desc: '',
       args: [],
@@ -1129,10 +1129,10 @@ class S {
     );
   }
 
-  /// `NDEF records saved`
+  /// `NFC tag records saved`
   String get ndefSaved {
     return Intl.message(
-      'NDEF records saved',
+      'NFC tag records saved',
       name: 'ndefSaved',
       desc: '',
       args: [],
@@ -1754,20 +1754,20 @@ class S {
     );
   }
 
-  /// `Reset TOTP/HOTP`
+  /// `Reset OTP`
   String get settingsResetOATH {
     return Intl.message(
-      'Reset TOTP/HOTP',
+      'Reset OTP',
       name: 'settingsResetOATH',
       desc: '',
       args: [],
     );
   }
 
-  /// `Reset NDEF`
+  /// `Reset NFC Tag`
   String get settingsResetNDEF {
     return Intl.message(
-      'Reset NDEF',
+      'Reset NFC Tag',
       name: 'settingsResetNDEF',
       desc: '',
       args: [],
@@ -2144,10 +2144,10 @@ class S {
     );
   }
 
-  /// `Enter the passphrase that protects the TOTP / HOTP accounts on this CanoKey.`
+  /// `Enter the passphrase that protects the OTP accounts on this CanoKey.`
   String get oathInputCodePrompt {
     return Intl.message(
-      'Enter the passphrase that protects the TOTP / HOTP accounts on this CanoKey.',
+      'Enter the passphrase that protects the OTP accounts on this CanoKey.',
       name: 'oathInputCodePrompt',
       desc: '',
       args: [],
@@ -2274,10 +2274,10 @@ class S {
     );
   }
 
-  /// `Choose what happens when you touch CanoKey. To output HOTP codes, configure an account on the TOTP / HOTP page.`
+  /// `Choose what happens when you touch CanoKey. To output HOTP codes, configure an account on the OTP page.`
   String get passSlotConfigPrompt {
     return Intl.message(
-      'Choose what happens when you touch CanoKey. To output HOTP codes, configure an account on the TOTP / HOTP page.',
+      'Choose what happens when you touch CanoKey. To output HOTP codes, configure an account on the OTP page.',
       name: 'passSlotConfigPrompt',
       desc: '',
       args: [],

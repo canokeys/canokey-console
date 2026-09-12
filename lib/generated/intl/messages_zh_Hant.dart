@@ -207,7 +207,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "請輸入類似 AA:BB:CC:DD:EE:FF 的 MAC 位址。",
     ),
     "ndefInvalidMessage": MessageLookupByLibrary.simpleMessage(
-      "無法讀取現有的 NFC 標籤內容。如需重新設定，請在設定中重置 NDEF；這會刪除原有的標籤內容。",
+      "無法讀取現有的 NFC 標籤內容。如需重新設定，請在設定中重置 NFC Tag；這會刪除原有的標籤內容。",
     ),
     "ndefInvalidMimeType": MessageLookupByLibrary.simpleMessage(
       "請輸入有效的 MIME 類型，例如 text/plain。",
@@ -244,7 +244,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ndefPayloadText": MessageLookupByLibrary.simpleMessage("文字"),
     "ndefPhone": MessageLookupByLibrary.simpleMessage("電話"),
     "ndefPhoneNumber": MessageLookupByLibrary.simpleMessage("電話號碼"),
-    "ndefReadOnly": MessageLookupByLibrary.simpleMessage("NDEF 標籤目前為唯讀。"),
+    "ndefReadOnly": MessageLookupByLibrary.simpleMessage("NFC 標籤目前為唯讀。"),
     "ndefReadOnlyDescription": MessageLookupByLibrary.simpleMessage(
       "目前無法寫入。請先在設定中關閉「NFC 標籤唯讀」。",
     ),
@@ -254,7 +254,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ndefRecords": MessageLookupByLibrary.simpleMessage("記錄"),
     "ndefRequiredField": MessageLookupByLibrary.simpleMessage("請填寫此項。"),
     "ndefSaveToKey": MessageLookupByLibrary.simpleMessage("儲存到 CanoKey"),
-    "ndefSaved": MessageLookupByLibrary.simpleMessage("NDEF 記錄已儲存"),
+    "ndefSaved": MessageLookupByLibrary.simpleMessage("NFC 標籤記錄已儲存"),
     "ndefSignature": MessageLookupByLibrary.simpleMessage("簽章"),
     "ndefSmartPoster": MessageLookupByLibrary.simpleMessage("智慧海報"),
     "ndefSmartPosterAction": MessageLookupByLibrary.simpleMessage("建議操作"),
@@ -474,7 +474,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "您的 CanoKey 不支援 Pass 功能。",
     ),
     "passSlotConfigPrompt": MessageLookupByLibrary.simpleMessage(
-      "選擇觸碰 CanoKey 時執行的操作。如需輸出 HOTP 驗證碼，請在 TOTP / HOTP 頁面設定。",
+      "選擇觸碰 CanoKey 時執行的操作。如需輸出 HOTP 驗證碼，請在 OTP 頁面設定。",
     ),
     "passSlotConfigTitle": MessageLookupByLibrary.simpleMessage("觸碰輸出設定"),
     "passSlotHmacSha1": MessageLookupByLibrary.simpleMessage("HMAC-SHA1"),
@@ -1038,7 +1038,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsLanguage": MessageLookupByLibrary.simpleMessage("語言"),
     "settingsModel": MessageLookupByLibrary.simpleMessage("型號"),
-    "settingsNDEF": MessageLookupByLibrary.simpleMessage("NFC 標籤模式 (NDEF)"),
+    "settingsNDEF": MessageLookupByLibrary.simpleMessage("NFC 標籤模式"),
     "settingsNDEFReadonly": MessageLookupByLibrary.simpleMessage("NFC 標籤唯讀"),
     "settingsOpenPgpCcId": MessageLookupByLibrary.simpleMessage(
       "OpenPGP (CCID)",
@@ -1059,8 +1059,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsResetFailed": MessageLookupByLibrary.simpleMessage(
       "重置失敗，請檢查裝置連線後再試一次。",
     ),
-    "settingsResetNDEF": MessageLookupByLibrary.simpleMessage("重置 NDEF"),
-    "settingsResetOATH": MessageLookupByLibrary.simpleMessage("重置 TOTP/HOTP"),
+    "settingsResetNDEF": MessageLookupByLibrary.simpleMessage("重置 NFC Tag"),
+    "settingsResetOATH": MessageLookupByLibrary.simpleMessage("重置 OTP"),
     "settingsResetOpenPGP": MessageLookupByLibrary.simpleMessage("重置 OpenPGP"),
     "settingsResetPIV": MessageLookupByLibrary.simpleMessage("重置 PIV"),
     "settingsResetPass": MessageLookupByLibrary.simpleMessage("重置 Pass"),

@@ -29,6 +29,36 @@ void main() {
     Get.reset();
   });
 
+  for (final remaining in [3, 0, null]) {
+    testWidgets('legacy PIN remaining $remaining keeps total and PUK unknown', (
+      tester,
+    ) async {
+      final controller = _TestPivController()
+        ..polled = true
+        ..legacyPinRetriesRemaining = remaining;
+      _setFirmware(controller, '1.6.2');
+      Get.put<PivController>(controller);
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      expect(
+        find.text('${remaining ?? '—'} / —'),
+        remaining == null ? findsNWidgets(2) : findsOneWidget,
+      );
+      if (remaining != null) expect(find.text('— / —'), findsOneWidget);
+      expect(
+        find.text('Blocked'),
+        remaining == 0 ? findsOneWidget : findsNothing,
+      );
+      expect(
+        _actionButton(tester, S.current.pivUnblockPin).onPressed,
+        remaining == 0 ? isNotNull : isNull,
+      );
+      expect(controller.pinInfo, isNull);
+      expect(controller.pukInfo, isNull);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   for (final (version, oid, bits, label) in [
     ('0.0.0+gcdc54046', '1.2.840.10045.2.1', 521, 'EC, 521 bits'),
     ('1.4.0', '1.2.840.113549.1.1.1', 2048, 'RSA, 2048 bits'),

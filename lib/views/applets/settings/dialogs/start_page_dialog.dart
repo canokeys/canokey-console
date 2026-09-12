@@ -20,13 +20,13 @@ class StartPageDialog extends StatelessWidget with UIMixin {
       case '/':
         return S.of(context).home;
       case '/applets/oath':
-        return 'HOTP/TOTP';
+        return 'OTP';
       case '/applets/piv':
         return 'PIV';
       case '/applets/openpgp':
         return 'OpenPGP';
       case '/applets/ndef':
-        return 'NDEF';
+        return 'NFC Tag';
       case '/applets/webauthn':
         return 'WebAuthn';
       case '/applets/pass':

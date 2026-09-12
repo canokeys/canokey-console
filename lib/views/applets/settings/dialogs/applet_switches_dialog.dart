@@ -87,7 +87,7 @@ class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog> w
                 _row('WebAuthn', switches: {Func.webAuthnSwitch: S.of(context).enable}),
                 Spacing.height(8),
                 if (_supports(Func.ndefEnabled)) ...[
-                  _row('NDEF', switches: {Func.ndefEnabled: S.of(context).enable}),
+                  _row('NFC Tag', switches: {Func.ndefEnabled: S.of(context).enable}),
                   Spacing.height(8),
                 ],
                 _row(

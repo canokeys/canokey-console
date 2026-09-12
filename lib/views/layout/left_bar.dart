@@ -115,7 +115,7 @@ class _LeftBarState extends State<LeftBar>
                   ),
                   NavigationItem(
                     iconData: LucideIcons.timer,
-                    title: 'TOTP / HOTP',
+                    title: 'OTP',
                     isCondensed: isCondensed,
                     route: '/applets/oath',
                   ),
@@ -139,7 +139,7 @@ class _LeftBarState extends State<LeftBar>
                   ),
                   NavigationItem(
                     iconData: LucideIcons.nfc,
-                    title: 'NDEF',
+                    title: 'NFC Tag',
                     isCondensed: isCondensed,
                     route: '/applets/ndef',
                   ),

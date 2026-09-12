@@ -7,8 +7,8 @@ enum Applet {
   openpgp(resetApdu: '00030000', name: 'OpenPGP'),
   piv(resetApdu: '00040000', name: 'PIV'),
   webauthn(resetApdu: '00090000', name: 'WebAuthn'),
-  oath(resetApdu: '00050000', name: 'TOTP / HOTP'),
-  ndef(resetApdu: '00070000', name: 'NDEF'),
+  oath(resetApdu: '00050000', name: 'OTP'),
+  ndef(resetApdu: '00070000', name: 'NFC Tag'),
   pass(resetApdu: '00130000', name: 'Pass');
 
   const Applet({required this.resetApdu, required this.name});

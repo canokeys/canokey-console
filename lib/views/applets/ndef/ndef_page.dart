@@ -32,7 +32,7 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
       MediaQuery.sizeOf(context).width,
     ).isMobile;
     return Layout(
-      title: 'NDEF',
+      title: 'NFC Tag',
       onRefresh: _controller.refreshData,
       topActions: isWeb() || isIOSApp()
           ? TopBarRefreshButton(onPressed: _controller.refreshData)

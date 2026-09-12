@@ -264,7 +264,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Enter a MAC address such as AA:BB:CC:DD:EE:FF.",
     ),
     "ndefInvalidMessage": MessageLookupByLibrary.simpleMessage(
-      "Could not read the existing NFC tag content. To start over, reset NDEF in Settings. This deletes the existing tag content.",
+      "Could not read the existing NFC tag content. To start over, reset NFC Tag in Settings. This deletes the existing tag content.",
     ),
     "ndefInvalidMimeType": MessageLookupByLibrary.simpleMessage(
       "Enter a valid MIME type, such as text/plain.",
@@ -308,7 +308,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ndefPhone": MessageLookupByLibrary.simpleMessage("Phone"),
     "ndefPhoneNumber": MessageLookupByLibrary.simpleMessage("Phone number"),
     "ndefReadOnly": MessageLookupByLibrary.simpleMessage(
-      "The NDEF tag is read-only.",
+      "The NFC tag is read-only.",
     ),
     "ndefReadOnlyDescription": MessageLookupByLibrary.simpleMessage(
       "Writing is disabled. Turn off NFC Tag Readonly in Settings to edit these records.",
@@ -323,7 +323,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Fill in this field.",
     ),
     "ndefSaveToKey": MessageLookupByLibrary.simpleMessage("Save to CanoKey"),
-    "ndefSaved": MessageLookupByLibrary.simpleMessage("NDEF records saved"),
+    "ndefSaved": MessageLookupByLibrary.simpleMessage("NFC tag records saved"),
     "ndefSignature": MessageLookupByLibrary.simpleMessage("Signature"),
     "ndefSmartPoster": MessageLookupByLibrary.simpleMessage("Smart Poster"),
     "ndefSmartPosterAction": MessageLookupByLibrary.simpleMessage(
@@ -431,7 +431,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "oathInputCode": MessageLookupByLibrary.simpleMessage("Unlock CanoKey"),
     "oathInputCodePrompt": MessageLookupByLibrary.simpleMessage(
-      "Enter the passphrase that protects the TOTP / HOTP accounts on this CanoKey.",
+      "Enter the passphrase that protects the OTP accounts on this CanoKey.",
     ),
     "oathInvalidKey": MessageLookupByLibrary.simpleMessage(
       "Invalid secret key",
@@ -611,7 +611,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Your CanoKey does not support Pass.",
     ),
     "passSlotConfigPrompt": MessageLookupByLibrary.simpleMessage(
-      "Choose what happens when you touch CanoKey. To output HOTP codes, configure an account on the TOTP / HOTP page.",
+      "Choose what happens when you touch CanoKey. To output HOTP codes, configure an account on the OTP page.",
     ),
     "passSlotConfigTitle": MessageLookupByLibrary.simpleMessage(
       "Touch output settings",
@@ -1373,7 +1373,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsLanguage": MessageLookupByLibrary.simpleMessage("Language"),
     "settingsModel": MessageLookupByLibrary.simpleMessage("Model"),
-    "settingsNDEF": MessageLookupByLibrary.simpleMessage("NFC Tag Mode (NDEF)"),
+    "settingsNDEF": MessageLookupByLibrary.simpleMessage("NFC Tag Mode"),
     "settingsNDEFReadonly": MessageLookupByLibrary.simpleMessage(
       "NFC Tag Readonly",
     ),
@@ -1398,10 +1398,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsResetFailed": MessageLookupByLibrary.simpleMessage(
       "Reset failed. Check the device connection and try again.",
     ),
-    "settingsResetNDEF": MessageLookupByLibrary.simpleMessage("Reset NDEF"),
-    "settingsResetOATH": MessageLookupByLibrary.simpleMessage(
-      "Reset TOTP/HOTP",
-    ),
+    "settingsResetNDEF": MessageLookupByLibrary.simpleMessage("Reset NFC Tag"),
+    "settingsResetOATH": MessageLookupByLibrary.simpleMessage("Reset OTP"),
     "settingsResetOpenPGP": MessageLookupByLibrary.simpleMessage(
       "Reset OpenPGP",
     ),

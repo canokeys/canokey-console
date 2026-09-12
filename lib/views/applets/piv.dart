@@ -357,6 +357,7 @@ class _PivPageState extends State<PivPage>
                       PivSlotManager(
                         credentialSettings: PivPinManagementCard(
                           pinInfo: controller.pinInfo,
+                          pinRetriesRemaining: controller.pinRetriesRemaining,
                           pukInfo: controller.pukInfo,
                           managementKeyAlgorithm:
                               controller.managementKeyAlgorithm,
@@ -366,7 +367,7 @@ class _PivPageState extends State<PivPage>
                           supportsPinOnlyMode: controller.supportsPinOnlyMode,
                           supportsPinRetryConfig:
                               controller.supportsPinRetryConfig,
-                          canUnblockPin: controller.pinInfo?.remainingCount == 0,
+                          canUnblockPin: controller.pinRetriesRemaining == 0,
                           flexSpacing: flexSpacing,
                           contentTheme: contentTheme,
                           credentialRetryValue: _credentialRetryValue,

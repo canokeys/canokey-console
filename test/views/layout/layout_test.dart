@@ -40,7 +40,7 @@ void main() {
         ],
         supportedLocales: S.delegate.supportedLocales,
         home: Layout(
-          title: 'TOTP / HOTP',
+          title: 'OTP',
           topActions: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -73,7 +73,7 @@ void main() {
 
     final title = find.descendant(
       of: find.byType(AppBar),
-      matching: find.text('TOTP / HOTP'),
+      matching: find.text('OTP'),
     );
     final titleBox = tester.renderObject<RenderBox>(title);
     expect(
@@ -124,7 +124,7 @@ void main() {
         ],
         supportedLocales: S.delegate.supportedLocales,
         home: Layout(
-          title: 'NDEF',
+          title: 'NFC Tag',
           onRefresh: () async {
             refreshCount++;
           },

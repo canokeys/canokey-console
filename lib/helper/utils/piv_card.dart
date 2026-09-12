@@ -36,6 +36,17 @@ class PivCardClient {
     return response;
   }
 
+  /// Empty VERIFY queries remaining attempts without submitting a PIN.
+  /// 9000 means already authenticated, not a known retry count.
+  Future<int?> readRemainingPinRetries() async {
+    final status = SmartCard.sw(await readPinRetries()).toUpperCase();
+    if (status == '6983') return 0;
+    if (RegExp(r'^63C[0-9A-F]$').hasMatch(status)) {
+      return int.parse(status[3], radix: 16);
+    }
+    return null;
+  }
+
   Future<bool> verifyPin(String pin) async {
     final response = await _transport.transceive('0020008008${_padPin(pin)}');
     lastStatusWord = SmartCard.sw(response);

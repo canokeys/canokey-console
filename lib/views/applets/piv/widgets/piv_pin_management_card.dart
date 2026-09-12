@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 
 class PivPinManagementCard extends StatelessWidget {
   final SlotInfo? pinInfo;
+  final int? pinRetriesRemaining;
   final SlotInfo? pukInfo;
   final AlgorithmType managementKeyAlgorithm;
   final TouchPolicy managementKeyTouchPolicy;
@@ -31,6 +32,7 @@ class PivPinManagementCard extends StatelessWidget {
   const PivPinManagementCard({
     super.key,
     required this.pinInfo,
+    this.pinRetriesRemaining,
     required this.pukInfo,
     required this.managementKeyAlgorithm,
     required this.managementKeyTouchPolicy,
@@ -66,6 +68,7 @@ class PivPinManagementCard extends StatelessWidget {
               LucideIcons.lock,
               s.pivPinDescription,
               info: pinInfo,
+              remaining: pinRetriesRemaining,
               credential: true,
             ),
             _credential(
@@ -152,12 +155,14 @@ class PivPinManagementCard extends StatelessWidget {
     IconData icon,
     String description, {
     SlotInfo? info,
+    int? remaining,
     bool credential = false,
     VoidCallback? onTap,
   }) {
     final s = S.of(context);
-    final blocked = credential && info?.remainingCount == 0;
-    final unknown = credential && info == null;
+    final remainingCount = info?.remainingCount ?? remaining;
+    final blocked = credential && remainingCount == 0;
+    final unknown = credential && remainingCount == null;
     final content = PivSurface(
       padding: const EdgeInsets.all(18),
       child: ConstrainedBox(
@@ -200,9 +205,7 @@ class PivPinManagementCard extends StatelessWidget {
                   if (credential) ...[
                     const SizedBox(height: 12),
                     Text(
-                      info == null
-                          ? '— / —'
-                          : '${info.remainingCount} / ${info.retriesCount}',
+                      '${remainingCount ?? '—'} / ${info?.retriesCount ?? '—'}',
                       style: PivStyle.text(context, 22, bold: true).copyWith(
                         color: blocked ? const Color(0xffe63652) : null,
                         height: 1.1,

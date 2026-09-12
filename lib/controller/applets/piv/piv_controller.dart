@@ -41,6 +41,9 @@ class PivController extends PollingController {
   FunctionSetVersion functionSetVersion = FunctionSetVersion.v1;
   bool extendedRetiredSlots = false;
   SlotInfo? pinInfo;
+  int? legacyPinRetriesRemaining;
+  int? get pinRetriesRemaining =>
+      pinInfo?.remainingCount ?? legacyPinRetriesRemaining;
   SlotInfo? pukInfo;
   SlotInfo? managementKeyInfo;
   bool pinOnlyMode = false;
@@ -110,6 +113,7 @@ class PivController extends PollingController {
         certificateBytes.clear();
         certificates.clear();
         pinInfo = null;
+        legacyPinRetriesRemaining = null;
         pukInfo = null;
         managementKeyInfo = null;
         update();
@@ -124,6 +128,10 @@ class PivController extends PollingController {
       certificateBytes.clear();
       certificates.clear();
       pinInfo = supportsMetadata ? await _client.readMetadata(0x80) : null;
+      legacyPinRetriesRemaining = null;
+      if (!supportsMetadata) {
+        legacyPinRetriesRemaining = await _client.readRemainingPinRetries();
+      }
       pukInfo = supportsMetadata ? await _client.readMetadata(0x81) : null;
       managementKeyInfo =
           supportsMetadata ? await _client.readMetadata(0x9B) : null;
