@@ -3640,6 +3640,7 @@ class _PivPageState extends State<PivPage>
                                 ),
                                 Spacing.height(12),
                                 DropdownButtonFormField(
+                                  isExpanded: true,
                                   key: ValueKey(options.algorithm),
                                   initialValue: options.algorithm,
                                   items:
@@ -3674,6 +3675,7 @@ class _PivPageState extends State<PivPage>
                                 ),
                                 Spacing.height(18),
                                 DropdownButtonFormField(
+                                  isExpanded: true,
                                   key: ValueKey(options.pinPolicy),
                                   initialValue: options.pinPolicy,
                                   items:
@@ -3685,7 +3687,10 @@ class _PivPageState extends State<PivPage>
                                           .map(
                                             (e) => DropdownMenuItem(
                                               value: e,
-                                              child: Text(e.toString()),
+                                              child: Text(
+                                                e.toString(),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                             ),
                                           )
                                           .toList(),
@@ -3699,6 +3704,7 @@ class _PivPageState extends State<PivPage>
                                 ),
                                 Spacing.height(18),
                                 DropdownButtonFormField(
+                                  isExpanded: true,
                                   initialValue: options.touchPolicy,
                                   items:
                                       [
@@ -3709,7 +3715,10 @@ class _PivPageState extends State<PivPage>
                                           .map(
                                             (e) => DropdownMenuItem(
                                               value: e,
-                                              child: Text(e.toString()),
+                                              child: Text(
+                                                e.toString(),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                             ),
                                           )
                                           .toList(),

@@ -1,3 +1,5 @@
+import 'package:canokey_console/models/canokey.dart';
+import 'package:canokey_console/views/applets/webauthn/dialogs/sm2_config_dialog.dart';
 import 'package:canokey_console/controller/applets/webauthn/webauthn_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
@@ -17,6 +19,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class _Controller extends WebAuthnController {
   int deletes = 0;
+  int sm2Reads = 0;
+  @override
+  Future<WebAuthnSm2Config?> readSm2Config() async {
+    sm2Reads++;
+    return const WebAuthnSm2Config(enabled: true, curveId: 9, algoId: -54);
+  }
+
   @override
   void onReady() {}
   @override
@@ -40,6 +49,81 @@ void main() {
     await LocalStorage.init();
   });
   tearDown(Get.reset);
+
+  for (final (version, supported) in [
+    ('1.6.2', false),
+    ('2.0.1', false),
+    ('3.0.0', true),
+    ('3.0.3', true),
+    ('3.1.0-28-gd2820836', true),
+    ('3.1.0', true),
+    ('3.1.1', true),
+  ]) {
+    for (final width in [390.0, 1440.0]) {
+      testWidgets('WebAuthn $version SM2 entry and dialog at $width', (
+        tester,
+      ) async {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = Size(width, 1000);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        addTearDown(tester.view.resetPhysicalSize);
+        final controller = _Controller()..polled = true;
+        _setFirmware(controller, version);
+        Get.put<WebAuthnController>(controller);
+        await tester.pumpWidget(
+          _app(const WebAuthnPage(), route: '/applets/webauthn'),
+        );
+        await tester.pumpAndSettle();
+        final entry = find.byTooltip(S.current.settingsWebAuthnSm2Support);
+        expect(entry, supported ? findsOneWidget : findsNothing);
+        expect(controller.sm2Reads, 0);
+        if (supported) {
+          await tester.tap(entry);
+          await tester.pumpAndSettle();
+          expect(controller.sm2Reads, 1);
+          expect(find.byType(Sm2ConfigDialog), findsOneWidget);
+          await tester.tap(find.text(S.current.close));
+          await tester.pumpAndSettle();
+          expect(find.byType(Sm2ConfigDialog), findsNothing);
+        }
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      });
+    }
+  }
+
+  testWidgets(
+    'WebAuthn removes stale SM2 entry after firmware or polling changes',
+    (tester) async {
+      final controller = _Controller()..polled = true;
+      _setFirmware(controller, '3.1.1');
+      Get.put<WebAuthnController>(controller);
+      await tester.pumpWidget(
+        _app(const WebAuthnPage(), route: '/applets/webauthn'),
+      );
+      await tester.pumpAndSettle();
+      for (final (version, polled, visible) in [
+        ('3.1.1', true, true),
+        ('2.0.1', true, false),
+        ('3.0.3', true, true),
+        ('3.0.3', false, false),
+        ('3.1.1', true, true),
+      ]) {
+        _setFirmware(controller, version);
+        controller.polled = polled;
+        controller.update();
+        await tester.pumpAndSettle();
+        expect(
+          find.byTooltip(S.current.settingsWebAuthnSm2Support),
+          visible ? findsOneWidget : findsNothing,
+          reason: '$version polled=$polled',
+        );
+      }
+      expect(controller.sm2Reads, 0);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
 
   testWidgets('cards resize and change column count with available width', (
     tester,
@@ -224,3 +308,10 @@ Widget _app(
   initialRoute: route,
   getPages: route == null ? null : [GetPage(name: route, page: () => child)],
 );
+
+void _setFirmware(WebAuthnController controller, String version) {
+  controller.firmwareVersion = FirmwareVersion.parse(version);
+  controller.functionSetVersion = CanoKey.functionSetFromFirmwareVersion(
+    version,
+  );
+}

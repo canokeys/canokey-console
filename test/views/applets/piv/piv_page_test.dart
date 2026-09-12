@@ -27,6 +27,140 @@ void main() {
     Get.reset();
   });
 
+  // Expectations deliberately do not use controller capability getters.
+  for (final (version, modern, extensions) in [
+    ('1.6.2', false, false),
+    ('2.0.1', false, true),
+    ('3.0.3', false, true),
+    ('3.1.0-28-gd2820836', true, true),
+    ('3.1.0', true, true),
+    ('3.1.1', true, true),
+  ]) {
+    for (final width in [390.0, 1440.0]) {
+      testWidgets(
+        'PIV $version exposes compatible actions and algorithms at $width',
+        (tester) async {
+          tester.view.devicePixelRatio = 1;
+          tester.view.physicalSize = Size(width, 1000);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          addTearDown(tester.view.resetPhysicalSize);
+          final controller = _TestPivController()
+            ..polled = true
+            ..slots[0x9A] = _slot(0x9A, AlgorithmType.eccp256);
+          _setFirmware(controller, version);
+          Get.put<PivController>(controller);
+          await tester.pumpWidget(_app(theme: AppTheme.lightTheme));
+          await tester.pumpAndSettle();
+
+          expect(
+            find.text(S.current.pivManagementKeyAuthentication),
+            modern ? findsOneWidget : findsNothing,
+          );
+          expect(
+            find.text(S.current.pivSetPinPukRetries),
+            modern ? findsOneWidget : findsNothing,
+          );
+          if (modern) {
+            expect(
+              _actionButton(tester, S.current.pivSetPinPukRetries).onPressed,
+              isNotNull,
+            );
+          }
+          await tester.ensureVisible(_slotItem('9A'));
+          await tester.tap(_slotItem('9A'));
+          await tester.pumpAndSettle();
+          expect(
+            find.text(S.current.pivClearSlot),
+            modern ? findsOneWidget : findsNothing,
+          );
+          expect(
+            find.text(S.current.pivGenerateKey),
+            modern ? findsOneWidget : findsNothing,
+          );
+          await tester.ensureVisible(find.text(S.current.pivSelfSign));
+          await tester.tap(find.text(S.current.pivSelfSign));
+          await tester.pumpAndSettle();
+
+          final credentials = find.byType(TextFormField);
+          await tester.enterText(credentials.at(0), '123456');
+          await tester.enterText(
+            credentials.at(1),
+            '010203040506070801020304050607080102030405060708',
+          );
+          await tester.ensureVisible(find.text(S.current.next));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text(S.current.next));
+          await tester.pumpAndSettle();
+          final dropdown = find.byWidgetPredicate(
+            (widget) => widget is DropdownButton<AlgorithmType>,
+          );
+          final expected = [
+            AlgorithmType.eccp256,
+            AlgorithmType.eccp384,
+            if (modern) AlgorithmType.eccp521,
+            if (extensions) ...[
+              AlgorithmType.secp256k1,
+              AlgorithmType.sm2,
+              AlgorithmType.ed25519,
+            ],
+            if (modern) AlgorithmType.mldsa65,
+            AlgorithmType.rsa2048,
+            if (extensions) ...[AlgorithmType.rsa3072, AlgorithmType.rsa4096],
+          ];
+          expect(
+            tester
+                .widget<DropdownButton<AlgorithmType>>(dropdown)
+                .items!
+                .map((item) => item.value),
+            expected,
+          );
+          await tester.ensureVisible(dropdown);
+          await tester.pumpAndSettle();
+          await tester.tap(dropdown);
+          await tester.pumpAndSettle();
+          expect(find.text(AlgorithmType.rsa2048.label), findsWidgets);
+          expect(
+            find.text(AlgorithmType.mldsa65.label),
+            modern ? findsWidgets : findsNothing,
+          );
+          expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox.shrink());
+        },
+      );
+    }
+  }
+
+  testWidgets('PIV updates firmware actions without recreating the page', (
+    tester,
+  ) async {
+    final controller = _TestPivController()..polled = true;
+    _setFirmware(controller, '3.1.1');
+    Get.put<PivController>(controller);
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    for (final (version, modern) in [
+      ('3.1.1', true),
+      ('1.6.2', false),
+      ('3.0.3', false),
+      ('3.1.1', true),
+    ]) {
+      _setFirmware(controller, version);
+      controller.update();
+      await tester.pumpAndSettle();
+      expect(
+        find.text(S.current.pivManagementKeyAuthentication),
+        modern ? findsOneWidget : findsNothing,
+        reason: version,
+      );
+      expect(
+        find.text(S.current.pivSetPinPukRetries),
+        modern ? findsOneWidget : findsNothing,
+        reason: version,
+      );
+      expect(tester.takeException(), isNull);
+    }
+  });
+
   testWidgets('PIV surfaces fit desktop and mobile with the app theme', (
     tester,
   ) async {
@@ -702,4 +836,14 @@ Widget _app({ThemeData? theme}) {
     supportedLocales: S.delegate.supportedLocales,
     home: const PivPage(),
   );
+}
+
+void _setFirmware(PivController controller, String version) {
+  controller.firmwareVersion = FirmwareVersion.parse(version);
+  controller.functionSetVersion = CanoKey.functionSetFromFirmwareVersion(
+    version,
+  );
+  controller.algorithmExtensionConfig = version.startsWith('2.')
+      ? PivAlgorithmExtensionConfig.legacyV2
+      : PivAlgorithmExtensionConfig.defaults;
 }
