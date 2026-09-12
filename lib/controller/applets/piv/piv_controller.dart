@@ -285,7 +285,16 @@ class PivController extends PollingController {
   }
 
   PivPublicKey? publicKeyForSlot(SlotInfo slot) {
-    return PivSignatureTest.publicKeyFromSlot(slot);
+    try {
+      return PivSignatureTest.publicKeyFromSlot(slot);
+    } catch (error) {
+      log.w(
+        'Unable to parse PIV public key in slot '
+        '${slot.number.toRadixString(16)} (${slot.algorithm.name})',
+        error: error,
+      );
+      return null;
+    }
   }
 
   void changePin(String oldPin, String newPin) {
