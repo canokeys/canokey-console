@@ -1,3 +1,4 @@
+import 'package:canokey_console/helper/widgets/applet_section_card.dart';
 import 'package:canokey_console/views/applets/settings/widgets/settings_surface.dart';
 import 'package:canokey_console/controller/applets/settings/settings_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
@@ -53,7 +54,7 @@ class SettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final functionSet = controller.key.getFunctionSet();
 
-    return SettingsSection(
+    return AppletSectionCard(
       icon: LucideIcons.settings,
       title: S.of(context).settingsDeviceSettings,
       child: SettingsRows(

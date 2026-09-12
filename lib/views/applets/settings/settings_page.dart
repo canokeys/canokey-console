@@ -1,6 +1,6 @@
+import 'package:canokey_console/helper/widgets/applet_section_card.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
-import 'package:canokey_console/views/applets/settings/widgets/settings_surface.dart';
 import 'package:canokey_console/controller/applets/settings/settings_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/localization/hints.dart';
@@ -54,7 +54,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   SettingsCard(controller: _controller),
                   const SizedBox(height: 16),
                 ] else ...[
-                  SettingsSection(
+                  AppletSectionCard(
                     icon: LucideIcons.info,
                     title: S.of(context).settingsInfo,
                     child: CustomizedText.bodyMedium(Hints.pollCanoKeyPrompt),
@@ -80,15 +80,13 @@ class _SettingsPageState extends State<SettingsPage> {
                             width: 72,
                             height: 72,
                             decoration: BoxDecoration(
-                              color: SettingsStyle.accent.withValues(
-                                alpha: .14,
-                              ),
+                              color: AppletStyle.accent.withValues(alpha: .14),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: const Icon(
                               LucideIcons.settings,
                               size: 36,
-                              color: SettingsStyle.accent,
+                              color: AppletStyle.accent,
                             ),
                           ),
                           const SizedBox(width: 22),

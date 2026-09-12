@@ -1,3 +1,5 @@
+import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
@@ -36,6 +38,71 @@ abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
   }
 
   Widget buildDialogContent();
+
+  /// Standard form layout. Call inside Obx so dialog errors remain reactive.
+  Widget buildFormContent({
+    required String title,
+    required Widget description,
+    required Widget form,
+    required VoidCallback? onSubmit,
+  }) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: Spacing.all(16),
+        child: CustomizedText.labelLarge(title),
+      ),
+      const Divider(height: 0, thickness: 1),
+      Padding(padding: Spacing.all(16), child: description),
+      const Divider(height: 0, thickness: 1),
+      Padding(padding: Spacing.all(16), child: form),
+      if (errorMessage.value.isNotEmpty)
+        Padding(
+          padding: Spacing.all(16),
+          child: CustomizedText.bodyMedium(
+            errorMessage.value,
+            color: errorLevel.value == 'E'
+                ? ContentThemeColor.danger.color
+                : ContentThemeColor.warning.color,
+          ),
+        ),
+      const Divider(height: 0, thickness: 1),
+      Padding(
+        padding: Spacing.all(16),
+        child: SizedBox(
+          width: double.infinity,
+          child: Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 16,
+            runSpacing: 12,
+            children: [
+              CustomizedButton.rounded(
+                onPressed: () => Navigator.pop(context),
+                elevation: 0,
+                padding: Spacing.xy(20, 16),
+                backgroundColor: ContentThemeColor.secondary.color,
+                child: CustomizedText.labelMedium(
+                  S.of(context).cancel,
+                  color: ContentThemeColor.secondary.onColor,
+                ),
+              ),
+              CustomizedButton.rounded(
+                onPressed: onSubmit,
+                elevation: 0,
+                padding: Spacing.xy(20, 16),
+                backgroundColor: ContentThemeColor.primary.color,
+                child: CustomizedText.labelMedium(
+                  S.of(context).confirm,
+                  color: ContentThemeColor.primary.onColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {

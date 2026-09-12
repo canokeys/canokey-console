@@ -1,3 +1,4 @@
+import 'package:canokey_console/helper/widgets/applet_section_card.dart';
 import 'package:canokey_console/views/applets/settings/widgets/settings_surface.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
@@ -76,7 +77,7 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
       LocalStorage.getStartPage() ?? '/',
     );
     final icpFiling = icpFilingNumber();
-    return SettingsSection(
+    return AppletSectionCard(
       icon: LucideIcons.settings2,
       title: S.of(context).settingsOtherSettings,
       child: SettingsRows(

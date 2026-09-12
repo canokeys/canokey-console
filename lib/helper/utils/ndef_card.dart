@@ -22,9 +22,8 @@ class NdefReadOnlyException implements Exception {
 }
 
 class NdefCardClient {
-  NdefCardClient({
-    ApduTransport transport = const SmartCardApduTransport(),
-  }) : _transport = transport;
+  NdefCardClient({ApduTransport transport = const SmartCardApduTransport()})
+    : _transport = transport;
 
   static const int _chunkSize = 240;
   static const String _selectApplet = '00A4040007D2760000850101';
@@ -36,7 +35,7 @@ class NdefCardClient {
   Future<NdefCardData?> read() async {
     if (!await _select()) return null;
 
-    _assertOK(await _transport.transceive(_selectCapabilityContainer));
+    SmartCard.assertOK(await _transport.transceive(_selectCapabilityContainer));
     final capability = await _readBytes(0, 15);
     if (capability.length != 15 ||
         capability[7] != 0x04 ||
@@ -48,7 +47,7 @@ class NdefCardClient {
       throw const FormatException('Invalid NDEF file capacity');
     }
 
-    _assertOK(await _transport.transceive(_selectNdefFile));
+    SmartCard.assertOK(await _transport.transceive(_selectNdefFile));
     final lengthData = await _readBytes(0, 2);
     final messageLength = (lengthData[0] << 8) | lengthData[1];
     final maxMessageLength = fileLength - 2;
@@ -68,7 +67,7 @@ class NdefCardClient {
   Future<bool> write(Uint8List message) async {
     if (!await _select()) return false;
 
-    _assertOK(await _transport.transceive(_selectNdefFile));
+    SmartCard.assertOK(await _transport.transceive(_selectNdefFile));
     await _updateBytes(0, Uint8List.fromList([0, 0]));
     for (var offset = 0; offset < message.length; offset += _chunkSize) {
       final end = min(offset + _chunkSize, message.length);
@@ -84,7 +83,7 @@ class NdefCardClient {
   Future<bool> _select() async {
     final response = await _transport.transceive(_selectApplet);
     if (SmartCard.sw(response) == '6A82') return false;
-    _assertOK(response);
+    SmartCard.assertOK(response);
     return true;
   }
 
@@ -95,7 +94,7 @@ class NdefCardClient {
       final response = await _transport.transceive(
         readBinaryApdu(offset + cursor, count),
       );
-      _assertOK(response);
+      SmartCard.assertOK(response);
       result.addAll(hex.decode(SmartCard.dropSW(response)));
     }
     return Uint8List.fromList(result);
@@ -103,12 +102,13 @@ class NdefCardClient {
 
   Future<void> _updateBytes(int offset, Uint8List data) async {
     if (data.isEmpty) return;
-    final response =
-        await _transport.transceive(updateBinaryApdu(offset, data));
+    final response = await _transport.transceive(
+      updateBinaryApdu(offset, data),
+    );
     if (SmartCard.sw(response) == '6982') {
       throw const NdefReadOnlyException();
     }
-    _assertOK(response);
+    SmartCard.assertOK(response);
   }
 
   static String readBinaryApdu(int offset, int length) {
@@ -128,9 +128,5 @@ class NdefCardClient {
             '${data.length.toRadixString(16).padLeft(2, '0')}'
             '${hex.encode(data)}'
         .toUpperCase();
-  }
-
-  void _assertOK(String response) {
-    SmartCard.assertOK(response);
   }
 }

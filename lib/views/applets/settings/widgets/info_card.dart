@@ -1,3 +1,4 @@
+import 'package:canokey_console/helper/widgets/applet_section_card.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
@@ -17,7 +18,7 @@ class InfoCard extends StatelessWidget {
     final ratio = storage == null || storage.totalKiB <= 0
         ? null
         : (storage.usedKiB / storage.totalKiB).clamp(0.0, 1.0);
-    return SettingsSection(
+    return AppletSectionCard(
       icon: LucideIcons.info,
       title: S.of(context).settingsInfo,
       child: Column(

@@ -1,4 +1,4 @@
-import 'package:canokey_console/views/applets/settings/widgets/settings_surface.dart';
+import 'package:canokey_console/helper/widgets/applet_section_card.dart';
 import 'package:canokey_console/controller/applets/settings/settings_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
@@ -44,20 +44,20 @@ class ActionCard extends StatelessWidget with UIMixin {
       style: TextButton.styleFrom(
         foregroundColor: foreground,
         backgroundColor: primary
-            ? SettingsStyle.accent
+            ? AppletStyle.accent
             : danger
             ? contentTheme.danger.withValues(alpha: .05)
-            : SettingsStyle.soft(context),
+            : AppletStyle.soft(context),
         minimumSize: const Size(0, 52),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(7),
           side: BorderSide(
             color: primary
-                ? SettingsStyle.accent
+                ? AppletStyle.accent
                 : danger
                 ? contentTheme.danger.withValues(alpha: .25)
-                : SettingsStyle.border(context),
+                : AppletStyle.border(context),
           ),
         ),
       ),
@@ -156,7 +156,7 @@ class ActionCard extends StatelessWidget with UIMixin {
           },
         ),
     ];
-    return SettingsSection(
+    return AppletSectionCard(
       icon: LucideIcons.refreshCw,
       title: s.settingsDeviceActions,
       child: Column(

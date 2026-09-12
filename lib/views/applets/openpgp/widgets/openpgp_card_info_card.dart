@@ -1,7 +1,7 @@
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:canokey_console/models/openpgp.dart';
-import 'package:canokey_console/views/applets/openpgp/widgets/openpgp_section_card.dart';
+import 'package:canokey_console/helper/widgets/applet_section_card.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
 import 'package:flutter/material.dart';
 
@@ -11,7 +11,9 @@ class OpenPgpCardInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OpenPgpSectionCard(
+    return AppletSectionCard(
+      clipBehavior: Clip.none,
+      titleColor: Theme.of(context).colorScheme.onSurface,
       icon: LucideIcons.info,
       title: S.of(context).openpgpCardInfo,
       child: Column(
@@ -21,25 +23,25 @@ class OpenPgpCardInfoCard extends StatelessWidget {
             title: S.of(context).openpgpVersion,
             value: _value(info.version),
           ),
-          Divider(height: 1, color: OpenPgpStyle.border(context)),
+          Divider(height: 1, color: AppletStyle.border(context)),
           InfoItem(
             iconData: LucideIcons.cpu,
             title: S.of(context).openpgpManufacturer,
             value: _value(info.manufacturer),
           ),
-          Divider(height: 1, color: OpenPgpStyle.border(context)),
+          Divider(height: 1, color: AppletStyle.border(context)),
           InfoItem(
             iconData: LucideIcons.hash,
             title: S.of(context).openpgpSN,
             value: _value(info.serialNumber),
           ),
-          Divider(height: 1, color: OpenPgpStyle.border(context)),
+          Divider(height: 1, color: AppletStyle.border(context)),
           InfoItem(
             iconData: LucideIcons.user,
             title: S.of(context).openpgpCardHolder,
             value: _value(info.cardHolder),
           ),
-          Divider(height: 1, color: OpenPgpStyle.border(context)),
+          Divider(height: 1, color: AppletStyle.border(context)),
           InfoItem(
             iconData: LucideIcons.globe,
             title: S.of(context).openpgpPubkeyUrl,

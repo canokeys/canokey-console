@@ -7,9 +7,8 @@ import 'package:canokey_console/models/openpgp.dart';
 import 'package:convert/convert.dart';
 
 class OpenPgpCardClient {
-  OpenPgpCardClient({
-    ApduTransport transport = const SmartCardApduTransport(),
-  }) : _transport = transport;
+  OpenPgpCardClient({ApduTransport transport = const SmartCardApduTransport()})
+    : _transport = transport;
 
   static const String _aid = 'D27600012401';
   final ApduTransport _transport;
@@ -61,86 +60,78 @@ class OpenPgpCardClient {
     );
   }
 
-  Future<bool> changeUserPin(String oldPin, String newPin) async {
+  Future<bool> changeUserPin(String oldPin, String newPin) =>
+      _replacePin('00240081', oldPin, newPin);
+
+  Future<bool> changeAdminPin(String oldPin, String newPin) =>
+      _replacePin('00240083', oldPin, newPin);
+
+  Future<bool> _replacePin(String command, String secret, String newPin) async {
     await select();
-    final data = hex.encode([...utf8.encode(oldPin), ...utf8.encode(newPin)]);
-    return SmartCard.isOK(await _transceive(_capdu('00240081', data)));
+    final data = hex.encode([...utf8.encode(secret), ...utf8.encode(newPin)]);
+    return SmartCard.isOK(await _transceive(_capdu(command, data)));
   }
 
-  Future<bool> changeAdminPin(String oldPin, String newPin) async {
-    await select();
-    final data = hex.encode([...utf8.encode(oldPin), ...utf8.encode(newPin)]);
-    return SmartCard.isOK(await _transceive(_capdu('00240083', data)));
-  }
+  Future<bool> setResetCode(String adminPin, String resetCode) =>
+      _runAdminOperation(adminPin, () {
+        final data = hex.encode(utf8.encode(resetCode));
+        return _putDataObject(0xD3, data);
+      });
 
-  Future<bool> setResetCode(String adminPin, String resetCode) async {
-    await select();
-    if (!await verifyAdminPin(adminPin)) {
-      return false;
-    }
-    final data = hex.encode(utf8.encode(resetCode));
-    return SmartCard.isOK(await _putDataObject(0xD3, data));
-  }
-
-  Future<bool> setPinRetries(String adminPin, int userRetries, int resetRetries,
-      int adminRetries) async {
-    await select();
-    if (!await verifyAdminPin(adminPin)) {
-      return false;
-    }
+  Future<bool> setPinRetries(
+    String adminPin,
+    int userRetries,
+    int resetRetries,
+    int adminRetries,
+  ) => _runAdminOperation(adminPin, () {
     final data = hex.encode([userRetries, resetRetries, adminRetries]);
-    return SmartCard.isOK(await _transceive(_capdu('00F20000', data)));
-  }
+    return _transceive(_capdu('00F20000', data));
+  });
 
   Future<bool> setSignaturePinPolicy(
-      String adminPin, bool verifyForEverySignature) async {
-    await select();
-    if (!await verifyAdminPin(adminPin)) {
-      return false;
-    }
+    String adminPin,
+    bool verifyForEverySignature,
+  ) => _runAdminOperation(adminPin, () {
     final data = hex.encode([verifyForEverySignature ? 0x00 : 0x01]);
-    return SmartCard.isOK(await _putDataObject(0xC4, data));
-  }
+    return _putDataObject(0xC4, data);
+  });
 
-  Future<bool> unblockUserPinWithAdmin(String adminPin, String newPin) async {
-    await select();
-    if (!await verifyAdminPin(adminPin)) {
-      return false;
-    }
-    final data = hex.encode(utf8.encode(newPin));
-    return SmartCard.isOK(await _transceive(_capdu('002C0281', data)));
-  }
+  Future<bool> unblockUserPinWithAdmin(String adminPin, String newPin) =>
+      _runAdminOperation(adminPin, () {
+        final data = hex.encode(utf8.encode(newPin));
+        return _transceive(_capdu('002C0281', data));
+      });
 
-  Future<bool> unblockUserPinWithResetCode(
-      String resetCode, String newPin) async {
-    await select();
-    final data =
-        hex.encode([...utf8.encode(resetCode), ...utf8.encode(newPin)]);
-    return SmartCard.isOK(await _transceive(_capdu('002C0081', data)));
-  }
+  Future<bool> unblockUserPinWithResetCode(String resetCode, String newPin) =>
+      _replacePin('002C0081', resetCode, newPin);
 
   Future<bool> verifyAdminPin(String adminPin) async {
     final data = hex.encode(utf8.encode(adminPin));
     return SmartCard.isOK(await _transceive(_capdu('00200083', data)));
   }
 
-  Future<bool> setTouchPolicy(OpenPgpKeyType keyType, OpenPgpTouchPolicy policy,
-      String adminPin) async {
-    await select();
-    if (!await verifyAdminPin(adminPin)) {
-      return false;
-    }
+  Future<bool> setTouchPolicy(
+    OpenPgpKeyType keyType,
+    OpenPgpTouchPolicy policy,
+    String adminPin,
+  ) => _runAdminOperation(adminPin, () {
     final data = hex.encode([policy.value, 0x20]);
-    return SmartCard.isOK(await _putDataObject(keyType.uifTag, data));
-  }
+    return _putDataObject(keyType.uifTag, data);
+  });
 
-  Future<bool> setTouchCacheTime(String adminPin, int seconds) async {
+  Future<bool> setTouchCacheTime(String adminPin, int seconds) =>
+      _runAdminOperation(adminPin, () {
+        final data = hex.encode([seconds]);
+        return _putDataObject(0x0102, data);
+      });
+
+  Future<bool> _runAdminOperation(
+    String adminPin,
+    Future<String> Function() operation,
+  ) async {
     await select();
-    if (!await verifyAdminPin(adminPin)) {
-      return false;
-    }
-    final data = hex.encode([seconds]);
-    return SmartCard.isOK(await _putDataObject(0x0102, data));
+    if (!await verifyAdminPin(adminPin)) return false;
+    return SmartCard.isOK(await operation());
   }
 
   Future<List<int>> _readDataObject(int tag) async {
@@ -163,7 +154,7 @@ class OpenPgpCardClient {
 
   Future<String> _putDataObject(int tag, String data) {
     return _transceive(
-      '00DA${tag.toRadixString(16).padLeft(4, '0')}${_hexLength(data.length ~/ 2)}$data',
+      _capdu('00DA${tag.toRadixString(16).padLeft(4, '0')}', data),
     );
   }
 
@@ -181,7 +172,8 @@ class OpenPgpCardClient {
       return (OpenPgpTouchPolicy.off, false);
     }
     final policy = OpenPgpTouchPolicy.fromValue(data[0]);
-    final fixed = policy == OpenPgpTouchPolicy.permanent ||
+    final fixed =
+        policy == OpenPgpTouchPolicy.permanent ||
         policy == OpenPgpTouchPolicy.cachedPermanent;
     return (policy, fixed);
   }
@@ -337,16 +329,8 @@ class OpenPgpCardClient {
   }
 
   Future<String> _transceive(String capdu) async {
-    String rapdu = '';
-    do {
-      if (rapdu.length >= 4) {
-        final remain = rapdu.substring(rapdu.length - 2);
-        capdu = '00C00000$remain';
-        rapdu = rapdu.substring(0, rapdu.length - 4);
-      }
-      rapdu += await _transport.transceive(capdu);
-    } while (rapdu.substring(rapdu.length - 4, rapdu.length - 2) == '61');
-    lastStatusWord = SmartCard.sw(rapdu);
-    return rapdu;
+    final response = await _transport.transceiveChained(capdu);
+    lastStatusWord = SmartCard.sw(response);
+    return response;
   }
 }

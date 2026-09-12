@@ -1,3 +1,4 @@
+import 'package:canokey_console/helper/widgets/responsive_grid.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'piv_surface.dart';
@@ -54,7 +55,8 @@ class PivPinManagementCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        PivGrid(
+        ResponsiveGrid(
+          maxColumns: 4,
           minWidth: 250,
           minChildHeight: MediaQuery.textScalerOf(context).scale(160),
           children: [
@@ -97,7 +99,7 @@ class PivPinManagementCard extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1000),
-            child: PivGrid(
+            child: ResponsiveGrid(
               minWidth: 165,
               maxColumns: 5,
               children: [

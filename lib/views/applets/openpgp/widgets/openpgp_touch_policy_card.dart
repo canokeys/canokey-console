@@ -2,7 +2,7 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:canokey_console/models/openpgp.dart';
-import 'package:canokey_console/views/applets/openpgp/widgets/openpgp_section_card.dart';
+import 'package:canokey_console/helper/widgets/applet_section_card.dart';
 import 'package:flutter/material.dart';
 
 class OpenPgpTouchPolicyCard extends StatelessWidget {
@@ -19,14 +19,16 @@ class OpenPgpTouchPolicyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OpenPgpSectionCard(
+    return AppletSectionCard(
+      clipBehavior: Clip.none,
+      titleColor: Theme.of(context).colorScheme.onSurface,
       icon: LucideIcons.shieldCheck,
       title: S.of(context).openpgpUIF,
       child: Column(
         children: [
           for (final type in OpenPgpKeyType.values) ...[
             _policyRow(context, info.keySlots[type]!),
-            Divider(height: 1, color: OpenPgpStyle.border(context)),
+            Divider(height: 1, color: AppletStyle.border(context)),
           ],
           _row(
             context,

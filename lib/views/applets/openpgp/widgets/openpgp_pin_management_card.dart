@@ -1,7 +1,7 @@
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:canokey_console/models/openpgp.dart';
-import 'package:canokey_console/views/applets/openpgp/widgets/openpgp_section_card.dart';
+import 'package:canokey_console/helper/widgets/applet_section_card.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
 import 'package:flutter/material.dart';
 
@@ -29,7 +29,9 @@ class OpenPgpPinManagementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OpenPgpSectionCard(
+    return AppletSectionCard(
+      clipBehavior: Clip.none,
+      titleColor: Theme.of(context).colorScheme.onSurface,
       icon: LucideIcons.lock,
       title: S.of(context).pivPinManagement,
       child: Column(
@@ -40,19 +42,19 @@ class OpenPgpPinManagementCard extends StatelessWidget {
             title: S.of(context).openpgpUserPin,
             value: _retryValue(context, pinState.userRetries),
           ),
-          Divider(height: 1, color: OpenPgpStyle.border(context)),
+          Divider(height: 1, color: AppletStyle.border(context)),
           InfoItem(
             iconData: LucideIcons.shieldCheck,
             title: S.of(context).openpgpAdminPin,
             value: _retryValue(context, pinState.adminRetries),
           ),
-          Divider(height: 1, color: OpenPgpStyle.border(context)),
+          Divider(height: 1, color: AppletStyle.border(context)),
           InfoItem(
             iconData: LucideIcons.keyRound,
             title: S.of(context).openpgpResetCode,
             value: _retryValue(context, pinState.resetRetries),
           ),
-          Divider(height: 1, color: OpenPgpStyle.border(context)),
+          Divider(height: 1, color: AppletStyle.border(context)),
           InfoItem(
             iconData: LucideIcons.fileLock,
             title: S.of(context).openpgpSignaturePin,
@@ -60,7 +62,7 @@ class OpenPgpPinManagementCard extends StatelessWidget {
                 ? S.of(context).openpgpVerifyEverySignature
                 : S.of(context).openpgpVerifyOnceAfterInsertion,
           ),
-          Divider(height: 1, color: OpenPgpStyle.border(context)),
+          Divider(height: 1, color: AppletStyle.border(context)),
           const SizedBox(height: 18),
           _actions(context),
         ],
@@ -123,14 +125,14 @@ class OpenPgpPinManagementCard extends StatelessWidget {
           context,
         ).colorScheme.onSurface.withValues(alpha: .35),
         backgroundColor: primary
-            ? OpenPgpStyle.accent
-            : OpenPgpStyle.soft(context),
+            ? AppletStyle.accent
+            : AppletStyle.soft(context),
         minimumSize: const Size(0, 44),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(7),
           side: BorderSide(
-            color: primary ? OpenPgpStyle.accent : OpenPgpStyle.border(context),
+            color: primary ? AppletStyle.accent : AppletStyle.border(context),
           ),
         ),
       ),

@@ -1,7 +1,7 @@
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
-import 'package:convert/convert.dart';
+import 'package:canokey_console/helper/utils/admin_card.dart';
 import 'package:get/get.dart';
 
 class AppletSwitchStatus {
@@ -29,74 +29,74 @@ class AppletSwitchStatus {
     required this.webAuthnEnabled,
   });
 
+  factory AppletSwitchStatus.fromConfig({
+    required FirmwareVersion firmwareVersion,
+    required FunctionSetVersion functionSetVersion,
+    required List<int> config,
+  }) {
+    final supported =
+        functionSetVersion == FunctionSetVersion.v5 && config.length >= 6;
+    bool enabled(Func feature) =>
+        !supported || config[5] & AppletSwitches.featureBits[feature]! != 0;
+    return AppletSwitchStatus(
+      firmwareVersion: firmwareVersion,
+      functionSetVersion: functionSetVersion,
+      functionSet: CanoKey.functionSet(functionSetVersion),
+      featureSwitchesSupported: supported,
+      passEnabled: enabled(Func.passSwitch),
+      openPgpUsbEnabled: enabled(Func.openPgpCcIdSwitch),
+      openPgpNfcEnabled: enabled(Func.openPgpNfcSwitch),
+      pivUsbEnabled: enabled(Func.pivCcIdSwitch),
+      pivNfcEnabled: enabled(Func.pivNfcSwitch),
+      webAuthnEnabled: enabled(Func.webAuthnSwitch),
+    );
+  }
+
   bool get supportsNfc => functionSet.contains(Func.nfcSwitch);
 
   bool get openPgpEnabled =>
       SmartCard.connectionType == ConnectionType.nfc && supportsNfc
-          ? openPgpNfcEnabled
-          : openPgpUsbEnabled;
+      ? openPgpNfcEnabled
+      : openPgpUsbEnabled;
 
   bool get pivEnabled =>
       SmartCard.connectionType == ConnectionType.nfc && supportsNfc
-          ? pivNfcEnabled
-          : pivUsbEnabled;
+      ? pivNfcEnabled
+      : pivUsbEnabled;
 }
 
 class AppletSwitches {
-  static const int _featurePass = 1 << 0;
-  static const int _featureOpenPgpUsb = 1 << 1;
-  static const int _featureOpenPgpNfc = 1 << 2;
-  static const int _featurePivUsb = 1 << 3;
-  static const int _featurePivNfc = 1 << 4;
-  static const int _featureWebAuthn = 1 << 5;
+  static const featureBits = <Func, int>{
+    Func.passSwitch: 1 << 0,
+    Func.openPgpCcIdSwitch: 1 << 1,
+    Func.openPgpNfcSwitch: 1 << 2,
+    Func.pivCcIdSwitch: 1 << 3,
+    Func.pivNfcSwitch: 1 << 4,
+    Func.webAuthnSwitch: 1 << 5,
+  };
 
-  static Future<AppletSwitchStatus> readStatus() async {
-    SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));
-
-    final firmwareResp = await SmartCard.transceive('0031000000');
-    SmartCard.assertOK(firmwareResp);
-    final firmwareVersion =
-        String.fromCharCodes(hex.decode(SmartCard.dropSW(firmwareResp)));
-    final parsedFirmwareVersion = FirmwareVersion.parse(firmwareVersion);
-    final functionSetVersion =
-        CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
-    final functionSet = CanoKey.functionSet(functionSetVersion);
-
-    var featureSwitchesSupported = false;
-    var passEnabled = true;
-    var openPgpUsbEnabled = true;
-    var openPgpNfcEnabled = true;
-    var pivUsbEnabled = true;
-    var pivNfcEnabled = true;
-    var webAuthnEnabled = true;
-
-    if (functionSetVersion == FunctionSetVersion.v5) {
-      final configResp = await SmartCard.transceive('0042000000');
-      SmartCard.assertOK(configResp);
-      final configData = SmartCard.dropSW(configResp);
-      if (configData.length >= 12) {
-        featureSwitchesSupported = true;
-        final featureMask = int.parse(configData.substring(10, 12), radix: 16);
-        passEnabled = featureMask & _featurePass != 0;
-        openPgpUsbEnabled = featureMask & _featureOpenPgpUsb != 0;
-        openPgpNfcEnabled = featureMask & _featureOpenPgpNfc != 0;
-        pivUsbEnabled = featureMask & _featurePivUsb != 0;
-        pivNfcEnabled = featureMask & _featurePivNfc != 0;
-        webAuthnEnabled = featureMask & _featureWebAuthn != 0;
-      }
+  static int updateFeatureMask(int mask, Map<Func, bool> values) {
+    for (final entry in values.entries) {
+      final bit = featureBits[entry.key]!;
+      mask = entry.value ? mask | bit : mask & ~bit;
     }
+    return mask;
+  }
 
-    return AppletSwitchStatus(
-      firmwareVersion: parsedFirmwareVersion,
+  static Future<AppletSwitchStatus> readStatus({
+    AdminCardClient? client,
+  }) async {
+    final card = client ?? AdminCardClient();
+    await card.select();
+    final firmware = await card.readFirmwareVersion();
+    final functionSetVersion = CanoKey.functionSetFromFirmwareVersion(firmware);
+    final config = functionSetVersion == FunctionSetVersion.v5
+        ? await card.readConfig()
+        : const <int>[];
+    return AppletSwitchStatus.fromConfig(
+      firmwareVersion: FirmwareVersion.parse(firmware),
       functionSetVersion: functionSetVersion,
-      functionSet: functionSet,
-      featureSwitchesSupported: featureSwitchesSupported,
-      passEnabled: passEnabled,
-      openPgpUsbEnabled: openPgpUsbEnabled,
-      openPgpNfcEnabled: openPgpNfcEnabled,
-      pivUsbEnabled: pivUsbEnabled,
-      pivNfcEnabled: pivNfcEnabled,
-      webAuthnEnabled: webAuthnEnabled,
+      config: config,
     );
   }
 

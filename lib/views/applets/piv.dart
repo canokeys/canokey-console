@@ -1,3 +1,4 @@
+import 'package:canokey_console/helper/widgets/responsive_grid.dart';
 import 'package:canokey_console/views/applets/piv/widgets/piv_surface.dart';
 import 'package:canokey_console/views/applets/piv/widgets/piv_macos_setup_dialog.dart';
 import 'package:canokey_console/views/applets/piv/widgets/piv_slot_manager.dart';
@@ -1727,7 +1728,8 @@ class _PivPageState extends State<PivPage>
           )
           .reduce(max)
           .ceilToDouble();
-      return PivGrid(
+      return ResponsiveGrid(
+        maxColumns: 4,
         minWidth: 210,
         children: [
           for (final group in groups)
@@ -1797,7 +1799,7 @@ class _PivPageState extends State<PivPage>
               ),
             ),
             const SizedBox(height: 18),
-            PivGrid(
+            ResponsiveGrid(
               minWidth: 85,
               maxColumns: danger ? 1 : 2,
               children: actions,
@@ -2115,7 +2117,7 @@ class _PivPageState extends State<PivPage>
                                             ),
                                           ),
                                         )
-                                      : PivGrid(
+                                      : ResponsiveGrid(
                                           minWidth: 360,
                                           maxColumns: 2,
                                           children: [
@@ -3776,7 +3778,7 @@ class _PivPageState extends State<PivPage>
                                         .pivSubjectDescription,
                                   ),
                                   const SizedBox(height: 16),
-                                  PivGrid(
+                                  ResponsiveGrid(
                                     minWidth: 240,
                                     maxColumns: 2,
                                     children: [

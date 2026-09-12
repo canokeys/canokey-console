@@ -1,3 +1,4 @@
+import 'package:canokey_console/helper/widgets/responsive_grid.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/models/piv.dart';
 import 'package:flutter/material.dart';
@@ -252,7 +253,8 @@ class PivSlotPolicies extends StatelessWidget {
   final SlotInfo slot;
 
   @override
-  Widget build(BuildContext context) => PivGrid(
+  Widget build(BuildContext context) => ResponsiveGrid(
+    maxColumns: 4,
     minWidth: 190,
     children: [
       _policy(

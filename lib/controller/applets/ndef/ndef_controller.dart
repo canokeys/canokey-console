@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
@@ -74,8 +72,11 @@ class NdefController extends PollingController {
       } catch (error, stackTrace) {
         records = [];
         decodeError = S.current.ndefInvalidMessage;
-        log.w('Failed to decode NDEF message',
-            error: error, stackTrace: stackTrace);
+        log.w(
+          'Failed to decode NDEF message',
+          error: error,
+          stackTrace: stackTrace,
+        );
       }
 
       disabledMessage = null;
@@ -119,7 +120,9 @@ class NdefController extends PollingController {
     final message = NdefDocument(records).encode();
     if (message.length > maxMessageLength) {
       Prompts.showPrompt(
-          S.current.ndefCapacityExceeded, ContentThemeColor.danger);
+        S.current.ndefCapacityExceeded,
+        ContentThemeColor.danger,
+      );
       return;
     }
 
@@ -135,8 +138,11 @@ class NdefController extends PollingController {
         }
 
         dirty = false;
-        Prompts.showPrompt(S.current.ndefSaved, ContentThemeColor.success,
-            forceSnackBar: true);
+        Prompts.showPrompt(
+          S.current.ndefSaved,
+          ContentThemeColor.success,
+          forceSnackBar: true,
+        );
         log.i('Successfully wrote ${message.length} bytes of NDEF data');
       });
     } on NdefReadOnlyException {
@@ -150,13 +156,5 @@ class NdefController extends PollingController {
   void _markDirty() {
     dirty = true;
     update();
-  }
-
-  static String readBinaryApdu(int offset, int length) {
-    return NdefCardClient.readBinaryApdu(offset, length);
-  }
-
-  static String updateBinaryApdu(int offset, Uint8List data) {
-    return NdefCardClient.updateBinaryApdu(offset, data);
   }
 }

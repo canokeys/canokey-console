@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'package:canokey_console/helper/widgets/responsive_grid.dart';
 import 'package:canokey_console/controller/applets/webauthn/webauthn_controller.dart';
 import 'package:canokey_console/models/webauthn.dart';
 import 'package:canokey_console/views/applets/webauthn/widgets/webauthn_item_card.dart';
@@ -16,28 +16,13 @@ class WebAuthnCredentialGrid extends StatelessWidget {
   final WebAuthnController controller;
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      if (items.isEmpty) return const SizedBox.shrink();
-      const gap = 16.0;
-      final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
-      final minWidth = 380 * textScale.clamp(1.0, 1.6);
-      final columns = math.min(
-        items.length,
-        math.max(1, ((constraints.maxWidth + gap) / (minWidth + gap)).floor()),
-      );
-      final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
-      return Wrap(
-        spacing: gap,
-        runSpacing: gap,
-        children: [
-          for (final item in items)
-            SizedBox(
-              width: width,
-              child: WebAuthnItemCard(item: item, controller: controller),
-            ),
-        ],
-      );
-    },
+  Widget build(BuildContext context) => ResponsiveGrid(
+    minWidth:
+        380 * (MediaQuery.textScalerOf(context).scale(14) / 14).clamp(1.0, 1.6),
+    spacing: 16,
+    children: [
+      for (final item in items)
+        WebAuthnItemCard(item: item, controller: controller),
+    ],
   );
 }

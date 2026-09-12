@@ -272,48 +272,6 @@ class PivButton extends StatelessWidget {
   }
 }
 
-class PivGrid extends StatelessWidget {
-  const PivGrid({
-    super.key,
-    required this.children,
-    this.minWidth = 220,
-    this.maxColumns = 4,
-    this.minChildHeight = 0,
-  });
-  final List<Widget> children;
-  final double minWidth;
-  final int maxColumns;
-  final double minChildHeight;
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      final columns = ((constraints.maxWidth + 10) / (minWidth + 10))
-          .floor()
-          .clamp(
-            1,
-            children.isEmpty
-                ? 1
-                : (children.length < maxColumns ? children.length : maxColumns),
-          );
-      final width = (constraints.maxWidth - 10 * (columns - 1)) / columns;
-      return Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        children: [
-          for (var i = 0; i < children.length; i++)
-            SizedBox(
-              width: width,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: minChildHeight),
-                child: children[i],
-              ),
-            ),
-        ],
-      );
-    },
-  );
-}
-
 class PivDialog extends StatelessWidget {
   const PivDialog({super.key, required this.child});
   final Widget child;

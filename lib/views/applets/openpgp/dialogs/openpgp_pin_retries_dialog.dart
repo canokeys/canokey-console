@@ -4,7 +4,6 @@ import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
-import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
@@ -15,7 +14,13 @@ import 'package:get/get.dart';
 
 class OpenPgpPinRetriesDialog extends BaseDialog {
   final OpenPgpPinState pinState;
-  final Future<void> Function(String adminPin, int userRetries, int resetRetries, int adminRetries) onSubmit;
+  final Future<void> Function(
+    String adminPin,
+    int userRetries,
+    int resetRetries,
+    int adminRetries,
+  )
+  onSubmit;
 
   const OpenPgpPinRetriesDialog({
     super.key,
@@ -25,7 +30,13 @@ class OpenPgpPinRetriesDialog extends BaseDialog {
 
   static Future<void> show({
     required OpenPgpPinState pinState,
-    required Future<void> Function(String adminPin, int userRetries, int resetRetries, int adminRetries) onSubmit,
+    required Future<void> Function(
+      String adminPin,
+      int userRetries,
+      int resetRetries,
+      int adminRetries,
+    )
+    onSubmit,
   }) {
     return AppDialog.show(
       OpenPgpPinRetriesDialog(pinState: pinState, onSubmit: onSubmit),
@@ -33,10 +44,12 @@ class OpenPgpPinRetriesDialog extends BaseDialog {
   }
 
   @override
-  State<OpenPgpPinRetriesDialog> createState() => _OpenPgpPinRetriesDialogState();
+  State<OpenPgpPinRetriesDialog> createState() =>
+      _OpenPgpPinRetriesDialogState();
 }
 
-class _OpenPgpPinRetriesDialogState extends BaseDialogState<OpenPgpPinRetriesDialog> {
+class _OpenPgpPinRetriesDialogState
+    extends BaseDialogState<OpenPgpPinRetriesDialog> {
   final FormValidator _validator = FormValidator();
   final RxBool _showAdminPin = false.obs;
 
@@ -52,104 +65,54 @@ class _OpenPgpPinRetriesDialogState extends BaseDialogState<OpenPgpPinRetriesDia
     _validator.addField(
       'user',
       required: true,
-      controller: TextEditingController(text: '${widget.pinState.userRetries ?? 3}'),
+      controller: TextEditingController(
+        text: '${widget.pinState.userRetries ?? 3}',
+      ),
       validators: [IntValidator(min: 1, max: 15)],
     );
     _validator.addField(
       'reset',
       required: true,
-      controller: TextEditingController(text: '${widget.pinState.resetRetries ?? 3}'),
+      controller: TextEditingController(
+        text: '${widget.pinState.resetRetries ?? 3}',
+      ),
       validators: [IntValidator(min: 1, max: 15)],
     );
     _validator.addField(
       'adminRetries',
       required: true,
-      controller: TextEditingController(text: '${widget.pinState.adminRetries ?? 3}'),
+      controller: TextEditingController(
+        text: '${widget.pinState.adminRetries ?? 3}',
+      ),
       validators: [IntValidator(min: 1, max: 15)],
     );
   }
 
   @override
-  Widget buildDialogContent() {
-    return Obx(
-      () => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: Spacing.all(16),
-            child: CustomizedText.labelLarge(
-              S.of(context).openpgpSetPinRetriesTitle,
-            ),
-          ),
-          Divider(height: 0, thickness: 1),
-          Padding(
-            padding: Spacing.all(16),
-            child: CustomizedText.bodySmall(
-              S.of(context).openpgpSetPinRetriesPrompt,
-              color: ContentThemeColor.danger.color,
-            ),
-          ),
-          Divider(height: 0, thickness: 1),
-          Padding(
-            padding: Spacing.all(16),
-            child: Form(
-              key: _validator.formKey,
-              child: Column(
-                children: [
-                  _adminPinField(),
-                  Spacing.height(16),
-                  _numberField('user', S.of(context).openpgpUserPin),
-                  Spacing.height(16),
-                  _numberField('reset', S.of(context).openpgpResetCode),
-                  Spacing.height(16),
-                  _numberField('adminRetries', S.of(context).openpgpAdminPin),
-                ],
-              ),
-            ),
-          ),
-          if (errorMessage.value.isNotEmpty)
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.bodyMedium(
-                errorMessage.value,
-                color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color,
-              ),
-            ),
-          Divider(height: 0, thickness: 1),
-          Padding(
-            padding: Spacing.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                CustomizedButton.rounded(
-                  onPressed: () => Navigator.pop(context),
-                  elevation: 0,
-                  padding: Spacing.xy(20, 16),
-                  backgroundColor: ContentThemeColor.secondary.color,
-                  child: CustomizedText.labelMedium(
-                    S.of(context).cancel,
-                    color: ContentThemeColor.secondary.onColor,
-                  ),
-                ),
-                Spacing.width(16),
-                CustomizedButton.rounded(
-                  onPressed: _submit,
-                  elevation: 0,
-                  padding: Spacing.xy(20, 16),
-                  backgroundColor: ContentThemeColor.primary.color,
-                  child: CustomizedText.labelMedium(
-                    S.of(context).confirm,
-                    color: ContentThemeColor.primary.onColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+  Widget buildDialogContent() => Obx(
+    () => buildFormContent(
+      title: S.of(context).openpgpSetPinRetriesTitle,
+      description: CustomizedText.bodySmall(
+        S.of(context).openpgpSetPinRetriesPrompt,
+        color: ContentThemeColor.danger.color,
       ),
-    );
-  }
+      form: Form(
+        key: _validator.formKey,
+        child: Column(
+          children: [
+            _adminPinField(),
+            Spacing.height(16),
+            _numberField('user', S.of(context).openpgpUserPin),
+            Spacing.height(16),
+            _numberField('reset', S.of(context).openpgpResetCode),
+            Spacing.height(16),
+            _numberField('adminRetries', S.of(context).openpgpAdminPin),
+          ],
+        ),
+      ),
+      onSubmit: _submit,
+    ),
+  );
 
   Widget _adminPinField() {
     return TextFormField(
@@ -162,7 +125,9 @@ class _OpenPgpPinRetriesDialogState extends BaseDialogState<OpenPgpPinRetriesDia
         labelText: S.of(context).openpgpAdminPin,
         border: _outlineInputBorder,
         suffixIcon: IconButton(
-          icon: Icon(_showAdminPin.value ? Icons.visibility : Icons.visibility_off),
+          icon: Icon(
+            _showAdminPin.value ? Icons.visibility : Icons.visibility_off,
+          ),
           onPressed: () => _showAdminPin.toggle(),
         ),
       ),

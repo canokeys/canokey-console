@@ -1,10 +1,8 @@
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
-import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
-import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
@@ -20,16 +18,15 @@ class OpenPgpResetCodeDialog extends BaseDialog {
   static Future<void> show({
     required Future<void> Function(String adminPin, String resetCode) onSubmit,
   }) {
-    return AppDialog.show(
-      OpenPgpResetCodeDialog(onSubmit: onSubmit),
-    );
+    return AppDialog.show(OpenPgpResetCodeDialog(onSubmit: onSubmit));
   }
 
   @override
   State<OpenPgpResetCodeDialog> createState() => _OpenPgpResetCodeDialogState();
 }
 
-class _OpenPgpResetCodeDialogState extends BaseDialogState<OpenPgpResetCodeDialog> {
+class _OpenPgpResetCodeDialogState
+    extends BaseDialogState<OpenPgpResetCodeDialog> {
   final FormValidator _validator = FormValidator();
   final RxBool _showAdminPin = false.obs;
   final RxBool _showResetCode = false.obs;
@@ -52,89 +49,33 @@ class _OpenPgpResetCodeDialogState extends BaseDialogState<OpenPgpResetCodeDialo
   }
 
   @override
-  Widget buildDialogContent() {
-    return Obx(
-      () => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: Spacing.all(16),
-            child: CustomizedText.labelLarge(
-              S.of(context).openpgpSetResetCode,
-            ),
-          ),
-          Divider(height: 0, thickness: 1),
-          Padding(
-            padding: Spacing.all(16),
-            child: CustomizedText.bodyMedium(
-              S.of(context).openpgpSetResetCodePrompt,
-            ),
-          ),
-          Divider(height: 0, thickness: 1),
-          Padding(
-            padding: Spacing.all(16),
-            child: Form(
-              key: _validator.formKey,
-              child: Column(
-                children: [
-                  _field(
-                    name: 'admin',
-                    label: S.of(context).openpgpAdminPin,
-                    showValue: _showAdminPin,
-                  ),
-                  Spacing.height(16),
-                  _field(
-                    name: 'reset',
-                    label: S.of(context).openpgpResetCode,
-                    showValue: _showResetCode,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (errorMessage.value.isNotEmpty)
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.bodyMedium(
-                errorMessage.value,
-                color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color,
-              ),
-            ),
-          Divider(height: 0, thickness: 1),
-          Padding(
-            padding: Spacing.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                CustomizedButton.rounded(
-                  onPressed: () => Navigator.pop(context),
-                  elevation: 0,
-                  padding: Spacing.xy(20, 16),
-                  backgroundColor: ContentThemeColor.secondary.color,
-                  child: CustomizedText.labelMedium(
-                    S.of(context).cancel,
-                    color: ContentThemeColor.secondary.onColor,
-                  ),
-                ),
-                Spacing.width(16),
-                CustomizedButton.rounded(
-                  onPressed: _submit,
-                  elevation: 0,
-                  padding: Spacing.xy(20, 16),
-                  backgroundColor: ContentThemeColor.primary.color,
-                  child: CustomizedText.labelMedium(
-                    S.of(context).confirm,
-                    color: ContentThemeColor.primary.onColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+  Widget buildDialogContent() => Obx(
+    () => buildFormContent(
+      title: S.of(context).openpgpSetResetCode,
+      description: CustomizedText.bodyMedium(
+        S.of(context).openpgpSetResetCodePrompt,
       ),
-    );
-  }
+      form: Form(
+        key: _validator.formKey,
+        child: Column(
+          children: [
+            _field(
+              name: 'admin',
+              label: S.of(context).openpgpAdminPin,
+              showValue: _showAdminPin,
+            ),
+            Spacing.height(16),
+            _field(
+              name: 'reset',
+              label: S.of(context).openpgpResetCode,
+              showValue: _showResetCode,
+            ),
+          ],
+        ),
+      ),
+      onSubmit: _submit,
+    ),
+  );
 
   Widget _field({
     required String name,

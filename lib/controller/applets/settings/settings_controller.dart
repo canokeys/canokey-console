@@ -1,3 +1,4 @@
+import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -19,7 +20,10 @@ import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
 class SettingsController extends PollingController with AdminApplet {
-  final AdminCardClient _client = AdminCardClient();
+  SettingsController({AdminCardClient? client})
+      : _client = client ?? AdminCardClient();
+
+  final AdminCardClient _client;
   late CanoKey key;
 
   @override
@@ -44,24 +48,8 @@ class SettingsController extends PollingController with AdminApplet {
     });
   }
 
-  void changeSwitch(Func func, bool value) async {
-    log.t('Call SettingsController.changeSwitch');
-    await SmartCard.process((String sn) async {
-      if (!await authenticate(sn)) {
-        return;
-      }
-
-      SmartCard.assertOK(
-          await SmartCard.transceive(_changeSwitchAPDU(func, value)));
-      log.i('Successfully changed ${func.name}');
-      Navigator.pop(Get.context!);
-
-      Prompts.showPrompt(
-          S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
-          forceSnackBar: true);
-      await _refresh(sn);
-    });
-  }
+  Future<void> changeSwitch(Func func, bool value) =>
+      changeSwitches({func: value});
 
   Future<void> changeSwitches(Map<Func, bool> values) async {
     log.t('Call SettingsController.changeSwitches');
@@ -77,11 +65,11 @@ class SettingsController extends PollingController with AdminApplet {
 
       final featureValues = <Func, bool>{};
       for (final entry in values.entries) {
-        if (_featureSwitchBits.containsKey(entry.key)) {
+        if (AppletSwitches.featureBits.containsKey(entry.key)) {
           featureValues[entry.key] = entry.value;
         } else {
           SmartCard.assertOK(await SmartCard.transceive(
-              _changeSwitchAPDU(entry.key, entry.value)));
+              _changeSwitchAPDUs[entry.key]![entry.value]!));
         }
       }
 
@@ -140,7 +128,7 @@ class SettingsController extends PollingController with AdminApplet {
   void resetCanokey() {
     log.t('Call SettingsController.resetCanokey');
     SmartCard.process((String sn) async {
-      SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));
+      await _client.select();
       AppLoaderOverlay.show();
       String resp = await SmartCard.transceive('00500000055245534554');
       AppLoaderOverlay.hide();
@@ -204,78 +192,30 @@ class SettingsController extends PollingController with AdminApplet {
         CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
     final functionSet = CanoKey.functionSet(functionSetVersion);
     if (functionSetVersion == FunctionSetVersion.v5) {
-      coreCommit = await _tryReadCoreCommit();
+      coreCommit = await _client.readCoreCommit();
     }
-    bool ledOn = false;
-    bool hotpOn = false;
-    bool ndefReadonly = false;
-    bool ndefEnabled = false;
-    bool webusbLandingEnabled = false;
-    bool keyboardWithReturn = false;
-    bool sigTouch = false;
-    bool decTouch = false;
-    bool autTouch = false;
-    int cacheTime = 0;
-    bool nfcEnabled = true;
-    bool passEnabled = true;
-    bool openPgpCcIdEnabled = true;
-    bool openPgpNfcEnabled = true;
-    bool pivCcIdEnabled = true;
-    bool pivNfcEnabled = true;
-    bool webAuthnEnabled = true;
-    bool featureSwitchesSupported = false;
+    final config = await _client.readConfig();
+    final switches = AppletSwitchStatus.fromConfig(
+      firmwareVersion: FirmwareVersion.parse(firmwareVersion),
+      functionSetVersion: functionSetVersion,
+      config: config,
+    );
+    final legacy = functionSetVersion == FunctionSetVersion.v1;
+    final ledOn = config[0] == 1;
+    final hotpOn = functionSetVersion.index <= FunctionSetVersion.v3.index &&
+        config[1] == 1;
+    final ndefReadonly = config[2] == 1;
+    final ndefEnabled = !legacy && config[3] == 1;
+    final webusbLandingEnabled = !legacy && config[4] == 1;
+    final keyboardWithReturn =
+        functionSetVersion == FunctionSetVersion.v3 && config[5] == 1;
+    final sigTouch = legacy && config[3] == 1;
+    final decTouch = legacy && config[4] == 1;
+    final autTouch = legacy && config[5] == 1;
+    final cacheTime = legacy ? config[6] : 0;
+    var nfcEnabled = true;
     StorageUsage? storageUsage;
     KeyboardKeymapState? keyboardKeymap;
-    final configData = hex.encode(await _client.readConfig());
-    switch (functionSetVersion) {
-      case FunctionSetVersion.v1:
-        ledOn = configData.substring(0, 2) == '01';
-        hotpOn = configData.substring(2, 4) == '01';
-        ndefReadonly = configData.substring(4, 6) == '01';
-        sigTouch = configData.substring(6, 8) == '01';
-        decTouch = configData.substring(8, 10) == '01';
-        autTouch = configData.substring(10, 12) == '01';
-        cacheTime = int.parse(configData.substring(12, 14), radix: 16);
-        break;
-      case FunctionSetVersion.v2:
-        ledOn = configData.substring(0, 2) == '01';
-        hotpOn = configData.substring(2, 4) == '01';
-        ndefReadonly = configData.substring(4, 6) == '01';
-        ndefEnabled = configData.substring(6, 8) == '01';
-        webusbLandingEnabled = configData.substring(8, 10) == '01';
-        break;
-      case FunctionSetVersion.v3:
-        ledOn = configData.substring(0, 2) == '01';
-        hotpOn = configData.substring(2, 4) == '01';
-        ndefReadonly = configData.substring(4, 6) == '01';
-        ndefEnabled = configData.substring(6, 8) == '01';
-        webusbLandingEnabled = configData.substring(8, 10) == '01';
-        keyboardWithReturn = configData.substring(10, 12) == '01';
-        break;
-      case FunctionSetVersion.v4:
-        ledOn = configData.substring(0, 2) == '01';
-        ndefReadonly = configData.substring(4, 6) == '01';
-        ndefEnabled = configData.substring(6, 8) == '01';
-        webusbLandingEnabled = configData.substring(8, 10) == '01';
-        break;
-      case FunctionSetVersion.v5:
-        ledOn = configData.substring(0, 2) == '01';
-        ndefReadonly = configData.substring(4, 6) == '01';
-        ndefEnabled = configData.substring(6, 8) == '01';
-        webusbLandingEnabled = configData.substring(8, 10) == '01';
-        if (configData.length >= 12) {
-          featureSwitchesSupported = true;
-          final featureMask =
-              int.parse(configData.substring(10, 12), radix: 16);
-          passEnabled = featureMask & _featurePass != 0;
-          openPgpCcIdEnabled = featureMask & _featureOpenPgpCcId != 0;
-          openPgpNfcEnabled = featureMask & _featureOpenPgpNfc != 0;
-          pivCcIdEnabled = featureMask & _featurePivCcId != 0;
-          pivNfcEnabled = featureMask & _featurePivNfc != 0;
-          webAuthnEnabled = featureMask & _featureWebAuthn != 0;
-        }
-        break;
-    }
     if (functionSet.contains(Func.nfcSwitch)) {
       nfcEnabled = await _client.readNfcEnabled();
     }
@@ -317,23 +257,19 @@ class SettingsController extends PollingController with AdminApplet {
         autTouch: autTouch,
         touchCacheTime: cacheTime,
         nfcEnabled: nfcEnabled,
-        passEnabled: passEnabled,
-        openPgpCcIdEnabled: openPgpCcIdEnabled,
-        openPgpNfcEnabled: openPgpNfcEnabled,
-        pivCcIdEnabled: pivCcIdEnabled,
-        pivNfcEnabled: pivNfcEnabled,
-        webAuthnEnabled: webAuthnEnabled,
-        featureSwitchesSupported: featureSwitchesSupported,
+        passEnabled: switches.passEnabled,
+        openPgpCcIdEnabled: switches.openPgpUsbEnabled,
+        openPgpNfcEnabled: switches.openPgpNfcEnabled,
+        pivCcIdEnabled: switches.pivUsbEnabled,
+        pivNfcEnabled: switches.pivNfcEnabled,
+        webAuthnEnabled: switches.webAuthnEnabled,
+        featureSwitchesSupported: switches.featureSwitchesSupported,
         storageUsage: storageUsage,
         keyboardKeymap: keyboardKeymap);
 
     polled = true;
 
     update();
-  }
-
-  Future<String?> _tryReadCoreCommit() async {
-    return _client.readCoreCommit();
   }
 
   Future<List<AppletStorageUsage>> _tryReadAppletStorageUsage(
@@ -453,48 +389,18 @@ class SettingsController extends PollingController with AdminApplet {
     }
   }
 
-  static const int _featurePass = 1 << 0;
-  static const int _featureOpenPgpCcId = 1 << 1;
-  static const int _featureOpenPgpNfc = 1 << 2;
-  static const int _featurePivCcId = 1 << 3;
-  static const int _featurePivNfc = 1 << 4;
-  static const int _featureWebAuthn = 1 << 5;
-
-  static const Map<Func, int> _featureSwitchBits = {
-    Func.passSwitch: _featurePass,
-    Func.openPgpCcIdSwitch: _featureOpenPgpCcId,
-    Func.openPgpNfcSwitch: _featureOpenPgpNfc,
-    Func.pivCcIdSwitch: _featurePivCcId,
-    Func.pivNfcSwitch: _featurePivNfc,
-    Func.webAuthnSwitch: _featureWebAuthn,
-  };
-
-  int _currentFeatureMask() {
-    return (key.passEnabled ? _featurePass : 0) |
-        (key.openPgpCcIdEnabled ? _featureOpenPgpCcId : 0) |
-        (key.openPgpNfcEnabled ? _featureOpenPgpNfc : 0) |
-        (key.pivCcIdEnabled ? _featurePivCcId : 0) |
-        (key.pivNfcEnabled ? _featurePivNfc : 0) |
-        (key.webAuthnEnabled ? _featureWebAuthn : 0);
-  }
-
-  String _changeSwitchAPDU(Func func, bool value) {
-    final featureBit = _featureSwitchBits[func];
-    if (featureBit != null) {
-      final currentMask = _currentFeatureMask();
-      final newMask =
-          value ? currentMask | featureBit : currentMask & ~featureBit;
-      return '004006${newMask.toRadixString(16).padLeft(2, '0')}';
-    }
-    return _changeSwitchAPDUs[func]![value]!;
-  }
+  int _currentFeatureMask() => AppletSwitches.updateFeatureMask(0, {
+    Func.passSwitch: key.passEnabled,
+    Func.openPgpCcIdSwitch: key.openPgpCcIdEnabled,
+    Func.openPgpNfcSwitch: key.openPgpNfcEnabled,
+    Func.pivCcIdSwitch: key.pivCcIdEnabled,
+    Func.pivNfcSwitch: key.pivNfcEnabled,
+    Func.webAuthnSwitch: key.webAuthnEnabled,
+  });
 
   String _changeFeatureSwitchesAPDU(Map<Func, bool> values) {
-    var newMask = _currentFeatureMask();
-    for (final entry in values.entries) {
-      final bit = _featureSwitchBits[entry.key]!;
-      newMask = entry.value ? newMask | bit : newMask & ~bit;
-    }
+    final newMask =
+        AppletSwitches.updateFeatureMask(_currentFeatureMask(), values);
     return '004006${newMask.toRadixString(16).padLeft(2, '0')}';
   }
 

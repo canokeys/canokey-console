@@ -5,7 +5,7 @@ import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/openpgp.dart';
-import 'package:canokey_console/views/applets/openpgp/widgets/openpgp_section_card.dart';
+import 'package:canokey_console/helper/widgets/applet_section_card.dart';
 import 'package:flutter/material.dart';
 
 class OpenPgpKeySlotsCard extends StatelessWidget {
@@ -15,7 +15,9 @@ class OpenPgpKeySlotsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OpenPgpSectionCard(
+    return AppletSectionCard(
+      clipBehavior: Clip.none,
+      titleColor: Theme.of(context).colorScheme.onSurface,
       icon: LucideIcons.keyRound,
       title: S.of(context).openpgpKeys,
       child: LayoutBuilder(
@@ -51,8 +53,8 @@ class OpenPgpKeySlotsCard extends StatelessWidget {
   Widget _slot(BuildContext context, OpenPgpKeySlotInfo slot) => Container(
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: OpenPgpStyle.soft(context),
-      border: Border.all(color: OpenPgpStyle.border(context)),
+      color: AppletStyle.soft(context),
+      border: Border.all(color: AppletStyle.border(context)),
       borderRadius: BorderRadius.circular(8),
     ),
     child: Column(
@@ -63,7 +65,7 @@ class OpenPgpKeySlotsCard extends StatelessWidget {
             const Icon(
               LucideIcons.fileLock,
               size: 22,
-              color: OpenPgpStyle.accent,
+              color: AppletStyle.accent,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -112,13 +114,11 @@ class OpenPgpKeySlotsCard extends StatelessWidget {
     final theme = Theme.of(context);
     final background = muted
         ? theme.colorScheme.surfaceContainerHighest
-        : OpenPgpStyle.accent.withValues(alpha: .10);
-    final foreground = muted
-        ? theme.colorScheme.onSurface
-        : OpenPgpStyle.accent;
+        : AppletStyle.accent.withValues(alpha: .10);
+    final foreground = muted ? theme.colorScheme.onSurface : AppletStyle.accent;
     final border = muted
-        ? OpenPgpStyle.border(context)
-        : OpenPgpStyle.accent.withValues(alpha: .2);
+        ? AppletStyle.border(context)
+        : AppletStyle.accent.withValues(alpha: .2);
 
     return CustomizedContainer.bordered(
       padding: Spacing.xy(8, 4),
