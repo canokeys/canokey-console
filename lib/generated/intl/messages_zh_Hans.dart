@@ -773,7 +773,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivPageDescription": MessageLookupByLibrary.simpleMessage(
       "管理 PIV 的 PIN、密钥和证书，配置身份认证所需的凭据。",
     ),
-    "pivPageTitle": MessageLookupByLibrary.simpleMessage("PIV 管理"),
+    "pivPageTitle": MessageLookupByLibrary.simpleMessage("PIV"),
     "pivPinAndTouchPolicy": MessageLookupByLibrary.simpleMessage("PIN 和触摸策略"),
     "pivPinDescription": MessageLookupByLibrary.simpleMessage("用于用户身份验证"),
     "pivPinManagement": MessageLookupByLibrary.simpleMessage("管理 PIN"),

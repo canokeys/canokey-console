@@ -710,7 +710,7 @@
   "pivMacSetupCredentials": "Enter your PIV PIN and management key.",
   "pivMacSetupManagementKey": "Management key (hex)",
   "pivMacSetupInvalid": "Check the PIN and management key format.",
-  "pivPageTitle": "PIV Management",
+  "pivPageTitle": "PIV",
   "pivPageDescription": "Manage your PIV credentials, keys and certificates.",
   "pivPinDescription": "For user authentication",
   "pivPukDescription": "For unblocking the PIN",

@@ -786,7 +786,7 @@
   "pivMacSetupCredentials": "請輸入 PIV PIN 和管理金鑰。",
   "pivMacSetupManagementKey": "管理金鑰（十六進位）",
   "pivMacSetupInvalid": "請檢查 PIN 和管理金鑰的格式。",
-  "pivPageTitle": "PIV 管理",
+  "pivPageTitle": "PIV",
   "pivPageDescription": "管理 PIV 的 PIN、金鑰與憑證，設定身分驗證所需的憑據。",
   "pivPinDescription": "用於使用者身分驗證",
   "pivPukDescription": "用於解除 PIN 鎖定",

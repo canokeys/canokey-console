@@ -5384,14 +5384,9 @@ class S {
     );
   }
 
-  /// `PIV Management`
+  /// `PIV`
   String get pivPageTitle {
-    return Intl.message(
-      'PIV Management',
-      name: 'pivPageTitle',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('PIV', name: 'pivPageTitle', desc: '', args: []);
   }
 
   /// `Manage your PIV credentials, keys and certificates.`

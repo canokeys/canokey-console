@@ -1002,7 +1002,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivPageDescription": MessageLookupByLibrary.simpleMessage(
       "Manage your PIV credentials, keys and certificates.",
     ),
-    "pivPageTitle": MessageLookupByLibrary.simpleMessage("PIV Management"),
+    "pivPageTitle": MessageLookupByLibrary.simpleMessage("PIV"),
     "pivPinAndTouchPolicy": MessageLookupByLibrary.simpleMessage(
       "PIN and Touch Policy",
     ),
