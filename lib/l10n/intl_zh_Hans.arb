@@ -404,6 +404,7 @@
     }
   },
   "pivVerifyManagementKey": "验证管理密钥",
+  "pivOperationRequiresPin": "此操作本身还需要验证 PIN。",
   "pivManagementKeyAuthentication": "管理密钥验证方式",
   "pivPinProtectedKeyOnCard": "使用 PIN 验证",
   "pivManualManagementKey": "手动输入管理密钥",
@@ -489,7 +490,7 @@
   },
   "pivDownloadAttestation": "下载证明证书",
   "pivGenerateCsr": "生成 CSR",
-  "pivSelfSign": "生成自签名证书",
+  "pivSelfSign": "生成自签证书",
   "pivGenerateX25519Key": "生成 X25519 密钥",
   "pivGenerateKey": "生成密钥",
   "pivGeneratingKey": "正在生成 {algorithm} 密钥",
@@ -563,7 +564,7 @@
   "pivCertificateCreated": "证书已创建",
   "pivGenerateCsrFailed": "生成 CSR 失败",
   "pivCsrGenerated": "CSR 已生成",
-  "pivSelfSignCertificate": "生成自签名证书",
+  "pivSelfSignCertificate": "生成自签证书",
   "pivCreateCertificate": "创建证书",
   "pivKeyOptions": "密钥选项",
   "pivCertificateSubjectStep": "证书主体信息",
@@ -752,17 +753,7 @@
   "pivMacOsGuide": "配置 9A 槽位用于登录时的身份验证，配置 9D 槽位用于解锁登录钥匙串。完成后，请重新插入 CanoKey，并按照 macOS 的提示，将智能卡与您的用户账户配对。",
   "pivMacOsAuthenticationSlot": "9A · 身份验证",
   "pivMacOsKeychainSlot": "9D · 解锁钥匙串",
-  "pivMacOsAfterAuthentication": "9A 槽位配置已完成。请继续检查 9D 槽位，确认已配置用于解锁登录钥匙串的密钥和证书。",
-  "pivMacOsAfterKeychain": "9D 槽位配置已完成。请确认 9A 槽位也已配置，然后重新插入 CanoKey，并按照 macOS 的提示，将智能卡与您的用户账户配对。",
-  "pivMacOsCheckSlot": "检查 {slot} 槽位",
   "@pivMacOsSlotApplied": {
-    "placeholders": {
-      "slot": {
-        "type": "String"
-      }
-    }
-  },
-  "@pivMacOsCheckSlot": {
     "placeholders": {
       "slot": {
         "type": "String"

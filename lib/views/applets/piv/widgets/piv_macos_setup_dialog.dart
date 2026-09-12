@@ -1,3 +1,4 @@
+import 'package:canokey_console/views/applets/piv/widgets/piv_management_key_authentication.dart';
 import 'package:canokey_console/controller/applets/piv/piv_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/models/piv_macos_setup.dart';
@@ -17,11 +18,13 @@ class _PivMacOsSetupDialogState extends State<PivMacOsSetupDialog> {
   PivMacOsSetupPlan? _plan;
   bool _busy = true, _failed = false, _consent = false, _done = false;
   bool _invalid = false;
+  late bool _usePinOnly;
   final Map<String, bool> _progress = {};
 
   @override
   void initState() {
     super.initState();
+    _usePinOnly = widget.controller.pinOnlyMode;
     _inspect();
   }
 
@@ -59,7 +62,7 @@ class _PivMacOsSetupDialogState extends State<PivMacOsSetupDialog> {
     final pin = _pin.text;
     final managementKey = _managementKey.text.trim();
     if (!RegExp(r'^[\x20-\x7E]{6,8}$').hasMatch(pin) ||
-        (!widget.controller.pinOnlyMode &&
+        (!_usePinOnly &&
             (!RegExp(r'^[0-9a-fA-F]+$').hasMatch(managementKey) ||
                 managementKey.length != 48))) {
       setState(() => _invalid = true);
@@ -75,7 +78,7 @@ class _PivMacOsSetupDialogState extends State<PivMacOsSetupDialog> {
         plan: _plan!,
         pin: pin,
         managementKey: managementKey,
-        usePinOnly: widget.controller.pinOnlyMode,
+        usePinOnly: _usePinOnly,
         allowReplacement: _consent,
         onProgress: (slot, done) {
           if (mounted) setState(() => _progress[slot] = done);
@@ -146,21 +149,26 @@ class _PivMacOsSetupDialogState extends State<PivMacOsSetupDialog> {
                                   setState(() => _consent = value ?? false),
                         title: Text(s.pivMacSetupConsent),
                       ),
-                    TextField(
-                      controller: _pin,
-                      enabled: !_busy,
-                      obscureText: true,
-                      decoration: const InputDecoration(labelText: 'PIV PIN'),
-                    ),
-                    if (!widget.controller.pinOnlyMode)
-                      TextField(
+                    PivManagementKeyAuthentication(
+                      pinProtected: widget.controller.pinOnlyMode,
+                      usePinOnly: _usePinOnly,
+                      onChanged: (value) {
+                        if (!_busy) setState(() => _usePinOnly = value);
+                      },
+                      requiresPin: true,
+                      pinField: TextField(
+                        controller: _pin,
+                        enabled: !_busy,
+                        obscureText: true,
+                        decoration: const InputDecoration(labelText: 'PIV PIN'),
+                      ),
+                      managementKeyField: TextField(
                         controller: _managementKey,
                         enabled: !_busy,
                         obscureText: true,
-                        decoration: InputDecoration(
-                          labelText: s.pivMacSetupManagementKey,
-                        ),
+                        decoration: InputDecoration(labelText: s.pivMacSetupManagementKey),
                       ),
+                    ),
                     if (_invalid)
                       Text(
                         s.pivMacSetupInvalid,

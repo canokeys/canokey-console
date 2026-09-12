@@ -335,6 +335,7 @@
   "pivExportCertificate": "Export Certificate",
   "pivDeleteSlot": "Delete the key and certificate in slot {slot}? This cannot be undone. Make sure you have another way to sign in or decrypt your data.",
   "pivVerifyManagementKey": "Verify Management Key",
+  "pivOperationRequiresPin": "This operation also requires PIN verification.",
   "pivManagementKeyAuthentication": "Management key verification",
   "pivPinProtectedKeyOnCard": "Verify with PIN",
   "pivManualManagementKey": "Manual management key",
@@ -676,17 +677,7 @@
   "pivMacOsGuide": "Set up 9A to verify your identity and 9D to unlock your login keychain. Once both are configured, reconnect CanoKey and pair it with your Mac account.",
   "pivMacOsAuthenticationSlot": "9A · Sign in",
   "pivMacOsKeychainSlot": "9D · Unlock keychain",
-  "pivMacOsAfterAuthentication": "9A is configured. Next, check 9D: your Mac also needs its key and certificate to unlock your login keychain.",
-  "pivMacOsAfterKeychain": "9D is configured. Check that 9A is also configured, then reconnect CanoKey and pair it with your Mac account.",
-  "pivMacOsCheckSlot": "Check {slot}",
   "@pivMacOsSlotApplied": {
-    "placeholders": {
-      "slot": {
-        "type": "String"
-      }
-    }
-  },
-  "@pivMacOsCheckSlot": {
     "placeholders": {
       "slot": {
         "type": "String"

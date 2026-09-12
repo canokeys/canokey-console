@@ -1,3 +1,4 @@
+import 'package:canokey_console/views/applets/piv/widgets/piv_pin_management_card.dart';
 import 'package:canokey_console/views/applets/piv/widgets/piv_surface.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/models/piv_macos_setup.dart';
@@ -168,10 +169,9 @@ void main() {
           await tester.tap(find.text(S.current.pivSelfSign));
           await tester.pumpAndSettle();
 
-          final credentials = find.byType(TextFormField);
-          await tester.enterText(credentials.at(0), '123456');
+          await tester.enterText(_inputField('PIN'), '123456');
           await tester.enterText(
-            credentials.at(1),
+            _inputField(S.current.pivManagementKey),
             '010203040506070801020304050607080102030405060708',
           );
           await tester.ensureVisible(find.text(S.current.next));
@@ -293,6 +293,60 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await Get.delete<PivController>(force: true);
   });
+
+  for (final (width, usePinOnly) in [
+    for (final width in [390.0, 1440.0])
+      for (final usePinOnly in [true, false]) (width, usePinOnly),
+  ]) {
+    testWidgets('manual key transition authenticates using selected mode $usePinOnly at $width',
+        (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = Size(width, 844);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      final controller = _TestPivController()
+        ..polled = true
+        ..pinOnlyMode = true;
+      _setFirmware(controller, '3.1.1');
+      Get.put<PivController>(controller);
+      await tester.pumpWidget(GlobalLoaderOverlay(child: _app()));
+      await tester.pumpAndSettle();
+      tester.widget<PivPinManagementCard>(find.byType(PivPinManagementCard))
+          .onTogglePinOnlyMode();
+      await tester.pumpAndSettle();
+
+      Finder field(String label) => find.ancestor(
+          of: find.byWidgetPredicate((widget) => widget is TextField && widget.decoration?.labelText == label),
+          matching: find.byType(TextFormField));
+      expect(field('PIN'), findsOneWidget);
+      expect(field(S.current.pivOldManagementKey), findsNothing);
+      await tester.enterText(field('PIN'), 'bad');
+      await tester.tap(find.text(S.current.pivManualManagementKey));
+      await tester.pumpAndSettle();
+      expect(field('PIN'), findsNothing);
+      expect(field(S.current.pivOldManagementKey), findsOneWidget);
+      await tester.enterText(field(S.current.pivOldManagementKey), 'bad');
+      if (usePinOnly) {
+        await tester.tap(find.text(S.current.pivPinProtectedKeyOnCard).last);
+        await tester.pumpAndSettle();
+        expect(field(S.current.pivOldManagementKey), findsNothing);
+        await tester.enterText(field('PIN'), '123456');
+      } else {
+        await tester.enterText(field(S.current.pivOldManagementKey), '01' * 24);
+      }
+      await tester.enterText(field(S.current.pivNewManagementKey), '02' * 24);
+      await tester.ensureVisible(find.text(S.current.disable));
+      await tester.tap(find.text(S.current.disable));
+      await tester.pumpAndSettle();
+      expect(controller.disablePinOnlyArguments, [
+        usePinOnly ? '123456' : '',
+        usePinOnly ? '' : '01' * 24,
+        '02' * 24,
+        usePinOnly,
+      ]);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('legacy PIN-only cards retain recovery while PUK is usable', (
     tester,
@@ -543,7 +597,7 @@ void main() {
     (slot: '9D', algorithm: AlgorithmType.rsa2048, keyUsage: 4),
   ]) {
     testWidgets(
-      'self-sign ${scenario.slot} ${scenario.algorithm.name} forwards its profile and guides to the other slot',
+      'self-sign ${scenario.slot} ${scenario.algorithm.name} forwards its profile and shows a concise result',
       (tester) async {
         tester.view.physicalSize = const Size(1200, 1400);
         tester.view.devicePixelRatio = 1;
@@ -563,10 +617,12 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('Self-sign'));
         await tester.pumpAndSettle();
-        final credentials = find.byType(TextFormField);
-        await tester.enterText(credentials.at(0), '123456');
+        Finder credential(String label) => find.byWidgetPredicate(
+          (widget) => widget is TextField && widget.decoration?.labelText == label,
+        );
+        await tester.enterText(credential('PIN'), '123456');
         await tester.enterText(
-          credentials.at(1),
+          credential(S.current.pivManagementKey),
           '010203040506070801020304050607080102030405060708',
         );
         tester.widget<Stepper>(find.byType(Stepper)).onStepContinue!();
@@ -665,19 +721,12 @@ void main() {
               : <String>[],
           'includeBasicConstraints': true,
         });
+        expect(find.text(S.current.pivCertificateCreated), findsOneWidget);
         expect(
-          find.text(
-            scenario.slot == '9A'
-                ? S.current.pivMacOsAfterAuthentication
-                : S.current.pivMacOsAfterKeychain,
-          ),
+          find.text(S.current.pivCertificateWritten(scenario.slot)),
           findsOneWidget,
         );
-        expect(controller.slots[otherId], same(existingOtherKey));
-        final generation = controller.selfSignArguments;
-        await tester.tap(find.text(S.current.pivMacOsCheckSlot(otherSlot)));
-        await tester.pumpAndSettle();
-        expect(controller.selfSignArguments, same(generation));
+        expect(find.byType(OutlinedButton), findsNothing);
         expect(controller.slots[otherId], same(existingOtherKey));
         expect(find.byType(Stepper), findsNothing);
         expect(tester.takeException(), isNull);
@@ -822,6 +871,12 @@ void main() {
   );
 }
 
+Finder _inputField(String label) => find.ancestor(
+  of: find.byWidgetPredicate((widget) =>
+      widget is TextField && widget.decoration?.labelText == label),
+  matching: find.byType(TextFormField),
+);
+
 Finder _slotItem(String slotNumber) {
   return find.byWidgetPredicate(
     (widget) => widget is PivSlotListItem && widget.slotNumber == slotNumber,
@@ -850,6 +905,15 @@ SlotInfo _slot(int number, AlgorithmType algorithm) => SlotInfo(
 );
 
 class _TestPivController extends PivController {
+  List<Object>? disablePinOnlyArguments;
+
+  @override
+  Future<bool> disablePinOnlyMode(String pin, String currentManagementKey,
+      String newManagementKey, bool usePinOnly) async {
+    disablePinOnlyArguments = [pin, currentManagementKey, newManagementKey, usePinOnly];
+    return true;
+  }
+
   int refreshCount = 0;
   int detailsLoadCount = 0;
 

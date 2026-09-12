@@ -395,7 +395,7 @@ class PivController extends PollingController {
           c.complete(false);
           return;
         }
-      } else if (pinOnlyMode && pin.isNotEmpty) {
+      } else if (pinOnlyMode) {
         if (!await _authenticateManagementKey(newKey)) {
           c.complete(false);
           return;
@@ -674,7 +674,7 @@ class PivController extends PollingController {
 
     SmartCard.process((String sn) async {
       await _client.select();
-      if (!await _verifyPinInSession(pin)) {
+      if (usePinOnly && !await _verifyPinInSession(pin)) {
         c.complete(false);
         return;
       }
@@ -782,7 +782,7 @@ class PivController extends PollingController {
     final c = Completer<bool>();
     SmartCard.process((String sn) async {
       await _client.select();
-      if (!await _verifyPinInSession(pin)) {
+      if (usePinOnly && !await _verifyPinInSession(pin)) {
         c.complete(false);
         return;
       }
@@ -973,7 +973,7 @@ class PivController extends PollingController {
     final c = Completer<bool>();
     SmartCard.process((String sn) async {
       await _client.select();
-      if (!await _verifyPinInSession(pin)) {
+      if (usePinOnly && !await _verifyPinInSession(pin)) {
         c.complete(false);
         return;
       }
@@ -1033,7 +1033,7 @@ class PivController extends PollingController {
     final c = Completer<bool>();
     SmartCard.process((String sn) async {
       await _client.select();
-      if (!await _verifyPinInSession(pin)) {
+      if (usePinOnly && !await _verifyPinInSession(pin)) {
         c.complete(false);
         return;
       }
@@ -1202,7 +1202,7 @@ class PivController extends PollingController {
     final c = Completer<bool>();
     SmartCard.process((String sn) async {
       await _client.select();
-      if (!await _verifyPinInSession(pin)) {
+      if (usePinOnly && !await _verifyPinInSession(pin)) {
         c.complete(false);
         return;
       }

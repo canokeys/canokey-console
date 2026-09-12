@@ -2799,6 +2799,16 @@ class S {
     );
   }
 
+  /// `This operation also requires PIN verification.`
+  String get pivOperationRequiresPin {
+    return Intl.message(
+      'This operation also requires PIN verification.',
+      name: 'pivOperationRequiresPin',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Management key verification`
   String get pivManagementKeyAuthentication {
     return Intl.message(
@@ -5201,36 +5211,6 @@ class S {
       name: 'pivMacOsKeychainSlot',
       desc: '',
       args: [],
-    );
-  }
-
-  /// `9A is configured. Next, check 9D: your Mac also needs its key and certificate to unlock your login keychain.`
-  String get pivMacOsAfterAuthentication {
-    return Intl.message(
-      '9A is configured. Next, check 9D: your Mac also needs its key and certificate to unlock your login keychain.',
-      name: 'pivMacOsAfterAuthentication',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `9D is configured. Check that 9A is also configured, then reconnect CanoKey and pair it with your Mac account.`
-  String get pivMacOsAfterKeychain {
-    return Intl.message(
-      '9D is configured. Check that 9A is also configured, then reconnect CanoKey and pair it with your Mac account.',
-      name: 'pivMacOsAfterKeychain',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Check {slot}`
-  String pivMacOsCheckSlot(String slot) {
-    return Intl.message(
-      'Check $slot',
-      name: 'pivMacOsCheckSlot',
-      desc: '',
-      args: [slot],
     );
   }
 

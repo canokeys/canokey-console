@@ -59,40 +59,38 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m18(algorithm) => "正在產生 ${algorithm} 金鑰";
 
-  static String m19(slot) => "檢查 ${slot} 槽位";
+  static String m19(slot) => "已為 ${slot} 槽位套用建議設定";
 
-  static String m20(slot) => "已為 ${slot} 槽位套用建議設定";
+  static String m20(sourceSlot) => "移動 ${sourceSlot} 中的金鑰";
 
-  static String m21(sourceSlot) => "移動 ${sourceSlot} 中的金鑰";
+  static String m21(count) => "${count} 個已佔用";
 
-  static String m22(count) => "${count} 個已佔用";
-
-  static String m23(action, slot) =>
+  static String m22(action, slot) =>
       "${action} 將替換 ${slot} 槽位中的私密金鑰。依賴此金鑰的驗證或簽章可能會失效。";
 
-  static String m24(policy) => "PIN：${policy}";
+  static String m23(policy) => "PIN：${policy}";
 
-  static String m25(index) => "歷史金鑰 ${index}";
+  static String m24(index) => "歷史金鑰 ${index}";
 
-  static String m26(remaining, total) => "剩餘次數：${remaining}/${total}";
+  static String m25(remaining, total) => "剩餘次數：${remaining}/${total}";
 
-  static String m27(policy) => "觸碰：${policy}";
+  static String m26(policy) => "觸碰：${policy}";
 
-  static String m28(layout) => "目前：${layout}";
+  static String m27(layout) => "目前：${layout}";
 
-  static String m29(applet) => "重置後，${applet} 中的所有資料都將被刪除，無法復原。";
+  static String m28(applet) => "重置後，${applet} 中的所有資料都將被刪除，無法復原。";
 
-  static String m30(min) => "至少 ${min} 個字元";
+  static String m29(min) => "至少 ${min} 個字元";
 
-  static String m31(max) => "最多 ${max} 個字元";
+  static String m30(max) => "最多 ${max} 個字元";
 
-  static String m32(length) => "需要 ${length} 個字元";
+  static String m31(length) => "需要 ${length} 個字元";
 
-  static String m33(max) => "請輸入不大於 ${max} 的整數。";
+  static String m32(max) => "請輸入不大於 ${max} 的整數。";
 
-  static String m34(min) => "請輸入不小於 ${min} 的整數。";
+  static String m33(min) => "請輸入不小於 ${min} 的整數。";
 
-  static String m35(name) => "刪除 ${name} 的登入憑證？此操作無法復原，請先確認您有其他方式登入該服務。";
+  static String m34(name) => "刪除 ${name} 的登入憑證？此操作無法復原，請先確認您有其他方式登入該服務。";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -686,17 +684,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivMacLoginDescription": MessageLookupByLibrary.simpleMessage(
       "使用 PIV 憑證登入 macOS。",
     ),
-    "pivMacOsAfterAuthentication": MessageLookupByLibrary.simpleMessage(
-      "9A 槽位設定已完成。請繼續檢查 9D 槽位，確認已設定用於解鎖登入鑰匙圈的金鑰和憑證。",
-    ),
-    "pivMacOsAfterKeychain": MessageLookupByLibrary.simpleMessage(
-      "9D 槽位設定已完成。請確認 9A 槽位也已設定，然後重新插入 CanoKey，並依照 macOS 的提示，將智慧卡與您的使用者帳號配對。",
-    ),
     "pivMacOsApply": MessageLookupByLibrary.simpleMessage("套用 macOS 登入建議設定"),
     "pivMacOsAuthenticationSlot": MessageLookupByLibrary.simpleMessage(
       "9A · 身分驗證",
     ),
-    "pivMacOsCheckSlot": m19,
     "pivMacOsDescription": MessageLookupByLibrary.simpleMessage(
       "9A 槽位中的金鑰和憑證用於 macOS 登入時的身分驗證。還需設定 9D 槽位，用於解鎖登入鑰匙圈。",
     ),
@@ -713,7 +704,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivMacOsOtherSlot": MessageLookupByLibrary.simpleMessage(
       "使用 CanoKey 登入 macOS，需要設定 9A 和 9D 兩個槽位。",
     ),
-    "pivMacOsSlotApplied": m20,
+    "pivMacOsSlotApplied": m19,
     "pivMacSetupConsent": MessageLookupByLibrary.simpleMessage(
       "我確認替換上面列出的金鑰或憑證。被替換的金鑰無法復原。",
     ),
@@ -767,7 +758,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivMoveKeyFailed": MessageLookupByLibrary.simpleMessage(
       "移動失敗，請選擇沒有金鑰的目標槽位。",
     ),
-    "pivMoveKeyFrom": m21,
+    "pivMoveKeyFrom": m20,
     "pivMoveKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "僅移動私密金鑰；憑證會保留在原來的槽位中。",
     ),
@@ -783,9 +774,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "沒有可用的公開金鑰",
     ),
     "pivNotSelected": MessageLookupByLibrary.simpleMessage("未選擇"),
-    "pivOccupiedSlots": m22,
+    "pivOccupiedSlots": m21,
     "pivOldManagementKey": MessageLookupByLibrary.simpleMessage("目前管理金鑰"),
     "pivOldPUK": MessageLookupByLibrary.simpleMessage("目前 PUK"),
+    "pivOperationRequiresPin": MessageLookupByLibrary.simpleMessage(
+      "此操作本身還需要驗證 PIN。",
+    ),
     "pivOrganization": MessageLookupByLibrary.simpleMessage("組織"),
     "pivOrganizationalUnit": MessageLookupByLibrary.simpleMessage("組織單位"),
     "pivOrigin": MessageLookupByLibrary.simpleMessage("來源"),
@@ -793,7 +787,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivOriginImported": MessageLookupByLibrary.simpleMessage("從檔案匯入"),
     "pivOverwrite": MessageLookupByLibrary.simpleMessage("覆蓋"),
     "pivOverwriteKey": MessageLookupByLibrary.simpleMessage("覆蓋金鑰"),
-    "pivOverwriteKeyPrompt": m23,
+    "pivOverwriteKeyPrompt": m22,
     "pivPageDescription": MessageLookupByLibrary.simpleMessage(
       "管理 CanoKey 中的 PIV 金鑰、憑證和 PIN。",
     ),
@@ -803,7 +797,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivPinManagement": MessageLookupByLibrary.simpleMessage("管理 PIN"),
     "pivPinPolicy": MessageLookupByLibrary.simpleMessage("PIN 策略"),
     "pivPinPolicyAlways": MessageLookupByLibrary.simpleMessage("每次驗證"),
-    "pivPinPolicyChip": m24,
+    "pivPinPolicyChip": m23,
     "pivPinPolicyDefault": MessageLookupByLibrary.simpleMessage("預設"),
     "pivPinPolicyNever": MessageLookupByLibrary.simpleMessage("從不驗證"),
     "pivPinPolicyOnce": MessageLookupByLibrary.simpleMessage("工作階段內驗證一次"),
@@ -826,9 +820,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage("隨機產生"),
     "pivRetired1": MessageLookupByLibrary.simpleMessage("歷史金鑰 1"),
     "pivRetired2": MessageLookupByLibrary.simpleMessage("歷史金鑰 2"),
-    "pivRetiredSlot": m25,
+    "pivRetiredSlot": m24,
     "pivRetiredSlots": MessageLookupByLibrary.simpleMessage("歷史金鑰槽位"),
-    "pivRetries": m26,
+    "pivRetries": m25,
     "pivRetriesRemaining": MessageLookupByLibrary.simpleMessage("剩餘嘗試次數"),
     "pivRetriesUnknown": MessageLookupByLibrary.simpleMessage("剩餘次數：未知"),
     "pivReview": MessageLookupByLibrary.simpleMessage("確認"),
@@ -925,7 +919,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivTouchPolicyCached": MessageLookupByLibrary.simpleMessage(
       "觸碰後 15 秒內免確認",
     ),
-    "pivTouchPolicyChip": m27,
+    "pivTouchPolicyChip": m26,
     "pivTouchPolicyDefault": MessageLookupByLibrary.simpleMessage("預設"),
     "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("無需觸碰"),
     "pivTransfer": MessageLookupByLibrary.simpleMessage("匯入/匯出"),
@@ -1022,7 +1016,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "請輸入設定頁面使用的管理 PIN，預設值為 123456。它與 OpenPGP、PIV 等應用程式的 PIN 分開設定。",
     ),
     "settingsKeyboardLayout": MessageLookupByLibrary.simpleMessage("鍵盤配置"),
-    "settingsKeyboardLayoutCurrent": m28,
+    "settingsKeyboardLayoutCurrent": m27,
     "settingsKeyboardLayoutCustom": MessageLookupByLibrary.simpleMessage(
       "自訂配置",
     ),
@@ -1052,7 +1046,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsResetAllPrompt": MessageLookupByLibrary.simpleMessage(
       "即將抹除全部資料。當您確認後，CanoKey 將會多次閃爍，請在每次看到閃爍時觸碰，直到提示成功。",
     ),
-    "settingsResetApplet": m29,
+    "settingsResetApplet": m28,
     "settingsResetConditionNotSatisfying": MessageLookupByLibrary.simpleMessage(
       "目前 PIN 尚未鎖定，無法重置。",
     ),
@@ -1090,13 +1084,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "storageFull": MessageLookupByLibrary.simpleMessage("CanoKey 儲存空間不足"),
     "successfullyChanged": MessageLookupByLibrary.simpleMessage("修改成功"),
-    "validationAtLeastCharacters": m30,
-    "validationAtMostCharacters": m31,
-    "validationExactLength": m32,
+    "validationAtLeastCharacters": m29,
+    "validationAtMostCharacters": m30,
+    "validationExactLength": m31,
     "validationHexString": MessageLookupByLibrary.simpleMessage("請輸入十六進位字串"),
     "validationNumber": MessageLookupByLibrary.simpleMessage("請輸入整數。"),
-    "validationNumberMax": m33,
-    "validationNumberMin": m34,
+    "validationNumberMax": m32,
+    "validationNumberMin": m33,
     "viewUserId": MessageLookupByLibrary.simpleMessage("檢視使用者 ID"),
     "warning": MessageLookupByLibrary.simpleMessage("警告"),
     "webAuthnCredentials": MessageLookupByLibrary.simpleMessage("WebAuthn 憑證"),
@@ -1120,7 +1114,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
       "此 CanoKey 不支援設定 WebAuthn PIN。",
     ),
-    "webauthnDelete": m35,
+    "webauthnDelete": m34,
     "webauthnInputPinPrompt": MessageLookupByLibrary.simpleMessage(
       "請輸入您的 WebAuthn PIN。",
     ),

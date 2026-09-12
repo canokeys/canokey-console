@@ -404,6 +404,7 @@
     }
   },
   "pivVerifyManagementKey": "驗證管理金鑰",
+  "pivOperationRequiresPin": "此操作本身還需要驗證 PIN。",
   "pivManagementKeyAuthentication": "管理金鑰驗證方式",
   "pivPinProtectedKeyOnCard": "使用 PIN 驗證",
   "pivManualManagementKey": "手動輸入管理金鑰",
@@ -752,17 +753,7 @@
   "pivMacOsGuide": "設定 9A 槽位用於登入時的身分驗證，設定 9D 槽位用於解鎖登入鑰匙圈。完成後，請重新插入 CanoKey，並依照 macOS 的提示，將智慧卡與您的使用者帳號配對。",
   "pivMacOsAuthenticationSlot": "9A · 身分驗證",
   "pivMacOsKeychainSlot": "9D · 解鎖鑰匙圈",
-  "pivMacOsAfterAuthentication": "9A 槽位設定已完成。請繼續檢查 9D 槽位，確認已設定用於解鎖登入鑰匙圈的金鑰和憑證。",
-  "pivMacOsAfterKeychain": "9D 槽位設定已完成。請確認 9A 槽位也已設定，然後重新插入 CanoKey，並依照 macOS 的提示，將智慧卡與您的使用者帳號配對。",
-  "pivMacOsCheckSlot": "檢查 {slot} 槽位",
   "@pivMacOsSlotApplied": {
-    "placeholders": {
-      "slot": {
-        "type": "String"
-      }
-    }
-  },
-  "@pivMacOsCheckSlot": {
     "placeholders": {
       "slot": {
         "type": "String"

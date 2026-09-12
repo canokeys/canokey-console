@@ -1,8 +1,8 @@
+import 'package:canokey_console/views/applets/piv/widgets/piv_management_key_authentication.dart';
 import 'package:canokey_console/helper/widgets/responsive_grid.dart';
 import 'package:canokey_console/views/applets/piv/widgets/piv_surface.dart';
 import 'package:canokey_console/views/applets/piv/widgets/piv_macos_setup_dialog.dart';
 import 'package:canokey_console/views/applets/piv/widgets/piv_slot_manager.dart';
-import 'package:canokey_console/views/applets/piv/widgets/piv_macos_next_step.dart';
 import 'package:canokey_console/models/piv_self_sign_options.dart';
 import 'package:canokey_console/views/applets/piv/widgets/piv_certificate_extensions.dart';
 import 'package:canokey_console/helper/utils/piv_pin_retries.dart';
@@ -630,52 +630,29 @@ class _PivPageState extends State<PivPage>
     return true;
   }
 
-  String _managementKeyAuthModeTitle(bool usePinOnly) {
-    return usePinOnly
-        ? S.of(context).pivPinProtectedKeyOnCard
-        : S.of(context).pivManualManagementKey;
-  }
-
-  String _managementKeyAuthModeDescription(bool usePinOnly) {
-    return usePinOnly
-        ? S.of(context).pivPinProtectedManagementKeyDescription
-        : S.of(context).pivManualManagementKeyDescription;
-  }
-
-  Widget _buildManagementKeyAuthModeControl({
+  Widget _buildManagementKeyAuthentication({
+    required FormValidator validator,
+    required String keyField,
     required bool usePinOnly,
     required ValueChanged<bool> onChanged,
+    bool requiresPin = false,
+    String? keyLabel,
   }) {
-    if (!controller.pinOnlyMode) {
-      return SizedBox.shrink();
-    }
-
-    Widget option(bool value) => RadioListTile<bool>(
-          value: value,
-          contentPadding: EdgeInsets.zero,
-          dense: true,
-          title: Text(_managementKeyAuthModeTitle(value)),
-          subtitle: Text(_managementKeyAuthModeDescription(value)),
-        );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomizedText.bodySmall(
-          S.of(context).pivManagementKeyAuthentication,
-          fontWeight: 600,
-        ),
-        RadioGroup<bool>(
-          groupValue: usePinOnly,
-          onChanged: (value) => onChanged(value ?? usePinOnly),
-          child: Column(
-            children: [
-              option(true),
-              option(false),
-            ],
-          ),
-        ),
-      ],
+    Widget pinField() => TextFormField(
+      key: const ValueKey('management-auth-pin'),
+      onTap: SmartCard.eject,
+      obscureText: true,
+      controller: validator.getController('pin'),
+      validator: validator.getValidator('pin'),
+      decoration: InputDecoration(labelText: 'PIN', border: outlineInputBorder),
+    );
+    return PivManagementKeyAuthentication(
+      pinProtected: controller.pinOnlyMode,
+      usePinOnly: usePinOnly,
+      onChanged: onChanged,
+      pinField: pinField(),
+      managementKeyField: _buildManagementKeyField(validator, keyField, label: keyLabel),
+      requiresPin: requiresPin,
     );
   }
 
@@ -750,27 +727,12 @@ class _PivPageState extends State<PivPage>
                           subtitle: Text(S.of(context).pivAlgorithmIdsPrompt),
                         ),
                         Spacing.height(12),
-                        TextFormField(
-                          autofocus: true,
-                          onTap: SmartCard.eject,
-                          obscureText: true,
-                          controller: validator.getController('pin'),
-                          validator: validator.getValidator('pin'),
-                          decoration: InputDecoration(
-                              labelText: 'PIN', border: outlineInputBorder),
+                        _buildManagementKeyAuthentication(
+                          validator: validator,
+                          keyField: 'managementKey',
+                          usePinOnly: usePinOnly,
+                          onChanged: (value) => setDialogState(() => usePinOnly = value),
                         ),
-                        if (controller.pinOnlyMode) ...[
-                          Spacing.height(12),
-                          _buildManagementKeyAuthModeControl(
-                            usePinOnly: usePinOnly,
-                            onChanged: (value) =>
-                                setDialogState(() => usePinOnly = value),
-                          ),
-                        ],
-                        if (!usePinOnly) ...[
-                          Spacing.height(18),
-                          _buildManagementKeyField(validator, 'managementKey'),
-                        ],
                         Spacing.height(18),
                         Wrap(
                           runSpacing: 12,
@@ -977,31 +939,13 @@ class _PivPageState extends State<PivPage>
                         color: contentTheme.danger,
                       ),
                       Spacing.height(16),
-                      TextFormField(
-                        autofocus: true,
-                        onTap: SmartCard.eject,
-                        obscureText: true,
-                        controller: validator.getController('pin'),
-                        validator: validator.getValidator('pin'),
-                        decoration: InputDecoration(
-                            labelText: S.of(context).oldPin,
-                            border: outlineInputBorder),
+                      _buildManagementKeyAuthentication(
+                        validator: validator,
+                        keyField: 'managementKey',
+                        usePinOnly: usePinOnly,
+                        onChanged: (value) => setDialogState(() => usePinOnly = value),
+                        requiresPin: true,
                       ),
-                      if (controller.pinOnlyMode) ...[
-                        Spacing.height(12),
-                        _buildManagementKeyAuthModeControl(
-                          usePinOnly: usePinOnly,
-                          onChanged: (value) =>
-                              setDialogState(() => usePinOnly = value),
-                        ),
-                      ],
-                      if (!usePinOnly) ...[
-                        Spacing.height(16),
-                        _buildManagementKeyField(
-                          validator,
-                          'managementKey',
-                        ),
-                      ],
                       Spacing.height(16),
                       Row(
                         children: [
@@ -1135,20 +1079,13 @@ class _PivPageState extends State<PivPage>
                       S.of(context).pivEnablePinProtectedManagementKeyPrompt,
                     ),
                     Spacing.height(16),
-                    TextFormField(
-                      autofocus: true,
-                      onTap: SmartCard.eject,
-                      obscureText: true,
-                      controller: validator.getController('pin'),
-                      validator: validator.getValidator('pin'),
-                      decoration: InputDecoration(
-                          labelText: 'PIN', border: outlineInputBorder),
-                    ),
-                    Spacing.height(16),
-                    _buildManagementKeyField(
-                      validator,
-                      'managementKey',
-                      label: S.of(context).pivOldManagementKey,
+                    _buildManagementKeyAuthentication(
+                      validator: validator,
+                      keyField: 'managementKey',
+                      usePinOnly: false,
+                      onChanged: (_) {},
+                      requiresPin: true,
+                      keyLabel: S.of(context).pivOldManagementKey,
                     ),
                   ],
                 ),
@@ -1252,29 +1189,15 @@ class _PivPageState extends State<PivPage>
                         S.of(context).pivDisablePinProtectedManagementKeyPrompt,
                       ),
                       Spacing.height(16),
-                      TextFormField(
-                        autofocus: true,
-                        onTap: SmartCard.eject,
-                        obscureText: true,
-                        controller: validator.getController('pin'),
-                        validator: validator.getValidator('pin'),
-                        decoration: InputDecoration(
-                            labelText: 'PIN', border: outlineInputBorder),
-                      ),
-                      Spacing.height(12),
-                      _buildManagementKeyAuthModeControl(
+                      _buildManagementKeyAuthentication(
+                        validator: validator,
+                        keyField: 'currentManagementKey',
                         usePinOnly: usePinOnly,
-                        onChanged: (value) =>
-                            setDialogState(() => usePinOnly = value),
+                        onChanged: (value) => setDialogState(() => usePinOnly = value),
+                        keyLabel: S.of(context).pivOldManagementKey,
                       ),
-                      if (!usePinOnly) ...[
-                        Spacing.height(16),
-                        _buildManagementKeyField(
-                          validator,
-                          'currentManagementKey',
-                          label: S.of(context).pivOldManagementKey,
-                        ),
-                      ],
+                      Spacing.height(16),
+                      const Divider(height: 1),
                       Spacing.height(16),
                       Row(children: [
                         Expanded(
@@ -1333,10 +1256,14 @@ class _PivPageState extends State<PivPage>
                         AppLoaderOverlay.show();
                         try {
                           final ok = await controller.disablePinOnlyMode(
-                            validator.getController('pin')!.text,
-                            validator
-                                .getController('currentManagementKey')!
-                                .text,
+                            usePinOnly
+                                ? validator.getController('pin')!.text
+                                : '',
+                            usePinOnly
+                                ? ''
+                                : validator
+                                    .getController('currentManagementKey')!
+                                    .text,
                             validator.getController('newManagementKey')!.text,
                             usePinOnly,
                           );
@@ -1523,33 +1450,15 @@ class _PivPageState extends State<PivPage>
                       child: Column(children: [
                         CustomizedText.bodyMedium(
                             S.of(context).pivChangeManagementKeyPrompt),
-                        if (controller.pinOnlyMode) ...[
-                          Spacing.height(16),
-                          TextFormField(
-                            autofocus: true,
-                            onTap: SmartCard.eject,
-                            obscureText: true,
-                            controller: validator.getController('pin'),
-                            validator: validator.getValidator('pin'),
-                            decoration: InputDecoration(
-                                labelText: 'PIN', border: outlineInputBorder),
-                          ),
-                          Spacing.height(12),
-                          _buildManagementKeyAuthModeControl(
-                            usePinOnly: usePinOnly,
-                            onChanged: (value) =>
-                                setDialogState(() => usePinOnly = value),
-                          ),
-                        ],
-                        if (!usePinOnly) ...[
-                          Spacing.height(16),
-                          _buildManagementKeyField(
-                            validator,
-                            'old',
-                            label: S.of(context).pivOldManagementKey,
-                          ),
-                        ],
-                        Spacing.height(16),
+                        _buildManagementKeyAuthentication(
+                          validator: validator,
+                          keyField: 'old',
+                          usePinOnly: usePinOnly,
+                          onChanged: (value) => setDialogState(() => usePinOnly = value),
+                          requiresPin: storeOnDevice,
+                          keyLabel: S.of(context).pivOldManagementKey,
+                        ),
+                        const Divider(height: 32),
                         Row(children: [
                           Expanded(
                             child: TextFormField(
@@ -3140,30 +3049,12 @@ class _PivPageState extends State<PivPage>
                     key: authValidator.formKey,
                     child: Column(
                       children: [
-                        TextFormField(
-                          autofocus: true,
-                          onTap: SmartCard.eject,
-                          obscureText: true,
-                          controller: authValidator.getController('pin'),
-                          validator: authValidator.getValidator('pin'),
-                          decoration: InputDecoration(
-                              labelText: 'PIN', border: outlineInputBorder),
+                        _buildManagementKeyAuthentication(
+                          validator: authValidator,
+                          keyField: 'managementKey',
+                          usePinOnly: usePinOnly,
+                          onChanged: (value) => setDialogState(() => usePinOnly = value),
                         ),
-                        if (controller.pinOnlyMode) ...[
-                          Spacing.height(12),
-                          _buildManagementKeyAuthModeControl(
-                            usePinOnly: usePinOnly,
-                            onChanged: (value) =>
-                                setDialogState(() => usePinOnly = value),
-                          ),
-                        ],
-                        if (!usePinOnly) ...[
-                          Spacing.height(18),
-                          _buildManagementKeyField(
-                            authValidator,
-                            'managementKey',
-                          ),
-                        ],
                       ],
                     ),
                   ),
@@ -3465,16 +3356,8 @@ class _PivPageState extends State<PivPage>
             return;
           }
           await controller.refreshData();
-          Prompts.showPrompt(
-            S.current.pivCertificateCreated,
-            ContentThemeColor.success,
-          );
           Navigator.pop(Get.context!);
-          _showCertificateResultDialog(
-            slotNumber,
-            cert,
-            macOsLogin: options.matchesMacOsLogin,
-          );
+          _showCertificateResultDialog(slotNumber, cert);
         } else {
           final csr = await controller.generateCsr(
             slotNumber,
@@ -3597,35 +3480,13 @@ class _PivPageState extends State<PivPage>
                               key: pinValidator.formKey,
                               child: Column(
                                 children: [
-                                  TextFormField(
-                                    autofocus: true,
-                                    onTap: SmartCard.eject,
-                                    obscureText: true,
-                                    controller: pinValidator.getController(
-                                      'pin',
-                                    ),
-                                    validator: pinValidator.getValidator('pin'),
-                                    decoration: InputDecoration(
-                                      labelText: 'PIN',
-                                      border: outlineInputBorder,
-                                    ),
+                                  _buildManagementKeyAuthentication(
+                                    validator: pinValidator,
+                                    keyField: 'managementKey',
+                                    usePinOnly: usePinOnly,
+                                    onChanged: (value) => updateOptions(() => usePinOnly = value),
+                                    requiresPin: true,
                                   ),
-                                  if (controller.pinOnlyMode) ...[
-                                    Spacing.height(12),
-                                    _buildManagementKeyAuthModeControl(
-                                      usePinOnly: usePinOnly,
-                                      onChanged: (value) => updateOptions(
-                                        () => usePinOnly = value,
-                                      ),
-                                    ),
-                                  ],
-                                  if (!usePinOnly) ...[
-                                    Spacing.height(18),
-                                    _buildManagementKeyField(
-                                      pinValidator,
-                                      'managementKey',
-                                    ),
-                                  ],
                                 ],
                               ),
                             ),
@@ -4034,30 +3895,12 @@ class _PivPageState extends State<PivPage>
                   key: validator.formKey,
                   child: Column(
                     children: [
-                      TextFormField(
-                        autofocus: true,
-                        onTap: SmartCard.eject,
-                        obscureText: true,
-                        controller: validator.getController('pin'),
-                        validator: validator.getValidator('pin'),
-                        decoration: InputDecoration(
-                            labelText: 'PIN', border: outlineInputBorder),
+                      _buildManagementKeyAuthentication(
+                        validator: validator,
+                        keyField: 'managementKey',
+                        usePinOnly: usePinOnly,
+                        onChanged: (value) => setDialogState(() => usePinOnly = value),
                       ),
-                      if (controller.pinOnlyMode) ...[
-                        Spacing.height(12),
-                        _buildManagementKeyAuthModeControl(
-                          usePinOnly: usePinOnly,
-                          onChanged: (value) =>
-                              setDialogState(() => usePinOnly = value),
-                        ),
-                      ],
-                      if (!usePinOnly) ...[
-                        Spacing.height(18),
-                        _buildManagementKeyField(
-                          validator,
-                          'managementKey',
-                        ),
-                      ],
                       Spacing.height(18),
                       DropdownButtonFormField(
                         initialValue: algorithm,
@@ -4256,9 +4099,8 @@ class _PivPageState extends State<PivPage>
 
   void _showCertificateResultDialog(
     String slotNumber,
-    Uint8List cert, {
-    bool macOsLogin = false,
-  }) {
+    Uint8List cert,
+  ) {
     controller.log.t('Call _PivPageState._showCertificateResultDialog');
     final pem = _certificatePem(cert);
     AppDialog.show(AppDialogSurface(
@@ -4279,22 +4121,6 @@ class _PivPageState extends State<PivPage>
                 S.of(context).pivCertificateWritten(slotNumber),
               ),
             ),
-            if (macOsLogin)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: PivMacOsNextStep(
-                  completedSlot: slotNumber,
-                  onOpenSlot: (nextSlot) async {
-                    Navigator.pop(Get.context!);
-                    final nextId = int.parse(nextSlot, radix: 16);
-                    await _showSlotDetailDialog(
-                      nextSlot == '9A' ? S.current.pivAuthentication : S.current.pivKeyManagement,
-                      nextSlot,
-                      controller.slots[nextId],
-                    );
-                  },
-                ),
-              ),
             Divider(height: 0, thickness: 1),
             Padding(
               padding: Spacing.all(16),
@@ -4435,9 +4261,23 @@ class _PivPageState extends State<PivPage>
                       Spacing.height(16),
                       DropdownButtonFormField<int>(
                         initialValue: targetSlot,
+                        isExpanded: true,
+                        dropdownColor: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        menuMaxHeight: 320,
+                        style: PivStyle.monospace(context, 14),
+                        icon: Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: PivStyle.muted(context),
+                        ),
                         decoration: InputDecoration(
                           labelText: S.of(context).pivDestinationSlot,
+                          labelStyle: PivStyle.text(context, 14, secondary: true),
                           border: outlineInputBorder,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 14,
+                          ),
                         ),
                         items: [
                           for (final slot in targets)
@@ -4455,35 +4295,13 @@ class _PivPageState extends State<PivPage>
                           }
                         },
                       ),
-                      if (controller.pinOnlyMode) ...[
-                        Spacing.height(12),
-                        _buildManagementKeyAuthModeControl(
-                          usePinOnly: usePinOnly,
-                          onChanged: (value) =>
-                              setDialogState(() => usePinOnly = value),
-                        ),
-                      ],
-                      if (usePinOnly) ...[
-                        Spacing.height(16),
-                        TextFormField(
-                          autofocus: true,
-                          onTap: SmartCard.eject,
-                          obscureText: true,
-                          controller: validator.getController('pin'),
-                          validator: validator.getValidator('pin'),
-                          decoration: InputDecoration(
-                            labelText: 'PIN',
-                            border: outlineInputBorder,
-                          ),
-                        ),
-                      ],
-                      if (!usePinOnly) ...[
-                        Spacing.height(16),
-                        _buildManagementKeyField(
-                          validator,
-                          'managementKey',
-                        ),
-                      ],
+                      Spacing.height(20),
+                      _buildManagementKeyAuthentication(
+                        validator: validator,
+                        keyField: 'managementKey',
+                        usePinOnly: usePinOnly,
+                        onChanged: (value) => setDialogState(() => usePinOnly = value),
+                      ),
                     ],
                   ),
                 ),
@@ -4600,30 +4418,12 @@ class _PivPageState extends State<PivPage>
                         color: contentTheme.danger,
                       ),
                       Spacing.height(16),
-                      TextFormField(
-                        autofocus: true,
-                        onTap: SmartCard.eject,
-                        obscureText: true,
-                        controller: validator.getController('pin'),
-                        validator: validator.getValidator('pin'),
-                        decoration: InputDecoration(
-                            labelText: 'PIN', border: outlineInputBorder),
+                      _buildManagementKeyAuthentication(
+                        validator: validator,
+                        keyField: 'managementKey',
+                        usePinOnly: usePinOnly,
+                        onChanged: (value) => setDialogState(() => usePinOnly = value),
                       ),
-                      if (controller.pinOnlyMode) ...[
-                        Spacing.height(12),
-                        _buildManagementKeyAuthModeControl(
-                          usePinOnly: usePinOnly,
-                          onChanged: (value) =>
-                              setDialogState(() => usePinOnly = value),
-                        ),
-                      ],
-                      if (!usePinOnly) ...[
-                        Spacing.height(16),
-                        _buildManagementKeyField(
-                          validator,
-                          'managementKey',
-                        ),
-                      ],
                     ],
                   ),
                 ),
