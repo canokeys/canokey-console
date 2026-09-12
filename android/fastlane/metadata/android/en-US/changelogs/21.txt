@@ -1,5 +1,3 @@
-New in 1.2.7:
-
 - Refreshed applet and settings pages with improved mobile layouts and large-text support.
 - Improved PIV slot management and access to certificate actions.
 - Added recognizable service icons for OATH accounts and expanded passkey search to include usernames.

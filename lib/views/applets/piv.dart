@@ -181,8 +181,7 @@ class _PivPageState extends State<PivPage>
   }
 
   bool _slotHasCertificate(String slotNumber) {
-    return controller.certificateBytes
-        .containsKey(int.parse(slotNumber, radix: 16));
+    return controller.hasCertificate(int.parse(slotNumber, radix: 16));
   }
 
   Future<bool> _confirmOverwriteKey({
