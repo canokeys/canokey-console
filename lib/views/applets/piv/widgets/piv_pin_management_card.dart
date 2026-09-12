@@ -59,6 +59,7 @@ class PivPinManagementCard extends StatelessWidget {
     return ResponsiveGrid(
       maxColumns: 4,
       minWidth: 250,
+      equalRowHeight: true,
       children: [
         _credential(
           context,
@@ -223,6 +224,7 @@ class PivPinManagementCard extends StatelessWidget {
             ],
           ),
           if (actions.isNotEmpty) ...[
+            const Spacer(),
             const SizedBox(height: 16),
             Wrap(spacing: 8, runSpacing: 8, children: actions),
           ],
