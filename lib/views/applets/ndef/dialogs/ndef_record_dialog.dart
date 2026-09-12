@@ -320,7 +320,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog> with UIMi
       NdefEditableRecordType.custom => [
           _selectionField<TypeNameFormat>(
             value: _tnf,
-            label: 'TNF',
+            label: S.of(context).ndefTypeNameFormat,
             values: const [
               TypeNameFormat.empty,
               TypeNameFormat.nfcWellKnown,
@@ -697,7 +697,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog> with UIMi
     final normalized = value.replaceAll(RegExp(r'[\s:]'), '');
     if (normalized.isEmpty) return Uint8List(0);
     if (normalized.length.isOdd || !RegExp(r'^[0-9A-Fa-f]+$').hasMatch(normalized)) {
-      throw const FormatException('Invalid hexadecimal value');
+      throw FormatException(S.of(context).validationHexString);
     }
     return Uint8List.fromList([
       for (var i = 0; i < normalized.length; i += 2) int.parse(normalized.substring(i, i + 2), radix: 16),
@@ -724,27 +724,27 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog> with UIMi
       TypeNameFormat.absoluteURI => S.of(context).ndefTnfAbsoluteUri,
       TypeNameFormat.nfcExternal => S.of(context).ndefTnfExternal,
       TypeNameFormat.unknown => S.of(context).ndefTnfUnknown,
-      TypeNameFormat.unchanged => tnf.name,
+      TypeNameFormat.unchanged => S.of(context).ndefTnfUnchanged,
     };
   }
 
   String _wifiAuthenticationLabel(WifiAuthenticationType value) {
     return switch (value) {
-      WifiAuthenticationType.open => 'Open',
-      WifiAuthenticationType.wpaPersonal => 'WPA Personal',
-      WifiAuthenticationType.shared => 'Shared',
-      WifiAuthenticationType.wpaEnterprise => 'WPA Enterprise',
-      WifiAuthenticationType.wpa2Enterprise => 'WPA2 Enterprise',
-      WifiAuthenticationType.wpa2Personal => 'WPA2 Personal',
-      WifiAuthenticationType.wpaWpa2Personal => 'WPA/WPA2 Personal',
-      WifiAuthenticationType.wpa3Personal => 'WPA3 Personal',
-      WifiAuthenticationType.wpa3Enterprise => 'WPA3 Enterprise',
+      WifiAuthenticationType.open => S.of(context).ndefWifiOpen,
+      WifiAuthenticationType.wpaPersonal => S.of(context).ndefWifiPersonal('WPA'),
+      WifiAuthenticationType.shared => S.of(context).ndefWifiShared,
+      WifiAuthenticationType.wpaEnterprise => S.of(context).ndefWifiEnterprise('WPA'),
+      WifiAuthenticationType.wpa2Enterprise => S.of(context).ndefWifiEnterprise('WPA2'),
+      WifiAuthenticationType.wpa2Personal => S.of(context).ndefWifiPersonal('WPA2'),
+      WifiAuthenticationType.wpaWpa2Personal => S.of(context).ndefWifiPersonal('WPA/WPA2'),
+      WifiAuthenticationType.wpa3Personal => S.of(context).ndefWifiPersonal('WPA3'),
+      WifiAuthenticationType.wpa3Enterprise => S.of(context).ndefWifiEnterprise('WPA3'),
     };
   }
 
   String _wifiEncryptionLabel(WifiEncryptionType value) {
     return switch (value) {
-      WifiEncryptionType.none => 'None',
+      WifiEncryptionType.none => S.of(context).ndefWifiNoEncryption,
       WifiEncryptionType.wep => 'WEP',
       WifiEncryptionType.tkip => 'TKIP',
       WifiEncryptionType.aes => 'AES',

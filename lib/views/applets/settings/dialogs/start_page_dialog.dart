@@ -32,7 +32,7 @@ class StartPageDialog extends StatelessWidget with UIMixin {
       case '/applets/pass':
         return 'Pass';
       default:
-        return 'Unknown';
+        return S.current.settingsKeyboardLayoutUnknown;
     }
   }
 

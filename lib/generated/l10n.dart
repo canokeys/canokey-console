@@ -174,10 +174,10 @@ class S {
     );
   }
 
-  /// `Error finding CanoKey connected via USB. Please fix the problem and restart this app:`
+  /// `Could not connect to CanoKey over USB. Check the connection, then reopen this app. Error details:`
   String get desktopPollError {
     return Intl.message(
-      'Error finding CanoKey connected via USB. Please fix the problem and restart this app:',
+      'Could not connect to CanoKey over USB. Check the connection, then reopen this app. Error details:',
       name: 'desktopPollError',
       desc: '',
       args: [],
@@ -194,10 +194,10 @@ class S {
     );
   }
 
-  /// `CanoKey is busy. Replug it, wait for a moment, and retry.`
+  /// `Could not communicate with CanoKey. Reconnect it and try again.`
   String get networkError {
     return Intl.message(
-      'CanoKey is busy. Replug it, wait for a moment, and retry.',
+      'Could not communicate with CanoKey. Reconnect it and try again.',
       name: 'networkError',
       desc: '',
       args: [],
@@ -324,10 +324,10 @@ class S {
     return Intl.message('Change PIN', name: 'changePin', desc: '', args: []);
   }
 
-  /// `New PIN should be at least {min} characters long. The maximum length is {max}.`
+  /// `The new PIN must contain {min} to {max} characters.`
   String changePinPrompt(Object min, Object max) {
     return Intl.message(
-      'New PIN should be at least $min characters long. The maximum length is $max.',
+      'The new PIN must contain $min to $max characters.',
       name: 'changePinPrompt',
       desc: '',
       args: [min, max],
@@ -449,20 +449,20 @@ class S {
     );
   }
 
-  /// `Hold the CanoKey until finished`
+  /// `Keep CanoKey near your phone until reading finishes.`
   String get readingAlertMessage {
     return Intl.message(
-      'Hold the CanoKey until finished',
+      'Keep CanoKey near your phone until reading finishes.',
       name: 'readingAlertMessage',
       desc: '',
       args: [],
     );
   }
 
-  /// `Communication interrupted. Try to hold the CanoKey until finished.`
+  /// `The connection was interrupted. Reconnect CanoKey. For NFC, keep it near your phone.`
   String get interrupted {
     return Intl.message(
-      'Communication interrupted. Try to hold the CanoKey until finished.',
+      'The connection was interrupted. Reconnect CanoKey. For NFC, keep it near your phone.',
       name: 'interrupted',
       desc: '',
       args: [],
@@ -499,10 +499,10 @@ class S {
     );
   }
 
-  /// `Not supported in NFC mode`
+  /// `Connect CanoKey over USB to use this feature.`
   String get notSupportedInNFC {
     return Intl.message(
-      'Not supported in NFC mode',
+      'Connect CanoKey over USB to use this feature.',
       name: 'notSupportedInNFC',
       desc: '',
       args: [],
@@ -734,10 +734,10 @@ class S {
     );
   }
 
-  /// `Core Commit`
+  /// `Firmware source revision`
   String get settingsCoreCommit {
     return Intl.message(
-      'Core Commit',
+      'Firmware source revision',
       name: 'settingsCoreCommit',
       desc: '',
       args: [],
@@ -769,10 +769,10 @@ class S {
     );
   }
 
-  /// `Applet Flash Usage`
+  /// `Storage used by each applet`
   String get settingsAppletStorageUsage {
     return Intl.message(
-      'Applet Flash Usage',
+      'Storage used by each applet',
       name: 'settingsAppletStorageUsage',
       desc: '',
       args: [],
@@ -799,30 +799,30 @@ class S {
     );
   }
 
-  /// `Please input your admin PIN. The default value is 123456. This PIN is irrelevant to other applets.`
+  /// `Enter the admin PIN used for Settings. The default is 123456. It is separate from the PINs for OpenPGP, PIV and other applets.`
   String get settingsInputPinPrompt {
     return Intl.message(
-      'Please input your admin PIN. The default value is 123456. This PIN is irrelevant to other applets.',
+      'Enter the admin PIN used for Settings. The default is 123456. It is separate from the PINs for OpenPGP, PIV and other applets.',
       name: 'settingsInputPinPrompt',
       desc: '',
       args: [],
     );
   }
 
-  /// `Input HOTP when touching`
+  /// `Type HOTP on touch`
   String get settingsHotp {
     return Intl.message(
-      'Input HOTP when touching',
+      'Type HOTP on touch',
       name: 'settingsHotp',
       desc: '',
       args: [],
     );
   }
 
-  /// `WebUSB prompt when plug-in`
+  /// `Show WebUSB prompt when connected`
   String get settingsWebUSB {
     return Intl.message(
-      'WebUSB prompt when plug-in',
+      'Show WebUSB prompt when connected',
       name: 'settingsWebUSB',
       desc: '',
       args: [],
@@ -924,10 +924,10 @@ class S {
     );
   }
 
-  /// `Configure the records shared when another device scans this CanoKey.`
+  /// `Choose what other devices read when they scan CanoKey over NFC.`
   String get ndefTagContentDescription {
     return Intl.message(
-      'Configure the records shared when another device scans this CanoKey.',
+      'Choose what other devices read when they scan CanoKey over NFC.',
       name: 'ndefTagContentDescription',
       desc: '',
       args: [],
@@ -949,9 +949,9 @@ class S {
     );
   }
 
-  /// `URI`
+  /// `Link`
   String get ndefUri {
-    return Intl.message('URI', name: 'ndefUri', desc: '', args: []);
+    return Intl.message('Link', name: 'ndefUri', desc: '', args: []);
   }
 
   /// `Text`
@@ -959,9 +959,14 @@ class S {
     return Intl.message('Text', name: 'ndefText', desc: '', args: []);
   }
 
-  /// `URI`
+  /// `Link address`
   String get ndefUriValue {
-    return Intl.message('URI', name: 'ndefUriValue', desc: '', args: []);
+    return Intl.message(
+      'Link address',
+      name: 'ndefUriValue',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Text content`
@@ -994,10 +999,10 @@ class S {
     );
   }
 
-  /// `Enter a URI with a scheme, such as https:// or mailto:.`
+  /// `Enter a full link, such as https://example.com or mailto:name@example.com.`
   String get ndefInvalidUri {
     return Intl.message(
-      'Enter a URI with a scheme, such as https:// or mailto:.',
+      'Enter a full link, such as https://example.com or mailto:name@example.com.',
       name: 'ndefInvalidUri',
       desc: '',
       args: [],
@@ -1034,20 +1039,20 @@ class S {
     return Intl.message('Move down', name: 'ndefMoveDown', desc: '', args: []);
   }
 
-  /// `No NDEF records`
+  /// `No records yet`
   String get ndefNoRecords {
     return Intl.message(
-      'No NDEF records',
+      'No records yet',
       name: 'ndefNoRecords',
       desc: '',
       args: [],
     );
   }
 
-  /// `Add a URI or text record to make the tag discoverable.`
+  /// `Add a link, text or other content for devices to read over NFC.`
   String get ndefNoRecordsDescription {
     return Intl.message(
-      'Add a URI or text record to make the tag discoverable.',
+      'Add a link, text or other content for devices to read over NFC.',
       name: 'ndefNoRecordsDescription',
       desc: '',
       args: [],
@@ -1104,20 +1109,20 @@ class S {
     );
   }
 
-  /// `The stored message is not valid NDEF data. Reset NDEF in Settings before editing it.`
+  /// `Could not read the existing NFC tag content. To start over, reset NDEF in Settings. This deletes the existing tag content.`
   String get ndefInvalidMessage {
     return Intl.message(
-      'The stored message is not valid NDEF data. Reset NDEF in Settings before editing it.',
+      'Could not read the existing NFC tag content. To start over, reset NDEF in Settings. This deletes the existing tag content.',
       name: 'ndefInvalidMessage',
       desc: '',
       args: [],
     );
   }
 
-  /// `The message exceeds the NDEF capacity.`
+  /// `The content exceeds the NFC tag capacity. Remove some content and try again.`
   String get ndefCapacityExceeded {
     return Intl.message(
-      'The message exceeds the NDEF capacity.',
+      'The content exceeds the NFC tag capacity. Remove some content and try again.',
       name: 'ndefCapacityExceeded',
       desc: '',
       args: [],
@@ -1224,10 +1229,10 @@ class S {
     );
   }
 
-  /// `AAR`
+  /// `Android app`
   String get ndefAndroidApplication {
     return Intl.message(
-      'AAR',
+      'Android app',
       name: 'ndefAndroidApplication',
       desc: '',
       args: [],
@@ -1349,10 +1354,10 @@ class S {
     );
   }
 
-  /// `Optional hexadecimal bytes`
+  /// `Hexadecimal data; optional`
   String get ndefOptionalHex {
     return Intl.message(
-      'Optional hexadecimal bytes',
+      'Hexadecimal data; optional',
       name: 'ndefOptionalHex',
       desc: '',
       args: [],
@@ -1559,15 +1564,20 @@ class S {
     );
   }
 
-  /// `Payload`
+  /// `Record content`
   String get ndefPayload {
-    return Intl.message('Payload', name: 'ndefPayload', desc: '', args: []);
+    return Intl.message(
+      'Record content',
+      name: 'ndefPayload',
+      desc: '',
+      args: [],
+    );
   }
 
-  /// `Payload encoding`
+  /// `Content encoding`
   String get ndefPayloadEncoding {
     return Intl.message(
-      'Payload encoding',
+      'Content encoding',
       name: 'ndefPayloadEncoding',
       desc: '',
       args: [],
@@ -1584,10 +1594,10 @@ class S {
     return Intl.message('Hex', name: 'ndefPayloadHex', desc: '', args: []);
   }
 
-  /// `The payload cannot be converted between UTF-8 text and hexadecimal bytes.`
+  /// `Could not convert the content. Check the hexadecimal format or confirm the content is valid UTF-8 text.`
   String get ndefPayloadConversionFailed {
     return Intl.message(
-      'The payload cannot be converted between UTF-8 text and hexadecimal bytes.',
+      'Could not convert the content. Check the hexadecimal format or confirm the content is valid UTF-8 text.',
       name: 'ndefPayloadConversionFailed',
       desc: '',
       args: [],
@@ -1644,30 +1654,30 @@ class S {
     );
   }
 
-  /// `The ndef library rejected this record: {error}`
+  /// `Could not save this record. Check the fields. Details: {error}`
   String ndefInvalidRecord(Object error) {
     return Intl.message(
-      'The ndef library rejected this record: $error',
+      'Could not save this record. Check the fields. Details: $error',
       name: 'ndefInvalidRecord',
       desc: '',
       args: [error],
     );
   }
 
-  /// `This field is required.`
+  /// `Fill in this field.`
   String get ndefRequiredField {
     return Intl.message(
-      'This field is required.',
+      'Fill in this field.',
       name: 'ndefRequiredField',
       desc: '',
       args: [],
     );
   }
 
-  /// `This TNF requires an empty type name.`
+  /// `The selected record format requires the type name to be empty. Clear that field.`
   String get ndefTnfRequiresEmptyType {
     return Intl.message(
-      'This TNF requires an empty type name.',
+      'The selected record format requires the type name to be empty. Clear that field.',
       name: 'ndefTnfRequiresEmptyType',
       desc: '',
       args: [],
@@ -1784,10 +1794,10 @@ class S {
     );
   }
 
-  /// `This operation will RESET all data of {applet}!`
+  /// `Resetting {applet} will permanently delete all its data.`
   String settingsResetApplet(Object applet) {
     return Intl.message(
-      'This operation will RESET all data of $applet!',
+      'Resetting $applet will permanently delete all its data.',
       name: 'settingsResetApplet',
       desc: '',
       args: [applet],
@@ -1824,20 +1834,20 @@ class S {
     );
   }
 
-  /// `PIN has not been locked yet`
+  /// `Cannot reset while the PIN is not blocked.`
   String get settingsResetConditionNotSatisfying {
     return Intl.message(
-      'PIN has not been locked yet',
+      'Cannot reset while the PIN is not blocked.',
       name: 'settingsResetConditionNotSatisfying',
       desc: '',
       args: [],
     );
   }
 
-  /// `You did not touch the pad in time`
+  /// `CanoKey was not touched in time. Try again and touch it when the light flashes.`
   String get settingsResetPresenceTestFailed {
     return Intl.message(
-      'You did not touch the pad in time',
+      'CanoKey was not touched in time. Try again and touch it when the light flashes.',
       name: 'settingsResetPresenceTestFailed',
       desc: '',
       args: [],
@@ -1869,10 +1879,10 @@ class S {
     );
   }
 
-  /// `The output of OTP value comes with enter`
+  /// `Press Enter after typing an OTP`
   String get settingsKeyboardWithReturn {
     return Intl.message(
-      'The output of OTP value comes with enter',
+      'Press Enter after typing an OTP',
       name: 'settingsKeyboardWithReturn',
       desc: '',
       args: [],
@@ -1929,10 +1939,10 @@ class S {
     );
   }
 
-  /// `The current keymap does not match a built-in preset. Applying a preset will overwrite it.`
+  /// `Your current keyboard layout is custom. Selecting a built-in layout will replace it.`
   String get settingsKeyboardLayoutUnknownPrompt {
     return Intl.message(
-      'The current keymap does not match a built-in preset. Applying a preset will overwrite it.',
+      'Your current keyboard layout is custom. Selecting a built-in layout will replace it.',
       name: 'settingsKeyboardLayoutUnknownPrompt',
       desc: '',
       args: [],
@@ -1959,20 +1969,20 @@ class S {
     );
   }
 
-  /// `This action will delete the account {name} from your CanoKey. Make sure 2FA has been disabled on the web service.`
+  /// `Deleting {name} permanently removes its one-time codes from CanoKey. Make sure you have another verification method or have disabled two-step verification for this service.`
   String oathDelete(Object name) {
     return Intl.message(
-      'This action will delete the account $name from your CanoKey. Make sure 2FA has been disabled on the web service.',
+      'Deleting $name permanently removes its one-time codes from CanoKey. Make sure you have another verification method or have disabled two-step verification for this service.',
       name: 'oathDelete',
       desc: '',
       args: [name],
     );
   }
 
-  /// `Do you want to set the account {name} as the default output when touching? Be careful, the original configuration will be overwritten.`
+  /// `Type a code for {name} when you touch CanoKey? This replaces the current touch output setting.`
   String oathSetDefaultPrompt(Object name) {
     return Intl.message(
-      'Do you want to set the account $name as the default output when touching? Be careful, the original configuration will be overwritten.',
+      'Type a code for $name when you touch CanoKey? This replaces the current touch output setting.',
       name: 'oathSetDefaultPrompt',
       desc: '',
       args: [name],
@@ -2044,9 +2054,14 @@ class S {
     return Intl.message('Digits', name: 'oathDigits', desc: '', args: []);
   }
 
-  /// `Period`
+  /// `Update interval (seconds)`
   String get oathPeriod {
-    return Intl.message('Period', name: 'oathPeriod', desc: '', args: []);
+    return Intl.message(
+      'Update interval (seconds)',
+      name: 'oathPeriod',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Require Touch`
@@ -2059,9 +2074,14 @@ class S {
     );
   }
 
-  /// `Required`
+  /// `Fill in this field`
   String get oathRequired {
-    return Intl.message('Required', name: 'oathRequired', desc: '', args: []);
+    return Intl.message(
+      'Fill in this field',
+      name: 'oathRequired',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Too long`
@@ -2074,10 +2094,10 @@ class S {
     return Intl.message('Counter', name: 'oathCounter', desc: '', args: []);
   }
 
-  /// `Not a number`
+  /// `Enter a whole number`
   String get oathCounterMustBeNumber {
     return Intl.message(
-      'Not a number',
+      'Enter a whole number',
       name: 'oathCounterMustBeNumber',
       desc: '',
       args: [],
@@ -2124,10 +2144,10 @@ class S {
     );
   }
 
-  /// `To prevent unauthorized access, this CanoKey is protected with a passphrase.`
+  /// `Enter the passphrase that protects the TOTP / HOTP accounts on this CanoKey.`
   String get oathInputCodePrompt {
     return Intl.message(
-      'To prevent unauthorized access, this CanoKey is protected with a passphrase.',
+      'Enter the passphrase that protects the TOTP / HOTP accounts on this CanoKey.',
       name: 'oathInputCodePrompt',
       desc: '',
       args: [],
@@ -2169,20 +2189,20 @@ class S {
     );
   }
 
-  /// `Enter a new passphrase. Leave it empty to disable current passphrase.`
+  /// `Enter a new passphrase. Leave it empty and save to remove passphrase protection.`
   String get oathNewCodePrompt {
     return Intl.message(
-      'Enter a new passphrase. Leave it empty to disable current passphrase.',
+      'Enter a new passphrase. Leave it empty and save to remove passphrase protection.',
       name: 'oathNewCodePrompt',
       desc: '',
       args: [],
     );
   }
 
-  /// `Advanced Settings. Think well before changing them. You could lock yourself out!`
+  /// `Use the settings provided by the service. Other settings may produce codes that do not work.`
   String get oathAdvancedSettings {
     return Intl.message(
-      'Advanced Settings. Think well before changing them. You could lock yourself out!',
+      'Use the settings provided by the service. Other settings may produce codes that do not work.',
       name: 'oathAdvancedSettings',
       desc: '',
       args: [],
@@ -2234,49 +2254,49 @@ class S {
     );
   }
 
-  /// `Please input your Setting PIN. The default value is 123456.`
+  /// `Enter the admin PIN used for Settings. The default is 123456.`
   String get passInputPinPrompt {
     return Intl.message(
-      'Please input your Setting PIN. The default value is 123456.',
+      'Enter the admin PIN used for Settings. The default is 123456.',
       name: 'passInputPinPrompt',
       desc: '',
       args: [],
     );
   }
 
-  /// `Slot Configuration`
+  /// `Touch output settings`
   String get passSlotConfigTitle {
     return Intl.message(
-      'Slot Configuration',
+      'Touch output settings',
       name: 'passSlotConfigTitle',
       desc: '',
       args: [],
     );
   }
 
-  /// `Please select a slot type to configure. If you want to use HOTP, set it in the HOTP applet.`
+  /// `Choose what happens when you touch CanoKey. To output HOTP codes, configure an account on the TOTP / HOTP page.`
   String get passSlotConfigPrompt {
     return Intl.message(
-      'Please select a slot type to configure. If you want to use HOTP, set it in the HOTP applet.',
+      'Choose what happens when you touch CanoKey. To output HOTP codes, configure an account on the TOTP / HOTP page.',
       name: 'passSlotConfigPrompt',
       desc: '',
       args: [],
     );
   }
 
-  /// `Slot Short`
+  /// `Short press`
   String get passSlotShort {
     return Intl.message(
-      'Slot Short',
+      'Short press',
       name: 'passSlotShort',
       desc: '',
       args: [],
     );
   }
 
-  /// `Slot Long`
+  /// `Long press`
   String get passSlotLong {
-    return Intl.message('Slot Long', name: 'passSlotLong', desc: '', args: []);
+    return Intl.message('Long press', name: 'passSlotLong', desc: '', args: []);
   }
 
   /// `Status`
@@ -2324,20 +2344,20 @@ class S {
     );
   }
 
-  /// `The output comes with Enter`
+  /// `Press Enter after typing`
   String get passSlotWithEnter {
     return Intl.message(
-      'The output comes with Enter',
+      'Press Enter after typing',
       name: 'passSlotWithEnter',
       desc: '',
       args: [],
     );
   }
 
-  /// `This key does not support WebAuthn PIN.`
+  /// `This CanoKey does not support a WebAuthn PIN.`
   String get webauthnClientPinNotSupported {
     return Intl.message(
-      'This key does not support WebAuthn PIN.',
+      'This CanoKey does not support a WebAuthn PIN.',
       name: 'webauthnClientPinNotSupported',
       desc: '',
       args: [],
@@ -2354,10 +2374,10 @@ class S {
     );
   }
 
-  /// `Please set your WebAuthn PIN to enable management of credentials. The length of PIN should be between 4 and 63.`
+  /// `Set a WebAuthn PIN to manage sign-in credentials. Use 4 to 63 characters.`
   String get webauthnSetPinPrompt {
     return Intl.message(
-      'Please set your WebAuthn PIN to enable management of credentials. The length of PIN should be between 4 and 63.',
+      'Set a WebAuthn PIN to manage sign-in credentials. Use 4 to 63 characters.',
       name: 'webauthnSetPinPrompt',
       desc: '',
       args: [],
@@ -2384,30 +2404,30 @@ class S {
     );
   }
 
-  /// `This action will delete the account {name} from your CanoKey. Make sure you have other ways to log in.`
+  /// `Delete the sign-in credential for {name}? This cannot be undone. Make sure you have another way to sign in.`
   String webauthnDelete(Object name) {
     return Intl.message(
-      'This action will delete the account $name from your CanoKey. Make sure you have other ways to log in.',
+      'Delete the sign-in credential for $name? This cannot be undone. Make sure you have another way to sign in.',
       name: 'webauthnDelete',
       desc: '',
       args: [name],
     );
   }
 
-  /// `PIN authentication is blocked. Please reinsert you CanoKey to retry.`
+  /// `The WebAuthn PIN is temporarily blocked. Reconnect CanoKey and try again.`
   String get webauthnPinAuthBlocked {
     return Intl.message(
-      'PIN authentication is blocked. Please reinsert you CanoKey to retry.',
+      'The WebAuthn PIN is temporarily blocked. Reconnect CanoKey and try again.',
       name: 'webauthnPinAuthBlocked',
       desc: '',
       args: [],
     );
   }
 
-  /// `PIN authentication is blocked. Please reset WebAuthn.`
+  /// `The WebAuthn PIN is blocked. Reset WebAuthn to use it again. Resetting deletes all WebAuthn credentials.`
   String get webauthnPinBlocked {
     return Intl.message(
-      'PIN authentication is blocked. Please reset WebAuthn.',
+      'The WebAuthn PIN is blocked. Reset WebAuthn to use it again. Resetting deletes all WebAuthn credentials.',
       name: 'webauthnPinBlocked',
       desc: '',
       args: [],
@@ -2439,10 +2459,10 @@ class S {
     return Intl.message('New PUK', name: 'pivNewPUK', desc: '', args: []);
   }
 
-  /// `New PUK should be at least {min} characters long. The maximum length is {max}.`
+  /// `The new PUK must contain {min} to {max} characters.`
   String pivChangePUKPrompt(Object min, Object max) {
     return Intl.message(
-      'New PUK should be at least $min characters long. The maximum length is $max.',
+      'The new PUK must contain $min to $max characters.',
       name: 'pivChangePUKPrompt',
       desc: '',
       args: [min, max],
@@ -2499,20 +2519,20 @@ class S {
     );
   }
 
-  /// `Default`
+  /// `Use default`
   String get pivUseDefaultManagementKey {
     return Intl.message(
-      'Default',
+      'Use default',
       name: 'pivUseDefaultManagementKey',
       desc: '',
       args: [],
     );
   }
 
-  /// `Random`
+  /// `Generate random`
   String get pivRandomManagementKey {
     return Intl.message(
-      'Random',
+      'Generate random',
       name: 'pivRandomManagementKey',
       desc: '',
       args: [],
@@ -2589,10 +2609,10 @@ class S {
     return Intl.message('Retired 2', name: 'pivRetired2', desc: '', args: []);
   }
 
-  /// `Current Algorithm`
+  /// `Key algorithm`
   String get pivAlgorithm {
     return Intl.message(
-      'Current Algorithm',
+      'Key algorithm',
       name: 'pivAlgorithm',
       desc: '',
       args: [],
@@ -2759,10 +2779,10 @@ class S {
     );
   }
 
-  /// `This action will delete the slot {slot} from your CanoKey. Make sure you have other ways to authenticate.`
+  /// `Delete the key and certificate in slot {slot}? This cannot be undone. Make sure you have another way to sign in or decrypt your data.`
   String pivDeleteSlot(Object slot) {
     return Intl.message(
-      'This action will delete the slot $slot from your CanoKey. Make sure you have other ways to authenticate.',
+      'Delete the key and certificate in slot $slot? This cannot be undone. Make sure you have another way to sign in or decrypt your data.',
       name: 'pivDeleteSlot',
       desc: '',
       args: [slot],
@@ -2779,20 +2799,20 @@ class S {
     );
   }
 
-  /// `Management key authentication`
+  /// `Management key verification`
   String get pivManagementKeyAuthentication {
     return Intl.message(
-      'Management key authentication',
+      'Management key verification',
       name: 'pivManagementKeyAuthentication',
       desc: '',
       args: [],
     );
   }
 
-  /// `PIN-protected key on card`
+  /// `Verify with PIN`
   String get pivPinProtectedKeyOnCard {
     return Intl.message(
-      'PIN-protected key on card',
+      'Verify with PIN',
       name: 'pivPinProtectedKeyOnCard',
       desc: '',
       args: [],
@@ -2939,50 +2959,50 @@ class S {
     );
   }
 
-  /// `Authentication slot. Use a signing-capable key for login.`
+  /// `For sign-in verification. Choose a key algorithm that supports signing.`
   String get pivSlotAuthenticationHint {
     return Intl.message(
-      'Authentication slot. Use a signing-capable key for login.',
+      'For sign-in verification. Choose a key algorithm that supports signing.',
       name: 'pivSlotAuthenticationHint',
       desc: '',
       args: [],
     );
   }
 
-  /// `Digital signature slot. PIN policy defaults to always.`
+  /// `For digital signatures. By default, the PIN is required for every signature.`
   String get pivSlotSignatureHint {
     return Intl.message(
-      'Digital signature slot. PIN policy defaults to always.',
+      'For digital signatures. By default, the PIN is required for every signature.',
       name: 'pivSlotSignatureHint',
       desc: '',
       args: [],
     );
   }
 
-  /// `Key management slot. X25519 can derive shared secrets only.`
+  /// `For decryption or key agreement. X25519 supports key agreement only.`
   String get pivSlotKeyManagementHint {
     return Intl.message(
-      'Key management slot. X25519 can derive shared secrets only.',
+      'For decryption or key agreement. X25519 supports key agreement only.',
       name: 'pivSlotKeyManagementHint',
       desc: '',
       args: [],
     );
   }
 
-  /// `Card authentication slot. PIN may be unnecessary for some uses.`
+  /// `For verifying the card's identity. Some uses do not require a PIN.`
   String get pivSlotCardAuthenticationHint {
     return Intl.message(
-      'Card authentication slot. PIN may be unnecessary for some uses.',
+      'For verifying the card\'s identity. Some uses do not require a PIN.',
       name: 'pivSlotCardAuthenticationHint',
       desc: '',
       args: [],
     );
   }
 
-  /// `Retired key management slot for old decryption keys and certificates.`
+  /// `Keep old decryption keys and certificates so you can still read previously encrypted data.`
   String get pivSlotRetiredHint {
     return Intl.message(
-      'Retired key management slot for old decryption keys and certificates.',
+      'Keep old decryption keys and certificates so you can still read previously encrypted data.',
       name: 'pivSlotRetiredHint',
       desc: '',
       args: [],
@@ -3009,10 +3029,10 @@ class S {
     );
   }
 
-  /// `Check client compatibility before using this algorithm.`
+  /// `Check that the software you plan to use supports this algorithm.`
   String get pivExtendedAlgorithmCompatibilityWarning {
     return Intl.message(
-      'Check client compatibility before using this algorithm.',
+      'Check that the software you plan to use supports this algorithm.',
       name: 'pivExtendedAlgorithmCompatibilityWarning',
       desc: '',
       args: [],
@@ -3124,10 +3144,10 @@ class S {
     );
   }
 
-  /// `Controls whether PIV extension algorithm IDs are accepted by the card.`
+  /// `Allow CanoKey to use extension algorithms.`
   String get pivAlgorithmIdsPrompt {
     return Intl.message(
-      'Controls whether PIV extension algorithm IDs are accepted by the card.',
+      'Allow CanoKey to use extension algorithms.',
       name: 'pivAlgorithmIdsPrompt',
       desc: '',
       args: [],
@@ -3154,10 +3174,10 @@ class S {
     );
   }
 
-  /// `These values control how the card recognizes PIV extension algorithms. Keep the defaults unless you know the client and firmware expect different IDs. Wrong values can make existing extended keys appear unsupported until the IDs are restored.`
+  /// `Keep the defaults unless your software or firmware requires different algorithm IDs. Incorrect IDs may prevent existing keys from being recognized until you restore the correct values.`
   String get pivAlgorithmIdsWarning {
     return Intl.message(
-      'These values control how the card recognizes PIV extension algorithms. Keep the defaults unless you know the client and firmware expect different IDs. Wrong values can make existing extended keys appear unsupported until the IDs are restored.',
+      'Keep the defaults unless your software or firmware requires different algorithm IDs. Incorrect IDs may prevent existing keys from being recognized until you restore the correct values.',
       name: 'pivAlgorithmIdsWarning',
       desc: '',
       args: [],
@@ -3214,20 +3234,20 @@ class S {
     );
   }
 
-  /// `PIN/PUK retries were set and PIN/PUK were reset, but management metadata could not be updated. PIN is now 123456 and PUK is 12345678.`
+  /// `Retry limits changed, but some management information could not be saved. The PIN is now 123456 and the PUK is 12345678. Read CanoKey again to check its state.`
   String get pivSetRetriesMetadataFailed {
     return Intl.message(
-      'PIN/PUK retries were set and PIN/PUK were reset, but management metadata could not be updated. PIN is now 123456 and PUK is 12345678.',
+      'Retry limits changed, but some management information could not be saved. The PIN is now 123456 and the PUK is 12345678. Read CanoKey again to check its state.',
       name: 'pivSetRetriesMetadataFailed',
       desc: '',
       args: [],
     );
   }
 
-  /// `PIN/PUK retries set. PIN and PUK were reset.`
+  /// `Retry limits changed. The PIN is now 123456 and the PUK is 12345678.`
   String get pivSetRetriesSuccess {
     return Intl.message(
-      'PIN/PUK retries set. PIN and PUK were reset.',
+      'Retry limits changed. The PIN is now 123456 and the PUK is 12345678.',
       name: 'pivSetRetriesSuccess',
       desc: '',
       args: [],
@@ -3624,10 +3644,10 @@ class S {
     );
   }
 
-  /// `Creates a detached raw signature for the selected file.`
+  /// `Sign a file with this key. The signature is saved separately; the original file is not changed.`
   String get pivSignFilePrompt {
     return Intl.message(
-      'Creates a detached raw signature for the selected file.',
+      'Sign a file with this key. The signature is saved separately; the original file is not changed.',
       name: 'pivSignFilePrompt',
       desc: '',
       args: [],
@@ -3679,10 +3699,10 @@ class S {
     );
   }
 
-  /// `Verifies a detached raw signature against this slot public key.`
+  /// `Select the original file and its signature file to verify the signature using this slot's public key.`
   String get pivVerifyFileSignaturePrompt {
     return Intl.message(
-      'Verifies a detached raw signature against this slot public key.',
+      'Select the original file and its signature file to verify the signature using this slot\'s public key.',
       name: 'pivVerifyFileSignaturePrompt',
       desc: '',
       args: [],
@@ -3694,10 +3714,10 @@ class S {
     return Intl.message('File', name: 'pivFile', desc: '', args: []);
   }
 
-  /// `Signature`
+  /// `Signature file`
   String get pivSignatureFile {
     return Intl.message(
-      'Signature',
+      'Signature file',
       name: 'pivSignatureFile',
       desc: '',
       args: [],
@@ -3714,10 +3734,10 @@ class S {
     );
   }
 
-  /// `Select a file and signature first.`
+  /// `Select the original file and its signature file first.`
   String get pivSelectFileAndSignatureFirst {
     return Intl.message(
-      'Select a file and signature first.',
+      'Select the original file and its signature file first.',
       name: 'pivSelectFileAndSignatureFirst',
       desc: '',
       args: [],
@@ -3799,10 +3819,10 @@ class S {
     );
   }
 
-  /// `Verify PIN and Management Key`
+  /// `Enter PIN and management key`
   String get pivVerifyPinAndManagementKey {
     return Intl.message(
-      'Verify PIN and Management Key',
+      'Enter PIN and management key',
       name: 'pivVerifyPinAndManagementKey',
       desc: '',
       args: [],
@@ -3819,20 +3839,20 @@ class S {
     );
   }
 
-  /// `Click to select a PEM or DER certificate/key`
+  /// `Choose a certificate or private key in PEM or DER format`
   String get pivSelectFilePrompt {
     return Intl.message(
-      'Click to select a PEM or DER certificate/key',
+      'Choose a certificate or private key in PEM or DER format',
       name: 'pivSelectFilePrompt',
       desc: '',
       args: [],
     );
   }
 
-  /// `(Make sure the file contains a plaintext key or a certificate)`
+  /// `Private key files must not be password-protected.`
   String get pivSelectFileHint {
     return Intl.message(
-      '(Make sure the file contains a plaintext key or a certificate)',
+      'Private key files must not be password-protected.',
       name: 'pivSelectFileHint',
       desc: '',
       args: [],
@@ -4034,20 +4054,20 @@ class S {
     );
   }
 
-  /// `Country Code`
+  /// `Country or region code`
   String get pivCountryCode {
     return Intl.message(
-      'Country Code',
+      'Country or region code',
       name: 'pivCountryCode',
       desc: '',
       args: [],
     );
   }
 
-  /// `DNS SANs, comma separated`
+  /// `Domain names (comma-separated)`
   String get pivDnsSans {
     return Intl.message(
-      'DNS SANs, comma separated',
+      'Domain names (comma-separated)',
       name: 'pivDnsSans',
       desc: '',
       args: [],
@@ -4064,20 +4084,20 @@ class S {
     );
   }
 
-  /// `Self-signed certificates are for local testing and compatibility depends on the client.`
+  /// `You may need to manually trust a self-signed certificate in the software that uses it. Check that the software accepts self-signed certificates.`
   String get pivSelfSignedCertificateWarning {
     return Intl.message(
-      'Self-signed certificates are for local testing and compatibility depends on the client.',
+      'You may need to manually trust a self-signed certificate in the software that uses it. Check that the software accepts self-signed certificates.',
       name: 'pivSelfSignedCertificateWarning',
       desc: '',
       args: [],
     );
   }
 
-  /// `CSR generation signs the request with the new key on the card.`
+  /// `Create a certificate signing request (CSR) to send to a certificate authority. A new key will be generated on CanoKey.`
   String get pivCsrGenerationPrompt {
     return Intl.message(
-      'CSR generation signs the request with the new key on the card.',
+      'Create a certificate signing request (CSR) to send to a certificate authority. A new key will be generated on CanoKey.',
       name: 'pivCsrGenerationPrompt',
       desc: '',
       args: [],
@@ -4169,10 +4189,10 @@ class S {
     );
   }
 
-  /// `No empty destination slot is available.`
+  /// `No empty slot is available to receive this key.`
   String get pivNoEmptyDestinationSlot {
     return Intl.message(
-      'No empty destination slot is available.',
+      'No empty slot is available to receive this key.',
       name: 'pivNoEmptyDestinationSlot',
       desc: '',
       args: [],
@@ -4209,10 +4229,10 @@ class S {
     );
   }
 
-  /// `Key move failed. The destination must not contain a key.`
+  /// `Could not move the key. Choose a destination slot with no key.`
   String get pivMoveKeyFailed {
     return Intl.message(
-      'Key move failed. The destination must not contain a key.',
+      'Could not move the key. Choose a destination slot with no key.',
       name: 'pivMoveKeyFailed',
       desc: '',
       args: [],
@@ -4409,10 +4429,10 @@ class S {
     );
   }
 
-  /// `Touch: Permanent cached`
+  /// `Touch: Cached, cannot disable`
   String get openpgpTouchPermanentCachedLabel {
     return Intl.message(
-      'Touch: Permanent cached',
+      'Touch: Cached, cannot disable',
       name: 'openpgpTouchPermanentCachedLabel',
       desc: '',
       args: [],
@@ -4479,10 +4499,10 @@ class S {
     );
   }
 
-  /// `Permanent cached`
+  /// `Cached touch (cannot disable)`
   String get openpgpTouchPermanentCached {
     return Intl.message(
-      'Permanent cached',
+      'Cached touch (cannot disable)',
       name: 'openpgpTouchPermanentCached',
       desc: '',
       args: [],
@@ -4669,10 +4689,10 @@ class S {
     );
   }
 
-  /// `Set PIN/Reset/Admin PIN Retries`
+  /// `Set PIN and Reset Code retry limits`
   String get openpgpSetPinRetriesTitle {
     return Intl.message(
-      'Set PIN/Reset/Admin PIN Retries',
+      'Set PIN and Reset Code retry limits',
       name: 'openpgpSetPinRetriesTitle',
       desc: '',
       args: [],
@@ -4734,10 +4754,10 @@ class S {
     );
   }
 
-  /// `Need exact {length} characters`
+  /// `Enter exactly {length} characters`
   String validationExactLength(Object length) {
     return Intl.message(
-      'Need exact $length characters',
+      'Enter exactly $length characters',
       name: 'validationExactLength',
       desc: '',
       args: [length],
@@ -4804,10 +4824,10 @@ class S {
     );
   }
 
-  /// `Summer Xu is the author of NFC interaction sounds.`
+  /// `NFC sounds by Summer Xu.`
   String get soundCredit {
     return Intl.message(
-      'Summer Xu is the author of NFC interaction sounds.',
+      'NFC sounds by Summer Xu.',
       name: 'soundCredit',
       desc: '',
       args: [],
@@ -4849,10 +4869,10 @@ class S {
     return Intl.message('Play', name: 'play', desc: '', args: []);
   }
 
-  /// `Playing in order: poll, finish, error`
+  /// `Preview order: reading started, reading completed, reading failed`
   String get nfcSoundPrompt {
     return Intl.message(
-      'Playing in order: poll, finish, error',
+      'Preview order: reading started, reading completed, reading failed',
       name: 'nfcSoundPrompt',
       desc: '',
       args: [],
@@ -5014,10 +5034,10 @@ class S {
     );
   }
 
-  /// `Include Basic Constraints: CA=false`
+  /// `Mark as a non-CA certificate (CA=false)`
   String get pivEndEntityConstraint {
     return Intl.message(
-      'Include Basic Constraints: CA=false',
+      'Mark as a non-CA certificate (CA=false)',
       name: 'pivEndEntityConstraint',
       desc: '',
       args: [],
@@ -5029,10 +5049,10 @@ class S {
     return Intl.message('Key Usage', name: 'pivKeyUsage', desc: '', args: []);
   }
 
-  /// `Mark Key Usage as critical`
+  /// `Require verifiers to check key usage`
   String get pivKeyUsageCritical {
     return Intl.message(
-      'Mark Key Usage as critical',
+      'Require verifiers to check key usage',
       name: 'pivKeyUsageCritical',
       desc: '',
       args: [],
@@ -5049,10 +5069,10 @@ class S {
     );
   }
 
-  /// `No selection omits this extension.`
+  /// `Leave all options unchecked to omit this usage restriction.`
   String get pivUsageOmitted {
     return Intl.message(
-      'No selection omits this extension.',
+      'Leave all options unchecked to omit this usage restriction.',
       name: 'pivUsageOmitted',
       desc: '',
       args: [],
@@ -5214,40 +5234,40 @@ class S {
     );
   }
 
-  /// `Set up Mac login`
+  /// `Set up macOS login`
   String get pivMacSetupTitle {
     return Intl.message(
-      'Set up Mac login',
+      'Set up macOS login',
       name: 'pivMacSetupTitle',
       desc: '',
       args: [],
     );
   }
 
-  /// `Check 9A and 9D, keep usable keys and certificates, and add what is missing.`
+  /// `Set up the keys and certificates needed for macOS login. Slots 9A and 9D will be checked, and compatible keys and certificates will be kept.`
   String get pivMacSetupIntro {
     return Intl.message(
-      'Check 9A and 9D, keep usable keys and certificates, and add what is missing.',
+      'Set up the keys and certificates needed for macOS login. Slots 9A and 9D will be checked, and compatible keys and certificates will be kept.',
       name: 'pivMacSetupIntro',
       desc: '',
       args: [],
     );
   }
 
-  /// `Check CanoKey`
+  /// `Check again`
   String get pivMacSetupInspect {
     return Intl.message(
-      'Check CanoKey',
+      'Check again',
       name: 'pivMacSetupInspect',
       desc: '',
       args: [],
     );
   }
 
-  /// `Could not finish. Check the card connection and credentials, then check again. Completed changes are kept. Older firmware without key metadata is not supported.`
+  /// `Could not check or configure CanoKey. Check the connection, PIV PIN and management key, then try again. Completed changes are kept. This feature requires firmware that can report key information.`
   String get pivMacSetupError {
     return Intl.message(
-      'Could not finish. Check the card connection and credentials, then check again. Completed changes are kept. Older firmware without key metadata is not supported.',
+      'Could not check or configure CanoKey. Check the connection, PIV PIN and management key, then try again. Completed changes are kept. This feature requires firmware that can report key information.',
       name: 'pivMacSetupError',
       desc: '',
       args: [],
@@ -5304,10 +5324,10 @@ class S {
     );
   }
 
-  /// `I agree to the replacements listed above. Replaced keys cannot be recovered.`
+  /// `I confirm the key or certificate replacements listed above. Replaced keys cannot be recovered.`
   String get pivMacSetupConsent {
     return Intl.message(
-      'I agree to the replacements listed above. Replaced keys cannot be recovered.',
+      'I confirm the key or certificate replacements listed above. Replaced keys cannot be recovered.',
       name: 'pivMacSetupConsent',
       desc: '',
       args: [],
@@ -5324,10 +5344,10 @@ class S {
     );
   }
 
-  /// `CanoKey is ready. Reconnect it to your Mac and follow the pairing prompt. Pairing with your Mac account is still required.`
+  /// `CanoKey setup is complete. Reconnect it and follow the macOS prompt to pair it with your login account.`
   String get pivMacSetupDone {
     return Intl.message(
-      'CanoKey is ready. Reconnect it to your Mac and follow the pairing prompt. Pairing with your Mac account is still required.',
+      'CanoKey setup is complete. Reconnect it and follow the macOS prompt to pair it with your login account.',
       name: 'pivMacSetupDone',
       desc: '',
       args: [],
@@ -5389,10 +5409,10 @@ class S {
     return Intl.message('PIV', name: 'pivPageTitle', desc: '', args: []);
   }
 
-  /// `Manage your PIV credentials, keys and certificates.`
+  /// `Manage PIV keys, certificates and PINs on CanoKey.`
   String get pivPageDescription {
     return Intl.message(
-      'Manage your PIV credentials, keys and certificates.',
+      'Manage PIV keys, certificates and PINs on CanoKey.',
       name: 'pivPageDescription',
       desc: '',
       args: [],
@@ -5484,10 +5504,10 @@ class S {
     );
   }
 
-  /// `Manage keys and certificates in the standard PIV slots.`
+  /// `Each slot holds a key and certificate.`
   String get pivSlotsDescription {
     return Intl.message(
-      'Manage keys and certificates in the standard PIV slots.',
+      'Each slot holds a key and certificate.',
       name: 'pivSlotsDescription',
       desc: '',
       args: [],
@@ -5549,9 +5569,9 @@ class S {
     return Intl.message('Manage', name: 'pivManage', desc: '', args: []);
   }
 
-  /// `Mac login`
+  /// `macOS login`
   String get pivMacLogin {
-    return Intl.message('Mac login', name: 'pivMacLogin', desc: '', args: []);
+    return Intl.message('macOS login', name: 'pivMacLogin', desc: '', args: []);
   }
 
   /// `Sign in to macOS using your PIV certificates.`
@@ -5614,40 +5634,40 @@ class S {
     );
   }
 
-  /// `Create or import a certificate for this slot.`
+  /// `Generate or import keys and certificates for this slot.`
   String get pivProvisioningDescription {
     return Intl.message(
-      'Create or import a certificate for this slot.',
+      'Generate or import keys and certificates for this slot.',
       name: 'pivProvisioningDescription',
       desc: '',
       args: [],
     );
   }
 
-  /// `Save certificates and public keys.`
+  /// `Save a certificate or public key to a file.`
   String get pivExportDescription {
     return Intl.message(
-      'Save certificates and public keys.',
+      'Save a certificate or public key to a file.',
       name: 'pivExportDescription',
       desc: '',
       args: [],
     );
   }
 
-  /// `Sign and verify using this key.`
+  /// `Sign messages or files, or verify a file signature.`
   String get pivKeyOperationsDescription {
     return Intl.message(
-      'Sign and verify using this key.',
+      'Sign messages or files, or verify a file signature.',
       name: 'pivKeyOperationsDescription',
       desc: '',
       args: [],
     );
   }
 
-  /// `These actions can permanently change or remove keys.`
+  /// `Before moving or deleting a key, make sure you have another way to sign in or decrypt your data.`
   String get pivDangerDescription {
     return Intl.message(
-      'These actions can permanently change or remove keys.',
+      'Before moving or deleting a key, make sure you have another way to sign in or decrypt your data.',
       name: 'pivDangerDescription',
       desc: '',
       args: [],
@@ -5664,20 +5684,20 @@ class S {
     );
   }
 
-  /// `Enter the identity for this certificate.`
+  /// `Enter the certificate holder's name, organization and other details.`
   String get pivSubjectDescription {
     return Intl.message(
-      'Enter the identity for this certificate.',
+      'Enter the certificate holder\'s name, organization and other details.',
       name: 'pivSubjectDescription',
       desc: '',
       args: [],
     );
   }
 
-  /// `Manage device settings, customize behavior and system preferences.`
+  /// `View CanoKey information and change device and app settings.`
   String get settingsDescription {
     return Intl.message(
-      'Manage device settings, customize behavior and system preferences.',
+      'View CanoKey information and change device and app settings.',
       name: 'settingsDescription',
       desc: '',
       args: [],
@@ -5744,20 +5764,20 @@ class S {
     );
   }
 
-  /// `Only discoverable credentials are stored on CanoKey. Other types of keys are not stored on the device and therefore are not visible here.`
+  /// `This list shows credentials CanoKey can find on its own. Some credentials can only be identified when a website starts sign-in, so they do not appear here. You can still use them to sign in.`
   String get webAuthnMissingCredentialsExplanation {
     return Intl.message(
-      'Only discoverable credentials are stored on CanoKey. Other types of keys are not stored on the device and therefore are not visible here.',
+      'This list shows credentials CanoKey can find on its own. Some credentials can only be identified when a website starts sign-in, so they do not appear here. You can still use them to sign in.',
       name: 'webAuthnMissingCredentialsExplanation',
       desc: '',
       args: [],
     );
   }
 
-  /// `Time-based and counter-based one-time passwords to keep your accounts secure.`
+  /// `Manage one-time codes for your accounts (TOTP / HOTP).`
   String get oathDescription {
     return Intl.message(
-      'Time-based and counter-based one-time passwords to keep your accounts secure.',
+      'Manage one-time codes for your accounts (TOTP / HOTP).',
       name: 'oathDescription',
       desc: '',
       args: [],
@@ -5774,21 +5794,326 @@ class S {
     );
   }
 
-  /// `Configure password slots triggered by a button press.`
+  /// `Choose the password output for a short or long press on CanoKey.`
   String get passDescription {
     return Intl.message(
-      'Configure password slots triggered by a button press.',
+      'Choose the password output for a short or long press on CanoKey.',
       name: 'passDescription',
       desc: '',
       args: [],
     );
   }
 
-  /// `Manage OpenPGP card information, PINs and key touch policies.`
+  /// `View OpenPGP card information and manage PINs and touch confirmation.`
   String get openpgpDescription {
     return Intl.message(
-      'Manage OpenPGP card information, PINs and key touch policies.',
+      'View OpenPGP card information and manage PINs and touch confirmation.',
       name: 'openpgpDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a whole number.`
+  String get validationNumber {
+    return Intl.message(
+      'Enter a whole number.',
+      name: 'validationNumber',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a whole number of at least {min}.`
+  String validationNumberMin(Object min) {
+    return Intl.message(
+      'Enter a whole number of at least $min.',
+      name: 'validationNumberMin',
+      desc: '',
+      args: [min],
+    );
+  }
+
+  /// `Enter a whole number of at most {max}.`
+  String validationNumberMax(Object max) {
+    return Intl.message(
+      'Enter a whole number of at most $max.',
+      name: 'validationNumberMax',
+      desc: '',
+      args: [max],
+    );
+  }
+
+  /// `The operation failed. Read CanoKey again and try again.`
+  String get operationFailed {
+    return Intl.message(
+      'The operation failed. Read CanoKey again and try again.',
+      name: 'operationFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `PIN verification failed. Read CanoKey again and try again.`
+  String get pinVerificationFailed {
+    return Intl.message(
+      'PIN verification failed. Read CanoKey again and try again.',
+      name: 'pinVerificationFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Refresh the page and enter your WebAuthn PIN before trying this operation again.`
+  String get webauthnPinRequired {
+    return Intl.message(
+      'Refresh the page and enter your WebAuthn PIN before trying this operation again.',
+      name: 'webauthnPinRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not set the WebAuthn PIN. Read CanoKey again and try again.`
+  String get webauthnSetPinFailed {
+    return Intl.message(
+      'Could not set the WebAuthn PIN. Read CanoKey again and try again.',
+      name: 'webauthnSetPinFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not change the WebAuthn PIN. Read CanoKey again and try again.`
+  String get webauthnChangePinFailed {
+    return Intl.message(
+      'Could not change the WebAuthn PIN. Read CanoKey again and try again.',
+      name: 'webauthnChangePinFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reset failed. Check the device connection and try again.`
+  String get settingsResetFailed {
+    return Intl.message(
+      'Reset failed. Check the device connection and try again.',
+      name: 'settingsResetFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Curve ID`
+  String get sm2CurveId {
+    return Intl.message('Curve ID', name: 'sm2CurveId', desc: '', args: []);
+  }
+
+  /// `Algorithm ID`
+  String get sm2AlgorithmId {
+    return Intl.message(
+      'Algorithm ID',
+      name: 'sm2AlgorithmId',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Confirm new PIN`
+  String get confirmNewPin {
+    return Intl.message(
+      'Confirm new PIN',
+      name: 'confirmNewPin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Type name format (TNF)`
+  String get ndefTypeNameFormat {
+    return Intl.message(
+      'Type name format (TNF)',
+      name: 'ndefTypeNameFormat',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This ID is reserved for another algorithm or curve. Choose a different value.`
+  String get sm2ReservedId {
+    return Intl.message(
+      'This ID is reserved for another algorithm or curve. Choose a different value.',
+      name: 'sm2ReservedId',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Open network`
+  String get ndefWifiOpen {
+    return Intl.message(
+      'Open network',
+      name: 'ndefWifiOpen',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Shared key`
+  String get ndefWifiShared {
+    return Intl.message(
+      'Shared key',
+      name: 'ndefWifiShared',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{protocol} Personal`
+  String ndefWifiPersonal(Object protocol) {
+    return Intl.message(
+      '$protocol Personal',
+      name: 'ndefWifiPersonal',
+      desc: '',
+      args: [protocol],
+    );
+  }
+
+  /// `{protocol} Enterprise`
+  String ndefWifiEnterprise(Object protocol) {
+    return Intl.message(
+      '$protocol Enterprise',
+      name: 'ndefWifiEnterprise',
+      desc: '',
+      args: [protocol],
+    );
+  }
+
+  /// `No encryption`
+  String get ndefWifiNoEncryption {
+    return Intl.message(
+      'No encryption',
+      name: 'ndefWifiNoEncryption',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Same type as the previous chunk`
+  String get ndefTnfUnchanged {
+    return Intl.message(
+      'Same type as the previous chunk',
+      name: 'ndefTnfUnchanged',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Basic constraints`
+  String get pivBasicConstraints {
+    return Intl.message(
+      'Basic constraints',
+      name: 'pivBasicConstraints',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Digital signature`
+  String get pivUsageDigitalSignature {
+    return Intl.message(
+      'Digital signature',
+      name: 'pivUsageDigitalSignature',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Content commitment`
+  String get pivUsageContentCommitment {
+    return Intl.message(
+      'Content commitment',
+      name: 'pivUsageContentCommitment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Key encryption`
+  String get pivUsageKeyEncipherment {
+    return Intl.message(
+      'Key encryption',
+      name: 'pivUsageKeyEncipherment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Data encryption`
+  String get pivUsageDataEncipherment {
+    return Intl.message(
+      'Data encryption',
+      name: 'pivUsageDataEncipherment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Key agreement`
+  String get pivUsageKeyAgreement {
+    return Intl.message(
+      'Key agreement',
+      name: 'pivUsageKeyAgreement',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Client authentication`
+  String get pivUsageClientAuth {
+    return Intl.message(
+      'Client authentication',
+      name: 'pivUsageClientAuth',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Server authentication`
+  String get pivUsageServerAuth {
+    return Intl.message(
+      'Server authentication',
+      name: 'pivUsageServerAuth',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Code signing`
+  String get pivUsageCodeSigning {
+    return Intl.message(
+      'Code signing',
+      name: 'pivUsageCodeSigning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Email protection`
+  String get pivUsageEmailProtection {
+    return Intl.message(
+      'Email protection',
+      name: 'pivUsageEmailProtection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Smart card login`
+  String get pivUsageSmartCardLogon {
+    return Intl.message(
+      'Smart card login',
+      name: 'pivUsageSmartCardLogon',
       desc: '',
       args: [],
     );

@@ -422,7 +422,7 @@ class SmartCard {
                 S.of(Get.context!).interrupted, ContentThemeColor.danger);
           } else {
             Prompts.showPrompt(
-                e.message ?? 'Unknown error', ContentThemeColor.danger);
+                S.current.operationFailed, ContentThemeColor.danger);
           }
           if (isAndroidApp()) {
             Audio.error();

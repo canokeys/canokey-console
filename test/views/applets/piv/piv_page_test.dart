@@ -505,15 +505,15 @@ void main() {
         expect(find.text(S.current.pivMacOsApply), findsNothing);
         expect(find.text(S.current.pivMacOsOtherSlot), findsNothing);
         final usage = {
-          1: 'digitalSignature',
-          4: 'keyEncipherment',
-          16: 'keyAgreement',
+          1: S.current.pivUsageDigitalSignature,
+          4: S.current.pivUsageKeyEncipherment,
+          16: S.current.pivUsageKeyAgreement,
         }[scenario.keyUsage]!;
         await tester.ensureVisible(find.text(usage));
         await tester.tap(find.text(usage));
         if (scenario.slot == '9A') {
-          await tester.ensureVisible(find.text('clientAuth'));
-          await tester.tap(find.text('clientAuth'));
+          await tester.ensureVisible(find.text(S.current.pivUsageClientAuth));
+          await tester.tap(find.text(S.current.pivUsageClientAuth));
         }
         await tester.ensureVisible(find.text(S.current.pivEndEntityConstraint));
         await tester.tap(find.text(S.current.pivEndEntityConstraint));

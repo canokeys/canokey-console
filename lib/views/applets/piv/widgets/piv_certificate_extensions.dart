@@ -79,7 +79,7 @@ class PivCertificateExtensions extends StatelessWidget {
         const SizedBox(height: 8),
         _field(
           context,
-          'Basic Constraints',
+          s.pivBasicConstraints,
           CheckboxListTile(
             contentPadding: EdgeInsets.zero,
             dense: true,
@@ -104,12 +104,12 @@ class PivCertificateExtensions extends StatelessWidget {
                 spacing: 6,
                 runSpacing: 6,
                 children: [
-                  for (final entry in const <int, String>{
-                    1: 'digitalSignature',
-                    2: 'contentCommitment',
-                    4: 'keyEncipherment',
-                    8: 'dataEncipherment',
-                    16: 'keyAgreement',
+                  for (final entry in <int, String>{
+                    1: s.pivUsageDigitalSignature,
+                    2: s.pivUsageContentCommitment,
+                    4: s.pivUsageKeyEncipherment,
+                    8: s.pivUsageDataEncipherment,
+                    16: s.pivUsageKeyAgreement,
                   }.entries)
                     _chip(
                       context,
@@ -161,12 +161,12 @@ class PivCertificateExtensions extends StatelessWidget {
             spacing: 7,
             runSpacing: 7,
             children: [
-              for (final entry in const <String, String>{
-                PivSelfSignOptions.clientAuth: 'clientAuth',
-                '1.3.6.1.5.5.7.3.1': 'serverAuth',
-                '1.3.6.1.5.5.7.3.3': 'codeSigning',
-                '1.3.6.1.5.5.7.3.4': 'emailProtection',
-                '1.3.6.1.4.1.311.20.2.2': 'smartCardLogon',
+              for (final entry in <String, String>{
+                PivSelfSignOptions.clientAuth: s.pivUsageClientAuth,
+                '1.3.6.1.5.5.7.3.1': s.pivUsageServerAuth,
+                '1.3.6.1.5.5.7.3.3': s.pivUsageCodeSigning,
+                '1.3.6.1.5.5.7.3.4': s.pivUsageEmailProtection,
+                '1.3.6.1.4.1.311.20.2.2': s.pivUsageSmartCardLogon,
               }.entries)
                 _chip(
                   context,

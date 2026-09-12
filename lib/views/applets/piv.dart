@@ -2243,7 +2243,10 @@ class _PivPageState extends State<PivPage>
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(top: 5),
-              child: SelectableText(value, style: PivStyle.text(context, 12)),
+              child: SelectableText(
+                value,
+                style: PivStyle.monospace(context, 12),
+              ),
             ),
           ),
           SizedBox(
@@ -2292,10 +2295,7 @@ class _PivPageState extends State<PivPage>
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: SelectableText(
                       pem,
-                      style: PivStyle.text(
-                        context,
-                        12,
-                      ).copyWith(fontFamily: 'monospace'),
+                      style: PivStyle.monospace(context, 12),
                     ),
                   ),
                 ),

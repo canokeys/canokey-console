@@ -82,17 +82,17 @@ class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog> w
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _row('Pass', switches: {Func.passSwitch: 'Enable'}),
+                _row('Pass', switches: {Func.passSwitch: S.of(context).enable}),
                 Spacing.height(8),
-                _row('WebAuthn', switches: {Func.webAuthnSwitch: 'Enable'}),
+                _row('WebAuthn', switches: {Func.webAuthnSwitch: S.of(context).enable}),
                 Spacing.height(8),
                 if (_supports(Func.ndefEnabled)) ...[
-                  _row('NDEF', switches: {Func.ndefEnabled: 'Enable'}),
+                  _row('NDEF', switches: {Func.ndefEnabled: S.of(context).enable}),
                   Spacing.height(8),
                 ],
                 _row(
                   'PIV',
-                  switches: supportsNfc ? {Func.pivCcIdSwitch: 'USB', Func.pivNfcSwitch: 'NFC'} : {Func.pivCcIdSwitch: 'Enable'},
+                  switches: supportsNfc ? {Func.pivCcIdSwitch: 'USB', Func.pivNfcSwitch: 'NFC'} : {Func.pivCcIdSwitch: S.of(context).enable},
                 ),
                 Spacing.height(8),
                 _row(
@@ -102,7 +102,7 @@ class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog> w
                           Func.openPgpCcIdSwitch: 'USB',
                           Func.openPgpNfcSwitch: 'NFC',
                         }
-                      : {Func.openPgpCcIdSwitch: 'Enable'},
+                      : {Func.openPgpCcIdSwitch: S.of(context).enable},
                 ),
               ],
             ),

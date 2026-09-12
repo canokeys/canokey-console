@@ -13,71 +13,76 @@ void main() {
 
   tearDown(Get.reset);
 
-  testWidgets('record type selector shows the seven user-facing types',
-      (tester) async {
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(390, 844);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    addTearDown(tester.view.resetPhysicalSize);
+  for (final locale in const [
+    Locale('en'),
+    Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
+    Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
+  ]) {
+    testWidgets('record types and contact fields use $locale on mobile', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 844);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
 
-    await tester.pumpWidget(_app());
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(_app(locale));
+      await tester.pumpAndSettle();
 
-    expect(tester.takeException(), isNull);
-    expect(
-      find.byType(PopupMenuButton<NdefEditableRecordType>),
-      findsOneWidget,
-    );
-    final typeMenu = tester.widget<PopupMenuButton<NdefEditableRecordType>>(
-      find.byType(PopupMenuButton<NdefEditableRecordType>),
-    );
-    expect(typeMenu.color?.a, 1);
+      expect(tester.takeException(), isNull);
+      expect(
+        find.byType(PopupMenuButton<NdefEditableRecordType>),
+        findsOneWidget,
+      );
+      final typeMenu = tester.widget<PopupMenuButton<NdefEditableRecordType>>(
+        find.byType(PopupMenuButton<NdefEditableRecordType>),
+      );
+      expect(typeMenu.color?.a, 1);
 
-    await tester.tap(
-      find.byType(PopupMenuButton<NdefEditableRecordType>),
-    );
-    await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<NdefEditableRecordType>));
+      await tester.pumpAndSettle();
 
-    final menuScrollView = find.byType(Scrollable).last;
-    expect(tester.getSize(menuScrollView).height, lessThanOrEqualTo(320));
+      final menuScrollView = find.byType(Scrollable).last;
+      expect(tester.getSize(menuScrollView).height, lessThanOrEqualTo(320));
 
-    for (final label in const [
-      'URI',
-      'Text',
-      'Phone',
-      'Contact',
-      'Wi-Fi',
-      'AAR',
-      'Other',
-    ]) {
-      expect(find.text(label), findsAtLeast(1));
-    }
-    for (final removedLabel in const [
-      'Smart Poster',
-      'MIME',
-      'Bluetooth Classic',
-      'Signature',
-    ]) {
-      expect(find.text(removedLabel), findsNothing);
-    }
-    expect(tester.takeException(), isNull);
+      for (final label in [
+        S.current.ndefUri,
+        S.current.ndefText,
+        S.current.ndefPhone,
+        S.current.ndefContact,
+        S.current.ndefWifi,
+        S.current.ndefAndroidApplication,
+        S.current.ndefOther,
+      ]) {
+        expect(find.text(label), findsAtLeast(1));
+      }
+      for (final removedLabel in [
+        S.current.ndefSmartPoster,
+        S.current.ndefMime,
+        S.current.ndefBluetoothClassic,
+        S.current.ndefSignature,
+      ]) {
+        expect(find.text(removedLabel), findsNothing);
+      }
+      expect(tester.takeException(), isNull);
 
-    await tester.tap(find.text('Contact').last);
-    await tester.pumpAndSettle();
+      await tester.tap(find.text(S.current.ndefContact).last);
+      await tester.pumpAndSettle();
 
-    expect(find.text('Name'), findsOneWidget);
-    expect(find.text('Phone number'), findsOneWidget);
-    expect(find.text('Email (optional)'), findsOneWidget);
-    expect(find.text('Organization (optional)'), findsOneWidget);
-    expect(tester.takeException(), isNull);
+      expect(find.text(S.current.ndefContactName), findsOneWidget);
+      expect(find.text(S.current.ndefPhoneNumber), findsOneWidget);
+      expect(find.text(S.current.ndefContactEmail), findsOneWidget);
+      expect(find.text(S.current.ndefContactOrganization), findsOneWidget);
+      expect(tester.takeException(), isNull);
 
-    await tester.pumpWidget(const SizedBox.shrink());
-  });
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
 }
 
-Widget _app() {
+Widget _app(Locale locale) {
   return GetMaterialApp(
-    locale: const Locale('en'),
+    locale: locale,
     localizationsDelegates: const [
       S.delegate,
       GlobalMaterialLocalizations.delegate,

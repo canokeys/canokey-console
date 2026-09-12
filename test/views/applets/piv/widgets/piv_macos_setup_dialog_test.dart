@@ -7,35 +7,47 @@ import '../../../../controller/applets/piv/piv_macos_setup_test.dart'
     show SetupController, entry;
 
 void main() {
-  Widget app(SetupController c) => MaterialApp(
-    localizationsDelegates: const [
-      S.delegate,
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-      GlobalCupertinoLocalizations.delegate,
-    ],
-    supportedLocales: S.delegate.supportedLocales,
-    home: Scaffold(body: PivMacOsSetupDialog(controller: c)),
-  );
-  testWidgets(
-    'opening only inspects; configure preserves 9A and completes 9D',
-    (tester) async {
-      final c = SetupController([
-        entry('9A', key: true, cert: true, compatible: true),
-        entry('9D'),
-      ])..pinOnlyMode = true;
-      await tester.pumpWidget(app(c));
-      await tester.pumpAndSettle();
-      expect(c.writes, isEmpty);
-      expect(find.text(S.current.pivMacSetupKeep), findsOneWidget);
-      await tester.enterText(find.byType(TextField), '123456');
-      await tester.tap(find.text(S.current.pivMacSetupStart));
-      await tester.pumpAndSettle();
-      expect(c.writes, ['9D']);
-      expect(find.text(S.current.pivMacSetupDone), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    },
-  );
+  Widget app(SetupController c, {Locale locale = const Locale('en')}) =>
+      MaterialApp(
+        locale: locale,
+        localizationsDelegates: const [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: S.delegate.supportedLocales,
+        home: Scaffold(body: PivMacOsSetupDialog(controller: c)),
+      );
+  for (final locale in const [
+    Locale('en'),
+    Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
+    Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
+  ]) {
+    testWidgets(
+      'macOS setup in $locale preserves 9A and completes 9D on mobile',
+      (tester) async {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = const Size(390, 844);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        addTearDown(tester.view.resetPhysicalSize);
+        final c = SetupController([
+          entry('9A', key: true, cert: true, compatible: true),
+          entry('9D'),
+        ])..pinOnlyMode = true;
+        await tester.pumpWidget(app(c, locale: locale));
+        await tester.pumpAndSettle();
+        expect(c.writes, isEmpty);
+        expect(find.text(S.current.pivMacSetupKeep), findsOneWidget);
+        await tester.enterText(find.byType(TextField), '123456');
+        await tester.tap(find.text(S.current.pivMacSetupStart));
+        await tester.pumpAndSettle();
+        expect(c.writes, ['9D']);
+        expect(find.text(S.current.pivMacSetupDone), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
   testWidgets('replacement is disabled until explicitly accepted', (
     tester,
   ) async {

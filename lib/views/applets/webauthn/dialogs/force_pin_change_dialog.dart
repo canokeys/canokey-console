@@ -125,7 +125,7 @@ class _ForcePinChangeDialogState extends BaseDialogState<ForcePinChangeDialog> {
                 Spacing.height(12),
                 _pinField(
                   controller: _confirmPin,
-                  label: '${S.of(context).newPin} (${S.of(context).confirm})',
+                  label: S.of(context).confirmNewPin,
                   minLength: widget.minPinLength,
                   obscureText: !_showNewPin,
                   onFieldSubmitted: (_) => _submit(),

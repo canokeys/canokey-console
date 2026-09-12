@@ -1,3 +1,4 @@
+import 'package:ndef/ndef.dart';
 import 'package:canokey_console/controller/applets/ndef/ndef_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
@@ -305,6 +306,31 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
           );
   }
 
+  String _recordTypeLabel(NDEFRecord record) {
+    final s = S.of(context);
+    if (record.editableType == NdefEditableRecordType.phone) return s.ndefPhone;
+    if (record.editableType == NdefEditableRecordType.contact) return s.ndefContact;
+    return switch (record) {
+      UriRecord() => s.ndefUri,
+      TextRecord() => s.ndefText,
+      SmartPosterRecord() => s.ndefSmartPoster,
+      WifiRecord() => s.ndefWifi,
+      BluetoothEasyPairingRecord() => s.ndefBluetoothClassic,
+      BluetoothLowEnergyRecord() => s.ndefBluetoothLowEnergy,
+      AbsoluteUriRecord() => s.ndefAbsoluteUri,
+      AARRecord() => s.ndefAndroidApplication,
+      DeviceInformationRecord() => s.ndefDeviceInformation,
+      SignatureRecord() => s.ndefSignature,
+      HandoverRecord() => s.ndefHandover,
+      _ => switch (record.tnf) {
+        TypeNameFormat.empty => s.ndefTnfEmpty,
+        TypeNameFormat.unknown => s.ndefTnfUnknown,
+        TypeNameFormat.absoluteURI => s.ndefAbsoluteUri,
+        _ => record.displayType,
+      },
+    };
+  }
+
   Widget _buildRecord(int index) {
     final record = _controller.records[index];
     final editable = record.editableType != null && _controller.canEdit;
@@ -343,7 +369,7 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomizedText.bodyLarge(
-                  record.displayType,
+                  _recordTypeLabel(record),
                   fontWeight: 600,
                   color: _ink,
                 ),

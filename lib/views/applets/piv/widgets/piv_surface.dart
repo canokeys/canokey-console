@@ -43,6 +43,9 @@ abstract final class PivStyle {
             double.infinity,
           ) *
           2.8;
+
+  static TextStyle monospace(BuildContext context, double size) =>
+      text(context, size).copyWith(fontFamily: 'CanoKey Mono');
 }
 
 class PivSurface extends StatelessWidget {

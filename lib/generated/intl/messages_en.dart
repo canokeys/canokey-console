@@ -24,75 +24,84 @@ class MessageLookup extends MessageLookupByLibrary {
       "${applet} is disabled. Enable it in Settings first.";
 
   static String m1(min, max) =>
-      "New PIN should be at least ${min} characters long. The maximum length is ${max}.";
+      "The new PIN must contain ${min} to ${max} characters.";
 
   static String m2(error) => "Save failed: ${error}";
 
   static String m3(used, total) => "${used} of ${total} bytes";
 
-  static String m4(error) => "The ndef library rejected this record: ${error}";
+  static String m4(error) =>
+      "Could not save this record. Check the fields. Details: ${error}";
 
-  static String m5(name) =>
-      "This action will delete the account ${name} from your CanoKey. Make sure 2FA has been disabled on the web service.";
+  static String m5(protocol) => "${protocol} Enterprise";
 
-  static String m6(name) =>
-      "Do you want to set the account ${name} as the default output when touching? Be careful, the original configuration will be overwritten.";
+  static String m6(protocol) => "${protocol} Personal";
 
-  static String m7(keyType) => "Change ${keyType} Key\'s Touch Policy";
+  static String m7(name) =>
+      "Deleting ${name} permanently removes its one-time codes from CanoKey. Make sure you have another verification method or have disabled two-step verification for this service.";
 
-  static String m8(remaining) => "Retries: ${remaining}";
+  static String m8(name) =>
+      "Type a code for ${name} when you touch CanoKey? This replaces the current touch output setting.";
 
-  static String m9(seconds) => "${seconds} sec";
+  static String m9(keyType) => "Change ${keyType} Key\'s Touch Policy";
 
-  static String m10(retries) => "Incorrect PIN. ${retries} retries left.";
+  static String m10(remaining) => "Retries: ${remaining}";
 
-  static String m11(algorithm) => "Algorithm: ${algorithm}";
+  static String m11(seconds) => "${seconds} sec";
 
-  static String m12(slot) =>
+  static String m12(retries) => "Incorrect PIN. ${retries} retries left.";
+
+  static String m13(algorithm) => "Algorithm: ${algorithm}";
+
+  static String m14(slot) =>
       "A self-signed certificate was written to slot ${slot}.";
 
-  static String m13(min, max) =>
-      "New PUK should be at least ${min} characters long. The maximum length is ${max}.";
+  static String m15(min, max) =>
+      "The new PUK must contain ${min} to ${max} characters.";
 
-  static String m14(slot) => "Clear Slot ${slot}";
+  static String m16(slot) => "Clear Slot ${slot}";
 
-  static String m15(slot) =>
-      "This action will delete the slot ${slot} from your CanoKey. Make sure you have other ways to authenticate.";
+  static String m17(slot) =>
+      "Delete the key and certificate in slot ${slot}? This cannot be undone. Make sure you have another way to sign in or decrypt your data.";
 
-  static String m16(algorithm) => "Generating a ${algorithm} key";
+  static String m18(algorithm) => "Generating a ${algorithm} key";
 
-  static String m17(slot) => "Check ${slot}";
+  static String m19(slot) => "Check ${slot}";
 
-  static String m18(slot) => "Recommended settings applied to ${slot}";
+  static String m20(slot) => "Recommended settings applied to ${slot}";
 
-  static String m19(sourceSlot) => "Move Key from ${sourceSlot}";
+  static String m21(sourceSlot) => "Move Key from ${sourceSlot}";
 
-  static String m20(count) => "${count} occupied";
+  static String m22(count) => "${count} occupied";
 
-  static String m21(action, slot) =>
+  static String m23(action, slot) =>
       "${action} will replace the private key in slot ${slot}. Existing authentication or signing that depends on this key may stop working.";
 
-  static String m22(policy) => "PIN: ${policy}";
+  static String m24(policy) => "PIN: ${policy}";
 
-  static String m23(index) => "Retired ${index}";
+  static String m25(index) => "Retired ${index}";
 
-  static String m24(remaining, total) => "Retries: ${remaining}/${total}";
+  static String m26(remaining, total) => "Retries: ${remaining}/${total}";
 
-  static String m25(policy) => "Touch: ${policy}";
+  static String m27(policy) => "Touch: ${policy}";
 
-  static String m26(layout) => "Current: ${layout}";
+  static String m28(layout) => "Current: ${layout}";
 
-  static String m27(applet) =>
-      "This operation will RESET all data of ${applet}!";
+  static String m29(applet) =>
+      "Resetting ${applet} will permanently delete all its data.";
 
-  static String m28(min) => "At least ${min} characters";
+  static String m30(min) => "At least ${min} characters";
 
-  static String m29(max) => "At most ${max} characters";
+  static String m31(max) => "At most ${max} characters";
 
-  static String m30(length) => "Need exact ${length} characters";
+  static String m32(length) => "Enter exactly ${length} characters";
 
-  static String m31(name) =>
-      "This action will delete the account ${name} from your CanoKey. Make sure you have other ways to log in.";
+  static String m33(max) => "Enter a whole number of at most ${max}.";
+
+  static String m34(min) => "Enter a whole number of at least ${min}.";
+
+  static String m35(name) =>
+      "Delete the sign-in credential for ${name}? This cannot be undone. Make sure you have another way to sign in.";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -129,6 +138,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "changePinPrompt": m1,
     "close": MessageLookupByLibrary.simpleMessage("Close"),
     "confirm": MessageLookupByLibrary.simpleMessage("Confirm"),
+    "confirmNewPin": MessageLookupByLibrary.simpleMessage("Confirm new PIN"),
     "connectFirst": MessageLookupByLibrary.simpleMessage(
       "Please connect your CanoKey first.",
     ),
@@ -140,7 +150,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Insert your CanoKey into the USB port",
     ),
     "desktopPollError": MessageLookupByLibrary.simpleMessage(
-      "Error finding CanoKey connected via USB. Please fix the problem and restart this app:",
+      "Could not connect to CanoKey over USB. Check the connection, then reopen this app. Error details:",
     ),
     "disable": MessageLookupByLibrary.simpleMessage("Disable"),
     "disableSound": MessageLookupByLibrary.simpleMessage("Sound disabled"),
@@ -163,7 +173,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "homeScreenTitle": MessageLookupByLibrary.simpleMessage("CanoKey Console"),
     "homeSelect": MessageLookupByLibrary.simpleMessage("to select an applet"),
     "interrupted": MessageLookupByLibrary.simpleMessage(
-      "Communication interrupted. Try to hold the CanoKey until finished.",
+      "The connection was interrupted. Reconnect CanoKey. For NFC, keep it near your phone.",
     ),
     "iosAlertMessage": MessageLookupByLibrary.simpleMessage(
       "Hold your iPhone near the CanoKey",
@@ -182,7 +192,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "logsTitle": MessageLookupByLibrary.simpleMessage("View Logs"),
     "ndefAbsoluteUri": MessageLookupByLibrary.simpleMessage("Absolute URI"),
     "ndefAddRecord": MessageLookupByLibrary.simpleMessage("Add record"),
-    "ndefAndroidApplication": MessageLookupByLibrary.simpleMessage("AAR"),
+    "ndefAndroidApplication": MessageLookupByLibrary.simpleMessage(
+      "Android app",
+    ),
     "ndefAndroidPackage": MessageLookupByLibrary.simpleMessage(
       "Android package name",
     ),
@@ -204,7 +216,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ndefBytesUsed": m3,
     "ndefCapacity": MessageLookupByLibrary.simpleMessage("Capacity"),
     "ndefCapacityExceeded": MessageLookupByLibrary.simpleMessage(
-      "The message exceeds the NDEF capacity.",
+      "The content exceeds the NFC tag capacity. Remove some content and try again.",
     ),
     "ndefContact": MessageLookupByLibrary.simpleMessage("Contact"),
     "ndefContactEmail": MessageLookupByLibrary.simpleMessage(
@@ -252,7 +264,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Enter a MAC address such as AA:BB:CC:DD:EE:FF.",
     ),
     "ndefInvalidMessage": MessageLookupByLibrary.simpleMessage(
-      "The stored message is not valid NDEF data. Reset NDEF in Settings before editing it.",
+      "Could not read the existing NFC tag content. To start over, reset NDEF in Settings. This deletes the existing tag content.",
     ),
     "ndefInvalidMimeType": MessageLookupByLibrary.simpleMessage(
       "Enter a valid MIME type, such as text/plain.",
@@ -265,7 +277,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ndefInvalidRecord": m4,
     "ndefInvalidUri": MessageLookupByLibrary.simpleMessage(
-      "Enter a URI with a scheme, such as https:// or mailto:.",
+      "Enter a full link, such as https://example.com or mailto:name@example.com.",
     ),
     "ndefInvalidUuid": MessageLookupByLibrary.simpleMessage(
       "Enter a UUID in canonical form.",
@@ -276,20 +288,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "ndefMimeType": MessageLookupByLibrary.simpleMessage("MIME type"),
     "ndefMoveDown": MessageLookupByLibrary.simpleMessage("Move down"),
     "ndefMoveUp": MessageLookupByLibrary.simpleMessage("Move up"),
-    "ndefNoRecords": MessageLookupByLibrary.simpleMessage("No NDEF records"),
+    "ndefNoRecords": MessageLookupByLibrary.simpleMessage("No records yet"),
     "ndefNoRecordsDescription": MessageLookupByLibrary.simpleMessage(
-      "Add a URI or text record to make the tag discoverable.",
+      "Add a link, text or other content for devices to read over NFC.",
     ),
     "ndefOptionalHex": MessageLookupByLibrary.simpleMessage(
-      "Optional hexadecimal bytes",
+      "Hexadecimal data; optional",
     ),
     "ndefOther": MessageLookupByLibrary.simpleMessage("Other"),
-    "ndefPayload": MessageLookupByLibrary.simpleMessage("Payload"),
+    "ndefPayload": MessageLookupByLibrary.simpleMessage("Record content"),
     "ndefPayloadConversionFailed": MessageLookupByLibrary.simpleMessage(
-      "The payload cannot be converted between UTF-8 text and hexadecimal bytes.",
+      "Could not convert the content. Check the hexadecimal format or confirm the content is valid UTF-8 text.",
     ),
     "ndefPayloadEncoding": MessageLookupByLibrary.simpleMessage(
-      "Payload encoding",
+      "Content encoding",
     ),
     "ndefPayloadHex": MessageLookupByLibrary.simpleMessage("Hex"),
     "ndefPayloadText": MessageLookupByLibrary.simpleMessage("Text"),
@@ -308,7 +320,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ndefRecordType": MessageLookupByLibrary.simpleMessage("Record type"),
     "ndefRecords": MessageLookupByLibrary.simpleMessage("Records"),
     "ndefRequiredField": MessageLookupByLibrary.simpleMessage(
-      "This field is required.",
+      "Fill in this field.",
     ),
     "ndefSaveToKey": MessageLookupByLibrary.simpleMessage("Save to CanoKey"),
     "ndefSaved": MessageLookupByLibrary.simpleMessage("NDEF records saved"),
@@ -325,7 +337,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ndefTagContent": MessageLookupByLibrary.simpleMessage("NFC tag content"),
     "ndefTagContentDescription": MessageLookupByLibrary.simpleMessage(
-      "Configure the records shared when another device scans this CanoKey.",
+      "Choose what other devices read when they scan CanoKey over NFC.",
     ),
     "ndefText": MessageLookupByLibrary.simpleMessage("Text"),
     "ndefTextValue": MessageLookupByLibrary.simpleMessage("Text content"),
@@ -336,35 +348,48 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ndefTnfMedia": MessageLookupByLibrary.simpleMessage("Media (MIME)"),
     "ndefTnfRequiresEmptyType": MessageLookupByLibrary.simpleMessage(
-      "This TNF requires an empty type name.",
+      "The selected record format requires the type name to be empty. Clear that field.",
+    ),
+    "ndefTnfUnchanged": MessageLookupByLibrary.simpleMessage(
+      "Same type as the previous chunk",
     ),
     "ndefTnfUnknown": MessageLookupByLibrary.simpleMessage("Unknown"),
     "ndefTnfWellKnown": MessageLookupByLibrary.simpleMessage(
       "NFC Forum well-known",
     ),
     "ndefTypeName": MessageLookupByLibrary.simpleMessage("Type name"),
+    "ndefTypeNameFormat": MessageLookupByLibrary.simpleMessage(
+      "Type name format (TNF)",
+    ),
     "ndefUnsavedChanges": MessageLookupByLibrary.simpleMessage(
       "Unsaved changes",
     ),
-    "ndefUri": MessageLookupByLibrary.simpleMessage("URI"),
-    "ndefUriValue": MessageLookupByLibrary.simpleMessage("URI"),
+    "ndefUri": MessageLookupByLibrary.simpleMessage("Link"),
+    "ndefUriValue": MessageLookupByLibrary.simpleMessage("Link address"),
     "ndefWifi": MessageLookupByLibrary.simpleMessage("Wi-Fi"),
     "ndefWifiAuthentication": MessageLookupByLibrary.simpleMessage(
       "Authentication",
     ),
     "ndefWifiEncryption": MessageLookupByLibrary.simpleMessage("Encryption"),
+    "ndefWifiEnterprise": m5,
+    "ndefWifiNoEncryption": MessageLookupByLibrary.simpleMessage(
+      "No encryption",
+    ),
+    "ndefWifiOpen": MessageLookupByLibrary.simpleMessage("Open network"),
     "ndefWifiPassword": MessageLookupByLibrary.simpleMessage(
       "Network password",
     ),
+    "ndefWifiPersonal": m6,
+    "ndefWifiShared": MessageLookupByLibrary.simpleMessage("Shared key"),
     "ndefWritable": MessageLookupByLibrary.simpleMessage("Writable"),
     "networkError": MessageLookupByLibrary.simpleMessage(
-      "CanoKey is busy. Replug it, wait for a moment, and retry.",
+      "Could not communicate with CanoKey. Reconnect it and try again.",
     ),
     "newPin": MessageLookupByLibrary.simpleMessage("New PIN"),
     "next": MessageLookupByLibrary.simpleMessage("Next"),
     "nfcSound": MessageLookupByLibrary.simpleMessage("NFC interaction sound"),
     "nfcSoundPrompt": MessageLookupByLibrary.simpleMessage(
-      "Playing in order: poll, finish, error",
+      "Preview order: reading started, reading completed, reading failed",
     ),
     "noCard": MessageLookupByLibrary.simpleMessage("CanoKey not found"),
     "noCredential": MessageLookupByLibrary.simpleMessage("No credential"),
@@ -373,7 +398,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "notSupported": MessageLookupByLibrary.simpleMessage("Not supported"),
     "notSupportedInNFC": MessageLookupByLibrary.simpleMessage(
-      "Not supported in NFC mode",
+      "Connect CanoKey over USB to use this feature.",
     ),
     "oathAccount": MessageLookupByLibrary.simpleMessage("Account name"),
     "oathAddAccount": MessageLookupByLibrary.simpleMessage("Add Account"),
@@ -384,7 +409,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "oathAddManually": MessageLookupByLibrary.simpleMessage("Add Manually"),
     "oathAdded": MessageLookupByLibrary.simpleMessage("Successfully added"),
     "oathAdvancedSettings": MessageLookupByLibrary.simpleMessage(
-      "Advanced Settings. Think well before changing them. You could lock yourself out!",
+      "Use the settings provided by the service. Other settings may produce codes that do not work.",
     ),
     "oathAlgorithm": MessageLookupByLibrary.simpleMessage("Algorithm"),
     "oathCode": MessageLookupByLibrary.simpleMessage("Passphrase"),
@@ -394,11 +419,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "oathCopy": MessageLookupByLibrary.simpleMessage("Copy to Clipboard"),
     "oathCounter": MessageLookupByLibrary.simpleMessage("Counter"),
     "oathCounterMustBeNumber": MessageLookupByLibrary.simpleMessage(
-      "Not a number",
+      "Enter a whole number",
     ),
-    "oathDelete": m5,
+    "oathDelete": m7,
     "oathDescription": MessageLookupByLibrary.simpleMessage(
-      "Time-based and counter-based one-time passwords to keep your accounts secure.",
+      "Manage one-time codes for your accounts (TOTP / HOTP).",
     ),
     "oathDigits": MessageLookupByLibrary.simpleMessage("Digits"),
     "oathDuplicated": MessageLookupByLibrary.simpleMessage(
@@ -406,7 +431,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "oathInputCode": MessageLookupByLibrary.simpleMessage("Unlock CanoKey"),
     "oathInputCodePrompt": MessageLookupByLibrary.simpleMessage(
-      "To prevent unauthorized access, this CanoKey is protected with a passphrase.",
+      "Enter the passphrase that protects the TOTP / HOTP accounts on this CanoKey.",
     ),
     "oathInvalidKey": MessageLookupByLibrary.simpleMessage(
       "Invalid secret key",
@@ -414,12 +439,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "oathIssuer": MessageLookupByLibrary.simpleMessage("Issuer"),
     "oathNewCode": MessageLookupByLibrary.simpleMessage("New Passphrase"),
     "oathNewCodePrompt": MessageLookupByLibrary.simpleMessage(
-      "Enter a new passphrase. Leave it empty to disable current passphrase.",
+      "Enter a new passphrase. Leave it empty and save to remove passphrase protection.",
     ),
     "oathNoQr": MessageLookupByLibrary.simpleMessage("No QR Code detected"),
-    "oathPeriod": MessageLookupByLibrary.simpleMessage("Period"),
+    "oathPeriod": MessageLookupByLibrary.simpleMessage(
+      "Update interval (seconds)",
+    ),
     "oathRequireTouch": MessageLookupByLibrary.simpleMessage("Require Touch"),
-    "oathRequired": MessageLookupByLibrary.simpleMessage("Required"),
+    "oathRequired": MessageLookupByLibrary.simpleMessage("Fill in this field"),
     "oathSearch": MessageLookupByLibrary.simpleMessage(
       "Search account name or email",
     ),
@@ -428,7 +455,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "oathSetDefault": MessageLookupByLibrary.simpleMessage(
       "Set as Touch Output",
     ),
-    "oathSetDefaultPrompt": m6,
+    "oathSetDefaultPrompt": m8,
     "oathSlot": MessageLookupByLibrary.simpleMessage("Slot"),
     "oathTooLong": MessageLookupByLibrary.simpleMessage("Too long"),
     "oathType": MessageLookupByLibrary.simpleMessage("Type"),
@@ -450,7 +477,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "openpgpChangeAdminPin": MessageLookupByLibrary.simpleMessage(
       "Change Admin PIN",
     ),
-    "openpgpChangeInteraction": m7,
+    "openpgpChangeInteraction": m9,
     "openpgpChangeSignaturePinPolicy": MessageLookupByLibrary.simpleMessage(
       "Change Signature PIN Policy",
     ),
@@ -461,7 +488,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Current Admin PIN",
     ),
     "openpgpDescription": MessageLookupByLibrary.simpleMessage(
-      "Manage OpenPGP card information, PINs and key touch policies.",
+      "View OpenPGP card information and manage PINs and touch confirmation.",
     ),
     "openpgpEncryption": MessageLookupByLibrary.simpleMessage("Encryption"),
     "openpgpKeyEmpty": MessageLookupByLibrary.simpleMessage("Empty"),
@@ -475,7 +502,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "openpgpPubkeyUrl": MessageLookupByLibrary.simpleMessage("Public Key URL"),
     "openpgpResetCode": MessageLookupByLibrary.simpleMessage("Reset Code"),
-    "openpgpRetries": m8,
+    "openpgpRetries": m10,
     "openpgpRetriesUnknown": MessageLookupByLibrary.simpleMessage(
       "Retries: unknown",
     ),
@@ -487,7 +514,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "This resets User PIN to 123456 and Admin PIN to 12345678.",
     ),
     "openpgpSetPinRetriesTitle": MessageLookupByLibrary.simpleMessage(
-      "Set PIN/Reset/Admin PIN Retries",
+      "Set PIN and Reset Code retry limits",
     ),
     "openpgpSetResetCode": MessageLookupByLibrary.simpleMessage(
       "Set Reset Code",
@@ -509,7 +536,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Signature PIN Policy",
     ),
     "openpgpTouchCacheOff": MessageLookupByLibrary.simpleMessage("0 sec (off)"),
-    "openpgpTouchCacheSeconds": m9,
+    "openpgpTouchCacheSeconds": m11,
     "openpgpTouchCached": MessageLookupByLibrary.simpleMessage("Cached touch"),
     "openpgpTouchCachedLabel": MessageLookupByLibrary.simpleMessage(
       "Touch: Cached",
@@ -519,10 +546,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "openpgpTouchOnLabel": MessageLookupByLibrary.simpleMessage("Touch: On"),
     "openpgpTouchPermanent": MessageLookupByLibrary.simpleMessage("Permanent"),
     "openpgpTouchPermanentCached": MessageLookupByLibrary.simpleMessage(
-      "Permanent cached",
+      "Cached touch (cannot disable)",
     ),
     "openpgpTouchPermanentCachedLabel": MessageLookupByLibrary.simpleMessage(
-      "Touch: Permanent cached",
+      "Touch: Cached, cannot disable",
     ),
     "openpgpTouchPermanentLabel": MessageLookupByLibrary.simpleMessage(
       "Touch: Permanent",
@@ -570,33 +597,36 @@ class MessageLookup extends MessageLookupByLibrary {
           "Verify once after card insertion",
         ),
     "openpgpVersion": MessageLookupByLibrary.simpleMessage("Version"),
+    "operationFailed": MessageLookupByLibrary.simpleMessage(
+      "The operation failed. Read CanoKey again and try again.",
+    ),
     "other": MessageLookupByLibrary.simpleMessage("Other"),
     "passDescription": MessageLookupByLibrary.simpleMessage(
-      "Configure password slots triggered by a button press.",
+      "Choose the password output for a short or long press on CanoKey.",
     ),
     "passInputPinPrompt": MessageLookupByLibrary.simpleMessage(
-      "Please input your Setting PIN. The default value is 123456.",
+      "Enter the admin PIN used for Settings. The default is 123456.",
     ),
     "passNotSupported": MessageLookupByLibrary.simpleMessage(
       "Your CanoKey does not support Pass.",
     ),
     "passSlotConfigPrompt": MessageLookupByLibrary.simpleMessage(
-      "Please select a slot type to configure. If you want to use HOTP, set it in the HOTP applet.",
+      "Choose what happens when you touch CanoKey. To output HOTP codes, configure an account on the TOTP / HOTP page.",
     ),
     "passSlotConfigTitle": MessageLookupByLibrary.simpleMessage(
-      "Slot Configuration",
+      "Touch output settings",
     ),
     "passSlotHmacSha1": MessageLookupByLibrary.simpleMessage("HMAC-SHA1"),
     "passSlotHmacSha1Key": MessageLookupByLibrary.simpleMessage(
       "20-byte HMAC-SHA1 key (hex)",
     ),
     "passSlotHotp": MessageLookupByLibrary.simpleMessage("HOTP"),
-    "passSlotLong": MessageLookupByLibrary.simpleMessage("Slot Long"),
+    "passSlotLong": MessageLookupByLibrary.simpleMessage("Long press"),
     "passSlotOff": MessageLookupByLibrary.simpleMessage("Off"),
-    "passSlotShort": MessageLookupByLibrary.simpleMessage("Slot Short"),
+    "passSlotShort": MessageLookupByLibrary.simpleMessage("Short press"),
     "passSlotStatic": MessageLookupByLibrary.simpleMessage("Static Password"),
     "passSlotWithEnter": MessageLookupByLibrary.simpleMessage(
-      "The output comes with Enter",
+      "Press Enter after typing",
     ),
     "passStatus": MessageLookupByLibrary.simpleMessage("Status"),
     "passkey": MessageLookupByLibrary.simpleMessage("Passkey"),
@@ -611,15 +641,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "pinLength": MessageLookupByLibrary.simpleMessage(
       "The provided PIN is too short or too long.",
     ),
-    "pinRetries": m10,
+    "pinRetries": m12,
+    "pinVerificationFailed": MessageLookupByLibrary.simpleMessage(
+      "PIN verification failed. Read CanoKey again and try again.",
+    ),
     "pivActionsDescription": MessageLookupByLibrary.simpleMessage(
       "Choose an operation for this slot.",
     ),
-    "pivAlgorithm": MessageLookupByLibrary.simpleMessage("Current Algorithm"),
+    "pivAlgorithm": MessageLookupByLibrary.simpleMessage("Key algorithm"),
     "pivAlgorithmColumn": MessageLookupByLibrary.simpleMessage("Algorithm"),
     "pivAlgorithmIds": MessageLookupByLibrary.simpleMessage("Algorithm IDs"),
     "pivAlgorithmIdsPrompt": MessageLookupByLibrary.simpleMessage(
-      "Controls whether PIV extension algorithm IDs are accepted by the card.",
+      "Allow CanoKey to use extension algorithms.",
     ),
     "pivAlgorithmIdsTitle": MessageLookupByLibrary.simpleMessage(
       "PIV Algorithm IDs",
@@ -628,13 +661,16 @@ class MessageLookup extends MessageLookupByLibrary {
       "Failed to update PIV algorithm IDs",
     ),
     "pivAlgorithmIdsWarning": MessageLookupByLibrary.simpleMessage(
-      "These values control how the card recognizes PIV extension algorithms. Keep the defaults unless you know the client and firmware expect different IDs. Wrong values can make existing extended keys appear unsupported until the IDs are restored.",
+      "Keep the defaults unless your software or firmware requires different algorithm IDs. Incorrect IDs may prevent existing keys from being recognized until you restore the correct values.",
     ),
-    "pivAlgorithmValue": m11,
+    "pivAlgorithmValue": m13,
     "pivAttestationUnavailable": MessageLookupByLibrary.simpleMessage(
       "Attestation is unavailable. The device must have an F9 attestation key and certificate.",
     ),
     "pivAuthentication": MessageLookupByLibrary.simpleMessage("Authentication"),
+    "pivBasicConstraints": MessageLookupByLibrary.simpleMessage(
+      "Basic constraints",
+    ),
     "pivCardAuthentication": MessageLookupByLibrary.simpleMessage(
       "Card Authentication",
     ),
@@ -695,7 +731,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Valid from",
     ),
     "pivCertificateValidTo": MessageLookupByLibrary.simpleMessage("Valid to"),
-    "pivCertificateWritten": m12,
+    "pivCertificateWritten": m14,
     "pivChangeManagementKey": MessageLookupByLibrary.simpleMessage(
       "Change Management Key",
     ),
@@ -703,7 +739,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "New Management Key should be 24 bytes long. Please save it in a safe place.",
     ),
     "pivChangePUK": MessageLookupByLibrary.simpleMessage("Change PUK"),
-    "pivChangePUKPrompt": m13,
+    "pivChangePUKPrompt": m15,
     "pivClearSlot": MessageLookupByLibrary.simpleMessage("Clear Slot"),
     "pivClearSlotFailed": MessageLookupByLibrary.simpleMessage(
       "Clear slot failed. Make sure the firmware supports key deletion.",
@@ -711,10 +747,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivClearSlotPrompt": MessageLookupByLibrary.simpleMessage(
       "This removes both the private key and certificate from this slot. Make sure you have another way to authenticate.",
     ),
-    "pivClearSlotTitle": m14,
+    "pivClearSlotTitle": m16,
     "pivCommonName": MessageLookupByLibrary.simpleMessage("Common Name"),
     "pivCopyPem": MessageLookupByLibrary.simpleMessage("Copy PEM"),
-    "pivCountryCode": MessageLookupByLibrary.simpleMessage("Country Code"),
+    "pivCountryCode": MessageLookupByLibrary.simpleMessage(
+      "Country or region code",
+    ),
     "pivCreateCertificate": MessageLookupByLibrary.simpleMessage(
       "Create Certificate",
     ),
@@ -727,15 +765,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivCsrCopied": MessageLookupByLibrary.simpleMessage("CSR Copied"),
     "pivCsrGenerated": MessageLookupByLibrary.simpleMessage("CSR Generated"),
     "pivCsrGenerationPrompt": MessageLookupByLibrary.simpleMessage(
-      "CSR generation signs the request with the new key on the card.",
+      "Create a certificate signing request (CSR) to send to a certificate authority. A new key will be generated on CanoKey.",
     ),
     "pivCsrSubject": MessageLookupByLibrary.simpleMessage("CSR Subject"),
     "pivDangerDescription": MessageLookupByLibrary.simpleMessage(
-      "These actions can permanently change or remove keys.",
+      "Before moving or deleting a key, make sure you have another way to sign in or decrypt your data.",
     ),
     "pivDangerZone": MessageLookupByLibrary.simpleMessage("Danger Zone"),
     "pivDelete": MessageLookupByLibrary.simpleMessage("Delete"),
-    "pivDeleteSlot": m15,
+    "pivDeleteSlot": m17,
     "pivDestinationSlot": MessageLookupByLibrary.simpleMessage(
       "Destination slot",
     ),
@@ -756,7 +794,7 @@ class MessageLookup extends MessageLookupByLibrary {
           "Manual management key is now required",
         ),
     "pivDnsSans": MessageLookupByLibrary.simpleMessage(
-      "DNS SANs, comma separated",
+      "Domain names (comma-separated)",
     ),
     "pivDownloadAttestation": MessageLookupByLibrary.simpleMessage(
       "Download Attestation",
@@ -778,21 +816,21 @@ class MessageLookup extends MessageLookupByLibrary {
           "Management key is now PIN-protected",
         ),
     "pivEndEntityConstraint": MessageLookupByLibrary.simpleMessage(
-      "Include Basic Constraints: CA=false",
+      "Mark as a non-CA certificate (CA=false)",
     ),
     "pivExport": MessageLookupByLibrary.simpleMessage("Export"),
     "pivExportCertificate": MessageLookupByLibrary.simpleMessage(
       "Export Certificate",
     ),
     "pivExportDescription": MessageLookupByLibrary.simpleMessage(
-      "Save certificates and public keys.",
+      "Save a certificate or public key to a file.",
     ),
     "pivExportPublicKey": MessageLookupByLibrary.simpleMessage(
       "Export Public Key",
     ),
     "pivExtendedAlgorithmCompatibilityWarning":
         MessageLookupByLibrary.simpleMessage(
-          "Check client compatibility before using this algorithm.",
+          "Check that the software you plan to use supports this algorithm.",
         ),
     "pivExtendedKeyUsage": MessageLookupByLibrary.simpleMessage(
       "Extended Key Usage",
@@ -825,7 +863,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivGeneratingCsr": MessageLookupByLibrary.simpleMessage(
       "Generating a CSR",
     ),
-    "pivGeneratingKey": m16,
+    "pivGeneratingKey": m18,
     "pivGeneratingX25519Key": MessageLookupByLibrary.simpleMessage(
       "Generating an X25519 key",
     ),
@@ -850,14 +888,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "Key-only import leaves the existing certificate in place. Replace or clear the certificate if it no longer matches.",
     ),
     "pivKeyOperationsDescription": MessageLookupByLibrary.simpleMessage(
-      "Sign and verify using this key.",
+      "Sign messages or files, or verify a file signature.",
     ),
     "pivKeyOptions": MessageLookupByLibrary.simpleMessage("Key Options"),
     "pivKeyUsage": MessageLookupByLibrary.simpleMessage("Key Usage"),
     "pivKeyUsageCritical": MessageLookupByLibrary.simpleMessage(
-      "Mark Key Usage as critical",
+      "Require verifiers to check key usage",
     ),
-    "pivMacLogin": MessageLookupByLibrary.simpleMessage("Mac login"),
+    "pivMacLogin": MessageLookupByLibrary.simpleMessage("macOS login"),
     "pivMacLoginDescription": MessageLookupByLibrary.simpleMessage(
       "Sign in to macOS using your PIV certificates.",
     ),
@@ -873,7 +911,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivMacOsAuthenticationSlot": MessageLookupByLibrary.simpleMessage(
       "9A · Sign in",
     ),
-    "pivMacOsCheckSlot": m17,
+    "pivMacOsCheckSlot": m19,
     "pivMacOsDescription": MessageLookupByLibrary.simpleMessage(
       "Set up 9A to verify your identity when you sign in to your Mac. You also need a key and certificate in 9D to unlock your login keychain.",
     ),
@@ -892,9 +930,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivMacOsOtherSlot": MessageLookupByLibrary.simpleMessage(
       "For Mac login, set up 9A and 9D.",
     ),
-    "pivMacOsSlotApplied": m18,
+    "pivMacOsSlotApplied": m20,
     "pivMacSetupConsent": MessageLookupByLibrary.simpleMessage(
-      "I agree to the replacements listed above. Replaced keys cannot be recovered.",
+      "I confirm the key or certificate replacements listed above. Replaced keys cannot be recovered.",
     ),
     "pivMacSetupCreate": MessageLookupByLibrary.simpleMessage(
       "Create key and certificate",
@@ -903,15 +941,15 @@ class MessageLookup extends MessageLookupByLibrary {
       "Enter your PIV PIN and management key.",
     ),
     "pivMacSetupDone": MessageLookupByLibrary.simpleMessage(
-      "CanoKey is ready. Reconnect it to your Mac and follow the pairing prompt. Pairing with your Mac account is still required.",
+      "CanoKey setup is complete. Reconnect it and follow the macOS prompt to pair it with your login account.",
     ),
     "pivMacSetupError": MessageLookupByLibrary.simpleMessage(
-      "Could not finish. Check the card connection and credentials, then check again. Completed changes are kept. Older firmware without key metadata is not supported.",
+      "Could not check or configure CanoKey. Check the connection, PIV PIN and management key, then try again. Completed changes are kept. This feature requires firmware that can report key information.",
     ),
     "pivMacSetupFinished": MessageLookupByLibrary.simpleMessage("Done"),
-    "pivMacSetupInspect": MessageLookupByLibrary.simpleMessage("Check CanoKey"),
+    "pivMacSetupInspect": MessageLookupByLibrary.simpleMessage("Check again"),
     "pivMacSetupIntro": MessageLookupByLibrary.simpleMessage(
-      "Check 9A and 9D, keep usable keys and certificates, and add what is missing.",
+      "Set up the keys and certificates needed for macOS login. Slots 9A and 9D will be checked, and compatible keys and certificates will be kept.",
     ),
     "pivMacSetupInvalid": MessageLookupByLibrary.simpleMessage(
       "Check the PIN and management key format.",
@@ -935,14 +973,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "Configure CanoKey",
     ),
     "pivMacSetupTitle": MessageLookupByLibrary.simpleMessage(
-      "Set up Mac login",
+      "Set up macOS login",
     ),
     "pivMacSetupWorking": MessageLookupByLibrary.simpleMessage("Configuring"),
     "pivMainSlots": MessageLookupByLibrary.simpleMessage("Primary slots"),
     "pivManage": MessageLookupByLibrary.simpleMessage("Manage"),
     "pivManagementKey": MessageLookupByLibrary.simpleMessage("Management Key"),
     "pivManagementKeyAuthentication": MessageLookupByLibrary.simpleMessage(
-      "Management key authentication",
+      "Management key verification",
     ),
     "pivManagementKeyVerificationFailed": MessageLookupByLibrary.simpleMessage(
       "Management Key verification failed",
@@ -962,9 +1000,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "pivMoveKey": MessageLookupByLibrary.simpleMessage("Move Key"),
     "pivMoveKeyFailed": MessageLookupByLibrary.simpleMessage(
-      "Key move failed. The destination must not contain a key.",
+      "Could not move the key. Choose a destination slot with no key.",
     ),
-    "pivMoveKeyFrom": m19,
+    "pivMoveKeyFrom": m21,
     "pivMoveKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "Only the private key is moved. Certificates remain in their current slots.",
     ),
@@ -975,7 +1013,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivNewPUK": MessageLookupByLibrary.simpleMessage("New PUK"),
     "pivNoCertificate": MessageLookupByLibrary.simpleMessage("No certificate"),
     "pivNoEmptyDestinationSlot": MessageLookupByLibrary.simpleMessage(
-      "No empty destination slot is available.",
+      "No empty slot is available to receive this key.",
     ),
     "pivNoFileSelected": MessageLookupByLibrary.simpleMessage(
       "No file selected",
@@ -984,7 +1022,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "No public key available",
     ),
     "pivNotSelected": MessageLookupByLibrary.simpleMessage("Not selected"),
-    "pivOccupiedSlots": m20,
+    "pivOccupiedSlots": m22,
     "pivOldManagementKey": MessageLookupByLibrary.simpleMessage(
       "Current Management Key",
     ),
@@ -998,9 +1036,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivOriginImported": MessageLookupByLibrary.simpleMessage("Imported"),
     "pivOverwrite": MessageLookupByLibrary.simpleMessage("Overwrite"),
     "pivOverwriteKey": MessageLookupByLibrary.simpleMessage("Overwrite Key"),
-    "pivOverwriteKeyPrompt": m21,
+    "pivOverwriteKeyPrompt": m23,
     "pivPageDescription": MessageLookupByLibrary.simpleMessage(
-      "Manage your PIV credentials, keys and certificates.",
+      "Manage PIV keys, certificates and PINs on CanoKey.",
     ),
     "pivPageTitle": MessageLookupByLibrary.simpleMessage("PIV"),
     "pivPinAndTouchPolicy": MessageLookupByLibrary.simpleMessage(
@@ -1012,12 +1050,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivPinManagement": MessageLookupByLibrary.simpleMessage("PIN Management"),
     "pivPinPolicy": MessageLookupByLibrary.simpleMessage("PIN Policy"),
     "pivPinPolicyAlways": MessageLookupByLibrary.simpleMessage("Always"),
-    "pivPinPolicyChip": m22,
+    "pivPinPolicyChip": m24,
     "pivPinPolicyDefault": MessageLookupByLibrary.simpleMessage("Default"),
     "pivPinPolicyNever": MessageLookupByLibrary.simpleMessage("Never"),
     "pivPinPolicyOnce": MessageLookupByLibrary.simpleMessage("Once"),
     "pivPinProtectedKeyOnCard": MessageLookupByLibrary.simpleMessage(
-      "PIN-protected key on card",
+      "Verify with PIN",
     ),
     "pivPinProtectedManagementKeyDescription":
         MessageLookupByLibrary.simpleMessage(
@@ -1031,21 +1069,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivPrivateKey": MessageLookupByLibrary.simpleMessage("Private Key"),
     "pivProvisioning": MessageLookupByLibrary.simpleMessage("Provisioning"),
     "pivProvisioningDescription": MessageLookupByLibrary.simpleMessage(
-      "Create or import a certificate for this slot.",
+      "Generate or import keys and certificates for this slot.",
     ),
     "pivPublicKey": MessageLookupByLibrary.simpleMessage("Public Key"),
     "pivPukDescription": MessageLookupByLibrary.simpleMessage(
       "For unblocking the PIN",
     ),
     "pivPukRetries": MessageLookupByLibrary.simpleMessage("PUK retries"),
-    "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage("Random"),
+    "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage(
+      "Generate random",
+    ),
     "pivRetired1": MessageLookupByLibrary.simpleMessage("Retired 1"),
     "pivRetired2": MessageLookupByLibrary.simpleMessage("Retired 2"),
-    "pivRetiredSlot": m23,
+    "pivRetiredSlot": m25,
     "pivRetiredSlots": MessageLookupByLibrary.simpleMessage(
       "Retired key slots",
     ),
-    "pivRetries": m24,
+    "pivRetries": m26,
     "pivRetriesRemaining": MessageLookupByLibrary.simpleMessage(
       "Attempts remaining",
     ),
@@ -1059,23 +1099,23 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "pivSelectFile": MessageLookupByLibrary.simpleMessage("Select File"),
     "pivSelectFileAndSignatureFirst": MessageLookupByLibrary.simpleMessage(
-      "Select a file and signature first.",
+      "Select the original file and its signature file first.",
     ),
     "pivSelectFileFirst": MessageLookupByLibrary.simpleMessage(
       "Select a file first.",
     ),
     "pivSelectFileHint": MessageLookupByLibrary.simpleMessage(
-      "(Make sure the file contains a plaintext key or a certificate)",
+      "Private key files must not be password-protected.",
     ),
     "pivSelectFilePrompt": MessageLookupByLibrary.simpleMessage(
-      "Click to select a PEM or DER certificate/key",
+      "Choose a certificate or private key in PEM or DER format",
     ),
     "pivSelfSign": MessageLookupByLibrary.simpleMessage("Self-sign"),
     "pivSelfSignCertificate": MessageLookupByLibrary.simpleMessage(
       "Self-sign Certificate",
     ),
     "pivSelfSignedCertificateWarning": MessageLookupByLibrary.simpleMessage(
-      "Self-signed certificates are for local testing and compatibility depends on the client.",
+      "You may need to manually trust a self-signed certificate in the software that uses it. Check that the software accepts self-signed certificates.",
     ),
     "pivSetPinPukRetries": MessageLookupByLibrary.simpleMessage(
       "Set PIN/PUK Retries",
@@ -1087,10 +1127,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "Set retries failed",
     ),
     "pivSetRetriesMetadataFailed": MessageLookupByLibrary.simpleMessage(
-      "PIN/PUK retries were set and PIN/PUK were reset, but management metadata could not be updated. PIN is now 123456 and PUK is 12345678.",
+      "Retry limits changed, but some management information could not be saved. The PIN is now 123456 and the PUK is 12345678. Read CanoKey again to check its state.",
     ),
     "pivSetRetriesSuccess": MessageLookupByLibrary.simpleMessage(
-      "PIN/PUK retries set. PIN and PUK were reset.",
+      "Retry limits changed. The PIN is now 123456 and the PUK is 12345678.",
     ),
     "pivSha256Fingerprint": MessageLookupByLibrary.simpleMessage(
       "SHA-256 Fingerprint",
@@ -1098,14 +1138,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivSign": MessageLookupByLibrary.simpleMessage("Sign"),
     "pivSignFile": MessageLookupByLibrary.simpleMessage("Sign File"),
     "pivSignFilePrompt": MessageLookupByLibrary.simpleMessage(
-      "Creates a detached raw signature for the selected file.",
+      "Sign a file with this key. The signature is saved separately; the original file is not changed.",
     ),
     "pivSignMessage": MessageLookupByLibrary.simpleMessage("Sign Message"),
     "pivSignature": MessageLookupByLibrary.simpleMessage("Digital Signature"),
     "pivSignatureAlgorithm": MessageLookupByLibrary.simpleMessage(
       "Signature Algorithm",
     ),
-    "pivSignatureFile": MessageLookupByLibrary.simpleMessage("Signature"),
+    "pivSignatureFile": MessageLookupByLibrary.simpleMessage("Signature file"),
     "pivSignatureHex": MessageLookupByLibrary.simpleMessage("Signature (hex)"),
     "pivSignatureVerificationFailed": MessageLookupByLibrary.simpleMessage(
       "Signature verification failed",
@@ -1114,10 +1154,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "Signature verified",
     ),
     "pivSlotAuthenticationHint": MessageLookupByLibrary.simpleMessage(
-      "Authentication slot. Use a signing-capable key for login.",
+      "For sign-in verification. Choose a key algorithm that supports signing.",
     ),
     "pivSlotCardAuthenticationHint": MessageLookupByLibrary.simpleMessage(
-      "Card authentication slot. PIN may be unnecessary for some uses.",
+      "For verifying the card\'s identity. Some uses do not require a PIN.",
     ),
     "pivSlotCertificateOnly": MessageLookupByLibrary.simpleMessage(
       "Certificate only",
@@ -1128,18 +1168,18 @@ class MessageLookup extends MessageLookupByLibrary {
       "Key + certificate",
     ),
     "pivSlotKeyManagementHint": MessageLookupByLibrary.simpleMessage(
-      "Key management slot. X25519 can derive shared secrets only.",
+      "For decryption or key agreement. X25519 supports key agreement only.",
     ),
     "pivSlotKeyOnly": MessageLookupByLibrary.simpleMessage("Key only"),
     "pivSlotRetiredHint": MessageLookupByLibrary.simpleMessage(
-      "Retired key management slot for old decryption keys and certificates.",
+      "Keep old decryption keys and certificates so you can still read previously encrypted data.",
     ),
     "pivSlotSignatureHint": MessageLookupByLibrary.simpleMessage(
-      "Digital signature slot. PIN policy defaults to always.",
+      "For digital signatures. By default, the PIN is required for every signature.",
     ),
     "pivSlots": MessageLookupByLibrary.simpleMessage("Slots"),
     "pivSlotsDescription": MessageLookupByLibrary.simpleMessage(
-      "Manage keys and certificates in the standard PIV slots.",
+      "Each slot holds a key and certificate.",
     ),
     "pivSlotsHint": MessageLookupByLibrary.simpleMessage(
       "Select a slot to view or manage its certificate",
@@ -1157,14 +1197,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "When enabled, future management operations can authenticate with PIN. This blocks PUK and prevents PIN recovery with PUK.",
     ),
     "pivSubjectDescription": MessageLookupByLibrary.simpleMessage(
-      "Enter the identity for this certificate.",
+      "Enter the certificate holder\'s name, organization and other details.",
     ),
     "pivTouchPolicy": MessageLookupByLibrary.simpleMessage("Touch Policy"),
     "pivTouchPolicyAlways": MessageLookupByLibrary.simpleMessage("Always"),
     "pivTouchPolicyCached": MessageLookupByLibrary.simpleMessage(
       "Cached for 15 seconds",
     ),
-    "pivTouchPolicyChip": m25,
+    "pivTouchPolicyChip": m27,
     "pivTouchPolicyDefault": MessageLookupByLibrary.simpleMessage("Default"),
     "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("Never"),
     "pivTransfer": MessageLookupByLibrary.simpleMessage("Import / export"),
@@ -1175,11 +1215,39 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivUnsupportedImportFile": MessageLookupByLibrary.simpleMessage(
       "Unsupported file. Use PEM or DER certificate/private key files.",
     ),
+    "pivUsageClientAuth": MessageLookupByLibrary.simpleMessage(
+      "Client authentication",
+    ),
+    "pivUsageCodeSigning": MessageLookupByLibrary.simpleMessage("Code signing"),
+    "pivUsageContentCommitment": MessageLookupByLibrary.simpleMessage(
+      "Content commitment",
+    ),
+    "pivUsageDataEncipherment": MessageLookupByLibrary.simpleMessage(
+      "Data encryption",
+    ),
+    "pivUsageDigitalSignature": MessageLookupByLibrary.simpleMessage(
+      "Digital signature",
+    ),
+    "pivUsageEmailProtection": MessageLookupByLibrary.simpleMessage(
+      "Email protection",
+    ),
+    "pivUsageKeyAgreement": MessageLookupByLibrary.simpleMessage(
+      "Key agreement",
+    ),
+    "pivUsageKeyEncipherment": MessageLookupByLibrary.simpleMessage(
+      "Key encryption",
+    ),
     "pivUsageOmitted": MessageLookupByLibrary.simpleMessage(
-      "No selection omits this extension.",
+      "Leave all options unchecked to omit this usage restriction.",
+    ),
+    "pivUsageServerAuth": MessageLookupByLibrary.simpleMessage(
+      "Server authentication",
+    ),
+    "pivUsageSmartCardLogon": MessageLookupByLibrary.simpleMessage(
+      "Smart card login",
     ),
     "pivUseDefaultManagementKey": MessageLookupByLibrary.simpleMessage(
-      "Default",
+      "Use default",
     ),
     "pivValidityDays": MessageLookupByLibrary.simpleMessage("Validity Days"),
     "pivVerify": MessageLookupByLibrary.simpleMessage("Verify"),
@@ -1188,13 +1256,13 @@ class MessageLookup extends MessageLookupByLibrary {
       "Verify File Signature",
     ),
     "pivVerifyFileSignaturePrompt": MessageLookupByLibrary.simpleMessage(
-      "Verifies a detached raw signature against this slot public key.",
+      "Select the original file and its signature file to verify the signature using this slot\'s public key.",
     ),
     "pivVerifyManagementKey": MessageLookupByLibrary.simpleMessage(
       "Verify Management Key",
     ),
     "pivVerifyPinAndManagementKey": MessageLookupByLibrary.simpleMessage(
-      "Verify PIN and Management Key",
+      "Enter PIN and management key",
     ),
     "pivViewCertificate": MessageLookupByLibrary.simpleMessage(
       "View certificate",
@@ -1229,7 +1297,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("Privacy Policy"),
     "readingAlertMessage": MessageLookupByLibrary.simpleMessage(
-      "Hold the CanoKey until finished",
+      "Keep CanoKey near your phone until reading finishes.",
     ),
     "refresh": MessageLookupByLibrary.simpleMessage("Refresh"),
     "reset": MessageLookupByLibrary.simpleMessage("Reset"),
@@ -1242,7 +1310,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "select": MessageLookupByLibrary.simpleMessage("Select"),
     "settings": MessageLookupByLibrary.simpleMessage("Settings"),
     "settingsAppletStorageUsage": MessageLookupByLibrary.simpleMessage(
-      "Applet Flash Usage",
+      "Storage used by each applet",
     ),
     "settingsAppletSwitches": MessageLookupByLibrary.simpleMessage(
       "Applet Switches",
@@ -1257,9 +1325,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsClearPinCachePrompt": MessageLookupByLibrary.simpleMessage(
       "Are you sure you want to clear all saved PINs from this device?",
     ),
-    "settingsCoreCommit": MessageLookupByLibrary.simpleMessage("Core Commit"),
+    "settingsCoreCommit": MessageLookupByLibrary.simpleMessage(
+      "Firmware source revision",
+    ),
     "settingsDescription": MessageLookupByLibrary.simpleMessage(
-      "Manage device settings, customize behavior and system preferences.",
+      "View CanoKey information and change device and app settings.",
     ),
     "settingsDeviceActions": MessageLookupByLibrary.simpleMessage(
       "Device Actions",
@@ -1274,20 +1344,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsFixNFCSuccess": MessageLookupByLibrary.simpleMessage(
       "NFC is successfully fixed",
     ),
-    "settingsHotp": MessageLookupByLibrary.simpleMessage(
-      "Input HOTP when touching",
-    ),
+    "settingsHotp": MessageLookupByLibrary.simpleMessage("Type HOTP on touch"),
     "settingsInfo": MessageLookupByLibrary.simpleMessage("CanoKey Info"),
     "settingsInputPin": MessageLookupByLibrary.simpleMessage(
       "PIN Verification",
     ),
     "settingsInputPinPrompt": MessageLookupByLibrary.simpleMessage(
-      "Please input your admin PIN. The default value is 123456. This PIN is irrelevant to other applets.",
+      "Enter the admin PIN used for Settings. The default is 123456. It is separate from the PINs for OpenPGP, PIV and other applets.",
     ),
     "settingsKeyboardLayout": MessageLookupByLibrary.simpleMessage(
       "Keyboard Layout",
     ),
-    "settingsKeyboardLayoutCurrent": m26,
+    "settingsKeyboardLayoutCurrent": m28,
     "settingsKeyboardLayoutCustom": MessageLookupByLibrary.simpleMessage(
       "Custom layout",
     ),
@@ -1298,10 +1366,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "Unknown",
     ),
     "settingsKeyboardLayoutUnknownPrompt": MessageLookupByLibrary.simpleMessage(
-      "The current keymap does not match a built-in preset. Applying a preset will overwrite it.",
+      "Your current keyboard layout is custom. Selecting a built-in layout will replace it.",
     ),
     "settingsKeyboardWithReturn": MessageLookupByLibrary.simpleMessage(
-      "The output of OTP value comes with enter",
+      "Press Enter after typing an OTP",
     ),
     "settingsLanguage": MessageLookupByLibrary.simpleMessage("Language"),
     "settingsModel": MessageLookupByLibrary.simpleMessage("Model"),
@@ -1323,9 +1391,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsResetAllPrompt": MessageLookupByLibrary.simpleMessage(
       "All data will be erased. Once confirmed, the CanoKey will blink multiple times. Please touch it each time you see a blink until the success prompt appears.",
     ),
-    "settingsResetApplet": m27,
+    "settingsResetApplet": m29,
     "settingsResetConditionNotSatisfying": MessageLookupByLibrary.simpleMessage(
-      "PIN has not been locked yet",
+      "Cannot reset while the PIN is not blocked.",
+    ),
+    "settingsResetFailed": MessageLookupByLibrary.simpleMessage(
+      "Reset failed. Check the device connection and try again.",
     ),
     "settingsResetNDEF": MessageLookupByLibrary.simpleMessage("Reset NDEF"),
     "settingsResetOATH": MessageLookupByLibrary.simpleMessage(
@@ -1337,7 +1408,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsResetPIV": MessageLookupByLibrary.simpleMessage("Reset PIV"),
     "settingsResetPass": MessageLookupByLibrary.simpleMessage("Reset Pass"),
     "settingsResetPresenceTestFailed": MessageLookupByLibrary.simpleMessage(
-      "You did not touch the pad in time",
+      "CanoKey was not touched in time. Try again and touch it when the light flashes.",
     ),
     "settingsResetSuccess": MessageLookupByLibrary.simpleMessage(
       "Successfully reset",
@@ -1356,10 +1427,15 @@ class MessageLookup extends MessageLookupByLibrary {
       "WebAuthn SM2",
     ),
     "settingsWebUSB": MessageLookupByLibrary.simpleMessage(
-      "WebUSB prompt when plug-in",
+      "Show WebUSB prompt when connected",
+    ),
+    "sm2AlgorithmId": MessageLookupByLibrary.simpleMessage("Algorithm ID"),
+    "sm2CurveId": MessageLookupByLibrary.simpleMessage("Curve ID"),
+    "sm2ReservedId": MessageLookupByLibrary.simpleMessage(
+      "This ID is reserved for another algorithm or curve. Choose a different value.",
     ),
     "soundCredit": MessageLookupByLibrary.simpleMessage(
-      "Summer Xu is the author of NFC interaction sounds.",
+      "NFC sounds by Summer Xu.",
     ),
     "storageFull": MessageLookupByLibrary.simpleMessage(
       "CanoKey storage is full.",
@@ -1367,12 +1443,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "successfullyChanged": MessageLookupByLibrary.simpleMessage(
       "Successfully changed",
     ),
-    "validationAtLeastCharacters": m28,
-    "validationAtMostCharacters": m29,
-    "validationExactLength": m30,
+    "validationAtLeastCharacters": m30,
+    "validationAtMostCharacters": m31,
+    "validationExactLength": m32,
     "validationHexString": MessageLookupByLibrary.simpleMessage(
       "Please input a valid hexadecimal string.",
     ),
+    "validationNumber": MessageLookupByLibrary.simpleMessage(
+      "Enter a whole number.",
+    ),
+    "validationNumberMax": m33,
+    "validationNumberMin": m34,
     "viewUserId": MessageLookupByLibrary.simpleMessage("View User ID"),
     "warning": MessageLookupByLibrary.simpleMessage("Warning"),
     "webAuthnCredentials": MessageLookupByLibrary.simpleMessage(
@@ -1385,7 +1466,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Why can\'t I see my credentials?",
     ),
     "webAuthnMissingCredentialsExplanation": MessageLookupByLibrary.simpleMessage(
-      "Only discoverable credentials are stored on CanoKey. Other types of keys are not stored on the device and therefore are not visible here.",
+      "This list shows credentials CanoKey can find on its own. Some credentials can only be identified when a website starts sign-in, so they do not appear here. You can still use them to sign in.",
     ),
     "webAuthnSearch": MessageLookupByLibrary.simpleMessage(
       "Search WebAuthn credentials…",
@@ -1393,10 +1474,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "webPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "Insert your CanoKey into the USB port and click the refresh button",
     ),
-    "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
-      "This key does not support WebAuthn PIN.",
+    "webauthnChangePinFailed": MessageLookupByLibrary.simpleMessage(
+      "Could not change the WebAuthn PIN. Read CanoKey again and try again.",
     ),
-    "webauthnDelete": m31,
+    "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
+      "This CanoKey does not support a WebAuthn PIN.",
+    ),
+    "webauthnDelete": m35,
     "webauthnInputPinPrompt": MessageLookupByLibrary.simpleMessage(
       "Please input your WebAuthn PIN.",
     ),
@@ -1404,13 +1488,19 @@ class MessageLookup extends MessageLookupByLibrary {
       "Unlock WebAuthn",
     ),
     "webauthnPinAuthBlocked": MessageLookupByLibrary.simpleMessage(
-      "PIN authentication is blocked. Please reinsert you CanoKey to retry.",
+      "The WebAuthn PIN is temporarily blocked. Reconnect CanoKey and try again.",
     ),
     "webauthnPinBlocked": MessageLookupByLibrary.simpleMessage(
-      "PIN authentication is blocked. Please reset WebAuthn.",
+      "The WebAuthn PIN is blocked. Reset WebAuthn to use it again. Resetting deletes all WebAuthn credentials.",
+    ),
+    "webauthnPinRequired": MessageLookupByLibrary.simpleMessage(
+      "Refresh the page and enter your WebAuthn PIN before trying this operation again.",
+    ),
+    "webauthnSetPinFailed": MessageLookupByLibrary.simpleMessage(
+      "Could not set the WebAuthn PIN. Read CanoKey again and try again.",
     ),
     "webauthnSetPinPrompt": MessageLookupByLibrary.simpleMessage(
-      "Please set your WebAuthn PIN to enable management of credentials. The length of PIN should be between 4 and 63.",
+      "Set a WebAuthn PIN to manage sign-in credentials. Use 4 to 63 characters.",
     ),
     "webauthnSetPinTitle": MessageLookupByLibrary.simpleMessage(
       "Set WebAuthn PIN",

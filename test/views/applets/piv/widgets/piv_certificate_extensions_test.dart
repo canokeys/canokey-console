@@ -67,12 +67,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(options.keyUsageCritical, isFalse);
       expect(options.keyUsage, 0);
-      await tester.tap(find.text('digitalSignature'));
+      await tester.tap(find.text(S.current.pivUsageDigitalSignature));
       await tester.pumpAndSettle();
       expect(options.keyUsage, 1);
       expect(options.keyUsageCritical, isFalse);
       await tester.tap(find.text(S.current.pivKeyUsageCritical));
-      await tester.tap(find.text('digitalSignature'));
+      await tester.tap(find.text(S.current.pivUsageDigitalSignature));
       await tester.pumpAndSettle();
       expect(options.keyUsage, 0);
       expect(options.keyUsageCritical, isTrue);
@@ -88,7 +88,7 @@ void main() {
     await tester.pumpWidget(app(options));
     await tester.pumpAndSettle();
     await tester.tap(find.text(S.current.pivEndEntityConstraint));
-    await tester.tap(find.text('clientAuth'));
+    await tester.tap(find.text(S.current.pivUsageClientAuth));
     await tester.pumpAndSettle();
     expect(options.includeBasicConstraints, isTrue);
     expect(options.extendedKeyUsage, {PivSelfSignOptions.clientAuth});
@@ -107,7 +107,7 @@ void main() {
         pinPolicy: PinPolicy.once,
       );
       await tester.pumpWidget(
-        app(options, locale: const Locale('zh', 'Hans'), textScale: 1.5),
+        app(options, locale: const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'), textScale: 1.5),
       );
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text(S.current.pivKeyUsageCritical));

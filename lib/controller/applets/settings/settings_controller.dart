@@ -156,7 +156,7 @@ class SettingsController extends PollingController with AdminApplet {
         Prompts.showPrompt(S.of(Get.context!).settingsResetPresenceTestFailed,
             ContentThemeColor.danger);
       } else {
-        Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
+        Prompts.showPrompt(S.current.settingsResetFailed, ContentThemeColor.danger);
       }
     });
   }

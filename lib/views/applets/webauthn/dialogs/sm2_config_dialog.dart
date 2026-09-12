@@ -126,7 +126,7 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
                     controller: validator.getController('curveId'),
                     validator: validator.getValidator('curveId'),
                     decoration: InputDecoration(
-                      labelText: 'Curve ID',
+                      labelText: S.of(context).sm2CurveId,
                       border: outlineInputBorder,
                       floatingLabelBehavior: FloatingLabelBehavior.auto,
                     ),
@@ -137,7 +137,7 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
                     controller: validator.getController('algoId'),
                     validator: validator.getValidator('algoId'),
                     decoration: InputDecoration(
-                      labelText: 'Algorithm ID',
+                      labelText: S.of(context).sm2AlgorithmId,
                       border: outlineInputBorder,
                       floatingLabelBehavior: FloatingLabelBehavior.auto,
                     ),
@@ -209,6 +209,6 @@ class Sm2IdentifierValidator extends IntValidator {
         : WebAuthnSm2Config.isValidAlgorithmId(id);
     return valid
         ? null
-        : 'This identifier is reserved for another algorithm or curve';
+        : S.current.sm2ReservedId;
   }
 }

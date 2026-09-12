@@ -27,7 +27,7 @@ class Prompts {
     } else if (isStorageFull(resp)) {
       return S.of(Get.context!).storageFull;
     } else {
-      return 'Unknown response';
+      return S.current.pinVerificationFailed;
     }
   }
 
@@ -46,7 +46,7 @@ class Prompts {
     } else if (isStorageFull(resp)) {
       showPrompt(S.of(Get.context!).storageFull, ContentThemeColor.danger);
     } else {
-      showPrompt('Unknown response', ContentThemeColor.danger);
+      showPrompt(S.current.pinVerificationFailed, ContentThemeColor.danger);
     }
   }
 

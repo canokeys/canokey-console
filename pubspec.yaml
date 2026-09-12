@@ -53,7 +53,12 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: CanoKey Mono
+      fonts:
+        - asset: assets/fonts/IBMPlexMono-Regular.ttf
   assets:
+    - assets/fonts/IBMPlexMono-OFL.txt
     - assets/images/logo/
     - assets/images/oath/
     - rust/THIRD_PARTY_LICENSES.json

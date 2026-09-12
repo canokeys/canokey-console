@@ -22,68 +22,77 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m0(applet) => "${applet} 已關閉，請先在設定中啟用。";
 
-  static String m1(min, max) => "新 PIN 的長度應當為 ${min} - ${max} 個字元。";
+  static String m1(min, max) => "新 PIN 需要 ${min} 至 ${max} 個字元。";
 
   static String m2(error) => "儲存失敗：${error}";
 
   static String m3(used, total) => "已使用 ${used} / ${total} 位元組";
 
-  static String m4(error) => "ndef 程式庫拒絕了此記錄：${error}";
+  static String m4(error) => "無法儲存這筆記錄，請檢查填寫的內容。詳情：${error}";
 
-  static String m5(name) => "您正在刪除 ${name}，刪除此項目後無法恢復！請確認相關服務的兩步驟驗證已經關閉。";
+  static String m5(protocol) => "${protocol} 企業版";
 
-  static String m6(name) => "您要將 ${name} 設為觸碰時的輸出嗎？請注意，該操作將會覆蓋原有的觸碰輸出。";
+  static String m6(protocol) => "${protocol} 個人版";
 
-  static String m7(keyType) => "修改 ${keyType} 金鑰的觸碰設定";
+  static String m7(name) =>
+      "刪除 ${name} 後，CanoKey 將無法再為此帳戶產生驗證碼，且無法復原。請先確認您有其他驗證方式，或已在該服務中關閉兩步驟驗證。";
 
-  static String m8(remaining) => "剩餘次數：${remaining}";
+  static String m8(name) => "觸碰 CanoKey 時改為輸出 ${name} 的驗證碼？這會替換原來的觸碰輸出設定。";
 
-  static String m9(seconds) => "${seconds} 秒";
+  static String m9(keyType) => "修改 ${keyType} 金鑰的觸碰設定";
 
-  static String m10(retries) => "PIN 輸入錯誤，剩餘重試次數：${retries}";
+  static String m10(remaining) => "剩餘次數：${remaining}";
 
-  static String m11(algorithm) => "演算法：${algorithm}";
+  static String m11(seconds) => "${seconds} 秒";
 
-  static String m12(slot) => "自我簽署憑證已寫入 ${slot} 插槽。";
+  static String m12(retries) => "PIN 輸入錯誤，剩餘重試次數：${retries}";
 
-  static String m13(min, max) => "新 PUK 的長度應當為 ${min} - ${max} 個字元。";
+  static String m13(algorithm) => "演算法：${algorithm}";
 
-  static String m14(slot) => "清空插槽 ${slot}";
+  static String m14(slot) => "自我簽署憑證已寫入 ${slot} 槽位。";
 
-  static String m15(slot) => "此操作將從您的 CanoKey 中刪除 ${slot} 中的憑證和金鑰。請確保您有其他方式存取。";
+  static String m15(min, max) => "新 PUK 需要 ${min} 至 ${max} 個字元。";
 
-  static String m16(algorithm) => "正在產生 ${algorithm} 金鑰";
+  static String m16(slot) => "清空槽位 ${slot}";
 
-  static String m17(slot) => "檢查 ${slot}";
+  static String m17(slot) => "刪除 ${slot} 槽位中的金鑰和憑證？此操作無法復原，請先確認您有其他登入或解密方式。";
 
-  static String m18(slot) => "已為 ${slot} 套用建議設定";
+  static String m18(algorithm) => "正在產生 ${algorithm} 金鑰";
 
-  static String m19(sourceSlot) => "移動 ${sourceSlot} 中的金鑰";
+  static String m19(slot) => "檢查 ${slot} 槽位";
 
-  static String m20(count) => "${count} 個已佔用";
+  static String m20(slot) => "已為 ${slot} 槽位套用建議設定";
 
-  static String m21(action, slot) =>
-      "${action} 將替換 ${slot} 插槽中的私密金鑰。依賴此金鑰的驗證或簽章可能會失效。";
+  static String m21(sourceSlot) => "移動 ${sourceSlot} 中的金鑰";
 
-  static String m22(policy) => "PIN：${policy}";
+  static String m22(count) => "${count} 個已佔用";
 
-  static String m23(index) => "退役金鑰 ${index}";
+  static String m23(action, slot) =>
+      "${action} 將替換 ${slot} 槽位中的私密金鑰。依賴此金鑰的驗證或簽章可能會失效。";
 
-  static String m24(remaining, total) => "剩餘次數：${remaining}/${total}";
+  static String m24(policy) => "PIN：${policy}";
 
-  static String m25(policy) => "觸碰：${policy}";
+  static String m25(index) => "歷史金鑰 ${index}";
 
-  static String m26(layout) => "目前：${layout}";
+  static String m26(remaining, total) => "剩餘次數：${remaining}/${total}";
 
-  static String m27(applet) => "該操作將抹除 ${applet} 的全部資料！";
+  static String m27(policy) => "觸碰：${policy}";
 
-  static String m28(min) => "至少 ${min} 個字元";
+  static String m28(layout) => "目前：${layout}";
 
-  static String m29(max) => "最多 ${max} 個字元";
+  static String m29(applet) => "重置後，${applet} 中的所有資料都將被刪除，無法復原。";
 
-  static String m30(length) => "需要 ${length} 個字元";
+  static String m30(min) => "至少 ${min} 個字元";
 
-  static String m31(name) => "您正在刪除 ${name}，刪除此項目後無法恢復！請確認您有其他方式登入該服務。";
+  static String m31(max) => "最多 ${max} 個字元";
+
+  static String m32(length) => "需要 ${length} 個字元";
+
+  static String m33(max) => "請輸入不大於 ${max} 的整數。";
+
+  static String m34(min) => "請輸入不小於 ${min} 的整數。";
+
+  static String m35(name) => "刪除 ${name} 的登入憑證？此操作無法復原，請先確認您有其他方式登入該服務。";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -114,6 +123,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "changePinPrompt": m1,
     "close": MessageLookupByLibrary.simpleMessage("關閉"),
     "confirm": MessageLookupByLibrary.simpleMessage("確定"),
+    "confirmNewPin": MessageLookupByLibrary.simpleMessage("再次輸入新 PIN"),
     "connectFirst": MessageLookupByLibrary.simpleMessage("請先連線 CanoKey"),
     "copied": MessageLookupByLibrary.simpleMessage("已複製"),
     "copy": MessageLookupByLibrary.simpleMessage("複製"),
@@ -123,7 +133,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "請將您的 CanoKey 插入 USB 連接埠",
     ),
     "desktopPollError": MessageLookupByLibrary.simpleMessage(
-      "尋找 USB 連線的 CanoKey 時遇到錯誤。請修復錯誤後重啟此應用程式：",
+      "無法透過 USB 連接 CanoKey。請檢查裝置連線，然後重新開啟此應用程式。錯誤詳情：",
     ),
     "disable": MessageLookupByLibrary.simpleMessage("停用"),
     "disableSound": MessageLookupByLibrary.simpleMessage("無音效"),
@@ -140,7 +150,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "homeScreenTitle": MessageLookupByLibrary.simpleMessage("CanoKey Console"),
     "homeSelect": MessageLookupByLibrary.simpleMessage("選擇應用程式"),
     "interrupted": MessageLookupByLibrary.simpleMessage(
-      "通訊中斷。嘗試緊貼 CanoKey 直到讀取結束。",
+      "連線已中斷。請重新連接；使用 NFC 時，請讓 CanoKey 保持靠近手機。",
     ),
     "iosAlertMessage": MessageLookupByLibrary.simpleMessage(
       "使用 iPhone 頂部讀取 CanoKey",
@@ -155,7 +165,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "logsTitle": MessageLookupByLibrary.simpleMessage("檢視記錄"),
     "ndefAbsoluteUri": MessageLookupByLibrary.simpleMessage("絕對 URI"),
     "ndefAddRecord": MessageLookupByLibrary.simpleMessage("新增記錄"),
-    "ndefAndroidApplication": MessageLookupByLibrary.simpleMessage("AAR"),
+    "ndefAndroidApplication": MessageLookupByLibrary.simpleMessage(
+      "Android 應用程式",
+    ),
     "ndefAndroidPackage": MessageLookupByLibrary.simpleMessage("Android 套件名稱"),
     "ndefBluetoothAddressType": MessageLookupByLibrary.simpleMessage("位址類型"),
     "ndefBluetoothClassic": MessageLookupByLibrary.simpleMessage("經典藍牙"),
@@ -165,7 +177,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ndefBytesUsed": m3,
     "ndefCapacity": MessageLookupByLibrary.simpleMessage("容量"),
     "ndefCapacityExceeded": MessageLookupByLibrary.simpleMessage(
-      "訊息超出 NDEF 容量。",
+      "內容超出 NFC 標籤的容量，請減少內容後再試一次。",
     ),
     "ndefContact": MessageLookupByLibrary.simpleMessage("聯絡人"),
     "ndefContactEmail": MessageLookupByLibrary.simpleMessage("電子郵件（可選）"),
@@ -195,7 +207,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "請輸入類似 AA:BB:CC:DD:EE:FF 的 MAC 位址。",
     ),
     "ndefInvalidMessage": MessageLookupByLibrary.simpleMessage(
-      "儲存的資料不是有效的 NDEF 訊息。請先在設定中重置 NDEF，再進行編輯。",
+      "無法讀取現有的 NFC 標籤內容。如需重新設定，請在設定中重置 NDEF；這會刪除原有的標籤內容。",
     ),
     "ndefInvalidMimeType": MessageLookupByLibrary.simpleMessage(
       "請輸入有效的 MIME 類型，例如 text/plain。",
@@ -208,7 +220,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "ndefInvalidRecord": m4,
     "ndefInvalidUri": MessageLookupByLibrary.simpleMessage(
-      "請輸入帶通訊協定的 URI，例如 https:// 或 mailto:。",
+      "請輸入完整的連結，例如 https://example.com 或 mailto:name@example.com。",
     ),
     "ndefInvalidUuid": MessageLookupByLibrary.simpleMessage("請輸入標準格式的 UUID。"),
     "ndefLanguage": MessageLookupByLibrary.simpleMessage("語言代碼"),
@@ -217,17 +229,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "ndefMimeType": MessageLookupByLibrary.simpleMessage("MIME 類型"),
     "ndefMoveDown": MessageLookupByLibrary.simpleMessage("下移"),
     "ndefMoveUp": MessageLookupByLibrary.simpleMessage("上移"),
-    "ndefNoRecords": MessageLookupByLibrary.simpleMessage("沒有 NDEF 記錄"),
+    "ndefNoRecords": MessageLookupByLibrary.simpleMessage("尚無記錄"),
     "ndefNoRecordsDescription": MessageLookupByLibrary.simpleMessage(
-      "新增 URI 或文字記錄，使其他裝置可以讀取該標籤。",
+      "新增連結、文字或其他內容，供其他裝置透過 NFC 讀取。",
     ),
-    "ndefOptionalHex": MessageLookupByLibrary.simpleMessage("可選的十六進位位元組"),
+    "ndefOptionalHex": MessageLookupByLibrary.simpleMessage("十六進位內容，可留空"),
     "ndefOther": MessageLookupByLibrary.simpleMessage("其他"),
-    "ndefPayload": MessageLookupByLibrary.simpleMessage("承載資料"),
+    "ndefPayload": MessageLookupByLibrary.simpleMessage("記錄內容"),
     "ndefPayloadConversionFailed": MessageLookupByLibrary.simpleMessage(
-      "承載資料無法在 UTF-8 文字與十六進位位元組之間轉換。",
+      "無法轉換內容編碼。請檢查十六進位格式，或確認內容是有效的 UTF-8 文字。",
     ),
-    "ndefPayloadEncoding": MessageLookupByLibrary.simpleMessage("承載資料編碼"),
+    "ndefPayloadEncoding": MessageLookupByLibrary.simpleMessage("內容編碼"),
     "ndefPayloadHex": MessageLookupByLibrary.simpleMessage("十六進位"),
     "ndefPayloadText": MessageLookupByLibrary.simpleMessage("文字"),
     "ndefPhone": MessageLookupByLibrary.simpleMessage("電話"),
@@ -240,7 +252,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ndefRecordId": MessageLookupByLibrary.simpleMessage("記錄 ID（可選，十六進位）"),
     "ndefRecordType": MessageLookupByLibrary.simpleMessage("記錄類型"),
     "ndefRecords": MessageLookupByLibrary.simpleMessage("記錄"),
-    "ndefRequiredField": MessageLookupByLibrary.simpleMessage("此項為必填項。"),
+    "ndefRequiredField": MessageLookupByLibrary.simpleMessage("請填寫此項。"),
     "ndefSaveToKey": MessageLookupByLibrary.simpleMessage("儲存到 CanoKey"),
     "ndefSaved": MessageLookupByLibrary.simpleMessage("NDEF 記錄已儲存"),
     "ndefSignature": MessageLookupByLibrary.simpleMessage("簽章"),
@@ -252,7 +264,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ndefSmartPosterTitle": MessageLookupByLibrary.simpleMessage("標題（可選）"),
     "ndefTagContent": MessageLookupByLibrary.simpleMessage("NFC 標籤內容"),
     "ndefTagContentDescription": MessageLookupByLibrary.simpleMessage(
-      "設定其他裝置掃描 CanoKey 時讀取到的記錄。",
+      "設定其他裝置透過 NFC 讀取 CanoKey 時取得的內容。",
     ),
     "ndefText": MessageLookupByLibrary.simpleMessage("文字"),
     "ndefTextValue": MessageLookupByLibrary.simpleMessage("文字內容"),
@@ -261,21 +273,28 @@ class MessageLookup extends MessageLookupByLibrary {
     "ndefTnfExternal": MessageLookupByLibrary.simpleMessage("NFC Forum 外部類型"),
     "ndefTnfMedia": MessageLookupByLibrary.simpleMessage("媒體類型 (MIME)"),
     "ndefTnfRequiresEmptyType": MessageLookupByLibrary.simpleMessage(
-      "此 TNF 要求類型名稱為空。",
+      "所選記錄格式不允許填寫類型名稱，請清空該欄位。",
     ),
+    "ndefTnfUnchanged": MessageLookupByLibrary.simpleMessage("沿用上一段的類型"),
     "ndefTnfUnknown": MessageLookupByLibrary.simpleMessage("未知類型"),
     "ndefTnfWellKnown": MessageLookupByLibrary.simpleMessage("NFC Forum 已知類型"),
     "ndefTypeName": MessageLookupByLibrary.simpleMessage("類型名稱"),
+    "ndefTypeNameFormat": MessageLookupByLibrary.simpleMessage("類型名稱格式（TNF）"),
     "ndefUnsavedChanges": MessageLookupByLibrary.simpleMessage("有尚未儲存的修改"),
-    "ndefUri": MessageLookupByLibrary.simpleMessage("URI"),
-    "ndefUriValue": MessageLookupByLibrary.simpleMessage("URI"),
+    "ndefUri": MessageLookupByLibrary.simpleMessage("連結"),
+    "ndefUriValue": MessageLookupByLibrary.simpleMessage("連結網址"),
     "ndefWifi": MessageLookupByLibrary.simpleMessage("Wi-Fi"),
     "ndefWifiAuthentication": MessageLookupByLibrary.simpleMessage("驗證方式"),
     "ndefWifiEncryption": MessageLookupByLibrary.simpleMessage("加密方式"),
+    "ndefWifiEnterprise": m5,
+    "ndefWifiNoEncryption": MessageLookupByLibrary.simpleMessage("不加密"),
+    "ndefWifiOpen": MessageLookupByLibrary.simpleMessage("開放網路"),
     "ndefWifiPassword": MessageLookupByLibrary.simpleMessage("網路密碼"),
+    "ndefWifiPersonal": m6,
+    "ndefWifiShared": MessageLookupByLibrary.simpleMessage("共用金鑰"),
     "ndefWritable": MessageLookupByLibrary.simpleMessage("可寫"),
     "networkError": MessageLookupByLibrary.simpleMessage(
-      "CanoKey 繁忙，請重新插拔並稍後再試",
+      "與 CanoKey 通訊失敗，請重新連接後再試一次。",
     ),
     "newPin": MessageLookupByLibrary.simpleMessage("新 PIN"),
     "next": MessageLookupByLibrary.simpleMessage("下一步"),
@@ -288,7 +307,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "noMatchingCredential": MessageLookupByLibrary.simpleMessage("沒有找到相符的憑證"),
     "notSupported": MessageLookupByLibrary.simpleMessage("不支援該操作"),
     "notSupportedInNFC": MessageLookupByLibrary.simpleMessage(
-      "該操作不支援在 NFC 模式下執行",
+      "此操作需要透過 USB 連接 CanoKey。",
     ),
     "oathAccount": MessageLookupByLibrary.simpleMessage("帳戶"),
     "oathAddAccount": MessageLookupByLibrary.simpleMessage("新增帳戶"),
@@ -297,17 +316,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "oathAddManually": MessageLookupByLibrary.simpleMessage("手動新增"),
     "oathAdded": MessageLookupByLibrary.simpleMessage("新增成功"),
     "oathAdvancedSettings": MessageLookupByLibrary.simpleMessage(
-      "進階設定，僅供專業使用者使用，不正確的設定可能導致憑證無法使用。",
+      "請使用服務商提供的參數，否則產生的驗證碼可能無法使用。",
     ),
     "oathAlgorithm": MessageLookupByLibrary.simpleMessage("演算法"),
     "oathCode": MessageLookupByLibrary.simpleMessage("密碼"),
     "oathCodeChanged": MessageLookupByLibrary.simpleMessage("密碼已修改"),
     "oathCopy": MessageLookupByLibrary.simpleMessage("複製"),
     "oathCounter": MessageLookupByLibrary.simpleMessage("計數器初始值"),
-    "oathCounterMustBeNumber": MessageLookupByLibrary.simpleMessage("請填寫數字"),
-    "oathDelete": m5,
+    "oathCounterMustBeNumber": MessageLookupByLibrary.simpleMessage("請輸入整數"),
+    "oathDelete": m7,
     "oathDescription": MessageLookupByLibrary.simpleMessage(
-      "以時間或計數器為基礎的一次性密碼，保障您的帳戶安全。",
+      "管理帳戶的一次性驗證碼（TOTP / HOTP）。",
     ),
     "oathDigits": MessageLookupByLibrary.simpleMessage("位數"),
     "oathDuplicated": MessageLookupByLibrary.simpleMessage("帳戶已存在"),
@@ -319,127 +338,121 @@ class MessageLookup extends MessageLookupByLibrary {
     "oathIssuer": MessageLookupByLibrary.simpleMessage("服務商"),
     "oathNewCode": MessageLookupByLibrary.simpleMessage("新密碼"),
     "oathNewCodePrompt": MessageLookupByLibrary.simpleMessage(
-      "請輸入新密碼，如需刪除，請留空。",
+      "輸入新密碼。留空並儲存可取消密碼保護。",
     ),
     "oathNoQr": MessageLookupByLibrary.simpleMessage("未偵測到 QR Code"),
-    "oathPeriod": MessageLookupByLibrary.simpleMessage("週期"),
+    "oathPeriod": MessageLookupByLibrary.simpleMessage("更新間隔（秒）"),
     "oathRequireTouch": MessageLookupByLibrary.simpleMessage("需要觸碰"),
-    "oathRequired": MessageLookupByLibrary.simpleMessage("不得為空"),
+    "oathRequired": MessageLookupByLibrary.simpleMessage("請填寫此項"),
     "oathSearch": MessageLookupByLibrary.simpleMessage("搜尋帳戶名稱或電子郵件"),
     "oathSecret": MessageLookupByLibrary.simpleMessage("金鑰"),
     "oathSetCode": MessageLookupByLibrary.simpleMessage("設定密碼"),
     "oathSetDefault": MessageLookupByLibrary.simpleMessage("設為觸碰輸出"),
-    "oathSetDefaultPrompt": m6,
-    "oathSlot": MessageLookupByLibrary.simpleMessage("密碼插槽"),
+    "oathSetDefaultPrompt": m8,
+    "oathSlot": MessageLookupByLibrary.simpleMessage("密碼槽位"),
     "oathTooLong": MessageLookupByLibrary.simpleMessage("長度超限"),
     "oathType": MessageLookupByLibrary.simpleMessage("類型"),
     "off": MessageLookupByLibrary.simpleMessage("關"),
     "oldPin": MessageLookupByLibrary.simpleMessage("目前 PIN"),
     "on": MessageLookupByLibrary.simpleMessage("開"),
-    "openpgpAdminPin": MessageLookupByLibrary.simpleMessage("Admin PIN"),
+    "openpgpAdminPin": MessageLookupByLibrary.simpleMessage("管理員 PIN"),
     "openpgpAdminPinLength": MessageLookupByLibrary.simpleMessage(
-      "Admin PIN 長度必須為 8 到 64 個字元。",
+      "管理員 PIN 長度必須為 8 到 64 個字元。",
     ),
     "openpgpAuthentication": MessageLookupByLibrary.simpleMessage("驗證"),
-    "openpgpCacheSeconds": MessageLookupByLibrary.simpleMessage("快取秒數"),
+    "openpgpCacheSeconds": MessageLookupByLibrary.simpleMessage("有效時間（秒）"),
     "openpgpCardHolder": MessageLookupByLibrary.simpleMessage("持卡人"),
     "openpgpCardInfo": MessageLookupByLibrary.simpleMessage("卡片資訊"),
-    "openpgpChangeAdminPin": MessageLookupByLibrary.simpleMessage(
-      "修改 Admin PIN",
-    ),
-    "openpgpChangeInteraction": m7,
+    "openpgpChangeAdminPin": MessageLookupByLibrary.simpleMessage("修改 管理員 PIN"),
+    "openpgpChangeInteraction": m9,
     "openpgpChangeSignaturePinPolicy": MessageLookupByLibrary.simpleMessage(
       "修改簽章 PIN 策略",
     ),
     "openpgpChangeTouchCacheTime": MessageLookupByLibrary.simpleMessage(
-      "修改觸碰快取時間",
+      "修改觸碰確認有效時間",
     ),
     "openpgpCurrentAdminPin": MessageLookupByLibrary.simpleMessage(
-      "目前 Admin PIN",
+      "目前 管理員 PIN",
     ),
     "openpgpDescription": MessageLookupByLibrary.simpleMessage(
-      "管理 OpenPGP 卡片資訊、PIN 與金鑰觸碰原則。",
+      "查看 OpenPGP 卡片資訊，管理 PIN 和觸碰確認方式。",
     ),
     "openpgpEncryption": MessageLookupByLibrary.simpleMessage("加密"),
     "openpgpKeyEmpty": MessageLookupByLibrary.simpleMessage("空"),
     "openpgpKeyImported": MessageLookupByLibrary.simpleMessage("已匯入"),
-    "openpgpKeyNone": MessageLookupByLibrary.simpleMessage("[未匯入]"),
+    "openpgpKeyNone": MessageLookupByLibrary.simpleMessage("未設定"),
     "openpgpKeys": MessageLookupByLibrary.simpleMessage("金鑰資訊"),
     "openpgpManufacturer": MessageLookupByLibrary.simpleMessage("製造商"),
-    "openpgpNewAdminPin": MessageLookupByLibrary.simpleMessage("新 Admin PIN"),
+    "openpgpNewAdminPin": MessageLookupByLibrary.simpleMessage("新 管理員 PIN"),
     "openpgpPermanentTouchConfirmation": MessageLookupByLibrary.simpleMessage(
       "我確認永久啟用後，此金鑰的觸碰策略無法再關閉。",
     ),
-    "openpgpPubkeyUrl": MessageLookupByLibrary.simpleMessage("公開金鑰 URL"),
-    "openpgpResetCode": MessageLookupByLibrary.simpleMessage("Reset Code"),
-    "openpgpRetries": m8,
+    "openpgpPubkeyUrl": MessageLookupByLibrary.simpleMessage("公開金鑰網址"),
+    "openpgpResetCode": MessageLookupByLibrary.simpleMessage("重設碼"),
+    "openpgpRetries": m10,
     "openpgpRetriesUnknown": MessageLookupByLibrary.simpleMessage("剩餘次數：未知"),
     "openpgpSN": MessageLookupByLibrary.simpleMessage("序號"),
     "openpgpSetPinRetries": MessageLookupByLibrary.simpleMessage("設定 PIN 重試次數"),
     "openpgpSetPinRetriesPrompt": MessageLookupByLibrary.simpleMessage(
-      "此操作會將 User PIN 重置為 123456，Admin PIN 重置為 12345678。",
+      "此操作會將 使用者 PIN 重置為 123456，管理員 PIN 重置為 12345678。",
     ),
     "openpgpSetPinRetriesTitle": MessageLookupByLibrary.simpleMessage(
-      "設定 PIN/Reset/Admin PIN 重試次數",
+      "設定 PIN 和重設碼的重試次數",
     ),
-    "openpgpSetResetCode": MessageLookupByLibrary.simpleMessage(
-      "設定 Reset Code",
-    ),
+    "openpgpSetResetCode": MessageLookupByLibrary.simpleMessage("設定 重設碼"),
     "openpgpSetResetCodePrompt": MessageLookupByLibrary.simpleMessage(
-      "Reset Code 長度必須為 8 到 64 個字元，需要 Admin PIN 授權。",
+      "重設碼 長度必須為 8 到 64 個字元，需要 管理員 PIN 授權。",
     ),
     "openpgpSetTouchCacheTime": MessageLookupByLibrary.simpleMessage(
-      "設定觸碰快取時間",
+      "設定觸碰確認有效時間",
     ),
     "openpgpSetTouchCacheTimePrompt": MessageLookupByLibrary.simpleMessage(
-      "設定一次觸碰確認的有效時間。0 表示每次操作都需要重新觸碰。需要 Admin PIN 授權。",
+      "設定觸碰一次後多久內不需再次觸碰。設為 0 表示每次操作都需觸碰。修改需要驗證管理員 PIN。",
     ),
     "openpgpSignature": MessageLookupByLibrary.simpleMessage("簽章"),
     "openpgpSignaturePin": MessageLookupByLibrary.simpleMessage("簽章 PIN"),
     "openpgpSignaturePinPolicy": MessageLookupByLibrary.simpleMessage(
       "簽章 PIN 策略",
     ),
-    "openpgpTouchCacheOff": MessageLookupByLibrary.simpleMessage("0 秒（不快取）"),
-    "openpgpTouchCacheSeconds": m9,
-    "openpgpTouchCached": MessageLookupByLibrary.simpleMessage("觸碰快取"),
-    "openpgpTouchCachedLabel": MessageLookupByLibrary.simpleMessage("觸碰：快取"),
+    "openpgpTouchCacheOff": MessageLookupByLibrary.simpleMessage("0 秒（每次觸碰）"),
+    "openpgpTouchCacheSeconds": m11,
+    "openpgpTouchCached": MessageLookupByLibrary.simpleMessage("限時免觸碰"),
+    "openpgpTouchCachedLabel": MessageLookupByLibrary.simpleMessage("觸碰：限時免確認"),
     "openpgpTouchNone": MessageLookupByLibrary.simpleMessage("無需觸碰"),
     "openpgpTouchOffLabel": MessageLookupByLibrary.simpleMessage("觸碰：關閉"),
     "openpgpTouchOnLabel": MessageLookupByLibrary.simpleMessage("觸碰：開啟"),
-    "openpgpTouchPermanent": MessageLookupByLibrary.simpleMessage("永久開啟"),
-    "openpgpTouchPermanentCached": MessageLookupByLibrary.simpleMessage("永久快取"),
+    "openpgpTouchPermanent": MessageLookupByLibrary.simpleMessage("需要觸碰（不可關閉）"),
+    "openpgpTouchPermanentCached": MessageLookupByLibrary.simpleMessage(
+      "限時免觸碰（不可關閉）",
+    ),
     "openpgpTouchPermanentCachedLabel": MessageLookupByLibrary.simpleMessage(
-      "觸碰：永久快取",
+      "觸碰：限時免確認，不可關閉",
     ),
     "openpgpTouchPermanentLabel": MessageLookupByLibrary.simpleMessage(
-      "觸碰：永久開啟",
+      "觸碰：需要，不可關閉",
     ),
     "openpgpTouchRequired": MessageLookupByLibrary.simpleMessage("需要觸碰"),
     "openpgpUIF": MessageLookupByLibrary.simpleMessage("觸碰設定"),
-    "openpgpUifCacheTime": MessageLookupByLibrary.simpleMessage("觸碰快取時間"),
+    "openpgpUifCacheTime": MessageLookupByLibrary.simpleMessage("觸碰確認有效時間"),
     "openpgpUifCacheTimeChanged": MessageLookupByLibrary.simpleMessage(
-      "觸碰快取時間修改成功",
+      "觸碰確認有效時間已修改",
     ),
     "openpgpUifChanged": MessageLookupByLibrary.simpleMessage("觸碰設定修改成功"),
     "openpgpUifOff": MessageLookupByLibrary.simpleMessage("關閉"),
     "openpgpUifOn": MessageLookupByLibrary.simpleMessage("開啟"),
     "openpgpUifPermanent": MessageLookupByLibrary.simpleMessage("永久啟用（無法再關閉）"),
-    "openpgpUnblockUserPin": MessageLookupByLibrary.simpleMessage(
-      "解鎖 User PIN",
-    ),
-    "openpgpUseAdminPin": MessageLookupByLibrary.simpleMessage("使用 Admin PIN"),
-    "openpgpUseResetCode": MessageLookupByLibrary.simpleMessage(
-      "使用 Reset Code",
-    ),
-    "openpgpUserPin": MessageLookupByLibrary.simpleMessage("User PIN"),
+    "openpgpUnblockUserPin": MessageLookupByLibrary.simpleMessage("解鎖 使用者 PIN"),
+    "openpgpUseAdminPin": MessageLookupByLibrary.simpleMessage("使用 管理員 PIN"),
+    "openpgpUseResetCode": MessageLookupByLibrary.simpleMessage("使用 重設碼"),
+    "openpgpUserPin": MessageLookupByLibrary.simpleMessage("使用者 PIN"),
     "openpgpUserPinLength": MessageLookupByLibrary.simpleMessage(
-      "User PIN 長度必須為 6 到 64 個字元。",
+      "使用者 PIN 長度必須為 6 到 64 個字元。",
     ),
     "openpgpVerifyEverySignature": MessageLookupByLibrary.simpleMessage(
       "每次簽章都驗證",
     ),
     "openpgpVerifyEverySignaturePrompt": MessageLookupByLibrary.simpleMessage(
-      "每次簽章都驗證 User PIN",
+      "每次簽章都驗證 使用者 PIN",
     ),
     "openpgpVerifyOnceAfterInsertion": MessageLookupByLibrary.simpleMessage(
       "插入後驗證一次",
@@ -447,18 +460,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "openpgpVerifyOnceAfterInsertionPrompt":
         MessageLookupByLibrary.simpleMessage("每次插入後只驗證一次"),
     "openpgpVersion": MessageLookupByLibrary.simpleMessage("版本"),
+    "operationFailed": MessageLookupByLibrary.simpleMessage(
+      "操作失敗，請重新讀取 CanoKey 後再試一次。",
+    ),
     "other": MessageLookupByLibrary.simpleMessage("其他"),
-    "passDescription": MessageLookupByLibrary.simpleMessage("設定按鍵觸發的密碼插槽功能。"),
+    "passDescription": MessageLookupByLibrary.simpleMessage(
+      "設定短按或長按 CanoKey 時輸出的密碼。",
+    ),
     "passInputPinPrompt": MessageLookupByLibrary.simpleMessage(
-      "請輸入您的管理員（設定應用程式） PIN（預設值為 123456）。",
+      "請輸入設定頁面使用的管理 PIN，預設值為 123456。",
     ),
     "passNotSupported": MessageLookupByLibrary.simpleMessage(
       "您的 CanoKey 不支援 Pass 功能。",
     ),
     "passSlotConfigPrompt": MessageLookupByLibrary.simpleMessage(
-      "請設定此密碼插槽。如需設定 HOTP，請前往 HOTP 應用程式。",
+      "選擇觸碰 CanoKey 時執行的操作。如需輸出 HOTP 驗證碼，請在 TOTP / HOTP 頁面設定。",
     ),
-    "passSlotConfigTitle": MessageLookupByLibrary.simpleMessage("設定"),
+    "passSlotConfigTitle": MessageLookupByLibrary.simpleMessage("觸碰輸出設定"),
     "passSlotHmacSha1": MessageLookupByLibrary.simpleMessage("HMAC-SHA1"),
     "passSlotHmacSha1Key": MessageLookupByLibrary.simpleMessage(
       "20 位元組 HMAC-SHA1 金鑰（十六進位）",
@@ -467,8 +485,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "passSlotLong": MessageLookupByLibrary.simpleMessage("長按"),
     "passSlotOff": MessageLookupByLibrary.simpleMessage("關閉"),
     "passSlotShort": MessageLookupByLibrary.simpleMessage("短按"),
-    "passSlotStatic": MessageLookupByLibrary.simpleMessage("靜態密碼"),
-    "passSlotWithEnter": MessageLookupByLibrary.simpleMessage("附加 Enter"),
+    "passSlotStatic": MessageLookupByLibrary.simpleMessage("固定密碼"),
+    "passSlotWithEnter": MessageLookupByLibrary.simpleMessage("輸出後按 Enter"),
     "passStatus": MessageLookupByLibrary.simpleMessage("狀態"),
     "passkey": MessageLookupByLibrary.simpleMessage("通行密鑰"),
     "pinChanged": MessageLookupByLibrary.simpleMessage("PIN 修改成功"),
@@ -478,30 +496,34 @@ class MessageLookup extends MessageLookupByLibrary {
     "pinIncorrect": MessageLookupByLibrary.simpleMessage("PIN 輸入錯誤"),
     "pinInvalidLength": MessageLookupByLibrary.simpleMessage("長度錯誤"),
     "pinLength": MessageLookupByLibrary.simpleMessage("輸入的 PIN 長度錯誤"),
-    "pinRetries": m10,
-    "pivActionsDescription": MessageLookupByLibrary.simpleMessage(
-      "依需要對此憑證槽位執行相關操作。",
+    "pinRetries": m12,
+    "pinVerificationFailed": MessageLookupByLibrary.simpleMessage(
+      "PIN 驗證失敗，請重新讀取 CanoKey 後再試一次。",
     ),
-    "pivAlgorithm": MessageLookupByLibrary.simpleMessage("目前金鑰演算法"),
+    "pivActionsDescription": MessageLookupByLibrary.simpleMessage(
+      "選擇此槽位要執行的操作。",
+    ),
+    "pivAlgorithm": MessageLookupByLibrary.simpleMessage("金鑰演算法"),
     "pivAlgorithmColumn": MessageLookupByLibrary.simpleMessage("演算法"),
     "pivAlgorithmIds": MessageLookupByLibrary.simpleMessage("演算法 ID"),
     "pivAlgorithmIdsPrompt": MessageLookupByLibrary.simpleMessage(
-      "控制卡片是否接受 PIV 擴充演算法 ID。",
+      "允許 CanoKey 使用擴充演算法。",
     ),
     "pivAlgorithmIdsTitle": MessageLookupByLibrary.simpleMessage("PIV 演算法 ID"),
     "pivAlgorithmIdsUpdateFailed": MessageLookupByLibrary.simpleMessage(
       "更新 PIV 演算法 ID 失敗",
     ),
     "pivAlgorithmIdsWarning": MessageLookupByLibrary.simpleMessage(
-      "這些值會影響卡片如何識別 PIV 擴充演算法。除非確認用戶端和韌體需要不同 ID，否則請保持預設值。錯誤的值可能導致已有擴充演算法金鑰顯示為不支援，直到恢復正確 ID。",
+      "通常不需修改。只有軟體或韌體要求使用其他演算法 ID 時才需要變更。填錯後，現有金鑰可能無法辨識；恢復正確的 ID 後可重新辨識。",
     ),
-    "pivAlgorithmValue": m11,
+    "pivAlgorithmValue": m13,
     "pivAttestationUnavailable": MessageLookupByLibrary.simpleMessage(
       "無法產生證明憑證。裝置必須已設定 F9 證明金鑰和憑證。",
     ),
     "pivAuthentication": MessageLookupByLibrary.simpleMessage(
       "驗證（Authentication）",
     ),
+    "pivBasicConstraints": MessageLookupByLibrary.simpleMessage("憑證基本限制"),
     "pivCardAuthentication": MessageLookupByLibrary.simpleMessage(
       "卡驗證（Card Authentication）",
     ),
@@ -527,35 +549,35 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivCertificateOnlyKeepsPrivateKey": MessageLookupByLibrary.simpleMessage(
       "只匯入憑證不會改變私密金鑰。請確認該憑證屬於卡內已有私密金鑰。",
     ),
-    "pivCertificatePresent": MessageLookupByLibrary.simpleMessage("有憑證"),
+    "pivCertificatePresent": MessageLookupByLibrary.simpleMessage("已存有憑證"),
     "pivCertificateSerial": MessageLookupByLibrary.simpleMessage("序號"),
     "pivCertificateSize": MessageLookupByLibrary.simpleMessage("憑證大小"),
     "pivCertificateStatus": MessageLookupByLibrary.simpleMessage("憑證狀態"),
-    "pivCertificateSubject": MessageLookupByLibrary.simpleMessage("使用者"),
+    "pivCertificateSubject": MessageLookupByLibrary.simpleMessage("憑證主體"),
     "pivCertificateSubjectAndExtensions": MessageLookupByLibrary.simpleMessage(
       "憑證資訊與擴充欄位",
     ),
-    "pivCertificateSubjectStep": MessageLookupByLibrary.simpleMessage("憑證主題"),
+    "pivCertificateSubjectStep": MessageLookupByLibrary.simpleMessage("憑證主體資訊"),
     "pivCertificateValidFrom": MessageLookupByLibrary.simpleMessage("生效時間"),
     "pivCertificateValidTo": MessageLookupByLibrary.simpleMessage("失效時間"),
-    "pivCertificateWritten": m12,
+    "pivCertificateWritten": m14,
     "pivChangeManagementKey": MessageLookupByLibrary.simpleMessage("修改管理金鑰"),
     "pivChangeManagementKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "新管理金鑰的長度應當為 24 位元組。請妥善保管管理金鑰，否則您將無法管理 PIV 應用程式。",
     ),
     "pivChangePUK": MessageLookupByLibrary.simpleMessage("修改 PUK"),
-    "pivChangePUKPrompt": m13,
-    "pivClearSlot": MessageLookupByLibrary.simpleMessage("清空插槽"),
+    "pivChangePUKPrompt": m15,
+    "pivClearSlot": MessageLookupByLibrary.simpleMessage("清空槽位"),
     "pivClearSlotFailed": MessageLookupByLibrary.simpleMessage(
-      "清空插槽失敗。請確認韌體支援刪除私密金鑰。",
+      "清空槽位失敗。請確認韌體支援刪除私密金鑰。",
     ),
     "pivClearSlotPrompt": MessageLookupByLibrary.simpleMessage(
-      "此操作會刪除此插槽中的私密金鑰和憑證。請確認您仍有其他驗證方式。",
+      "此操作會刪除此槽位中的私密金鑰和憑證。請確認您仍有其他驗證方式。",
     ),
-    "pivClearSlotTitle": m14,
-    "pivCommonName": MessageLookupByLibrary.simpleMessage("通用名稱"),
+    "pivClearSlotTitle": m16,
+    "pivCommonName": MessageLookupByLibrary.simpleMessage("一般名稱（CN）"),
     "pivCopyPem": MessageLookupByLibrary.simpleMessage("複製 PEM"),
-    "pivCountryCode": MessageLookupByLibrary.simpleMessage("國家代碼"),
+    "pivCountryCode": MessageLookupByLibrary.simpleMessage("國家或地區代碼"),
     "pivCreateCertificate": MessageLookupByLibrary.simpleMessage("建立憑證"),
     "pivCreateCertificateFailed": MessageLookupByLibrary.simpleMessage(
       "建立憑證失敗",
@@ -566,16 +588,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivCsrCopied": MessageLookupByLibrary.simpleMessage("CSR 已複製"),
     "pivCsrGenerated": MessageLookupByLibrary.simpleMessage("CSR 已產生"),
     "pivCsrGenerationPrompt": MessageLookupByLibrary.simpleMessage(
-      "產生 CSR 會使用卡內新金鑰對請求簽章。",
+      "產生憑證簽署請求（CSR），用於向憑證授權單位申請憑證。新金鑰將在 CanoKey 中產生。",
     ),
-    "pivCsrSubject": MessageLookupByLibrary.simpleMessage("CSR 主題"),
+    "pivCsrSubject": MessageLookupByLibrary.simpleMessage("憑證請求資訊"),
     "pivDangerDescription": MessageLookupByLibrary.simpleMessage(
-      "這些操作可能永久變更或刪除金鑰，請謹慎操作。",
+      "移動或刪除金鑰前，請確認您有其他登入或解密方式。",
     ),
     "pivDangerZone": MessageLookupByLibrary.simpleMessage("危險操作"),
     "pivDelete": MessageLookupByLibrary.simpleMessage("刪除"),
-    "pivDeleteSlot": m15,
-    "pivDestinationSlot": MessageLookupByLibrary.simpleMessage("目標插槽"),
+    "pivDeleteSlot": m17,
+    "pivDestinationSlot": MessageLookupByLibrary.simpleMessage("目標槽位"),
     "pivDiagnostics": MessageLookupByLibrary.simpleMessage("金鑰操作"),
     "pivDisablePinProtectedManagementKey": MessageLookupByLibrary.simpleMessage(
       "改為手動管理金鑰",
@@ -584,11 +606,11 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage("改為手動管理金鑰失敗"),
     "pivDisablePinProtectedManagementKeyPrompt":
         MessageLookupByLibrary.simpleMessage(
-          "清除 PIN 保護的副本前會先設定新的管理金鑰。 PUK 仍保持鎖定。退出此模式後，可透過重設 PIN/PUK 重試次數復原 PUK，但這也會重置 PIN。",
+          "將設定新的管理金鑰，並刪除 CanoKey 中由 PIN 保護的副本。之後需要手動輸入管理金鑰。PUK 仍會鎖定；如需恢復 PUK，可在退出此模式後重設重試次數，但這也會重置 PIN。",
         ),
     "pivDisablePinProtectedManagementKeySuccess":
         MessageLookupByLibrary.simpleMessage("之後需要手動輸入管理金鑰"),
-    "pivDnsSans": MessageLookupByLibrary.simpleMessage("DNS SAN，使用逗號分隔"),
+    "pivDnsSans": MessageLookupByLibrary.simpleMessage("網域名稱（多個名稱以逗號分隔）"),
     "pivDownloadAttestation": MessageLookupByLibrary.simpleMessage("下載證明憑證"),
     "pivEmpty": MessageLookupByLibrary.simpleMessage("空"),
     "pivEnablePinProtectedManagementKey": MessageLookupByLibrary.simpleMessage(
@@ -598,21 +620,21 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage("儲存 PIN 保護管理金鑰失敗"),
     "pivEnablePinProtectedManagementKeyPrompt":
         MessageLookupByLibrary.simpleMessage(
-          "將設定隨機管理金鑰，並以 PIN 保護的形式儲存在卡內。 PUK 將被鎖死，無法再用於復原遺忘或鎖定的 PIN。此模式下不能重設 PIN/PUK 重試次數。",
+          "啟用後，管理金鑰將隨機產生並儲存在 CanoKey 中，後續管理操作只需驗證 PIN。PUK 將被鎖定，無法再用於重設或解鎖 PIN。啟用期間也無法修改 PIN 和 PUK 的重試次數。",
         ),
     "pivEnablePinProtectedManagementKeySuccess":
         MessageLookupByLibrary.simpleMessage("管理金鑰已由 PIN 保護"),
     "pivEndEntityConstraint": MessageLookupByLibrary.simpleMessage(
-      "加入 Basic Constraints：CA=false",
+      "標示為非 CA 憑證（CA=false）",
     ),
     "pivExport": MessageLookupByLibrary.simpleMessage("匯出"),
     "pivExportCertificate": MessageLookupByLibrary.simpleMessage("匯出憑證"),
     "pivExportDescription": MessageLookupByLibrary.simpleMessage(
-      "匯出憑證與公鑰以備份或分發。",
+      "將憑證或公開金鑰儲存為檔案。",
     ),
     "pivExportPublicKey": MessageLookupByLibrary.simpleMessage("匯出公開金鑰"),
     "pivExtendedAlgorithmCompatibilityWarning":
-        MessageLookupByLibrary.simpleMessage("使用此演算法前請確認用戶端相容性。"),
+        MessageLookupByLibrary.simpleMessage("請先確認您要使用的軟體支援此演算法。"),
     "pivExtendedKeyUsage": MessageLookupByLibrary.simpleMessage("延伸金鑰用途（EKU）"),
     "pivExtensionsDescription": MessageLookupByLibrary.simpleMessage(
       "設定憑證的基本限制、金鑰用途與延伸金鑰用途。",
@@ -632,7 +654,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "產生 X25519 金鑰失敗",
     ),
     "pivGeneratingCsr": MessageLookupByLibrary.simpleMessage("產生 CSR"),
-    "pivGeneratingKey": m16,
+    "pivGeneratingKey": m18,
     "pivGeneratingX25519Key": MessageLookupByLibrary.simpleMessage(
       "產生 X25519 金鑰",
     ),
@@ -640,10 +662,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivImportFailed": MessageLookupByLibrary.simpleMessage("匯入失敗"),
     "pivImportSucceeded": MessageLookupByLibrary.simpleMessage("匯入成功"),
     "pivImportWillReplaceCertificate": MessageLookupByLibrary.simpleMessage(
-      "本次匯入會替換此插槽中現有的憑證。",
+      "本次匯入會替換此槽位中現有的憑證。",
     ),
     "pivImportWillReplacePrivateKey": MessageLookupByLibrary.simpleMessage(
-      "本次匯入會替換此插槽中現有的私密金鑰。",
+      "本次匯入會替換此槽位中現有的私密金鑰。",
     ),
     "pivImportingPrivateKey": MessageLookupByLibrary.simpleMessage("匯入私密金鑰"),
     "pivKeyGenerated": MessageLookupByLibrary.simpleMessage("金鑰已產生"),
@@ -655,81 +677,81 @@ class MessageLookup extends MessageLookupByLibrary {
       "只匯入私密金鑰會保留現有憑證。如憑證不再相符，請替換或清空憑證。",
     ),
     "pivKeyOperationsDescription": MessageLookupByLibrary.simpleMessage(
-      "使用金鑰進行簽署或驗證。",
+      "為訊息或檔案簽署，或驗證檔案簽章。",
     ),
     "pivKeyOptions": MessageLookupByLibrary.simpleMessage("金鑰選項"),
     "pivKeyUsage": MessageLookupByLibrary.simpleMessage("金鑰用途（Key Usage）"),
-    "pivKeyUsageCritical": MessageLookupByLibrary.simpleMessage(
-      "將 Key Usage 標示為 critical",
-    ),
-    "pivMacLogin": MessageLookupByLibrary.simpleMessage("Mac 登入"),
+    "pivKeyUsageCritical": MessageLookupByLibrary.simpleMessage("要求驗證端檢查金鑰用途"),
+    "pivMacLogin": MessageLookupByLibrary.simpleMessage("macOS 登入"),
     "pivMacLoginDescription": MessageLookupByLibrary.simpleMessage(
       "使用 PIV 憑證登入 macOS。",
     ),
     "pivMacOsAfterAuthentication": MessageLookupByLibrary.simpleMessage(
-      "9A 已設定。下一步請檢查 9D：Mac 還需要它的金鑰和憑證來解鎖登入鑰匙圈。",
+      "9A 槽位設定已完成。請繼續檢查 9D 槽位，確認已設定用於解鎖登入鑰匙圈的金鑰和憑證。",
     ),
     "pivMacOsAfterKeychain": MessageLookupByLibrary.simpleMessage(
-      "9D 已設定。請確認 9A 也已設定，再重新插入 CanoKey，在 Mac 上與帳號配對。",
+      "9D 槽位設定已完成。請確認 9A 槽位也已設定，然後重新插入 CanoKey，並依照 macOS 的提示，將智慧卡與您的使用者帳號配對。",
     ),
-    "pivMacOsApply": MessageLookupByLibrary.simpleMessage("套用 Mac 登入設定"),
+    "pivMacOsApply": MessageLookupByLibrary.simpleMessage("套用 macOS 登入建議設定"),
     "pivMacOsAuthenticationSlot": MessageLookupByLibrary.simpleMessage(
-      "9A · 登入驗證",
+      "9A · 身分驗證",
     ),
-    "pivMacOsCheckSlot": m17,
+    "pivMacOsCheckSlot": m19,
     "pivMacOsDescription": MessageLookupByLibrary.simpleMessage(
-      "設定 9A，讓 Mac 登入時驗證你的身分。還需要在 9D 建立金鑰和憑證，用來解鎖登入鑰匙圈。",
+      "9A 槽位中的金鑰和憑證用於 macOS 登入時的身分驗證。還需設定 9D 槽位，用於解鎖登入鑰匙圈。",
     ),
     "pivMacOsGuide": MessageLookupByLibrary.simpleMessage(
-      "先設定 9A 用於登入驗證，再設定 9D 用於解鎖登入鑰匙圈。兩個槽位都設定好後，重新插入 CanoKey，在 Mac 上與帳號配對。",
+      "設定 9A 槽位用於登入時的身分驗證，設定 9D 槽位用於解鎖登入鑰匙圈。完成後，請重新插入 CanoKey，並依照 macOS 的提示，將智慧卡與您的使用者帳號配對。",
     ),
     "pivMacOsGuideTitle": MessageLookupByLibrary.simpleMessage(
-      "使用 CanoKey 登入 Mac",
+      "使用 CanoKey 登入 macOS",
     ),
     "pivMacOsKeychainDescription": MessageLookupByLibrary.simpleMessage(
-      "設定 9D，用來解鎖 Mac 的登入鑰匙圈。還需要在 9A 設定登入憑證。",
+      "9D 槽位中的金鑰和憑證用於解鎖 macOS 登入鑰匙圈。還需設定 9A 槽位，用於登入時的身分驗證。",
     ),
     "pivMacOsKeychainSlot": MessageLookupByLibrary.simpleMessage("9D · 解鎖鑰匙圈"),
     "pivMacOsOtherSlot": MessageLookupByLibrary.simpleMessage(
-      "登入 Mac，請設定 9A 和 9D 兩個槽位。",
+      "使用 CanoKey 登入 macOS，需要設定 9A 和 9D 兩個槽位。",
     ),
-    "pivMacOsSlotApplied": m18,
+    "pivMacOsSlotApplied": m20,
     "pivMacSetupConsent": MessageLookupByLibrary.simpleMessage(
-      "我同意替換上面列出的內容。被替換的金鑰無法復原。",
+      "我確認替換上面列出的金鑰或憑證。被替換的金鑰無法復原。",
     ),
-    "pivMacSetupCreate": MessageLookupByLibrary.simpleMessage("建立金鑰和憑證"),
+    "pivMacSetupCreate": MessageLookupByLibrary.simpleMessage("產生金鑰和憑證"),
     "pivMacSetupCredentials": MessageLookupByLibrary.simpleMessage(
       "請輸入 PIV PIN 和管理金鑰。",
     ),
     "pivMacSetupDone": MessageLookupByLibrary.simpleMessage(
-      "CanoKey 已設定好。請將 CanoKey 重新插入 Mac，按照系統提示配對。還需要在 Mac 上完成帳戶配對。",
+      "CanoKey 設定完成。請重新插入 CanoKey，依照 macOS 提示與您的登入帳號配對。",
     ),
     "pivMacSetupError": MessageLookupByLibrary.simpleMessage(
-      "未能完成。請檢查裝置連線、PIV PIN 和管理金鑰，再重新檢查。已完成的設定會保留。不支援無法讀取金鑰資訊的舊版韌體。",
+      "檢查或設定失敗。請檢查連線、PIV PIN 和管理金鑰後再試一次。已完成的設定會保留。無法讀取金鑰資訊的舊版韌體不支援此功能。",
     ),
     "pivMacSetupFinished": MessageLookupByLibrary.simpleMessage("已完成"),
-    "pivMacSetupInspect": MessageLookupByLibrary.simpleMessage("檢查 CanoKey"),
+    "pivMacSetupInspect": MessageLookupByLibrary.simpleMessage("重新檢查"),
     "pivMacSetupIntro": MessageLookupByLibrary.simpleMessage(
-      "檢查 9A 和 9D，保留可用的金鑰和憑證，補齊缺少的設定。",
+      "設定 macOS 登入所需的金鑰和憑證。將檢查 9A 和 9D 槽位，並保留符合要求的現有內容。",
     ),
     "pivMacSetupInvalid": MessageLookupByLibrary.simpleMessage(
-      "請檢查 PIN 和管理金鑰的格式。",
+      "PIV PIN 或管理金鑰的格式不正確，請檢查後再試一次。",
     ),
-    "pivMacSetupIssue": MessageLookupByLibrary.simpleMessage("保留金鑰，新增憑證"),
+    "pivMacSetupIssue": MessageLookupByLibrary.simpleMessage("保留現有金鑰，產生憑證"),
     "pivMacSetupKeep": MessageLookupByLibrary.simpleMessage("保留現有設定"),
     "pivMacSetupManagementKey": MessageLookupByLibrary.simpleMessage(
       "管理金鑰（十六進位）",
     ),
-    "pivMacSetupReplaceCert": MessageLookupByLibrary.simpleMessage("保留金鑰，替換憑證"),
+    "pivMacSetupReplaceCert": MessageLookupByLibrary.simpleMessage(
+      "保留現有金鑰，替換憑證",
+    ),
     "pivMacSetupReplaceKey": MessageLookupByLibrary.simpleMessage("替換金鑰和憑證"),
-    "pivMacSetupStart": MessageLookupByLibrary.simpleMessage("設定 CanoKey"),
-    "pivMacSetupTitle": MessageLookupByLibrary.simpleMessage("設定 Mac 登入"),
+    "pivMacSetupStart": MessageLookupByLibrary.simpleMessage("開始設定"),
+    "pivMacSetupTitle": MessageLookupByLibrary.simpleMessage("設定 macOS 登入"),
     "pivMacSetupWorking": MessageLookupByLibrary.simpleMessage("正在設定"),
     "pivMainSlots": MessageLookupByLibrary.simpleMessage("主要槽位"),
     "pivManage": MessageLookupByLibrary.simpleMessage("管理"),
     "pivManagementKey": MessageLookupByLibrary.simpleMessage("管理金鑰"),
     "pivManagementKeyAuthentication": MessageLookupByLibrary.simpleMessage(
-      "管理金鑰驗證",
+      "管理金鑰驗證方式",
     ),
     "pivManagementKeyVerificationFailed": MessageLookupByLibrary.simpleMessage(
       "管理金鑰驗證失敗",
@@ -743,50 +765,50 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivModifyWithCaution": MessageLookupByLibrary.simpleMessage("請謹慎修改"),
     "pivMoveKey": MessageLookupByLibrary.simpleMessage("移動金鑰"),
     "pivMoveKeyFailed": MessageLookupByLibrary.simpleMessage(
-      "移動金鑰失敗。目標插槽必須不包含金鑰。",
+      "移動失敗，請選擇沒有金鑰的目標槽位。",
     ),
-    "pivMoveKeyFrom": m19,
+    "pivMoveKeyFrom": m21,
     "pivMoveKeyPrompt": MessageLookupByLibrary.simpleMessage(
-      "僅移動私密金鑰；憑證會保留在原來的插槽中。",
+      "僅移動私密金鑰；憑證會保留在原來的槽位中。",
     ),
     "pivNameColumn": MessageLookupByLibrary.simpleMessage("名稱"),
-    "pivNewManagementKey": MessageLookupByLibrary.simpleMessage("新金鑰"),
+    "pivNewManagementKey": MessageLookupByLibrary.simpleMessage("新管理金鑰"),
     "pivNewPUK": MessageLookupByLibrary.simpleMessage("新 PUK"),
     "pivNoCertificate": MessageLookupByLibrary.simpleMessage("無憑證"),
     "pivNoEmptyDestinationSlot": MessageLookupByLibrary.simpleMessage(
-      "沒有可用的空目標插槽。",
+      "沒有可接收金鑰的空槽位。",
     ),
     "pivNoFileSelected": MessageLookupByLibrary.simpleMessage("未選擇檔案"),
     "pivNoPublicKeyAvailable": MessageLookupByLibrary.simpleMessage(
       "沒有可用的公開金鑰",
     ),
     "pivNotSelected": MessageLookupByLibrary.simpleMessage("未選擇"),
-    "pivOccupiedSlots": m20,
-    "pivOldManagementKey": MessageLookupByLibrary.simpleMessage("目前金鑰"),
+    "pivOccupiedSlots": m22,
+    "pivOldManagementKey": MessageLookupByLibrary.simpleMessage("目前管理金鑰"),
     "pivOldPUK": MessageLookupByLibrary.simpleMessage("目前 PUK"),
     "pivOrganization": MessageLookupByLibrary.simpleMessage("組織"),
     "pivOrganizationalUnit": MessageLookupByLibrary.simpleMessage("組織單位"),
     "pivOrigin": MessageLookupByLibrary.simpleMessage("來源"),
-    "pivOriginGenerated": MessageLookupByLibrary.simpleMessage("內部產生"),
-    "pivOriginImported": MessageLookupByLibrary.simpleMessage("外部匯入"),
+    "pivOriginGenerated": MessageLookupByLibrary.simpleMessage("在 CanoKey 上產生"),
+    "pivOriginImported": MessageLookupByLibrary.simpleMessage("從檔案匯入"),
     "pivOverwrite": MessageLookupByLibrary.simpleMessage("覆蓋"),
     "pivOverwriteKey": MessageLookupByLibrary.simpleMessage("覆蓋金鑰"),
-    "pivOverwriteKeyPrompt": m21,
+    "pivOverwriteKeyPrompt": m23,
     "pivPageDescription": MessageLookupByLibrary.simpleMessage(
-      "管理 PIV 的 PIN、金鑰與憑證，設定身分驗證所需的憑據。",
+      "管理 CanoKey 中的 PIV 金鑰、憑證和 PIN。",
     ),
     "pivPageTitle": MessageLookupByLibrary.simpleMessage("PIV"),
     "pivPinAndTouchPolicy": MessageLookupByLibrary.simpleMessage("PIN 和觸碰策略"),
     "pivPinDescription": MessageLookupByLibrary.simpleMessage("用於使用者身分驗證"),
     "pivPinManagement": MessageLookupByLibrary.simpleMessage("管理 PIN"),
     "pivPinPolicy": MessageLookupByLibrary.simpleMessage("PIN 策略"),
-    "pivPinPolicyAlways": MessageLookupByLibrary.simpleMessage("總是驗證"),
-    "pivPinPolicyChip": m22,
+    "pivPinPolicyAlways": MessageLookupByLibrary.simpleMessage("每次驗證"),
+    "pivPinPolicyChip": m24,
     "pivPinPolicyDefault": MessageLookupByLibrary.simpleMessage("預設"),
     "pivPinPolicyNever": MessageLookupByLibrary.simpleMessage("從不驗證"),
     "pivPinPolicyOnce": MessageLookupByLibrary.simpleMessage("工作階段內驗證一次"),
     "pivPinProtectedKeyOnCard": MessageLookupByLibrary.simpleMessage(
-      "卡內 PIN 保護金鑰",
+      "使用 PIN 驗證",
     ),
     "pivPinProtectedManagementKeyDescription":
         MessageLookupByLibrary.simpleMessage("使用 PIN 解鎖儲存在卡內的管理金鑰。"),
@@ -796,17 +818,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivPrivateKey": MessageLookupByLibrary.simpleMessage("私密金鑰"),
     "pivProvisioning": MessageLookupByLibrary.simpleMessage("設定"),
     "pivProvisioningDescription": MessageLookupByLibrary.simpleMessage(
-      "產生或匯入此槽位的憑證。",
+      "為此槽位產生或匯入金鑰和憑證。",
     ),
     "pivPublicKey": MessageLookupByLibrary.simpleMessage("公開金鑰"),
     "pivPukDescription": MessageLookupByLibrary.simpleMessage("用於解除 PIN 鎖定"),
     "pivPukRetries": MessageLookupByLibrary.simpleMessage("PUK 重試次數"),
-    "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage("隨機值"),
-    "pivRetired1": MessageLookupByLibrary.simpleMessage("退役金鑰 1"),
-    "pivRetired2": MessageLookupByLibrary.simpleMessage("退役金鑰 2"),
-    "pivRetiredSlot": m23,
+    "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage("隨機產生"),
+    "pivRetired1": MessageLookupByLibrary.simpleMessage("歷史金鑰 1"),
+    "pivRetired2": MessageLookupByLibrary.simpleMessage("歷史金鑰 2"),
+    "pivRetiredSlot": m25,
     "pivRetiredSlots": MessageLookupByLibrary.simpleMessage("歷史金鑰槽位"),
-    "pivRetries": m24,
+    "pivRetries": m26,
     "pivRetriesRemaining": MessageLookupByLibrary.simpleMessage("剩餘嘗試次數"),
     "pivRetriesUnknown": MessageLookupByLibrary.simpleMessage("剩餘次數：未知"),
     "pivReview": MessageLookupByLibrary.simpleMessage("確認"),
@@ -816,73 +838,71 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "pivSelectFile": MessageLookupByLibrary.simpleMessage("選擇檔案"),
     "pivSelectFileAndSignatureFirst": MessageLookupByLibrary.simpleMessage(
-      "請先選擇檔案和簽章。",
+      "請先選擇原始檔案和簽章檔案。",
     ),
     "pivSelectFileFirst": MessageLookupByLibrary.simpleMessage("請先選擇檔案。"),
-    "pivSelectFileHint": MessageLookupByLibrary.simpleMessage(
-      "（請確認檔案包含明文私密金鑰或憑證）",
-    ),
+    "pivSelectFileHint": MessageLookupByLibrary.simpleMessage("私密金鑰檔案不能有密碼保護。"),
     "pivSelectFilePrompt": MessageLookupByLibrary.simpleMessage(
-      "點選選擇 PEM 或 DER 憑證/私密金鑰",
+      "選擇 PEM 或 DER 格式的憑證或私密金鑰檔案",
     ),
     "pivSelfSign": MessageLookupByLibrary.simpleMessage("產生自我簽署憑證"),
     "pivSelfSignCertificate": MessageLookupByLibrary.simpleMessage("產生自我簽署憑證"),
     "pivSelfSignedCertificateWarning": MessageLookupByLibrary.simpleMessage(
-      "自我簽署憑證適合本地測試，相容性取決於用戶端。",
+      "自我簽署憑證可能需要在使用的軟體中手動設為受信任憑證。請先確認該軟體支援自我簽署憑證。",
     ),
     "pivSetPinPukRetries": MessageLookupByLibrary.simpleMessage(
       "設定 PIN/PUK 重試次數",
     ),
     "pivSetPinPukRetriesPrompt": MessageLookupByLibrary.simpleMessage(
-      "此操作會將 PIN 重置為 123456，PUK 重置為 12345678。 請先關閉 PIN 保護的管理金鑰模式。",
+      "修改重試次數會將 PIN 重置為 123456，PUK 重置為 12345678。請先關閉「使用 PIN 保護管理金鑰」。",
     ),
     "pivSetRetriesFailed": MessageLookupByLibrary.simpleMessage("設定重試次數失敗"),
     "pivSetRetriesMetadataFailed": MessageLookupByLibrary.simpleMessage(
-      "PIN/PUK 重試次數已設定，PIN/PUK 已重置，但管理中繼資料更新失敗。目前 PIN 為 123456，PUK 為 12345678。",
+      "重試次數已修改，但部分管理資訊未能儲存。PIN 已重置為 123456，PUK 已重置為 12345678。請重新讀取 CanoKey，檢查目前狀態。",
     ),
     "pivSetRetriesSuccess": MessageLookupByLibrary.simpleMessage(
-      "PIN/PUK 重試次數已設定，PIN 和 PUK 已重置。",
+      "重試次數已修改，PIN 已重置為 123456，PUK 已重置為 12345678。",
     ),
     "pivSha256Fingerprint": MessageLookupByLibrary.simpleMessage("SHA-256 指紋"),
     "pivSign": MessageLookupByLibrary.simpleMessage("簽章"),
-    "pivSignFile": MessageLookupByLibrary.simpleMessage("簽章檔案"),
+    "pivSignFile": MessageLookupByLibrary.simpleMessage("檔案簽章"),
     "pivSignFilePrompt": MessageLookupByLibrary.simpleMessage(
-      "為所選檔案產生分離式原始簽章。",
+      "使用此金鑰為檔案簽署。簽章將另存為檔案，不會修改原始檔案。",
     ),
-    "pivSignMessage": MessageLookupByLibrary.simpleMessage("簽章訊息"),
+    "pivSignMessage": MessageLookupByLibrary.simpleMessage("訊息簽章"),
     "pivSignature": MessageLookupByLibrary.simpleMessage(
       "簽章（Digital Signature）",
     ),
     "pivSignatureAlgorithm": MessageLookupByLibrary.simpleMessage("簽章演算法"),
-    "pivSignatureFile": MessageLookupByLibrary.simpleMessage("簽章"),
+    "pivSignatureFile": MessageLookupByLibrary.simpleMessage("簽章檔案"),
     "pivSignatureHex": MessageLookupByLibrary.simpleMessage("簽章（十六進位）"),
     "pivSignatureVerificationFailed": MessageLookupByLibrary.simpleMessage(
       "簽章驗證失敗",
     ),
     "pivSignatureVerified": MessageLookupByLibrary.simpleMessage("簽章驗證通過"),
     "pivSlotAuthenticationHint": MessageLookupByLibrary.simpleMessage(
-      "驗證插槽。用於登入時應選擇可簽章金鑰。",
+      "用於登入時的身分驗證，請選擇支援簽章的金鑰演算法。",
     ),
     "pivSlotCardAuthenticationHint": MessageLookupByLibrary.simpleMessage(
-      "卡驗證插槽。部分用途可能不需要 PIN。",
+      "用於驗證智慧卡身分，是否需要 PIN 取決於使用情境。",
     ),
     "pivSlotCertificateOnly": MessageLookupByLibrary.simpleMessage("僅憑證"),
-    "pivSlotCleared": MessageLookupByLibrary.simpleMessage("插槽已清空"),
+    "pivSlotCleared": MessageLookupByLibrary.simpleMessage("槽位已清空"),
     "pivSlotColumn": MessageLookupByLibrary.simpleMessage("槽位"),
     "pivSlotKeyAndCertificate": MessageLookupByLibrary.simpleMessage("金鑰與憑證"),
     "pivSlotKeyManagementHint": MessageLookupByLibrary.simpleMessage(
-      "金鑰管理插槽。X25519 只能用於衍生共用金鑰。",
+      "用於解密或金鑰協議。X25519 僅支援金鑰協議。",
     ),
     "pivSlotKeyOnly": MessageLookupByLibrary.simpleMessage("僅金鑰"),
     "pivSlotRetiredHint": MessageLookupByLibrary.simpleMessage(
-      "退役金鑰管理插槽，用於儲存舊解密私密金鑰及其憑證。",
+      "儲存舊的解密金鑰和憑證，以便繼續讀取以前加密的資料。",
     ),
     "pivSlotSignatureHint": MessageLookupByLibrary.simpleMessage(
-      "數位簽章插槽。PIN 策略預設總是驗證。",
+      "用於數位簽章，預設每次簽署都需要驗證 PIN。",
     ),
-    "pivSlots": MessageLookupByLibrary.simpleMessage("憑證插槽"),
+    "pivSlots": MessageLookupByLibrary.simpleMessage("憑證槽位"),
     "pivSlotsDescription": MessageLookupByLibrary.simpleMessage(
-      "管理 PIV 標準憑證槽位中的金鑰與憑證。",
+      "每個槽位用於存放一組金鑰和憑證。",
     ),
     "pivSlotsHint": MessageLookupByLibrary.simpleMessage("選擇槽位檢視或管理憑證"),
     "pivSlotsTitle": MessageLookupByLibrary.simpleMessage("憑證槽位"),
@@ -895,15 +915,19 @@ class MessageLookup extends MessageLookupByLibrary {
       "將新管理金鑰儲存在卡內",
     ),
     "pivStoreManagementKeyOnCardPrompt": MessageLookupByLibrary.simpleMessage(
-      "啟用後，後續管理操作可用 PIN 完成驗證。 此操作會鎖死 PUK，之後無法透過 PUK 復原 PIN。",
+      "儲存在 CanoKey 後，管理操作只需驗證 PIN。PUK 將被鎖定，無法再用於重設或解鎖 PIN。",
     ),
-    "pivSubjectDescription": MessageLookupByLibrary.simpleMessage("填寫憑證的識別資訊。"),
+    "pivSubjectDescription": MessageLookupByLibrary.simpleMessage(
+      "填寫憑證持有者的名稱、組織等資訊。",
+    ),
     "pivTouchPolicy": MessageLookupByLibrary.simpleMessage("觸碰策略"),
-    "pivTouchPolicyAlways": MessageLookupByLibrary.simpleMessage("總是驗證"),
-    "pivTouchPolicyCached": MessageLookupByLibrary.simpleMessage("快取 15 秒"),
-    "pivTouchPolicyChip": m25,
+    "pivTouchPolicyAlways": MessageLookupByLibrary.simpleMessage("每次觸碰"),
+    "pivTouchPolicyCached": MessageLookupByLibrary.simpleMessage(
+      "觸碰後 15 秒內免確認",
+    ),
+    "pivTouchPolicyChip": m27,
     "pivTouchPolicyDefault": MessageLookupByLibrary.simpleMessage("預設"),
-    "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("從不驗證"),
+    "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("無需觸碰"),
     "pivTransfer": MessageLookupByLibrary.simpleMessage("匯入/匯出"),
     "pivUnblockPin": MessageLookupByLibrary.simpleMessage("解鎖 PIN"),
     "pivUnblockPinPrompt": MessageLookupByLibrary.simpleMessage(
@@ -912,18 +936,28 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivUnsupportedImportFile": MessageLookupByLibrary.simpleMessage(
       "不支援的檔案。請使用 PEM 或 DER 格式的憑證/私密金鑰檔案。",
     ),
-    "pivUsageOmitted": MessageLookupByLibrary.simpleMessage("未選取任何用途時省略此擴充欄位。"),
-    "pivUseDefaultManagementKey": MessageLookupByLibrary.simpleMessage("預設值"),
+    "pivUsageClientAuth": MessageLookupByLibrary.simpleMessage("用戶端身分驗證"),
+    "pivUsageCodeSigning": MessageLookupByLibrary.simpleMessage("程式碼簽署"),
+    "pivUsageContentCommitment": MessageLookupByLibrary.simpleMessage("不可否認性"),
+    "pivUsageDataEncipherment": MessageLookupByLibrary.simpleMessage("資料加密"),
+    "pivUsageDigitalSignature": MessageLookupByLibrary.simpleMessage("數位簽章"),
+    "pivUsageEmailProtection": MessageLookupByLibrary.simpleMessage("電子郵件保護"),
+    "pivUsageKeyAgreement": MessageLookupByLibrary.simpleMessage("金鑰協議"),
+    "pivUsageKeyEncipherment": MessageLookupByLibrary.simpleMessage("金鑰加密"),
+    "pivUsageOmitted": MessageLookupByLibrary.simpleMessage("留空表示不加入此用途限制。"),
+    "pivUsageServerAuth": MessageLookupByLibrary.simpleMessage("伺服器身分驗證"),
+    "pivUsageSmartCardLogon": MessageLookupByLibrary.simpleMessage("智慧卡登入"),
+    "pivUseDefaultManagementKey": MessageLookupByLibrary.simpleMessage("使用預設值"),
     "pivValidityDays": MessageLookupByLibrary.simpleMessage("有效天數"),
     "pivVerify": MessageLookupByLibrary.simpleMessage("驗證"),
-    "pivVerifyFile": MessageLookupByLibrary.simpleMessage("驗證檔案"),
+    "pivVerifyFile": MessageLookupByLibrary.simpleMessage("驗證檔案簽章"),
     "pivVerifyFileSignature": MessageLookupByLibrary.simpleMessage("驗證檔案簽章"),
     "pivVerifyFileSignaturePrompt": MessageLookupByLibrary.simpleMessage(
-      "使用目前插槽公開金鑰驗證分離式原始簽章。",
+      "選擇原始檔案和對應的簽章檔案，使用此槽位的公開金鑰驗證簽章。",
     ),
     "pivVerifyManagementKey": MessageLookupByLibrary.simpleMessage("驗證管理金鑰"),
     "pivVerifyPinAndManagementKey": MessageLookupByLibrary.simpleMessage(
-      "驗證 PIN 和管理金鑰",
+      "輸入 PIN 和管理金鑰",
     ),
     "pivViewCertificate": MessageLookupByLibrary.simpleMessage("檢視憑證"),
     "pivX25519CannotUseCertificate": MessageLookupByLibrary.simpleMessage(
@@ -936,7 +970,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "X25519 金鑰已產生",
     ),
     "pivX25519OnlyIn9D": MessageLookupByLibrary.simpleMessage(
-      "X25519 金鑰只支援匯入金鑰管理插槽 9D。",
+      "X25519 金鑰只支援匯入金鑰管理槽位 9D。",
     ),
     "play": MessageLookupByLibrary.simpleMessage("播放"),
     "pollCanceled": MessageLookupByLibrary.simpleMessage("您沒有選擇任何 CanoKey"),
@@ -952,7 +986,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "privacyConsentTitle": MessageLookupByLibrary.simpleMessage("隱私權政策提示"),
     "privacyPolicy": MessageLookupByLibrary.simpleMessage("隱私權政策"),
     "readingAlertMessage": MessageLookupByLibrary.simpleMessage(
-      "請緊貼 CanoKey 直到讀取結束",
+      "請讓 CanoKey 靠近手機，直到讀取完成。",
     ),
     "refresh": MessageLookupByLibrary.simpleMessage("重新整理"),
     "reset": MessageLookupByLibrary.simpleMessage("重置"),
@@ -963,7 +997,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "select": MessageLookupByLibrary.simpleMessage("選擇"),
     "settings": MessageLookupByLibrary.simpleMessage("設定"),
     "settingsAppletStorageUsage": MessageLookupByLibrary.simpleMessage(
-      "各應用程式 Flash 用量",
+      "各應用程式使用空間",
     ),
     "settingsAppletSwitches": MessageLookupByLibrary.simpleMessage("應用程式開關"),
     "settingsChangeLanguage": MessageLookupByLibrary.simpleMessage("修改語言"),
@@ -972,9 +1006,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsClearPinCachePrompt": MessageLookupByLibrary.simpleMessage(
       "確定要清除此裝置上所有已儲存的 PIN 嗎？",
     ),
-    "settingsCoreCommit": MessageLookupByLibrary.simpleMessage("Core Commit"),
+    "settingsCoreCommit": MessageLookupByLibrary.simpleMessage("韌體原始碼版本"),
     "settingsDescription": MessageLookupByLibrary.simpleMessage(
-      "管理裝置設定、自訂行為和系統選項。",
+      "查看 CanoKey 資訊，設定裝置功能和應用程式偏好。",
     ),
     "settingsDeviceActions": MessageLookupByLibrary.simpleMessage("裝置操作"),
     "settingsDeviceSettings": MessageLookupByLibrary.simpleMessage("裝置設定"),
@@ -985,10 +1019,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsInfo": MessageLookupByLibrary.simpleMessage("CanoKey 資訊"),
     "settingsInputPin": MessageLookupByLibrary.simpleMessage("PIN 驗證"),
     "settingsInputPinPrompt": MessageLookupByLibrary.simpleMessage(
-      "請輸入您的管理應用程式 PIN（預設值為 123456）。請注意，該 PIN 與其他應用程式的 PIN 無關。",
+      "請輸入設定頁面使用的管理 PIN，預設值為 123456。它與 OpenPGP、PIV 等應用程式的 PIN 分開設定。",
     ),
     "settingsKeyboardLayout": MessageLookupByLibrary.simpleMessage("鍵盤配置"),
-    "settingsKeyboardLayoutCurrent": m26,
+    "settingsKeyboardLayoutCurrent": m28,
     "settingsKeyboardLayoutCustom": MessageLookupByLibrary.simpleMessage(
       "自訂配置",
     ),
@@ -997,10 +1031,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsKeyboardLayoutUnknown": MessageLookupByLibrary.simpleMessage("未知"),
     "settingsKeyboardLayoutUnknownPrompt": MessageLookupByLibrary.simpleMessage(
-      "目前 keymap 與內建預設組態不一致。套用預設組態會覆蓋現有 keymap。",
+      "目前鍵盤配置是自訂配置。選擇內建配置後，現有配置將被替換。",
     ),
     "settingsKeyboardWithReturn": MessageLookupByLibrary.simpleMessage(
-      "OTP 輸出後附加 Enter",
+      "輸出驗證碼後按 Enter",
     ),
     "settingsLanguage": MessageLookupByLibrary.simpleMessage("語言"),
     "settingsModel": MessageLookupByLibrary.simpleMessage("型號"),
@@ -1018,9 +1052,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsResetAllPrompt": MessageLookupByLibrary.simpleMessage(
       "即將抹除全部資料。當您確認後，CanoKey 將會多次閃爍，請在每次看到閃爍時觸碰，直到提示成功。",
     ),
-    "settingsResetApplet": m27,
+    "settingsResetApplet": m29,
     "settingsResetConditionNotSatisfying": MessageLookupByLibrary.simpleMessage(
-      "PIN 尚未鎖定",
+      "目前 PIN 尚未鎖定，無法重置。",
+    ),
+    "settingsResetFailed": MessageLookupByLibrary.simpleMessage(
+      "重置失敗，請檢查裝置連線後再試一次。",
     ),
     "settingsResetNDEF": MessageLookupByLibrary.simpleMessage("重置 NDEF"),
     "settingsResetOATH": MessageLookupByLibrary.simpleMessage("重置 TOTP/HOTP"),
@@ -1028,7 +1065,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsResetPIV": MessageLookupByLibrary.simpleMessage("重置 PIV"),
     "settingsResetPass": MessageLookupByLibrary.simpleMessage("重置 Pass"),
     "settingsResetPresenceTestFailed": MessageLookupByLibrary.simpleMessage(
-      "請按提示觸碰",
+      "未及時觸碰 CanoKey。請再試一次，並在指示燈閃爍時觸碰。",
     ),
     "settingsResetSuccess": MessageLookupByLibrary.simpleMessage("重置成功"),
     "settingsResetWebAuthn": MessageLookupByLibrary.simpleMessage(
@@ -1042,16 +1079,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsWebAuthnSm2Support": MessageLookupByLibrary.simpleMessage(
       "WebAuthn SM2",
     ),
-    "settingsWebUSB": MessageLookupByLibrary.simpleMessage("插入時 WebUSB 提示"),
+    "settingsWebUSB": MessageLookupByLibrary.simpleMessage("插入時顯示 WebUSB 提示"),
+    "sm2AlgorithmId": MessageLookupByLibrary.simpleMessage("演算法 ID"),
+    "sm2CurveId": MessageLookupByLibrary.simpleMessage("曲線 ID"),
+    "sm2ReservedId": MessageLookupByLibrary.simpleMessage(
+      "此 ID 已被其他演算法或曲線使用，請換一個值。",
+    ),
     "soundCredit": MessageLookupByLibrary.simpleMessage(
       "NFC 互動音效由 Summer Xu 製作。",
     ),
     "storageFull": MessageLookupByLibrary.simpleMessage("CanoKey 儲存空間不足"),
     "successfullyChanged": MessageLookupByLibrary.simpleMessage("修改成功"),
-    "validationAtLeastCharacters": m28,
-    "validationAtMostCharacters": m29,
-    "validationExactLength": m30,
+    "validationAtLeastCharacters": m30,
+    "validationAtMostCharacters": m31,
+    "validationExactLength": m32,
     "validationHexString": MessageLookupByLibrary.simpleMessage("請輸入十六進位字串"),
+    "validationNumber": MessageLookupByLibrary.simpleMessage("請輸入整數。"),
+    "validationNumberMax": m33,
+    "validationNumberMin": m34,
     "viewUserId": MessageLookupByLibrary.simpleMessage("檢視使用者 ID"),
     "warning": MessageLookupByLibrary.simpleMessage("警告"),
     "webAuthnCredentials": MessageLookupByLibrary.simpleMessage("WebAuthn 憑證"),
@@ -1063,16 +1108,19 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "webAuthnMissingCredentialsExplanation":
         MessageLookupByLibrary.simpleMessage(
-          "只有 discoverable credential 會儲存在 CanoKey 中。其他類型的金鑰不會儲存在裝置裡，因此在這裡不可見。",
+          "這裡只顯示 CanoKey 能直接列出的登入憑證。有些憑證需要網站發起登入才能辨識，無法在這裡列出，但仍可用於登入。",
         ),
     "webAuthnSearch": MessageLookupByLibrary.simpleMessage("搜尋 WebAuthn 憑證…"),
     "webPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "請將您的 CanoKey 插入 USB 連接埠並點選重新整理按鈕",
     ),
-    "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
-      "該金鑰不支援 WebAuthn PIN。",
+    "webauthnChangePinFailed": MessageLookupByLibrary.simpleMessage(
+      "無法修改 WebAuthn PIN，請重新讀取 CanoKey 後再試一次。",
     ),
-    "webauthnDelete": m31,
+    "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
+      "此 CanoKey 不支援設定 WebAuthn PIN。",
+    ),
+    "webauthnDelete": m35,
     "webauthnInputPinPrompt": MessageLookupByLibrary.simpleMessage(
       "請輸入您的 WebAuthn PIN。",
     ),
@@ -1080,13 +1128,19 @@ class MessageLookup extends MessageLookupByLibrary {
       "解鎖 WebAuthn",
     ),
     "webauthnPinAuthBlocked": MessageLookupByLibrary.simpleMessage(
-      "PIN 被鎖定，請重新插拔 CanoKey。",
+      "WebAuthn PIN 已暫時鎖定。請重新插拔 CanoKey 後再試一次。",
     ),
     "webauthnPinBlocked": MessageLookupByLibrary.simpleMessage(
-      "PIN 被鎖定，請重置 WebAuthn。",
+      "WebAuthn PIN 已鎖定，需要重置 WebAuthn 才能繼續使用。重置會刪除所有 WebAuthn 憑證。",
+    ),
+    "webauthnPinRequired": MessageLookupByLibrary.simpleMessage(
+      "請先重新整理頁面並輸入 WebAuthn PIN，再重試此操作。",
+    ),
+    "webauthnSetPinFailed": MessageLookupByLibrary.simpleMessage(
+      "無法設定 WebAuthn PIN，請重新讀取 CanoKey 後再試一次。",
     ),
     "webauthnSetPinPrompt": MessageLookupByLibrary.simpleMessage(
-      "請設定 PIN 以啟用憑證管理。PIN 的長度應當為 4 - 63 個字元。",
+      "設定 WebAuthn PIN 後即可管理登入憑證。PIN 需要 4 至 63 個字元。",
     ),
     "webauthnSetPinTitle": MessageLookupByLibrary.simpleMessage(
       "設定 WebAuthn PIN",
