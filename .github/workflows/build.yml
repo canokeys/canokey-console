@@ -14,6 +14,28 @@ env:
   RUST_VERSION: 1.98.1
 
 jobs:
+  ui-tests:
+    name: UI and firmware compatibility tests
+    if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Flutter
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - name: Test UI and firmware compatibility
+        run: >-
+          flutter test --no-pub --reporter expanded
+          test/views
+          test/helper/widgets
+          test/controller/applets/piv/piv_firmware_compatibility_test.dart
+          test/controller/applets/webauthn/webauthn_firmware_compatibility_test.dart
+
   build:
     if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
     defaults:
