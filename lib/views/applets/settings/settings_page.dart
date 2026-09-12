@@ -1,3 +1,4 @@
+import 'package:canokey_console/helper/widgets/responsive.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:canokey_console/views/applets/settings/widgets/settings_surface.dart';
 import 'package:canokey_console/controller/applets/settings/settings_controller.dart';
@@ -27,6 +28,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final mobile = ScreenMedia.getTypeFromWidth(
+      MediaQuery.sizeOf(context).width,
+    ).isMobile;
     return Layout(
       title: S.of(context).settings,
       onRefresh: _controller.refreshData,
@@ -69,41 +73,45 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 72,
-                          height: 72,
-                          decoration: BoxDecoration(
-                            color: SettingsStyle.accent.withValues(alpha: .14),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Icon(
-                            LucideIcons.settings,
-                            size: 36,
-                            color: SettingsStyle.accent,
-                          ),
-                        ),
-                        const SizedBox(width: 22),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomizedText.headlineMedium(
-                                S.of(context).settings,
-                                fontWeight: 700,
+                    if (!mobile) ...[
+                      Row(
+                        children: [
+                          Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              color: SettingsStyle.accent.withValues(
+                                alpha: .14,
                               ),
-                              const SizedBox(height: 6),
-                              CustomizedText.bodyMedium(
-                                S.of(context).settingsDescription,
-                                muted: true,
-                              ),
-                            ],
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Icon(
+                              LucideIcons.settings,
+                              size: 36,
+                              color: SettingsStyle.accent,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 26),
+                          const SizedBox(width: 22),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomizedText.headlineMedium(
+                                  S.of(context).settings,
+                                  fontWeight: 700,
+                                ),
+                                const SizedBox(height: 6),
+                                CustomizedText.bodyMedium(
+                                  S.of(context).settingsDescription,
+                                  muted: true,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 26),
+                    ],
                     if (wide)
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,

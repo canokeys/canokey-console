@@ -256,6 +256,7 @@ class _PivPageState extends State<PivPage>
 
   @override
   Widget build(BuildContext context) {
+    final mobile = ScreenMedia.getTypeFromWidth(MediaQuery.sizeOf(context).width).isMobile;
     return Theme(
       data: Theme.of(context).copyWith(
         scaffoldBackgroundColor: PivStyle.dark(context)
@@ -309,33 +310,48 @@ class _PivPageState extends State<PivPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const PivIcon(Icons.verified_user_outlined, size: 60),
-                          const SizedBox(width: 18),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  S.of(context).pivPageTitle,
-                                  style: PivStyle.text(context, 27, bold: true),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  S.of(context).pivPageDescription,
-                                  style: PivStyle.text(
-                                    context,
-                                    13,
-                                    secondary: true,
-                                  ),
-                                ),
-                              ],
+                      if (!mobile) ...[
+                        Row(
+                          children: [
+                            Container(
+                              width: 72,
+                              height: 72,
+                              decoration: BoxDecoration(
+                                color: PivStyle.primary.withValues(alpha: .14),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Icon(
+                                Icons.verified_user_outlined,
+                                size: 36,
+                                color: PivStyle.primary,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
+                            const SizedBox(width: 22),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomizedText.headlineMedium(
+                                    S.of(context).pivPageTitle,
+                                    fontWeight: 700,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  CustomizedText.bodyMedium(
+                                    S.of(context).pivPageDescription,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 26),
+                      ],
                       PivSlotManager(
                         credentialSettings: PivPinManagementCard(
                           pinInfo: controller.pinInfo,

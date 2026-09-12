@@ -306,6 +306,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "oathCounter": MessageLookupByLibrary.simpleMessage("计数器初始值"),
     "oathCounterMustBeNumber": MessageLookupByLibrary.simpleMessage("请填写数字"),
     "oathDelete": m5,
+    "oathDescription": MessageLookupByLibrary.simpleMessage(
+      "基于时间或计数器的一次性密码，保障您的账户安全。",
+    ),
     "oathDigits": MessageLookupByLibrary.simpleMessage("位数"),
     "oathDuplicated": MessageLookupByLibrary.simpleMessage("账户已存在"),
     "oathInputCode": MessageLookupByLibrary.simpleMessage("解锁 CanoKey"),
@@ -322,6 +325,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "oathPeriod": MessageLookupByLibrary.simpleMessage("周期"),
     "oathRequireTouch": MessageLookupByLibrary.simpleMessage("需要触摸"),
     "oathRequired": MessageLookupByLibrary.simpleMessage("不得为空"),
+    "oathSearch": MessageLookupByLibrary.simpleMessage("搜索账户名称或邮箱"),
     "oathSecret": MessageLookupByLibrary.simpleMessage("密钥"),
     "oathSetCode": MessageLookupByLibrary.simpleMessage("设置口令"),
     "oathSetDefault": MessageLookupByLibrary.simpleMessage("设为触摸输出"),
@@ -352,6 +356,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "openpgpCurrentAdminPin": MessageLookupByLibrary.simpleMessage(
       "当前 Admin PIN",
+    ),
+    "openpgpDescription": MessageLookupByLibrary.simpleMessage(
+      "管理 OpenPGP 卡片信息、PIN 与密钥触摸策略。",
     ),
     "openpgpEncryption": MessageLookupByLibrary.simpleMessage("加密"),
     "openpgpKeyEmpty": MessageLookupByLibrary.simpleMessage("空"),
@@ -441,6 +448,7 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage("每次插入后只验证一次"),
     "openpgpVersion": MessageLookupByLibrary.simpleMessage("版本"),
     "other": MessageLookupByLibrary.simpleMessage("其他"),
+    "passDescription": MessageLookupByLibrary.simpleMessage("配置按键触发的密码槽功能。"),
     "passInputPinPrompt": MessageLookupByLibrary.simpleMessage(
       "请输入您的管理员（设置应用） PIN（默认值为 123456）。",
     ),
@@ -1042,6 +1050,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "validationHexString": MessageLookupByLibrary.simpleMessage("请输入十六进制字符串"),
     "viewUserId": MessageLookupByLibrary.simpleMessage("查看用户 ID"),
     "warning": MessageLookupByLibrary.simpleMessage("警告"),
+    "webAuthnCredentials": MessageLookupByLibrary.simpleMessage("WebAuthn 凭据"),
+    "webAuthnDescription": MessageLookupByLibrary.simpleMessage(
+      "管理存储在 CanoKey 中的 WebAuthn 登录凭据。",
+    ),
+    "webAuthnMissingCredentials": MessageLookupByLibrary.simpleMessage(
+      "为什么看不到我的凭据？",
+    ),
+    "webAuthnMissingCredentialsExplanation":
+        MessageLookupByLibrary.simpleMessage(
+          "只有 discoverable credential 会保存在CanoKey 中。 其他类型的密钥不会保存在设备里，因此在这里不可见。",
+        ),
+    "webAuthnSearch": MessageLookupByLibrary.simpleMessage("搜索 WebAuthn 凭据…"),
     "webPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "请将您的 CanoKey 插入 USB 接口并点击刷新按钮",
     ),

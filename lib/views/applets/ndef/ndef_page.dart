@@ -1,9 +1,7 @@
 import 'package:canokey_console/controller/applets/ndef/ndef_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/utils/shadow.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/applet_disabled_screen.dart';
-import 'package:canokey_console/helper/widgets/customized_card.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
@@ -29,6 +27,9 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
 
   @override
   Widget build(BuildContext context) {
+    final mobile = ScreenMedia.getTypeFromWidth(
+      MediaQuery.sizeOf(context).width,
+    ).isMobile;
     return Layout(
       title: 'NDEF',
       onRefresh: _controller.refreshData,
@@ -43,182 +44,262 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
           }
           if (!_controller.polled) return const PollCanoKeyScreen();
 
-          return Responsive(
-            builder: (context, constraints, screenType) => IgnorePointer(
-              ignoring: _controller.writing,
-              child: Opacity(
-                opacity: _controller.writing ? 0.7 : 1,
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1040),
-                    child: Padding(
-                      padding: Spacing.fromLTRB(
-                          screenType.isMobile ? 16 : flexSpacing,
-                          20,
-                          screenType.isMobile ? 16 : flexSpacing,
-                          flexSpacing),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildOverview(),
-                          Spacing.height(24),
-                          _buildRecordHeader(screenType.isMobile),
-                          Spacing.height(12),
-                          if (_controller.decodeError != null)
-                            _buildNotice(
-                              LucideIcons.shieldAlert,
-                              _controller.decodeError!,
-                              contentTheme.danger,
-                            )
-                          else if (_controller.records.isEmpty)
-                            _buildEmptyState()
-                          else
-                            ...List.generate(
-                              _controller.records.length,
-                              (index) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: _buildRecord(index),
-                              ),
-                            ),
-                          Spacing.height(8),
-                          _buildFooter(screenType.isMobile),
-                        ],
-                      ),
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final compact =
+                  constraints.maxWidth < 640 ||
+                  MediaQuery.textScalerOf(context).scale(14) > 20;
+              return IgnorePointer(
+                ignoring: _controller.writing,
+                child: Opacity(
+                  opacity: _controller.writing ? .7 : 1,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      compact ? 16 : flexSpacing,
+                      compact ? 16 : 0,
+                      compact ? 16 : flexSpacing,
+                      24,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildOverview(mobile),
+                        const SizedBox(height: 28),
+                        _surface(
+                          padding: EdgeInsets.all(compact ? 16 : 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildRecordHeader(compact),
+                              const SizedBox(height: 16),
+                              if (_controller.decodeError != null)
+                                _buildNotice(
+                                  LucideIcons.shieldAlert,
+                                  _controller.decodeError!,
+                                  contentTheme.danger,
+                                )
+                              else if (_controller.records.isEmpty)
+                                _buildEmptyState()
+                              else
+                                for (
+                                  var index = 0;
+                                  index < _controller.records.length;
+                                  index++
+                                ) ...[
+                                  if (index > 0) const SizedBox(height: 12),
+                                  _buildRecord(index),
+                                ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        _buildFooter(compact),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           );
         },
       ),
     );
   }
 
-  Widget _buildOverview() {
+  static const _accent = Color(0xff009b83);
+  Color get _ink => Theme.of(context).colorScheme.onSurface;
+  Color get _muted => Theme.of(context).colorScheme.onSurfaceVariant;
+  Color get _border => Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xff35414c)
+      : const Color(0xffe5edf2);
+
+  Widget _surface({
+    required Widget child,
+    EdgeInsetsGeometry padding = const EdgeInsets.all(24),
+  }) => Material(
+    color: Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xff202b34)
+        : Colors.white,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(9),
+      side: BorderSide(color: _border),
+    ),
+    child: Padding(padding: padding, child: child),
+  );
+
+  ButtonStyle get _buttonStyle => FilledButton.styleFrom(
+    backgroundColor: _accent,
+    foregroundColor: Colors.white,
+    minimumSize: const Size(0, 46),
+    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+    shape: const StadiumBorder(),
+  );
+
+  Widget _buildOverview(bool mobile) {
     final used = _controller.messageLength;
     final total = _controller.maxMessageLength;
-    final progress = total == 0 ? 0.0 : (used / total).clamp(0.0, 1.0);
-    return CustomizedCard(
-      clipBehavior: Clip.antiAlias,
-      paddingAll: 0,
-      shadow: Shadow(elevation: 0.5, position: ShadowPosition.bottom),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: Spacing.all(20),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: contentTheme.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Icon(LucideIcons.nfc,
-                      color: contentTheme.primary, size: 23),
-                ),
-                Spacing.width(16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomizedText.titleMedium(
-                        S.of(context).ndefTagContent,
-                        fontWeight: 600,
-                        color: contentTheme.onBackground,
+    final progress = total <= 0 ? 0.0 : (used / total).clamp(0.0, 1.0);
+    return _surface(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact =
+              constraints.maxWidth < 540 ||
+              MediaQuery.textScalerOf(context).scale(14) > 20;
+          final status = _StatusLabel(
+            text: _controller.readOnly
+                ? S.of(context).ndefReadOnlyStatus
+                : S.of(context).ndefWritable,
+            color: _controller.readOnly ? contentTheme.warning : _accent,
+          );
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!mobile)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: compact ? 56 : 72,
+                      height: compact ? 56 : 72,
+                      decoration: BoxDecoration(
+                        color: _accent.withValues(alpha: .14),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      Spacing.height(4),
-                      CustomizedText.bodySmall(
-                        S.of(context).ndefTagContentDescription,
-                        maxLines: 3,
-                        color: contentTheme.cardText,
+                      child: Icon(
+                        LucideIcons.nfc,
+                        color: _accent,
+                        size: compact ? 30 : 38,
                       ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(width: compact ? 16 : 26),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomizedText.headlineSmall(
+                            S.of(context).ndefTagContent,
+                            fontSize: 24,
+                            fontWeight: 600,
+                            color: _ink,
+                          ),
+                          const SizedBox(height: 8),
+                          CustomizedText.bodyMedium(
+                            S.of(context).ndefTagContentDescription,
+                            color: _muted,
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (!compact) ...[const SizedBox(width: 20), status],
+                  ],
                 ),
-                Spacing.width(12),
-                _StatusLabel(
-                  text: _controller.readOnly
-                      ? S.of(context).ndefReadOnlyStatus
-                      : S.of(context).ndefWritable,
-                  color: _controller.readOnly
-                      ? contentTheme.warning
-                      : contentTheme.success,
+              if (compact || mobile) ...[
+                if (!mobile) const SizedBox(height: 16),
+                Align(alignment: Alignment.centerLeft, child: status),
+              ],
+              if (_controller.readOnly) ...[
+                const SizedBox(height: 20),
+                _buildNotice(
+                  LucideIcons.fileLock,
+                  S.of(context).ndefReadOnlyDescription,
+                  contentTheme.warning,
                 ),
               ],
-            ),
-          ),
-          if (_controller.readOnly)
-            _buildNotice(
-              LucideIcons.fileLock,
-              S.of(context).ndefReadOnlyDescription,
-              contentTheme.warning,
-              square: true,
-            ),
-          Padding(
-            padding: Spacing.fromLTRB(20, 4, 20, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+              const SizedBox(height: 32),
+              if (compact) ...[
+                CustomizedText.bodyLarge(
+                  S.of(context).ndefCapacity,
+                  color: _ink,
+                ),
+                const SizedBox(height: 6),
+                CustomizedText.bodyMedium(
+                  S.of(context).ndefBytesUsed(used, total),
+                  color: _controller.exceedsCapacity
+                      ? contentTheme.danger
+                      : _muted,
+                ),
+              ] else
                 Row(
                   children: [
-                    CustomizedText.labelMedium(S.of(context).ndefCapacity),
-                    const Spacer(),
-                    CustomizedText.bodySmall(
-                      S.of(context).ndefBytesUsed(used, total),
-                      color: _controller.exceedsCapacity
-                          ? contentTheme.danger
-                          : contentTheme.cardText,
+                    Expanded(
+                      child: CustomizedText.bodyLarge(
+                        S.of(context).ndefCapacity,
+                        color: _ink,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Flexible(
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: CustomizedText.bodyMedium(
+                          S.of(context).ndefBytesUsed(used, total),
+                          textAlign: TextAlign.right,
+                          color: _controller.exceedsCapacity
+                              ? contentTheme.danger
+                              : _muted,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-                Spacing.height(8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 6,
-                    color: _controller.exceedsCapacity
-                        ? contentTheme.danger
-                        : contentTheme.primary,
-                    backgroundColor:
-                        contentTheme.primary.withValues(alpha: 0.1),
-                  ),
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 9,
+                  color: _controller.exceedsCapacity
+                      ? contentTheme.danger
+                      : _accent,
+                  backgroundColor: _accent.withValues(alpha: .13),
                 ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
   Widget _buildRecordHeader(bool mobile) {
+    final heading = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: _accent.withValues(alpha: .12),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(LucideIcons.fileText, color: _ink, size: 24),
+        ),
+        const SizedBox(width: 12),
+        Flexible(
+          child: CustomizedText.titleLarge(
+            S.of(context).ndefRecords,
+            fontSize: 22,
+            fontWeight: 600,
+            color: _ink,
+          ),
+        ),
+      ],
+    );
     final addButton = FilledButton.icon(
+      style: _buttonStyle,
       onPressed: _controller.canEdit ? () => _openEditor() : null,
-      icon: const Icon(LucideIcons.plus, size: 18),
+      icon: const Icon(LucideIcons.plus, size: 22),
       label: Text(S.of(context).ndefAddRecord),
     );
     return mobile
         ? Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              CustomizedText.titleMedium(S.of(context).ndefRecords,
-                  fontWeight: 600),
-              Spacing.height(12),
-              addButton,
-            ],
+            children: [heading, const SizedBox(height: 16), addButton],
           )
         : Row(
             children: [
-              CustomizedText.titleMedium(S.of(context).ndefRecords,
-                  fontWeight: 600),
-              const Spacer(),
+              Expanded(child: heading),
+              const SizedBox(width: 16),
               addButton,
             ],
           );
@@ -227,7 +308,9 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
   Widget _buildRecord(int index) {
     final record = _controller.records[index];
     final editable = record.editableType != null && _controller.canEdit;
-    final compact = MediaQuery.sizeOf(context).width < 600;
+    final compact =
+        MediaQuery.sizeOf(context).width < 900 ||
+        MediaQuery.textScalerOf(context).scale(14) > 20;
     final summary = record.summary;
     final icon = switch (record.editableType) {
       NdefEditableRecordType.uri => LucideIcons.link,
@@ -240,9 +323,8 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
       null => LucideIcons.fileText,
     };
 
-    return CustomizedCard.bordered(
-      padding: Spacing.xy(16, 14),
-      shadow: Shadow(elevation: 0),
+    return _surface(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       child: Row(
         children: [
           Container(
@@ -250,24 +332,28 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
             height: 38,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: contentTheme.primary.withValues(alpha: 0.1),
+              color: _accent.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
             ),
-            child: Icon(icon, color: contentTheme.primary, size: 19),
+            child: Icon(icon, color: _accent, size: 21),
           ),
           Spacing.width(14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomizedText.labelLarge(record.displayType, fontWeight: 600),
+                CustomizedText.bodyLarge(
+                  record.displayType,
+                  fontWeight: 600,
+                  color: _ink,
+                ),
                 if (summary.isNotEmpty) ...[
                   Spacing.height(3),
                   CustomizedText.bodySmall(
                     summary,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    color: contentTheme.cardText,
+                    color: _muted,
                   ),
                 ],
               ],
@@ -375,8 +461,12 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
     );
   }
 
-  Widget _recordAction(String tooltip, IconData icon, VoidCallback? onPressed,
-      {Color? color}) {
+  Widget _recordAction(
+    String tooltip,
+    IconData icon,
+    VoidCallback? onPressed, {
+    Color? color,
+  }) {
     return Tooltip(
       message: tooltip,
       child: IconButton(
@@ -387,35 +477,68 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
     );
   }
 
-  Widget _buildEmptyState() {
-    return CustomizedCard.bordered(
-      padding: Spacing.xy(24, 36),
-      shadow: Shadow(elevation: 0),
-      child: Column(
-        children: [
-          Icon(LucideIcons.fileText,
-              size: 32, color: contentTheme.cardTextMuted),
-          Spacing.height(12),
-          CustomizedText.titleMedium(S.of(context).ndefNoRecords,
-              fontWeight: 600),
-          Spacing.height(4),
-          CustomizedText.bodySmall(
-            S.of(context).ndefNoRecordsDescription,
-            color: contentTheme.cardText,
-            textAlign: TextAlign.center,
+  Widget _buildEmptyState() => Container(
+    constraints: const BoxConstraints(minHeight: 260),
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+    decoration: BoxDecoration(
+      border: Border.all(color: _border),
+      borderRadius: BorderRadius.circular(7),
+    ),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: 90,
+          height: 88,
+          child: Stack(
+            children: [
+              Positioned(
+                left: 10,
+                bottom: 0,
+                child: Icon(
+                  LucideIcons.fileText,
+                  size: 62,
+                  color: _muted.withValues(alpha: .55),
+                ),
+              ),
+              Positioned(
+                right: 3,
+                top: 2,
+                child: Icon(
+                  LucideIcons.plus,
+                  size: 26,
+                  color: _accent.withValues(alpha: .4),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+        const SizedBox(height: 24),
+        CustomizedText.titleLarge(
+          S.of(context).ndefNoRecords,
+          fontSize: 22,
+          fontWeight: 600,
+          color: _ink,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 10),
+        CustomizedText.bodyMedium(
+          S.of(context).ndefNoRecordsDescription,
+          color: _muted,
+          textAlign: TextAlign.center,
+        ),
+      ],
+    ),
+  );
 
   Widget _buildFooter(bool mobile) {
     final status = _controller.exceedsCapacity
         ? S.of(context).ndefCapacityExceeded
         : _controller.dirty
-            ? S.of(context).ndefUnsavedChanges
-            : '';
+        ? S.of(context).ndefUnsavedChanges
+        : '';
     final button = FilledButton.icon(
+      style: _buttonStyle,
       onPressed: _controller.canSave ? _controller.save : null,
       icon: _controller.writing
           ? const SizedBox(
@@ -434,9 +557,7 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
           if (status.isNotEmpty) ...[
             CustomizedText.bodySmall(
               status,
-              color: _controller.exceedsCapacity
-                  ? contentTheme.danger
-                  : contentTheme.cardText,
+              color: _controller.exceedsCapacity ? contentTheme.danger : _muted,
             ),
             Spacing.height(10),
           ],
@@ -449,9 +570,7 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
         Expanded(
           child: CustomizedText.bodySmall(
             status,
-            color: _controller.exceedsCapacity
-                ? contentTheme.danger
-                : contentTheme.cardText,
+            color: _controller.exceedsCapacity ? contentTheme.danger : _muted,
           ),
         ),
         button,
@@ -459,8 +578,12 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
     );
   }
 
-  Widget _buildNotice(IconData icon, String text, Color color,
-      {bool square = false}) {
+  Widget _buildNotice(
+    IconData icon,
+    String text,
+    Color color, {
+    bool square = false,
+  }) {
     return Container(
       padding: Spacing.xy(16, 12),
       decoration: BoxDecoration(
@@ -471,7 +594,7 @@ class _NdefPageState extends State<NdefPage> with UIMixin {
         children: [
           Icon(icon, size: 18, color: color),
           Spacing.width(12),
-          Expanded(child: CustomizedText.bodySmall(text, maxLines: 4)),
+          Expanded(child: CustomizedText.bodyMedium(text, color: _ink)),
         ],
       ),
     );
@@ -500,12 +623,12 @@ class _StatusLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(7),
       ),
-      child: CustomizedText.labelSmall(text, color: color, fontWeight: 700),
+      child: CustomizedText.bodyMedium(text, color: color, fontWeight: 600),
     );
   }
 }

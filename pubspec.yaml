@@ -55,6 +55,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/logo/
+    - assets/images/oath/
     - rust/THIRD_PARTY_LICENSES.json
 
 flutter_intl:

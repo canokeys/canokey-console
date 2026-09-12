@@ -10,6 +10,8 @@ abstract class BaseDialog extends StatefulWidget {
   const BaseDialog({super.key});
 
   bool get managesOwnScrolling => false;
+
+  double get contentWidth => AppDialogWidth.compact;
 }
 
 abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
@@ -40,7 +42,7 @@ abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
     final content = buildDialogContent();
     return AppDialogSurface(
       child: SizedBox(
-        width: AppDialogWidth.compact,
+        width: widget.contentWidth,
         child: Stack(
           children: [
             if (widget.managesOwnScrolling)
@@ -65,11 +67,14 @@ abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 SpinKitRipple(
-                                    color: Colors.tealAccent, size: 64.0),
+                                  color: Colors.tealAccent,
+                                  size: 64.0,
+                                ),
                                 Spacing.height(16),
                                 CustomizedText.bodyLarge(
-                                    S.of(Get.context!).readingAlertMessage,
-                                    color: Colors.white),
+                                  S.of(Get.context!).readingAlertMessage,
+                                  color: Colors.white,
+                                ),
                               ],
                             ),
                           ),

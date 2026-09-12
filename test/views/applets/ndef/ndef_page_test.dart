@@ -1,3 +1,4 @@
+import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -20,6 +21,92 @@ void main() {
   tearDown(() {
     Get.reset();
   });
+
+  testWidgets('empty and read-only states retain safe edit and save controls', (
+    tester,
+  ) async {
+    _setTestSize(tester, const Size(1536, 1000));
+    final controller = _TestNdefController()..polled = true;
+    Get.put<NdefController>(controller);
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    expect(find.text(S.current.ndefNoRecords), findsOneWidget);
+    expect(find.text(S.current.ndefWritable), findsOneWidget);
+    expect(_button(tester, S.current.ndefAddRecord).onPressed, isNotNull);
+    expect(_button(tester, S.current.ndefSaveToKey).onPressed, isNull);
+    expect(
+      tester
+          .widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator))
+          .value,
+      0,
+    );
+    controller.addRecord(NdefDocument.textRecord('Hello', language: 'en'));
+    await tester.pumpAndSettle();
+    expect(_button(tester, S.current.ndefSaveToKey).onPressed, isNotNull);
+    controller.readOnly = true;
+    controller.update();
+    await tester.pumpAndSettle();
+    expect(find.text(S.current.ndefReadOnlyStatus), findsOneWidget);
+    expect(find.text(S.current.ndefReadOnlyDescription), findsOneWidget);
+    expect(_button(tester, S.current.ndefAddRecord).onPressed, isNull);
+    expect(_button(tester, S.current.ndefSaveToKey).onPressed, isNull);
+    expect(tester.takeException(), isNull);
+    await _disposePage(tester);
+  });
+
+  testWidgets('capacity and decoding failures disable saving', (tester) async {
+    _setTestSize(tester, const Size(1280, 1000));
+    final controller = _configuredController()
+      ..dirty = true
+      ..maxMessageLength = 1;
+    Get.put<NdefController>(controller);
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    expect(find.text(S.current.ndefCapacityExceeded), findsOneWidget);
+    expect(_button(tester, S.current.ndefSaveToKey).onPressed, isNull);
+    expect(
+      tester
+          .widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator))
+          .value,
+      1,
+    );
+    controller.maxMessageLength = 1022;
+    controller.decodeError = S.current.ndefInvalidMessage;
+    controller.update();
+    await tester.pumpAndSettle();
+    expect(find.text(S.current.ndefInvalidMessage), findsOneWidget);
+    expect(_button(tester, S.current.ndefAddRecord).onPressed, isNull);
+    expect(_button(tester, S.current.ndefSaveToKey).onPressed, isNull);
+    expect(tester.takeException(), isNull);
+    await _disposePage(tester);
+  });
+
+  testWidgets(
+    'overview and records fit narrow screens with large text in both themes',
+    (tester) async {
+      _setTestSize(tester, const Size(320, 1000));
+      final controller = _TestNdefController()..polled = true;
+      Get.put<NdefController>(controller);
+      for (final dark in [false, true]) {
+        await tester.pumpWidget(_app(dark: dark, scale: 2));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        controller.records = [
+          NdefDocument.textRecord('Long record ' * 30, language: 'en'),
+        ];
+        controller.readOnly = true;
+        controller.update();
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        await tester.ensureVisible(find.text(S.current.ndefSaveToKey));
+        expect(tester.takeException(), isNull);
+        controller.records = [];
+        controller.readOnly = false;
+        controller.update();
+      }
+      await _disposePage(tester);
+    },
+  );
 
   testWidgets('renders configured records at desktop width', (tester) async {
     _setTestSize(tester, const Size(1280, 800));
@@ -81,9 +168,21 @@ class _TestNdefController extends NdefController {
   void onReady() {}
 }
 
-Widget _app() {
+FilledButton _button(WidgetTester tester, String label) =>
+    tester.widget<FilledButton>(
+      find.ancestor(of: find.text(label), matching: find.byType(FilledButton)),
+    );
+
+Widget _app({bool dark = false, double scale = 1}) {
   return GetMaterialApp(
     locale: const Locale('en'),
+    theme: dark ? AppTheme.darkTheme : AppTheme.lightTheme,
+    builder: (context, child) => MediaQuery(
+      data: MediaQuery.of(
+        context,
+      ).copyWith(textScaler: TextScaler.linear(scale)),
+      child: child!,
+    ),
     localizationsDelegates: const [
       S.delegate,
       GlobalMaterialLocalizations.delegate,

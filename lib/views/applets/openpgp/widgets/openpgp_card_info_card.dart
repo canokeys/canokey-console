@@ -1,6 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
-import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/openpgp.dart';
 import 'package:canokey_console/views/applets/openpgp/widgets/openpgp_section_card.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
@@ -22,25 +21,25 @@ class OpenPgpCardInfoCard extends StatelessWidget {
             title: S.of(context).openpgpVersion,
             value: _value(info.version),
           ),
-          Spacing.height(16),
+          Divider(height: 1, color: OpenPgpStyle.border(context)),
           InfoItem(
             iconData: LucideIcons.cpu,
             title: S.of(context).openpgpManufacturer,
             value: _value(info.manufacturer),
           ),
-          Spacing.height(16),
+          Divider(height: 1, color: OpenPgpStyle.border(context)),
           InfoItem(
             iconData: LucideIcons.hash,
             title: S.of(context).openpgpSN,
             value: _value(info.serialNumber),
           ),
-          Spacing.height(16),
+          Divider(height: 1, color: OpenPgpStyle.border(context)),
           InfoItem(
             iconData: LucideIcons.user,
             title: S.of(context).openpgpCardHolder,
             value: _value(info.cardHolder),
           ),
-          Spacing.height(16),
+          Divider(height: 1, color: OpenPgpStyle.border(context)),
           InfoItem(
             iconData: LucideIcons.globe,
             title: S.of(context).openpgpPubkeyUrl,

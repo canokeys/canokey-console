@@ -306,6 +306,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "oathCounter": MessageLookupByLibrary.simpleMessage("計數器初始值"),
     "oathCounterMustBeNumber": MessageLookupByLibrary.simpleMessage("請填寫數字"),
     "oathDelete": m5,
+    "oathDescription": MessageLookupByLibrary.simpleMessage(
+      "以時間或計數器為基礎的一次性密碼，保障您的帳戶安全。",
+    ),
     "oathDigits": MessageLookupByLibrary.simpleMessage("位數"),
     "oathDuplicated": MessageLookupByLibrary.simpleMessage("帳戶已存在"),
     "oathInputCode": MessageLookupByLibrary.simpleMessage("解鎖 CanoKey"),
@@ -322,6 +325,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "oathPeriod": MessageLookupByLibrary.simpleMessage("週期"),
     "oathRequireTouch": MessageLookupByLibrary.simpleMessage("需要觸碰"),
     "oathRequired": MessageLookupByLibrary.simpleMessage("不得為空"),
+    "oathSearch": MessageLookupByLibrary.simpleMessage("搜尋帳戶名稱或電子郵件"),
     "oathSecret": MessageLookupByLibrary.simpleMessage("金鑰"),
     "oathSetCode": MessageLookupByLibrary.simpleMessage("設定密碼"),
     "oathSetDefault": MessageLookupByLibrary.simpleMessage("設為觸碰輸出"),
@@ -352,6 +356,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "openpgpCurrentAdminPin": MessageLookupByLibrary.simpleMessage(
       "目前 Admin PIN",
+    ),
+    "openpgpDescription": MessageLookupByLibrary.simpleMessage(
+      "管理 OpenPGP 卡片資訊、PIN 與金鑰觸碰原則。",
     ),
     "openpgpEncryption": MessageLookupByLibrary.simpleMessage("加密"),
     "openpgpKeyEmpty": MessageLookupByLibrary.simpleMessage("空"),
@@ -441,6 +448,7 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage("每次插入後只驗證一次"),
     "openpgpVersion": MessageLookupByLibrary.simpleMessage("版本"),
     "other": MessageLookupByLibrary.simpleMessage("其他"),
+    "passDescription": MessageLookupByLibrary.simpleMessage("設定按鍵觸發的密碼插槽功能。"),
     "passInputPinPrompt": MessageLookupByLibrary.simpleMessage(
       "請輸入您的管理員（設定應用程式） PIN（預設值為 123456）。",
     ),
@@ -1046,6 +1054,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "validationHexString": MessageLookupByLibrary.simpleMessage("請輸入十六進位字串"),
     "viewUserId": MessageLookupByLibrary.simpleMessage("檢視使用者 ID"),
     "warning": MessageLookupByLibrary.simpleMessage("警告"),
+    "webAuthnCredentials": MessageLookupByLibrary.simpleMessage("WebAuthn 憑證"),
+    "webAuthnDescription": MessageLookupByLibrary.simpleMessage(
+      "管理儲存在 CanoKey 中的 WebAuthn 登入憑證。",
+    ),
+    "webAuthnMissingCredentials": MessageLookupByLibrary.simpleMessage(
+      "為什麼看不到我的憑證？",
+    ),
+    "webAuthnMissingCredentialsExplanation":
+        MessageLookupByLibrary.simpleMessage(
+          "只有 discoverable credential 會儲存在 CanoKey 中。其他類型的金鑰不會儲存在裝置裡，因此在這裡不可見。",
+        ),
+    "webAuthnSearch": MessageLookupByLibrary.simpleMessage("搜尋 WebAuthn 憑證…"),
     "webPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "請將您的 CanoKey 插入 USB 連接埠並點選重新整理按鈕",
     ),

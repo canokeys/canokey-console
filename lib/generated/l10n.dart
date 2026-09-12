@@ -5708,6 +5708,96 @@ class S {
       args: [],
     );
   }
+
+  /// `WebAuthn Credentials`
+  String get webAuthnCredentials {
+    return Intl.message(
+      'WebAuthn Credentials',
+      name: 'webAuthnCredentials',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manage WebAuthn sign-in credentials stored on your CanoKey.`
+  String get webAuthnDescription {
+    return Intl.message(
+      'Manage WebAuthn sign-in credentials stored on your CanoKey.',
+      name: 'webAuthnDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search WebAuthn credentials…`
+  String get webAuthnSearch {
+    return Intl.message(
+      'Search WebAuthn credentials…',
+      name: 'webAuthnSearch',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Why can't I see my credentials?`
+  String get webAuthnMissingCredentials {
+    return Intl.message(
+      'Why can\'t I see my credentials?',
+      name: 'webAuthnMissingCredentials',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Only discoverable credentials are stored on CanoKey. Other types of keys are not stored on the device and therefore are not visible here.`
+  String get webAuthnMissingCredentialsExplanation {
+    return Intl.message(
+      'Only discoverable credentials are stored on CanoKey. Other types of keys are not stored on the device and therefore are not visible here.',
+      name: 'webAuthnMissingCredentialsExplanation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Time-based and counter-based one-time passwords to keep your accounts secure.`
+  String get oathDescription {
+    return Intl.message(
+      'Time-based and counter-based one-time passwords to keep your accounts secure.',
+      name: 'oathDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search account name or email`
+  String get oathSearch {
+    return Intl.message(
+      'Search account name or email',
+      name: 'oathSearch',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configure password slots triggered by a button press.`
+  String get passDescription {
+    return Intl.message(
+      'Configure password slots triggered by a button press.',
+      name: 'passDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manage OpenPGP card information, PINs and key touch policies.`
+  String get openpgpDescription {
+    return Intl.message(
+      'Manage OpenPGP card information, PINs and key touch policies.',
+      name: 'openpgpDescription',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

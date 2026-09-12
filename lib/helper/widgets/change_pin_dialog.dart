@@ -121,8 +121,10 @@ class _ChangePinDialogState extends State<ChangePinDialog> {
             Divider(height: 0, thickness: 1),
             Padding(
               padding: Spacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 16,
+                runSpacing: 12,
                 children: [
                   CustomizedButton.rounded(
                     onPressed: () => Navigator.pop(Get.context!),
@@ -131,7 +133,6 @@ class _ChangePinDialogState extends State<ChangePinDialog> {
                     backgroundColor: ContentThemeColor.secondary.color,
                     child: CustomizedText.labelMedium(S.of(Get.context!).cancel, color: ContentThemeColor.secondary.onColor),
                   ),
-                  Spacing.width(16),
                   CustomizedButton.rounded(
                     onPressed: () {
                       if (_validator.validateForm()) {

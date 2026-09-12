@@ -820,5 +820,14 @@
   "pivSubjectDescription": "填寫憑證的識別資訊。",
   "settingsDescription": "管理裝置設定、自訂行為和系統選項。",
   "settingsDeviceSettings": "裝置設定",
-  "settingsDeviceActions": "裝置操作"
+  "settingsDeviceActions": "裝置操作",
+  "webAuthnCredentials": "WebAuthn 憑證",
+  "webAuthnDescription": "管理儲存在 CanoKey 中的 WebAuthn 登入憑證。",
+  "webAuthnSearch": "搜尋 WebAuthn 憑證…",
+  "webAuthnMissingCredentials": "為什麼看不到我的憑證？",
+  "webAuthnMissingCredentialsExplanation": "只有 discoverable credential 會儲存在 CanoKey 中。其他類型的金鑰不會儲存在裝置裡，因此在這裡不可見。",
+  "oathDescription": "以時間或計數器為基礎的一次性密碼，保障您的帳戶安全。",
+  "oathSearch": "搜尋帳戶名稱或電子郵件",
+  "passDescription": "設定按鍵觸發的密碼插槽功能。",
+  "openpgpDescription": "管理 OpenPGP 卡片資訊、PIN 與金鑰觸碰原則。"
 }

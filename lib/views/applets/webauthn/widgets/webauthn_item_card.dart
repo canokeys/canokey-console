@@ -1,18 +1,15 @@
 import 'package:canokey_console/controller/applets/webauthn/webauthn_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/utils/shadow.dart';
-import 'package:canokey_console/helper/utils/ui_mixins.dart';
-import 'package:canokey_console/helper/widgets/customized_card.dart';
-import 'package:canokey_console/helper/widgets/customized_container.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
-import 'package:canokey_console/helper/widgets/spacing.dart';
+import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:canokey_console/models/webauthn.dart';
 import 'package:canokey_console/views/applets/webauthn/dialogs/delete_dialog.dart';
 import 'package:canokey_console/views/applets/webauthn/dialogs/view_user_id_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 
-class WebAuthnItemCard extends StatelessWidget with UIMixin {
+enum _CredentialAction { viewUserId, delete }
+
+class WebAuthnItemCard extends StatelessWidget {
   final WebAuthnItem item;
   final WebAuthnController controller;
 
@@ -22,69 +19,160 @@ class WebAuthnItemCard extends StatelessWidget with UIMixin {
     required this.controller,
   });
 
+  static const accent = Color(0xff009b83);
+
+  Widget _detail(BuildContext context, IconData icon, String value) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Icon(icon, size: 18, color: accent),
+      const SizedBox(width: 10),
+      Expanded(
+        child: Tooltip(
+          message: value,
+          child: CustomizedText.bodyMedium(
+            value,
+            fontSize: 14,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+    ],
+  );
+
   @override
   Widget build(BuildContext context) {
-    return CustomizedCard(
-      shadow: Shadow(elevation: 0.5),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(child: CustomizedText.bodyMedium(item.userDisplayName.isEmpty ? S.of(context).passkey : item.userDisplayName, fontSize: 16, fontWeight: 600, overflow: TextOverflow.ellipsis)),
-              CustomizedContainer.none(
-                paddingAll: 8,
-                borderRadiusAll: 5,
-                child: PopupMenuButton(
-                  offset: const Offset(0, 10),
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final ink = Theme.of(context).colorScheme.onSurface;
+    final danger = Theme.of(context).colorScheme.error;
+    final title = item.userDisplayName.isEmpty
+        ? S.of(context).passkey
+        : item.userDisplayName;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 420;
+        return Material(
+          color: dark ? const Color(0xff202b34) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: BorderSide(
+              color: dark ? const Color(0xff35414c) : const Color(0xffe5edf2),
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(compact ? 16 : 24),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: compact ? 44 : 60,
+                  height: compact ? 44 : 60,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: .10),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    LucideIcons.user,
+                    color: accent,
+                    size: compact ? 26 : 32,
+                  ),
+                ),
+                SizedBox(width: compact ? 12 : 22),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Tooltip(
+                        message: title,
+                        child: CustomizedText.titleMedium(
+                          title,
+                          color: ink,
+                          fontSize: 18,
+                          fontWeight: 600,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _detail(context, LucideIcons.user, item.userName),
+                      const SizedBox(height: 10),
+                      _detail(context, LucideIcons.globe, item.rpId),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                PopupMenuButton<_CredentialAction>(
+                  tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
                   position: PopupMenuPosition.under,
-                  itemBuilder: (BuildContext context) => [
+                  offset: const Offset(0, 8),
+                  color: dark ? const Color(0xff202b34) : Colors.white,
+                  surfaceTintColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                  onSelected: (action) {
+                    switch (action) {
+                      case _CredentialAction.viewUserId:
+                        WebAuthnViewUserIdDialog.show(item.userId);
+                      case _CredentialAction.delete:
+                        WebAuthnDeleteDialog.show(
+                          item,
+                          () => controller.delete(item.credentialId),
+                        );
+                    }
+                  },
+                  itemBuilder: (context) => [
                     PopupMenuItem(
-                      padding: Spacing.xy(16, 8),
-                      height: 10,
-                      child: CustomizedText.bodySmall(S.of(context).viewUserId),
-                      onTap: () => WebAuthnViewUserIdDialog.show(item.userId),
+                      value: _CredentialAction.viewUserId,
+                      child: Row(
+                        children: [
+                          Icon(LucideIcons.user, size: 20, color: ink),
+                          const SizedBox(width: 14),
+                          Flexible(
+                            child: CustomizedText.bodyMedium(
+                              S.of(context).viewUserId,
+                              color: ink,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     PopupMenuItem(
-                      padding: Spacing.xy(16, 8),
-                      height: 10,
-                      child: CustomizedText.bodySmall(S.of(context).delete),
-                      onTap: () => WebAuthnDeleteDialog.show(item, () => controller.delete(item.credentialId)),
+                      value: _CredentialAction.delete,
+                      child: Row(
+                        children: [
+                          Icon(LucideIcons.trash2, size: 20, color: danger),
+                          const SizedBox(width: 14),
+                          Flexible(
+                            child: CustomizedText.bodyMedium(
+                              S.of(context).delete,
+                              color: danger,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
-                  child: const Icon(LucideIcons.moreHorizontal, size: 18),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: .10),
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    child: const Icon(
+                      LucideIcons.moreHorizontal,
+                      size: 22,
+                      color: accent,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          Row(
-            children: [
-              CustomizedContainer.rounded(
-                color: contentTheme.primary.withAlpha(30),
-                paddingAll: 2,
-                clipBehavior: Clip.antiAliasWithSaveLayer,
-                child: Icon(LucideIcons.user, size: 16, color: contentTheme.primary),
-              ),
-              Spacing.width(12),
-              Flexible(child: CustomizedText.bodyMedium(item.userName, overflow: TextOverflow.ellipsis)),
-            ],
-          ),
-          Row(
-            children: [
-              CustomizedContainer.rounded(
-                color: contentTheme.primary.withAlpha(30),
-                paddingAll: 2,
-                clipBehavior: Clip.antiAliasWithSaveLayer,
-                child: Icon(LucideIcons.globe, size: 16, color: contentTheme.primary),
-              ),
-              Spacing.width(12),
-              CustomizedText.bodyMedium(item.rpId),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

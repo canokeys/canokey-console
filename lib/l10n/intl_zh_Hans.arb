@@ -820,5 +820,14 @@
   "pivSubjectDescription": "填写证书的标识信息。",
   "settingsDescription": "管理设备设置、自定义行为和系统选项。",
   "settingsDeviceSettings": "设备设置",
-  "settingsDeviceActions": "设备操作"
+  "settingsDeviceActions": "设备操作",
+  "webAuthnCredentials": "WebAuthn 凭据",
+  "webAuthnDescription": "管理存储在 CanoKey 中的 WebAuthn 登录凭据。",
+  "webAuthnSearch": "搜索 WebAuthn 凭据…",
+  "webAuthnMissingCredentials": "为什么看不到我的凭据？",
+  "webAuthnMissingCredentialsExplanation": "只有 discoverable credential 会保存在CanoKey 中。 其他类型的密钥不会保存在设备里，因此在这里不可见。",
+  "oathDescription": "基于时间或计数器的一次性密码，保障您的账户安全。",
+  "oathSearch": "搜索账户名称或邮箱",
+  "passDescription": "配置按键触发的密码槽功能。",
+  "openpgpDescription": "管理 OpenPGP 卡片信息、PIN 与密钥触摸策略。"
 }

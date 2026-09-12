@@ -1,10 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/theme/admin_theme.dart';
-import 'package:canokey_console/helper/theme/app_style.dart';
-import 'package:canokey_console/helper/widgets/customized_button.dart';
-import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
-import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/openpgp.dart';
 import 'package:canokey_console/views/applets/openpgp/widgets/openpgp_section_card.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
@@ -45,19 +40,19 @@ class OpenPgpPinManagementCard extends StatelessWidget {
             title: S.of(context).openpgpUserPin,
             value: _retryValue(context, pinState.userRetries),
           ),
-          Spacing.height(16),
+          Divider(height: 1, color: OpenPgpStyle.border(context)),
           InfoItem(
             iconData: LucideIcons.shieldCheck,
             title: S.of(context).openpgpAdminPin,
             value: _retryValue(context, pinState.adminRetries),
           ),
-          Spacing.height(16),
+          Divider(height: 1, color: OpenPgpStyle.border(context)),
           InfoItem(
             iconData: LucideIcons.keyRound,
             title: S.of(context).openpgpResetCode,
             value: _retryValue(context, pinState.resetRetries),
           ),
-          Spacing.height(16),
+          Divider(height: 1, color: OpenPgpStyle.border(context)),
           InfoItem(
             iconData: LucideIcons.fileLock,
             title: S.of(context).openpgpSignaturePin,
@@ -65,7 +60,8 @@ class OpenPgpPinManagementCard extends StatelessWidget {
                 ? S.of(context).openpgpVerifyEverySignature
                 : S.of(context).openpgpVerifyOnceAfterInsertion,
           ),
-          Spacing.height(16),
+          Divider(height: 1, color: OpenPgpStyle.border(context)),
+          const SizedBox(height: 18),
           _actions(context),
         ],
       ),
@@ -83,8 +79,11 @@ class OpenPgpPinManagementCard extends StatelessWidget {
     final actions = [
       _Action(S.of(context).changePin, onChangeUserPin),
       _Action(S.of(context).openpgpChangeAdminPin, onChangeAdminPin),
-      _Action(S.of(context).openpgpUnblockUserPin, onUnblockPin,
-          enabled: pinState.userRetries == 0),
+      _Action(
+        S.of(context).openpgpUnblockUserPin,
+        onUnblockPin,
+        enabled: pinState.userRetries == 0,
+      ),
       _Action(S.of(context).openpgpSetResetCode, onSetResetCode),
       if (supportsPinRetryConfig)
         _Action(S.of(context).openpgpSetPinRetries, onSetPinRetries),
@@ -101,26 +100,41 @@ class OpenPgpPinManagementCard extends StatelessWidget {
             action.text,
             action.onTap,
             enabled: action.enabled,
+            primary: action == actions.first,
           ),
       ],
     );
   }
 
-  Widget _button(BuildContext context, String text, VoidCallback onTap,
-      {bool enabled = true}) {
-    final contentTheme = AdminTheme.theme.contentTheme;
-    return CustomizedButton(
+  Widget _button(
+    BuildContext context,
+    String text,
+    VoidCallback onTap, {
+    bool enabled = true,
+    bool primary = false,
+  }) {
+    return TextButton(
       onPressed: enabled ? onTap : null,
-      elevation: 0,
-      padding: Spacing.xy(20, 16),
-      backgroundColor: contentTheme.primary,
-      borderRadiusAll: AppStyle.buttonRadius.medium,
-      child: CustomizedText.bodySmall(
-        text,
-        color: contentTheme.onPrimary,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+      style: TextButton.styleFrom(
+        foregroundColor: primary
+            ? Colors.white
+            : Theme.of(context).colorScheme.onSurface,
+        disabledForegroundColor: Theme.of(
+          context,
+        ).colorScheme.onSurface.withValues(alpha: .35),
+        backgroundColor: primary
+            ? OpenPgpStyle.accent
+            : OpenPgpStyle.soft(context),
+        minimumSize: const Size(0, 44),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(7),
+          side: BorderSide(
+            color: primary ? OpenPgpStyle.accent : OpenPgpStyle.border(context),
+          ),
+        ),
       ),
+      child: Text(text),
     );
   }
 }

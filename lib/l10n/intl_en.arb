@@ -744,5 +744,14 @@
   "pivSubjectDescription": "Enter the identity for this certificate.",
   "settingsDescription": "Manage device settings, customize behavior and system preferences.",
   "settingsDeviceSettings": "Device Settings",
-  "settingsDeviceActions": "Device Actions"
+  "settingsDeviceActions": "Device Actions",
+  "webAuthnCredentials": "WebAuthn Credentials",
+  "webAuthnDescription": "Manage WebAuthn sign-in credentials stored on your CanoKey.",
+  "webAuthnSearch": "Search WebAuthn credentials…",
+  "webAuthnMissingCredentials": "Why can't I see my credentials?",
+  "webAuthnMissingCredentialsExplanation": "Only discoverable credentials are stored on CanoKey. Other types of keys are not stored on the device and therefore are not visible here.",
+  "oathDescription": "Time-based and counter-based one-time passwords to keep your accounts secure.",
+  "oathSearch": "Search account name or email",
+  "passDescription": "Configure password slots triggered by a button press.",
+  "openpgpDescription": "Manage OpenPGP card information, PINs and key touch policies."
 }

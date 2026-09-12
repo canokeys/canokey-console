@@ -397,6 +397,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Not a number",
     ),
     "oathDelete": m5,
+    "oathDescription": MessageLookupByLibrary.simpleMessage(
+      "Time-based and counter-based one-time passwords to keep your accounts secure.",
+    ),
     "oathDigits": MessageLookupByLibrary.simpleMessage("Digits"),
     "oathDuplicated": MessageLookupByLibrary.simpleMessage(
       "Duplicated account",
@@ -417,6 +420,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "oathPeriod": MessageLookupByLibrary.simpleMessage("Period"),
     "oathRequireTouch": MessageLookupByLibrary.simpleMessage("Require Touch"),
     "oathRequired": MessageLookupByLibrary.simpleMessage("Required"),
+    "oathSearch": MessageLookupByLibrary.simpleMessage(
+      "Search account name or email",
+    ),
     "oathSecret": MessageLookupByLibrary.simpleMessage("Secret key"),
     "oathSetCode": MessageLookupByLibrary.simpleMessage("Set Passphrase"),
     "oathSetDefault": MessageLookupByLibrary.simpleMessage(
@@ -453,6 +459,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "openpgpCurrentAdminPin": MessageLookupByLibrary.simpleMessage(
       "Current Admin PIN",
+    ),
+    "openpgpDescription": MessageLookupByLibrary.simpleMessage(
+      "Manage OpenPGP card information, PINs and key touch policies.",
     ),
     "openpgpEncryption": MessageLookupByLibrary.simpleMessage("Encryption"),
     "openpgpKeyEmpty": MessageLookupByLibrary.simpleMessage("Empty"),
@@ -562,6 +571,9 @@ class MessageLookup extends MessageLookupByLibrary {
         ),
     "openpgpVersion": MessageLookupByLibrary.simpleMessage("Version"),
     "other": MessageLookupByLibrary.simpleMessage("Other"),
+    "passDescription": MessageLookupByLibrary.simpleMessage(
+      "Configure password slots triggered by a button press.",
+    ),
     "passInputPinPrompt": MessageLookupByLibrary.simpleMessage(
       "Please input your Setting PIN. The default value is 123456.",
     ),
@@ -1363,6 +1375,21 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "viewUserId": MessageLookupByLibrary.simpleMessage("View User ID"),
     "warning": MessageLookupByLibrary.simpleMessage("Warning"),
+    "webAuthnCredentials": MessageLookupByLibrary.simpleMessage(
+      "WebAuthn Credentials",
+    ),
+    "webAuthnDescription": MessageLookupByLibrary.simpleMessage(
+      "Manage WebAuthn sign-in credentials stored on your CanoKey.",
+    ),
+    "webAuthnMissingCredentials": MessageLookupByLibrary.simpleMessage(
+      "Why can\'t I see my credentials?",
+    ),
+    "webAuthnMissingCredentialsExplanation": MessageLookupByLibrary.simpleMessage(
+      "Only discoverable credentials are stored on CanoKey. Other types of keys are not stored on the device and therefore are not visible here.",
+    ),
+    "webAuthnSearch": MessageLookupByLibrary.simpleMessage(
+      "Search WebAuthn credentials…",
+    ),
     "webPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "Insert your CanoKey into the USB port and click the refresh button",
     ),

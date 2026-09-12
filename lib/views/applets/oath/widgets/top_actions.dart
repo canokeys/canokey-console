@@ -14,53 +14,33 @@ class TopActions extends StatelessWidget with UIMixin {
 
   final OathController controller;
   final Widget? leading;
+  final bool showAdd;
   final VoidCallback onQrScan;
   final VoidCallback onScreenCapture;
   final VoidCallback onManualAdd;
 
-  const TopActions(
-      {super.key,
-      required this.controller,
-      this.leading,
-      required this.onQrScan,
-      required this.onScreenCapture,
-      required this.onManualAdd});
+  const TopActions({
+    super.key,
+    required this.controller,
+    this.leading,
+    this.showAdd = true,
+    required this.onQrScan,
+    required this.onScreenCapture,
+    required this.onManualAdd,
+  });
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> widgets = [if (leading != null) leading!];
+    List<Widget> widgets = [?leading];
 
     if (controller.polled) {
       widgets.addAll([
-        PopupMenuButton(
-          offset: const Offset(0, 10),
-          position: PopupMenuPosition.under,
-          icon: Icon(LucideIcons.plus, color: topBarTheme.onBackground),
-          itemBuilder: (BuildContext context) => [
-            if (!isDesktop()) // Use camera to scan the QR code
-              PopupMenuItem(
-                padding: Spacing.xy(16, 8),
-                height: 10,
-                onTap: onQrScan,
-                child:
-                    CustomizedText.bodySmall(S.of(context).oathAddByScanning),
-              ),
-            if (isWeb() || isDesktop()) // Use screen to capture the QR code
-              PopupMenuItem(
-                padding: Spacing.xy(16, 8),
-                height: 10,
-                onTap: onScreenCapture,
-                child: CustomizedText.bodySmall(S.of(context).oathAddByScreen),
-              ),
-            // Add manually
-            PopupMenuItem(
-              padding: Spacing.xy(16, 8),
-              height: 10,
-              onTap: onManualAdd,
-              child: CustomizedText.bodySmall(S.of(context).oathAddManually),
-            ),
-          ],
-        ),
+        if (showAdd)
+          OathAddAccountButton(
+            onQrScan: onQrScan,
+            onScreenCapture: onScreenCapture,
+            onManualAdd: onManualAdd,
+          ),
         if (controller.version != OathVersion.legacy) ...{
           IconButton(
             onPressed: () {
@@ -77,15 +57,17 @@ class TopActions extends StatelessWidget with UIMixin {
             },
             icon: Icon(LucideIcons.lock, color: topBarTheme.onBackground),
           ),
-        }
+        },
       ]);
     }
 
     if (isWeb() || isIOSApp()) {
-      widgets.add(IconButton(
-        onPressed: controller.refreshData,
-        icon: Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
-      ));
+      widgets.add(
+        IconButton(
+          onPressed: controller.refreshData,
+          icon: Icon(LucideIcons.refreshCw, color: topBarTheme.onBackground),
+        ),
+      );
     }
 
     return Row(
@@ -96,4 +78,71 @@ class TopActions extends StatelessWidget with UIMixin {
       ],
     );
   }
+}
+
+class OathAddAccountButton extends StatelessWidget with UIMixin {
+  const OathAddAccountButton({
+    super.key,
+    required this.onQrScan,
+    required this.onScreenCapture,
+    required this.onManualAdd,
+    this.prominent = false,
+  });
+  final VoidCallback onQrScan, onScreenCapture, onManualAdd;
+  final bool prominent;
+  @override
+  Widget build(BuildContext context) => PopupMenuButton(
+    offset: const Offset(0, 10),
+    position: PopupMenuPosition.under,
+    icon: prominent
+        ? null
+        : Icon(LucideIcons.plus, color: topBarTheme.onBackground),
+    tooltip: S.of(context).oathAddAccount,
+    child: prominent
+        ? Container(
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xff009b83),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(LucideIcons.plus, color: Colors.white, size: 22),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: CustomizedText.bodyMedium(
+                    S.of(context).oathAddAccount,
+                    color: Colors.white,
+                    fontWeight: 600,
+                  ),
+                ),
+              ],
+            ),
+          )
+        : null,
+    itemBuilder: (BuildContext context) => [
+      if (!isDesktop()) // Use camera to scan the QR code
+        PopupMenuItem(
+          padding: Spacing.xy(16, 8),
+          height: 10,
+          onTap: onQrScan,
+          child: CustomizedText.bodySmall(S.of(context).oathAddByScanning),
+        ),
+      if (isWeb() || isDesktop()) // Use screen to capture the QR code
+        PopupMenuItem(
+          padding: Spacing.xy(16, 8),
+          height: 10,
+          onTap: onScreenCapture,
+          child: CustomizedText.bodySmall(S.of(context).oathAddByScreen),
+        ),
+      // Add manually
+      PopupMenuItem(
+        padding: Spacing.xy(16, 8),
+        height: 10,
+        onTap: onManualAdd,
+        child: CustomizedText.bodySmall(S.of(context).oathAddManually),
+      ),
+    ],
+  );
 }
