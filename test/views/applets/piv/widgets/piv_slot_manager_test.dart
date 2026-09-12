@@ -24,6 +24,9 @@ void main() {
     Brightness brightness = Brightness.light,
     void Function(String, String, SlotInfo?)? onOpen,
     VoidCallback? onSetupMac,
+    void Function(String)? onImport,
+    void Function(String)? onExport,
+    void Function(String)? onGenerate,
   }) => MaterialApp(
     locale: locale,
     theme: ThemeData(brightness: brightness),
@@ -44,11 +47,69 @@ void main() {
             hasCertificate: (id) => {0x9A, 0x9D, 0x95}.contains(id),
             onOpenSlot: onOpen ?? (_, _, _) {},
             onSetupMac: onSetupMac,
+            onImportSlot: onImport,
+            onExportSlot: onExport,
+            onGenerateSlot: onGenerate,
           ),
         ),
       ),
     ),
   );
+
+  testWidgets('desktop slot actions target their own slot', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1400, 1000);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    String? imported, exported, generated, opened;
+    await tester.pumpWidget(
+      app(
+        width: 1380,
+        onImport: (slot) => imported = slot,
+        onExport: (slot) => exported = slot,
+        onGenerate: (slot) => generated = slot,
+        onOpen: (_, slot, _) => opened = slot,
+      ),
+    );
+    await tester.pumpAndSettle();
+    Finder row(String slot) => find.byWidgetPredicate(
+      (widget) => widget is PivSlotListItem && widget.slotNumber == slot,
+    );
+    await tester.tap(
+      find.descendant(
+        of: row('9A'),
+        matching: find.text(S.current.pivTransfer),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(S.current.pivExportCertificate));
+    await tester.pumpAndSettle();
+    expect(exported, '9A');
+    await tester.tap(
+      find.descendant(
+        of: row('9A'),
+        matching: find.text(S.current.pivTransfer),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.widgetWithText(PopupMenuItem<String>, S.current.pivImport),
+    );
+    await tester.pumpAndSettle();
+    expect(imported, '9A');
+    await tester.tap(
+      find.descendant(
+        of: row('9E'),
+        matching: find.text(S.current.pivCreateCertificate),
+      ),
+    );
+    expect(generated, '9E');
+    await tester.tap(
+      find.descendant(of: row('9C'), matching: find.text(S.current.pivManage)),
+    );
+    expect(opened, '9C');
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'retired slots start collapsed, count keys and certificates, and open on tap',

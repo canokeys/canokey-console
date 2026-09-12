@@ -5383,6 +5383,301 @@ class S {
       args: [],
     );
   }
+
+  /// `PIV Management`
+  String get pivPageTitle {
+    return Intl.message(
+      'PIV Management',
+      name: 'pivPageTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manage your PIV credentials, keys and certificates.`
+  String get pivPageDescription {
+    return Intl.message(
+      'Manage your PIV credentials, keys and certificates.',
+      name: 'pivPageDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `For user authentication`
+  String get pivPinDescription {
+    return Intl.message(
+      'For user authentication',
+      name: 'pivPinDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `For unblocking the PIN`
+  String get pivPukDescription {
+    return Intl.message(
+      'For unblocking the PIN',
+      name: 'pivPukDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Attempts remaining`
+  String get pivRetriesRemaining {
+    return Intl.message(
+      'Attempts remaining',
+      name: 'pivRetriesRemaining',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Ready`
+  String get pivStatusReady {
+    return Intl.message('Ready', name: 'pivStatusReady', desc: '', args: []);
+  }
+
+  /// `Blocked`
+  String get pivStatusBlocked {
+    return Intl.message(
+      'Blocked',
+      name: 'pivStatusBlocked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unknown`
+  String get pivStatusUnknown {
+    return Intl.message(
+      'Unknown',
+      name: 'pivStatusUnknown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configured`
+  String get pivStatusConfigured {
+    return Intl.message(
+      'Configured',
+      name: 'pivStatusConfigured',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not configured`
+  String get pivStatusEmpty {
+    return Intl.message(
+      'Not configured',
+      name: 'pivStatusEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Certificate slots`
+  String get pivSlotsTitle {
+    return Intl.message(
+      'Certificate slots',
+      name: 'pivSlotsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manage keys and certificates in the standard PIV slots.`
+  String get pivSlotsDescription {
+    return Intl.message(
+      'Manage keys and certificates in the standard PIV slots.',
+      name: 'pivSlotsDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select a slot to view or manage its certificate`
+  String get pivSlotsHint {
+    return Intl.message(
+      'Select a slot to view or manage its certificate',
+      name: 'pivSlotsHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Slot`
+  String get pivSlotColumn {
+    return Intl.message('Slot', name: 'pivSlotColumn', desc: '', args: []);
+  }
+
+  /// `Name`
+  String get pivNameColumn {
+    return Intl.message('Name', name: 'pivNameColumn', desc: '', args: []);
+  }
+
+  /// `Algorithm`
+  String get pivAlgorithmColumn {
+    return Intl.message(
+      'Algorithm',
+      name: 'pivAlgorithmColumn',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `View certificate`
+  String get pivViewCertificate {
+    return Intl.message(
+      'View certificate',
+      name: 'pivViewCertificate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import / export`
+  String get pivTransfer {
+    return Intl.message(
+      'Import / export',
+      name: 'pivTransfer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manage`
+  String get pivManage {
+    return Intl.message('Manage', name: 'pivManage', desc: '', args: []);
+  }
+
+  /// `Mac login`
+  String get pivMacLogin {
+    return Intl.message('Mac login', name: 'pivMacLogin', desc: '', args: []);
+  }
+
+  /// `Sign in to macOS using your PIV certificates.`
+  String get pivMacLoginDescription {
+    return Intl.message(
+      'Sign in to macOS using your PIV certificates.',
+      name: 'pivMacLoginDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Certificate information`
+  String get pivCertificateInfo {
+    return Intl.message(
+      'Certificate information',
+      name: 'pivCertificateInfo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Certificate details for this slot.`
+  String get pivCertificateInfoDescription {
+    return Intl.message(
+      'Certificate details for this slot.',
+      name: 'pivCertificateInfoDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Certificate status`
+  String get pivCertificateStatus {
+    return Intl.message(
+      'Certificate status',
+      name: 'pivCertificateStatus',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Certificate present`
+  String get pivCertificatePresent {
+    return Intl.message(
+      'Certificate present',
+      name: 'pivCertificatePresent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose an operation for this slot.`
+  String get pivActionsDescription {
+    return Intl.message(
+      'Choose an operation for this slot.',
+      name: 'pivActionsDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create or import a certificate for this slot.`
+  String get pivProvisioningDescription {
+    return Intl.message(
+      'Create or import a certificate for this slot.',
+      name: 'pivProvisioningDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save certificates and public keys.`
+  String get pivExportDescription {
+    return Intl.message(
+      'Save certificates and public keys.',
+      name: 'pivExportDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sign and verify using this key.`
+  String get pivKeyOperationsDescription {
+    return Intl.message(
+      'Sign and verify using this key.',
+      name: 'pivKeyOperationsDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `These actions can permanently change or remove keys.`
+  String get pivDangerDescription {
+    return Intl.message(
+      'These actions can permanently change or remove keys.',
+      name: 'pivDangerDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configure constraints, key usage and extended key usage.`
+  String get pivExtensionsDescription {
+    return Intl.message(
+      'Configure constraints, key usage and extended key usage.',
+      name: 'pivExtensionsDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter the identity for this certificate.`
+  String get pivSubjectDescription {
+    return Intl.message(
+      'Enter the identity for this certificate.',
+      name: 'pivSubjectDescription',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

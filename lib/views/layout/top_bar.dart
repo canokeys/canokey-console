@@ -12,8 +12,9 @@ import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 
 class TopBar extends StatefulWidget {
   final Widget? actions;
+  final Widget? title;
 
-  const TopBar({super.key, this.actions});
+  const TopBar({super.key, this.actions, this.title});
 
   @override
   _TopBarState createState() => _TopBarState();
@@ -61,6 +62,10 @@ class _TopBarState extends State<TopBar>
             onTap: () => ThemeCustomizer.toggleLeftBarCondensed(),
             child: Icon(LucideIcons.menu, color: topBarTheme.onBackground),
           ),
+          if (widget.title != null) ...[
+            const SizedBox(width: 28),
+            ConstrainedBox(constraints: const BoxConstraints(maxWidth: 240), child: widget.title!),
+          ],
           if (['/applets/oath', '/applets/webauthn']
               .contains(Get.currentRoute)) ...{
             Spacing.width(24),

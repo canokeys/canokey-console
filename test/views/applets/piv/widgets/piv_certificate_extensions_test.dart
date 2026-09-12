@@ -10,6 +10,7 @@ void main() {
   Widget app(
     PivSelfSignOptions options, {
     Locale locale = const Locale('en'),
+    double textScale = 1,
   }) => MaterialApp(
     locale: locale,
     localizationsDelegates: const [
@@ -20,107 +21,100 @@ void main() {
     ],
     supportedLocales: S.delegate.supportedLocales,
     home: Scaffold(
-      body: SingleChildScrollView(
-        child: StatefulBuilder(
-          builder: (context, setState) =>
-              PivCertificateExtensions(options: options, onChanged: setState),
+      body: MediaQuery(
+        data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
+        child: SingleChildScrollView(
+          child: StatefulBuilder(
+            builder: (context, setState) =>
+                PivCertificateExtensions(options: options, onChanged: setState),
+          ),
         ),
       ),
     ),
   );
 
-  testWidgets('preset updates summary, expanded controls and custom state', (
+  testWidgets('all slots show certificate controls without a Mac preset', (
     tester,
   ) async {
-    final options = PivSelfSignOptions(
-      slotNumber: '9A',
-      pinPolicy: PinPolicy.never,
-    )..algorithm = AlgorithmType.ed25519;
-    await tester.pumpWidget(app(options));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text(S.current.pivMacOsApply));
-    await tester.pumpAndSettle();
-    expect(find.text(S.current.pivMacOsSlotApplied('9A')), findsOneWidget);
-    expect(find.textContaining('ECC P-256'), findsOneWidget);
-    await tester.tap(find.text(S.current.pivCertificateExtensions));
-    await tester.pumpAndSettle();
-    final digitalSignature = tester.widget<FilterChip>(
-      find.widgetWithText(FilterChip, 'digitalSignature'),
-    );
-    expect(digitalSignature.selected, isTrue);
-    expect(
-      tester
-          .widget<FilterChip>(find.widgetWithText(FilterChip, 'clientAuth'))
-          .selected,
-      isTrue,
-    );
-    await tester.tap(find.text('contentCommitment'));
-    await tester.pumpAndSettle();
-    expect(find.text(S.current.pivCertificateCustom), findsOneWidget);
-    expect(options.keyUsage, 3);
-    expect(tester.takeException(), isNull);
+    for (final slot in ['9A', '9C', '9D', '9E']) {
+      final options = PivSelfSignOptions(
+        slotNumber: slot,
+        pinPolicy: PinPolicy.never,
+      )..algorithm = AlgorithmType.ed25519;
+      await tester.pumpWidget(app(options));
+      await tester.pumpAndSettle();
+      expect(find.text(S.current.pivMacOsApply), findsNothing);
+      expect(find.text(S.current.pivMacOsDescription), findsNothing);
+      expect(find.text(S.current.pivMacOsKeychainDescription), findsNothing);
+      expect(find.text(S.current.pivMacOsOtherSlot), findsNothing);
+      expect(find.text(S.current.pivCertificateExtensions), findsOneWidget);
+      expect(options.algorithm, AlgorithmType.ed25519);
+      expect(options.pinPolicy, PinPolicy.never);
+    }
   });
 
   testWidgets(
-    'other slots explain the two-slot setup without a preset button',
+    'critical can be changed before selecting usages and retains the choice',
     (tester) async {
-      await tester.pumpWidget(
-        app(PivSelfSignOptions(slotNumber: '9C', pinPolicy: PinPolicy.once)),
+      final options = PivSelfSignOptions(
+        slotNumber: '9C',
+        pinPolicy: PinPolicy.once,
       );
+      await tester.pumpWidget(app(options));
       await tester.pumpAndSettle();
-      expect(find.text(S.current.pivMacOsApply), findsNothing);
-      expect(find.text(S.current.pivMacOsOtherSlot), findsOneWidget);
+      expect(options.keyUsage, 0);
+      await tester.tap(find.text(S.current.pivKeyUsageCritical));
+      await tester.pumpAndSettle();
+      expect(options.keyUsageCritical, isFalse);
+      expect(options.keyUsage, 0);
+      await tester.tap(find.text('digitalSignature'));
+      await tester.pumpAndSettle();
+      expect(options.keyUsage, 1);
+      expect(options.keyUsageCritical, isFalse);
+      await tester.tap(find.text(S.current.pivKeyUsageCritical));
+      await tester.tap(find.text('digitalSignature'));
+      await tester.pumpAndSettle();
+      expect(options.keyUsage, 0);
+      expect(options.keyUsageCritical, isTrue);
+      expect(tester.takeException(), isNull);
     },
   );
 
-  testWidgets('9D preset selects key agreement and explains the role of 9A', (
-    tester,
-  ) async {
+  testWidgets('constraints and EKU labels are interactive', (tester) async {
     final options = PivSelfSignOptions(
       slotNumber: '9D',
       pinPolicy: PinPolicy.once,
     );
     await tester.pumpWidget(app(options));
     await tester.pumpAndSettle();
-    expect(find.text(S.current.pivMacOsKeychainDescription), findsOneWidget);
-    await tester.tap(find.text(S.current.pivMacOsApply));
+    await tester.tap(find.text(S.current.pivEndEntityConstraint));
+    await tester.tap(find.text('clientAuth'));
     await tester.pumpAndSettle();
-    expect(find.text(S.current.pivMacOsSlotApplied('9D')), findsOneWidget);
-    await tester.tap(find.text(S.current.pivCertificateExtensions));
-    await tester.pumpAndSettle();
-    for (final entry in {
-      'keyAgreement': true,
-      'digitalSignature': false,
-      'clientAuth': false,
-    }.entries) {
-      expect(
-        tester
-            .widget<FilterChip>(find.widgetWithText(FilterChip, entry.key))
-            .selected,
-        entry.value,
-      );
-    }
+    expect(options.includeBasicConstraints, isTrue);
+    expect(options.extendedKeyUsage, {PivSelfSignOptions.clientAuth});
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Chinese expanded controls fit a narrow viewport', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(320, 900);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(
-      app(
-        PivSelfSignOptions(slotNumber: '9A', pinPolicy: PinPolicy.once),
-        locale: const Locale('zh', 'Hans'),
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text(S.current.pivMacOsApply));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text(S.current.pivCertificateExtensions));
-    await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
-  });
+  testWidgets(
+    'Chinese controls remain usable on narrow screens with large text',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final options = PivSelfSignOptions(
+        slotNumber: '9A',
+        pinPolicy: PinPolicy.once,
+      );
+      await tester.pumpWidget(
+        app(options, locale: const Locale('zh', 'Hans'), textScale: 1.5),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text(S.current.pivKeyUsageCritical));
+      await tester.tap(find.text(S.current.pivKeyUsageCritical));
+      await tester.pumpAndSettle();
+      expect(options.keyUsageCritical, isFalse);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

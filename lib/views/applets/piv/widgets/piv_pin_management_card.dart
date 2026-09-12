@@ -1,14 +1,11 @@
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
-import 'package:canokey_console/helper/theme/app_style.dart';
-import 'package:canokey_console/helper/utils/shadow.dart';
+import 'piv_surface.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
-import 'package:canokey_console/helper/widgets/customized_card.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 import 'package:canokey_console/models/piv.dart';
-import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
 import 'package:flutter/material.dart';
 
 class PivPinManagementCard extends StatelessWidget {
@@ -53,110 +50,202 @@ class PivPinManagementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomizedCard(
-      clipBehavior: Clip.antiAliasWithSaveLayer,
-      shadow: Shadow(elevation: 0.5, position: ShadowPosition.bottom),
-      paddingAll: 0,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            color: contentTheme.primary.withValues(alpha: 0.2),
-            padding: Spacing.xy(16, 12),
-            child: Row(
-              children: [
-                Icon(
-                  LucideIcons.keyboard,
-                  color: contentTheme.primary,
-                  size: 16,
-                ),
-                Spacing.width(12),
-                CustomizedText.titleMedium(
-                  S.of(context).pivPinManagement,
-                  fontWeight: 600,
-                  color: contentTheme.primary,
-                ),
-              ],
+    final s = S.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PivGrid(
+          minWidth: 250,
+          minChildHeight: MediaQuery.textScalerOf(context).scale(160),
+          children: [
+            _credential(
+              context,
+              'PIN',
+              LucideIcons.lock,
+              s.pivPinDescription,
+              info: pinInfo,
+              credential: true,
             ),
-          ),
-          Padding(
-            padding: Spacing.xy(flexSpacing, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            _credential(
+              context,
+              'PUK',
+              LucideIcons.keyRound,
+              s.pivPukDescription,
+              info: pukInfo,
+              credential: true,
+            ),
+            _credential(
+              context,
+              s.pivManagementKey,
+              LucideIcons.shieldCheck,
+              '${managementKeyAlgorithm.label} · ${_touchPolicyLabel(context)}',
+            ),
+            if (supportsPinOnlyMode)
+              _credential(
+                context,
+                s.pivManagementKeyAuthentication,
+                LucideIcons.shieldCheck,
+                pinOnlyMode
+                    ? s.pivPinProtectedKeyOnCard
+                    : s.pivManualManagementKey,
+                onTap: onTogglePinOnlyMode,
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1000),
+            child: PivGrid(
+              minWidth: 165,
+              maxColumns: 5,
               children: [
-                InfoItem(
-                  iconData: LucideIcons.lock,
-                  title: 'PIN',
-                  value: credentialRetryValue(pinInfo),
+                _actionButton(
+                  context,
+                  s.changePin,
+                  onChangePin,
+                  primary: true,
+                  icon: LucideIcons.lock,
                 ),
-                Spacing.height(16),
-                InfoItem(
-                  iconData: LucideIcons.keyRound,
-                  title: 'PUK',
-                  value: credentialRetryValue(pukInfo),
+                _actionButton(
+                  context,
+                  s.pivChangePUK,
+                  onChangePuk,
+                  enabled: !pinOnlyMode && pukInfo?.remainingCount != 0,
+                  icon: LucideIcons.keyRound,
                 ),
-                Spacing.height(16),
-                InfoItem(
-                  iconData: LucideIcons.shieldCheck,
-                  title: S.of(context).pivManagementKey,
-                  value:
-                      '${managementKeyAlgorithm.name.toUpperCase()} · ${_touchPolicyLabel(context)}',
+                _actionButton(
+                  context,
+                  s.pivUnblockPin,
+                  onUnblockPin,
+                  enabled: canUnblockPin && pukInfo?.remainingCount != 0,
+                  icon: Icons.lock_open_outlined,
                 ),
-                Spacing.height(16),
-                if (supportsPinOnlyMode) ...[
-                  InfoItem(
-                    iconData: LucideIcons.shieldCheck,
-                    title: S.of(context).pivManagementKeyAuthentication,
-                    value: pinOnlyMode
-                        ? S.of(context).pivPinProtectedKeyOnCard
-                        : S.of(context).pivManualManagementKey,
-                    onTap: onTogglePinOnlyMode,
+                _actionButton(
+                  context,
+                  s.pivChangeManagementKey,
+                  onChangeManagementKey,
+                  icon: LucideIcons.shieldCheck,
+                ),
+                if (supportsPinRetryConfig)
+                  _actionButton(
+                    context,
+                    s.pivSetPinPukRetries,
+                    onSetPinRetries,
+                    enabled: !pinOnlyMode,
+                    icon: Icons.settings_outlined,
                   ),
-                  Spacing.height(16),
-                ],
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    _actionButton(
-                      context,
-                      S.of(context).changePin,
-                      onChangePin,
-                    ),
-                    _actionButton(
-                      context,
-                      S.of(context).pivChangePUK,
-                      onChangePuk,
-                      enabled: !pinOnlyMode && pukInfo?.remainingCount != 0,
-                    ),
-                    _actionButton(
-                      context,
-                      S.of(context).pivUnblockPin,
-                      onUnblockPin,
-                      enabled:
-                          canUnblockPin &&
-                          pukInfo?.remainingCount != 0,
-                    ),
-                    _actionButton(
-                      context,
-                      S.of(context).pivChangeManagementKey,
-                      onChangeManagementKey,
-                    ),
-                    if (supportsPinRetryConfig)
-                      _actionButton(
-                        context,
-                        S.of(context).pivSetPinPukRetries,
-                        onSetPinRetries,
-                        enabled: !pinOnlyMode,
-                      ),
-                  ],
-                ),
               ],
             ),
           ),
-        ],
+        ),
+      ],
+    );
+  }
+
+  Widget _credential(
+    BuildContext context,
+    String title,
+    IconData icon,
+    String description, {
+    SlotInfo? info,
+    bool credential = false,
+    VoidCallback? onTap,
+  }) {
+    final s = S.of(context);
+    final blocked = credential && info?.remainingCount == 0;
+    final unknown = credential && info == null;
+    final content = PivSurface(
+      padding: const EdgeInsets.all(18),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 100),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            PivIcon(icon, size: 44),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: PivStyle.text(context, 15, bold: true),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      PivStatus(
+                        unknown
+                            ? s.pivStatusUnknown
+                            : blocked
+                            ? s.pivStatusBlocked
+                            : s.pivStatusReady,
+                        active: !unknown,
+                        danger: blocked,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    description,
+                    style: PivStyle.text(context, 12, secondary: true),
+                  ),
+                  if (credential) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      info == null
+                          ? '— / —'
+                          : '${info.remainingCount} / ${info.retriesCount}',
+                      style: PivStyle.text(context, 22, bold: true).copyWith(
+                        color: blocked ? const Color(0xffe63652) : null,
+                        height: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      s.pivRetriesRemaining,
+                      style: PivStyle.text(context, 12, secondary: true),
+                    ),
+                  ],
+                  if (onTap != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          s.change,
+                          style: PivStyle.text(
+                            context,
+                            12,
+                          ).copyWith(color: PivStyle.primary),
+                        ),
+                        const Icon(
+                          Icons.chevron_right,
+                          size: 14,
+                          color: PivStyle.primary,
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
+    return onTap == null
+        ? content
+        : InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(9),
+            child: content,
+          );
   }
 
   String _touchPolicyLabel(BuildContext context) {
@@ -174,14 +263,61 @@ class PivPinManagementCard extends StatelessWidget {
     String text,
     VoidCallback onTap, {
     bool enabled = true,
+    bool primary = false,
+    required IconData icon,
   }) {
     return CustomizedButton(
       onPressed: enabled ? onTap : null,
+      style: ElevatedButton.styleFrom(
+        elevation: 0,
+        minimumSize: Size(96, PivStyle.buttonHeight(context)),
+        fixedSize: Size.fromHeight(PivStyle.buttonHeight(context)),
+        visualDensity: VisualDensity.standard,
+        backgroundColor: primary ? PivStyle.primary : PivStyle.soft(context),
+        disabledBackgroundColor: PivStyle.soft(context),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+          side: BorderSide(
+            color: primary ? Colors.transparent : PivStyle.border(context),
+          ),
+        ),
+      ),
       elevation: 0,
-      padding: Spacing.xy(20, 16),
-      backgroundColor: contentTheme.primary,
-      borderRadiusAll: AppStyle.buttonRadius.medium,
-      child: CustomizedText.bodySmall(text, color: contentTheme.onPrimary),
+      padding: Spacing.xy(18, 13),
+      side: BorderSide(
+        color: primary ? Colors.transparent : PivStyle.border(context),
+      ),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      backgroundColor: primary ? contentTheme.primary : PivStyle.soft(context),
+      borderRadiusAll: 6,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 17,
+            color: primary
+                ? contentTheme.onPrimary
+                : enabled
+                ? PivStyle.ink(context)
+                : PivStyle.muted(context).withValues(alpha: .5),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: CustomizedText.bodySmall(
+              text,
+              color: primary
+                  ? contentTheme.onPrimary
+                  : enabled
+                  ? PivStyle.ink(context)
+                  : PivStyle.muted(context).withValues(alpha: .5),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

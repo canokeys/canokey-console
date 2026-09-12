@@ -1,10 +1,11 @@
+import 'package:canokey_console/views/applets/piv/widgets/piv_surface.dart';
+import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/models/piv_macos_setup.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'dart:typed_data';
 
 import 'package:canokey_console/controller/applets/piv/piv_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
@@ -24,6 +25,33 @@ void main() {
 
   tearDown(() {
     Get.reset();
+  });
+
+  testWidgets('PIV surfaces fit desktop and mobile with the app theme', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final controller = _TestPivController()
+      ..polled = true
+      ..functionSetVersion = FunctionSetVersion.v5
+      ..extendedRetiredSlots = true
+      ..slots[0x9C] = _slot(0x9C, AlgorithmType.rsa3072);
+    Get.put<PivController>(controller);
+    for (final size in [const Size(1440, 1000), const Size(390, 844)]) {
+      tester.view.physicalSize = size;
+      await tester.pumpWidget(_app(theme: AppTheme.lightTheme));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      tester.widget<PivSlotListItem>(_slotItem('9C')).onTap();
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await tester.ensureVisible(find.text('Sign Message'));
+      expect(find.text('Sign Message').hitTestable(), findsOneWidget);
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+    }
   });
 
   testWidgets('waits for a card without polling on page open', (tester) async {
@@ -198,6 +226,32 @@ void main() {
 
     expect(exportTop, provisioningTop);
     expect(operationsTop, provisioningTop);
+    Finder action(String label) =>
+        find.ancestor(of: find.text(label), matching: find.byType(PivButton));
+    final buttons = [
+      'Generate CSR',
+      'Export Public Key',
+      'Sign Message',
+      'Clear Slot',
+    ].map(action).toList();
+    final firstTop = tester.getTopLeft(buttons.first).dy;
+    final firstHeight = tester.getSize(buttons.first).height;
+    for (final button in buttons) {
+      expect(tester.getTopLeft(button).dy, firstTop);
+      expect(tester.getSize(button).height, firstHeight);
+    }
+    expect(
+      tester.getSize(action('Generate CSR')),
+      tester.getSize(action('Self-sign')),
+    );
+    expect(
+      tester.getSize(action('Export Public Key')),
+      tester.getSize(action('Download Attestation')),
+    );
+    expect(
+      tester.getSize(action('Sign Message')),
+      tester.getSize(action('Verify File')),
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -234,6 +288,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(SmartCard.nfcState, NfcState.input);
 
+    await tester.ensureVisible(find.text('Sign Message'));
     await tester.tap(find.text('Sign Message'));
     await tester.pumpAndSettle();
     expect(find.text('Sign Message'), findsOneWidget);
@@ -299,16 +354,12 @@ void main() {
             .widget<DropdownButtonFormField<AlgorithmType>>(
               find.byType(DropdownButtonFormField<AlgorithmType>),
             )
-            .onChanged!(
-          scenario.algorithm == AlgorithmType.rsa2048
-              ? AlgorithmType.rsa2048
-              : AlgorithmType.eccp384,
-        );
+            .onChanged!(scenario.algorithm);
         tester
             .widget<DropdownButtonFormField<PinPolicy>>(
               find.byType(DropdownButtonFormField<PinPolicy>),
             )
-            .onChanged!(PinPolicy.never);
+            .onChanged!(PinPolicy.once);
         tester
             .widget<DropdownButtonFormField<TouchPolicy>>(
               find.byType(DropdownButtonFormField<TouchPolicy>),
@@ -317,8 +368,21 @@ void main() {
         await tester.pumpAndSettle();
         tester.widget<Stepper>(find.byType(Stepper)).onStepContinue!();
         await tester.pumpAndSettle();
-        await tester.ensureVisible(find.text(S.current.pivMacOsApply));
-        await tester.tap(find.text(S.current.pivMacOsApply));
+        expect(find.text(S.current.pivMacOsApply), findsNothing);
+        expect(find.text(S.current.pivMacOsOtherSlot), findsNothing);
+        final usage = {
+          1: 'digitalSignature',
+          4: 'keyEncipherment',
+          16: 'keyAgreement',
+        }[scenario.keyUsage]!;
+        await tester.ensureVisible(find.text(usage));
+        await tester.tap(find.text(usage));
+        if (scenario.slot == '9A') {
+          await tester.ensureVisible(find.text('clientAuth'));
+          await tester.tap(find.text('clientAuth'));
+        }
+        await tester.ensureVisible(find.text(S.current.pivEndEntityConstraint));
+        await tester.tap(find.text(S.current.pivEndEntityConstraint));
         await tester.pumpAndSettle();
         tester.widget<Stepper>(find.byType(Stepper)).onStepCancel!();
         await tester.pumpAndSettle();
@@ -400,7 +464,7 @@ void main() {
     );
   }
 
-  testWidgets('keeps provisioning actions primary when slot has a key', (
+  testWidgets('uses consistent neutral styling for provisioning actions', (
     tester,
   ) async {
     final controller = _TestPivController()
@@ -415,14 +479,21 @@ void main() {
 
     for (final label in ['Generate CSR', 'Self-sign', 'Import']) {
       expect(
-        _actionButton(tester, label).backgroundColor,
-        AdminTheme.theme.contentTheme.primary,
+        tester
+            .widget<PivButton>(
+              find.ancestor(
+                of: find.text(label),
+                matching: find.byType(PivButton),
+              ),
+            )
+            .primary,
+        isFalse,
       );
     }
   });
 
   testWidgets(
-    'keeps provisioning actions primary when slot only has a certificate',
+    'keeps import available as a secondary action for a certificate-only slot',
     (tester) async {
       final controller = _TestPivController()
         ..polled = true
@@ -435,8 +506,15 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        _actionButton(tester, 'Import').backgroundColor,
-        AdminTheme.theme.contentTheme.primary,
+        tester
+            .widget<PivButton>(
+              find.ancestor(
+                of: find.text('Import'),
+                matching: find.byType(PivButton),
+              ),
+            )
+            .primary,
+        isFalse,
       );
     },
   );
@@ -507,6 +585,7 @@ void main() {
       expect(find.text('Self-sign'), findsOneWidget);
       expect(find.text('Generate CSR'), findsNothing);
       expect(find.text('Download Attestation'), findsOneWidget);
+      await tester.ensureVisible(find.text('Generate Key'));
       await tester.tap(find.text('Generate Key'));
       await tester.pumpAndSettle();
 
@@ -610,8 +689,9 @@ class _TestPivController extends PivController {
   }
 }
 
-Widget _app() {
+Widget _app({ThemeData? theme}) {
   return GetMaterialApp(
+    theme: theme,
     locale: const Locale('en'),
     localizationsDelegates: const [
       S.delegate,

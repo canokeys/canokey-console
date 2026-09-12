@@ -18,6 +18,7 @@ class Layout extends StatelessWidget {
   final Widget? child;
   final String title;
   final Widget? topActions;
+  final Widget? desktopTitle;
   final Future<void> Function()? onRefresh;
 
   /// Disable the outer scroll view for tools that manage their own viewport.
@@ -31,6 +32,7 @@ class Layout extends StatelessWidget {
     super.key,
     this.child,
     this.topActions,
+    this.desktopTitle,
     this.onRefresh,
     this.title = "",
     this.scrollable = true,
@@ -183,7 +185,7 @@ class Layout extends StatelessWidget {
                   left: false,
                   right: false,
                   bottom: false,
-                  child: TopBar(actions: topActions),
+                  child: TopBar(actions: topActions, title: desktopTitle),
                 ),
               ),
             ],

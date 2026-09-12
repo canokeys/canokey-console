@@ -471,7 +471,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "pinInvalidLength": MessageLookupByLibrary.simpleMessage("長度錯誤"),
     "pinLength": MessageLookupByLibrary.simpleMessage("輸入的 PIN 長度錯誤"),
     "pinRetries": m10,
+    "pivActionsDescription": MessageLookupByLibrary.simpleMessage(
+      "依需要對此憑證槽位執行相關操作。",
+    ),
     "pivAlgorithm": MessageLookupByLibrary.simpleMessage("目前金鑰演算法"),
+    "pivAlgorithmColumn": MessageLookupByLibrary.simpleMessage("演算法"),
     "pivAlgorithmIds": MessageLookupByLibrary.simpleMessage("演算法 ID"),
     "pivAlgorithmIdsPrompt": MessageLookupByLibrary.simpleMessage(
       "控制卡片是否接受 PIV 擴充演算法 ID。",
@@ -500,6 +504,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivCertificateDoesNotMatchPrivateKey":
         MessageLookupByLibrary.simpleMessage("憑證公開金鑰與所選私密金鑰不相符。"),
     "pivCertificateExtensions": MessageLookupByLibrary.simpleMessage("憑證擴充欄位"),
+    "pivCertificateInfo": MessageLookupByLibrary.simpleMessage("憑證資訊"),
+    "pivCertificateInfoDescription": MessageLookupByLibrary.simpleMessage(
+      "目前槽位中的憑證詳細資訊。",
+    ),
     "pivCertificateIssuer": MessageLookupByLibrary.simpleMessage("簽發者"),
     "pivCertificateKey": MessageLookupByLibrary.simpleMessage("憑證公開金鑰"),
     "pivCertificateMatchesPrivateKey": MessageLookupByLibrary.simpleMessage(
@@ -511,8 +519,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivCertificateOnlyKeepsPrivateKey": MessageLookupByLibrary.simpleMessage(
       "只匯入憑證不會改變私密金鑰。請確認該憑證屬於卡內已有私密金鑰。",
     ),
+    "pivCertificatePresent": MessageLookupByLibrary.simpleMessage("有憑證"),
     "pivCertificateSerial": MessageLookupByLibrary.simpleMessage("序號"),
     "pivCertificateSize": MessageLookupByLibrary.simpleMessage("憑證大小"),
+    "pivCertificateStatus": MessageLookupByLibrary.simpleMessage("憑證狀態"),
     "pivCertificateSubject": MessageLookupByLibrary.simpleMessage("使用者"),
     "pivCertificateSubjectAndExtensions": MessageLookupByLibrary.simpleMessage(
       "憑證資訊與擴充欄位",
@@ -551,6 +561,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "產生 CSR 會使用卡內新金鑰對請求簽章。",
     ),
     "pivCsrSubject": MessageLookupByLibrary.simpleMessage("CSR 主題"),
+    "pivDangerDescription": MessageLookupByLibrary.simpleMessage(
+      "這些操作可能永久變更或刪除金鑰，請謹慎操作。",
+    ),
     "pivDangerZone": MessageLookupByLibrary.simpleMessage("危險操作"),
     "pivDelete": MessageLookupByLibrary.simpleMessage("刪除"),
     "pivDeleteSlot": m15,
@@ -586,10 +599,16 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "pivExport": MessageLookupByLibrary.simpleMessage("匯出"),
     "pivExportCertificate": MessageLookupByLibrary.simpleMessage("匯出憑證"),
+    "pivExportDescription": MessageLookupByLibrary.simpleMessage(
+      "匯出憑證與公鑰以備份或分發。",
+    ),
     "pivExportPublicKey": MessageLookupByLibrary.simpleMessage("匯出公開金鑰"),
     "pivExtendedAlgorithmCompatibilityWarning":
         MessageLookupByLibrary.simpleMessage("使用此演算法前請確認用戶端相容性。"),
     "pivExtendedKeyUsage": MessageLookupByLibrary.simpleMessage("延伸金鑰用途（EKU）"),
+    "pivExtensionsDescription": MessageLookupByLibrary.simpleMessage(
+      "設定憑證的基本限制、金鑰用途與延伸金鑰用途。",
+    ),
     "pivFile": MessageLookupByLibrary.simpleMessage("檔案"),
     "pivFileSigningFailed": MessageLookupByLibrary.simpleMessage("檔案簽章失敗"),
     "pivGenerate": MessageLookupByLibrary.simpleMessage("產生"),
@@ -627,10 +646,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivKeyOnlyKeepsCertificate": MessageLookupByLibrary.simpleMessage(
       "只匯入私密金鑰會保留現有憑證。如憑證不再相符，請替換或清空憑證。",
     ),
+    "pivKeyOperationsDescription": MessageLookupByLibrary.simpleMessage(
+      "使用金鑰進行簽署或驗證。",
+    ),
     "pivKeyOptions": MessageLookupByLibrary.simpleMessage("金鑰選項"),
     "pivKeyUsage": MessageLookupByLibrary.simpleMessage("金鑰用途（Key Usage）"),
     "pivKeyUsageCritical": MessageLookupByLibrary.simpleMessage(
       "將 Key Usage 標示為 critical",
+    ),
+    "pivMacLogin": MessageLookupByLibrary.simpleMessage("Mac 登入"),
+    "pivMacLoginDescription": MessageLookupByLibrary.simpleMessage(
+      "使用 PIV 憑證登入 macOS。",
     ),
     "pivMacOsAfterAuthentication": MessageLookupByLibrary.simpleMessage(
       "9A 已設定。下一步請檢查 9D：Mac 還需要它的金鑰和憑證來解鎖登入鑰匙圈。",
@@ -692,6 +718,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivMacSetupTitle": MessageLookupByLibrary.simpleMessage("設定 Mac 登入"),
     "pivMacSetupWorking": MessageLookupByLibrary.simpleMessage("正在設定"),
     "pivMainSlots": MessageLookupByLibrary.simpleMessage("主要槽位"),
+    "pivManage": MessageLookupByLibrary.simpleMessage("管理"),
     "pivManagementKey": MessageLookupByLibrary.simpleMessage("管理金鑰"),
     "pivManagementKeyAuthentication": MessageLookupByLibrary.simpleMessage(
       "管理金鑰驗證",
@@ -714,6 +741,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivMoveKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "僅移動私密金鑰；憑證會保留在原來的插槽中。",
     ),
+    "pivNameColumn": MessageLookupByLibrary.simpleMessage("名稱"),
     "pivNewManagementKey": MessageLookupByLibrary.simpleMessage("新金鑰"),
     "pivNewPUK": MessageLookupByLibrary.simpleMessage("新 PUK"),
     "pivNoCertificate": MessageLookupByLibrary.simpleMessage("無憑證"),
@@ -736,7 +764,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivOverwrite": MessageLookupByLibrary.simpleMessage("覆蓋"),
     "pivOverwriteKey": MessageLookupByLibrary.simpleMessage("覆蓋金鑰"),
     "pivOverwriteKeyPrompt": m21,
+    "pivPageDescription": MessageLookupByLibrary.simpleMessage(
+      "管理 PIV 的 PIN、金鑰與憑證，設定身分驗證所需的憑據。",
+    ),
+    "pivPageTitle": MessageLookupByLibrary.simpleMessage("PIV 管理"),
     "pivPinAndTouchPolicy": MessageLookupByLibrary.simpleMessage("PIN 和觸碰策略"),
+    "pivPinDescription": MessageLookupByLibrary.simpleMessage("用於使用者身分驗證"),
     "pivPinManagement": MessageLookupByLibrary.simpleMessage("管理 PIN"),
     "pivPinPolicy": MessageLookupByLibrary.simpleMessage("PIN 策略"),
     "pivPinPolicyAlways": MessageLookupByLibrary.simpleMessage("總是驗證"),
@@ -754,7 +787,11 @@ class MessageLookup extends MessageLookupByLibrary {
         MessageLookupByLibrary.simpleMessage("此演算法不支援產生 CSR、自我簽署憑證或金鑰證明。"),
     "pivPrivateKey": MessageLookupByLibrary.simpleMessage("私密金鑰"),
     "pivProvisioning": MessageLookupByLibrary.simpleMessage("設定"),
+    "pivProvisioningDescription": MessageLookupByLibrary.simpleMessage(
+      "產生或匯入此槽位的憑證。",
+    ),
     "pivPublicKey": MessageLookupByLibrary.simpleMessage("公開金鑰"),
+    "pivPukDescription": MessageLookupByLibrary.simpleMessage("用於解除 PIN 鎖定"),
     "pivPukRetries": MessageLookupByLibrary.simpleMessage("PUK 重試次數"),
     "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage("隨機值"),
     "pivRetired1": MessageLookupByLibrary.simpleMessage("退役金鑰 1"),
@@ -762,6 +799,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivRetiredSlot": m23,
     "pivRetiredSlots": MessageLookupByLibrary.simpleMessage("歷史金鑰槽位"),
     "pivRetries": m24,
+    "pivRetriesRemaining": MessageLookupByLibrary.simpleMessage("剩餘嘗試次數"),
     "pivRetriesUnknown": MessageLookupByLibrary.simpleMessage("剩餘次數：未知"),
     "pivReview": MessageLookupByLibrary.simpleMessage("確認"),
     "pivSavePem": MessageLookupByLibrary.simpleMessage("儲存 PEM"),
@@ -822,6 +860,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "pivSlotCertificateOnly": MessageLookupByLibrary.simpleMessage("僅憑證"),
     "pivSlotCleared": MessageLookupByLibrary.simpleMessage("插槽已清空"),
+    "pivSlotColumn": MessageLookupByLibrary.simpleMessage("槽位"),
     "pivSlotKeyAndCertificate": MessageLookupByLibrary.simpleMessage("金鑰與憑證"),
     "pivSlotKeyManagementHint": MessageLookupByLibrary.simpleMessage(
       "金鑰管理插槽。X25519 只能用於衍生共用金鑰。",
@@ -834,18 +873,30 @@ class MessageLookup extends MessageLookupByLibrary {
       "數位簽章插槽。PIN 策略預設總是驗證。",
     ),
     "pivSlots": MessageLookupByLibrary.simpleMessage("憑證插槽"),
+    "pivSlotsDescription": MessageLookupByLibrary.simpleMessage(
+      "管理 PIV 標準憑證槽位中的金鑰與憑證。",
+    ),
+    "pivSlotsHint": MessageLookupByLibrary.simpleMessage("選擇槽位檢視或管理憑證"),
+    "pivSlotsTitle": MessageLookupByLibrary.simpleMessage("憑證槽位"),
+    "pivStatusBlocked": MessageLookupByLibrary.simpleMessage("已鎖定"),
+    "pivStatusConfigured": MessageLookupByLibrary.simpleMessage("已設定"),
+    "pivStatusEmpty": MessageLookupByLibrary.simpleMessage("未設定"),
+    "pivStatusReady": MessageLookupByLibrary.simpleMessage("正常"),
+    "pivStatusUnknown": MessageLookupByLibrary.simpleMessage("未知"),
     "pivStoreManagementKeyOnCard": MessageLookupByLibrary.simpleMessage(
       "將新管理金鑰儲存在卡內",
     ),
     "pivStoreManagementKeyOnCardPrompt": MessageLookupByLibrary.simpleMessage(
       "啟用後，後續管理操作可用 PIN 完成驗證。 此操作會鎖死 PUK，之後無法透過 PUK 復原 PIN。",
     ),
+    "pivSubjectDescription": MessageLookupByLibrary.simpleMessage("填寫憑證的識別資訊。"),
     "pivTouchPolicy": MessageLookupByLibrary.simpleMessage("觸碰策略"),
     "pivTouchPolicyAlways": MessageLookupByLibrary.simpleMessage("總是驗證"),
     "pivTouchPolicyCached": MessageLookupByLibrary.simpleMessage("快取 15 秒"),
     "pivTouchPolicyChip": m25,
     "pivTouchPolicyDefault": MessageLookupByLibrary.simpleMessage("預設"),
     "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("從不驗證"),
+    "pivTransfer": MessageLookupByLibrary.simpleMessage("匯入/匯出"),
     "pivUnblockPin": MessageLookupByLibrary.simpleMessage("解鎖 PIN"),
     "pivUnblockPinPrompt": MessageLookupByLibrary.simpleMessage(
       "輸入目前 PUK 並設定新的 PIN。",
@@ -866,6 +917,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivVerifyPinAndManagementKey": MessageLookupByLibrary.simpleMessage(
       "驗證 PIN 和管理金鑰",
     ),
+    "pivViewCertificate": MessageLookupByLibrary.simpleMessage("檢視憑證"),
     "pivX25519CannotUseCertificate": MessageLookupByLibrary.simpleMessage(
       "X25519 不能搭配憑證使用。請只匯入金鑰。",
     ),

@@ -600,7 +600,11 @@ class MessageLookup extends MessageLookupByLibrary {
       "The provided PIN is too short or too long.",
     ),
     "pinRetries": m10,
+    "pivActionsDescription": MessageLookupByLibrary.simpleMessage(
+      "Choose an operation for this slot.",
+    ),
     "pivAlgorithm": MessageLookupByLibrary.simpleMessage("Current Algorithm"),
+    "pivAlgorithmColumn": MessageLookupByLibrary.simpleMessage("Algorithm"),
     "pivAlgorithmIds": MessageLookupByLibrary.simpleMessage("Algorithm IDs"),
     "pivAlgorithmIdsPrompt": MessageLookupByLibrary.simpleMessage(
       "Controls whether PIV extension algorithm IDs are accepted by the card.",
@@ -639,6 +643,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivCertificateExtensions": MessageLookupByLibrary.simpleMessage(
       "Certificate extensions",
     ),
+    "pivCertificateInfo": MessageLookupByLibrary.simpleMessage(
+      "Certificate information",
+    ),
+    "pivCertificateInfoDescription": MessageLookupByLibrary.simpleMessage(
+      "Certificate details for this slot.",
+    ),
     "pivCertificateIssuer": MessageLookupByLibrary.simpleMessage("Issuer"),
     "pivCertificateKey": MessageLookupByLibrary.simpleMessage(
       "Certificate Key",
@@ -652,9 +662,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivCertificateOnlyKeepsPrivateKey": MessageLookupByLibrary.simpleMessage(
       "Certificate-only import does not change the private key. Make sure this certificate belongs to the key already on the card.",
     ),
+    "pivCertificatePresent": MessageLookupByLibrary.simpleMessage(
+      "Certificate present",
+    ),
     "pivCertificateSerial": MessageLookupByLibrary.simpleMessage("Serial"),
     "pivCertificateSize": MessageLookupByLibrary.simpleMessage(
       "Certificate Size",
+    ),
+    "pivCertificateStatus": MessageLookupByLibrary.simpleMessage(
+      "Certificate status",
     ),
     "pivCertificateSubject": MessageLookupByLibrary.simpleMessage("Subject"),
     "pivCertificateSubjectAndExtensions": MessageLookupByLibrary.simpleMessage(
@@ -702,6 +718,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "CSR generation signs the request with the new key on the card.",
     ),
     "pivCsrSubject": MessageLookupByLibrary.simpleMessage("CSR Subject"),
+    "pivDangerDescription": MessageLookupByLibrary.simpleMessage(
+      "These actions can permanently change or remove keys.",
+    ),
     "pivDangerZone": MessageLookupByLibrary.simpleMessage("Danger Zone"),
     "pivDelete": MessageLookupByLibrary.simpleMessage("Delete"),
     "pivDeleteSlot": m15,
@@ -753,6 +772,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivExportCertificate": MessageLookupByLibrary.simpleMessage(
       "Export Certificate",
     ),
+    "pivExportDescription": MessageLookupByLibrary.simpleMessage(
+      "Save certificates and public keys.",
+    ),
     "pivExportPublicKey": MessageLookupByLibrary.simpleMessage(
       "Export Public Key",
     ),
@@ -762,6 +784,9 @@ class MessageLookup extends MessageLookupByLibrary {
         ),
     "pivExtendedKeyUsage": MessageLookupByLibrary.simpleMessage(
       "Extended Key Usage",
+    ),
+    "pivExtensionsDescription": MessageLookupByLibrary.simpleMessage(
+      "Configure constraints, key usage and extended key usage.",
     ),
     "pivFile": MessageLookupByLibrary.simpleMessage("File"),
     "pivFileSigningFailed": MessageLookupByLibrary.simpleMessage(
@@ -812,10 +837,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivKeyOnlyKeepsCertificate": MessageLookupByLibrary.simpleMessage(
       "Key-only import leaves the existing certificate in place. Replace or clear the certificate if it no longer matches.",
     ),
+    "pivKeyOperationsDescription": MessageLookupByLibrary.simpleMessage(
+      "Sign and verify using this key.",
+    ),
     "pivKeyOptions": MessageLookupByLibrary.simpleMessage("Key Options"),
     "pivKeyUsage": MessageLookupByLibrary.simpleMessage("Key Usage"),
     "pivKeyUsageCritical": MessageLookupByLibrary.simpleMessage(
       "Mark Key Usage as critical",
+    ),
+    "pivMacLogin": MessageLookupByLibrary.simpleMessage("Mac login"),
+    "pivMacLoginDescription": MessageLookupByLibrary.simpleMessage(
+      "Sign in to macOS using your PIV certificates.",
     ),
     "pivMacOsAfterAuthentication": MessageLookupByLibrary.simpleMessage(
       "9A is configured. Next, check 9D: your Mac also needs its key and certificate to unlock your login keychain.",
@@ -895,6 +927,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "pivMacSetupWorking": MessageLookupByLibrary.simpleMessage("Configuring"),
     "pivMainSlots": MessageLookupByLibrary.simpleMessage("Primary slots"),
+    "pivManage": MessageLookupByLibrary.simpleMessage("Manage"),
     "pivManagementKey": MessageLookupByLibrary.simpleMessage("Management Key"),
     "pivManagementKeyAuthentication": MessageLookupByLibrary.simpleMessage(
       "Management key authentication",
@@ -923,6 +956,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivMoveKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "Only the private key is moved. Certificates remain in their current slots.",
     ),
+    "pivNameColumn": MessageLookupByLibrary.simpleMessage("Name"),
     "pivNewManagementKey": MessageLookupByLibrary.simpleMessage(
       "New Management Key",
     ),
@@ -953,8 +987,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivOverwrite": MessageLookupByLibrary.simpleMessage("Overwrite"),
     "pivOverwriteKey": MessageLookupByLibrary.simpleMessage("Overwrite Key"),
     "pivOverwriteKeyPrompt": m21,
+    "pivPageDescription": MessageLookupByLibrary.simpleMessage(
+      "Manage your PIV credentials, keys and certificates.",
+    ),
+    "pivPageTitle": MessageLookupByLibrary.simpleMessage("PIV Management"),
     "pivPinAndTouchPolicy": MessageLookupByLibrary.simpleMessage(
       "PIN and Touch Policy",
+    ),
+    "pivPinDescription": MessageLookupByLibrary.simpleMessage(
+      "For user authentication",
     ),
     "pivPinManagement": MessageLookupByLibrary.simpleMessage("PIN Management"),
     "pivPinPolicy": MessageLookupByLibrary.simpleMessage("PIN Policy"),
@@ -977,7 +1018,13 @@ class MessageLookup extends MessageLookupByLibrary {
         ),
     "pivPrivateKey": MessageLookupByLibrary.simpleMessage("Private Key"),
     "pivProvisioning": MessageLookupByLibrary.simpleMessage("Provisioning"),
+    "pivProvisioningDescription": MessageLookupByLibrary.simpleMessage(
+      "Create or import a certificate for this slot.",
+    ),
     "pivPublicKey": MessageLookupByLibrary.simpleMessage("Public Key"),
+    "pivPukDescription": MessageLookupByLibrary.simpleMessage(
+      "For unblocking the PIN",
+    ),
     "pivPukRetries": MessageLookupByLibrary.simpleMessage("PUK retries"),
     "pivRandomManagementKey": MessageLookupByLibrary.simpleMessage("Random"),
     "pivRetired1": MessageLookupByLibrary.simpleMessage("Retired 1"),
@@ -987,6 +1034,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Retired key slots",
     ),
     "pivRetries": m24,
+    "pivRetriesRemaining": MessageLookupByLibrary.simpleMessage(
+      "Attempts remaining",
+    ),
     "pivRetriesUnknown": MessageLookupByLibrary.simpleMessage(
       "Retries: unknown",
     ),
@@ -1061,6 +1111,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Certificate only",
     ),
     "pivSlotCleared": MessageLookupByLibrary.simpleMessage("Slot cleared"),
+    "pivSlotColumn": MessageLookupByLibrary.simpleMessage("Slot"),
     "pivSlotKeyAndCertificate": MessageLookupByLibrary.simpleMessage(
       "Key + certificate",
     ),
@@ -1075,11 +1126,26 @@ class MessageLookup extends MessageLookupByLibrary {
       "Digital signature slot. PIN policy defaults to always.",
     ),
     "pivSlots": MessageLookupByLibrary.simpleMessage("Slots"),
+    "pivSlotsDescription": MessageLookupByLibrary.simpleMessage(
+      "Manage keys and certificates in the standard PIV slots.",
+    ),
+    "pivSlotsHint": MessageLookupByLibrary.simpleMessage(
+      "Select a slot to view or manage its certificate",
+    ),
+    "pivSlotsTitle": MessageLookupByLibrary.simpleMessage("Certificate slots"),
+    "pivStatusBlocked": MessageLookupByLibrary.simpleMessage("Blocked"),
+    "pivStatusConfigured": MessageLookupByLibrary.simpleMessage("Configured"),
+    "pivStatusEmpty": MessageLookupByLibrary.simpleMessage("Not configured"),
+    "pivStatusReady": MessageLookupByLibrary.simpleMessage("Ready"),
+    "pivStatusUnknown": MessageLookupByLibrary.simpleMessage("Unknown"),
     "pivStoreManagementKeyOnCard": MessageLookupByLibrary.simpleMessage(
       "Store the new management key on this card",
     ),
     "pivStoreManagementKeyOnCardPrompt": MessageLookupByLibrary.simpleMessage(
       "When enabled, future management operations can authenticate with PIN. This blocks PUK and prevents PIN recovery with PUK.",
+    ),
+    "pivSubjectDescription": MessageLookupByLibrary.simpleMessage(
+      "Enter the identity for this certificate.",
     ),
     "pivTouchPolicy": MessageLookupByLibrary.simpleMessage("Touch Policy"),
     "pivTouchPolicyAlways": MessageLookupByLibrary.simpleMessage("Always"),
@@ -1089,6 +1155,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivTouchPolicyChip": m25,
     "pivTouchPolicyDefault": MessageLookupByLibrary.simpleMessage("Default"),
     "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("Never"),
+    "pivTransfer": MessageLookupByLibrary.simpleMessage("Import / export"),
     "pivUnblockPin": MessageLookupByLibrary.simpleMessage("Unblock PIN"),
     "pivUnblockPinPrompt": MessageLookupByLibrary.simpleMessage(
       "Enter the current PUK and set a new PIN.",
@@ -1116,6 +1183,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "pivVerifyPinAndManagementKey": MessageLookupByLibrary.simpleMessage(
       "Verify PIN and Management Key",
+    ),
+    "pivViewCertificate": MessageLookupByLibrary.simpleMessage(
+      "View certificate",
     ),
     "pivX25519CannotUseCertificate": MessageLookupByLibrary.simpleMessage(
       "X25519 cannot be used with certificates. Import the key without a certificate.",
