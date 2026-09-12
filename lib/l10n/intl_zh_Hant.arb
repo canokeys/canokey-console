@@ -817,5 +817,8 @@
   "pivKeyOperationsDescription": "使用金鑰進行簽署或驗證。",
   "pivDangerDescription": "這些操作可能永久變更或刪除金鑰，請謹慎操作。",
   "pivExtensionsDescription": "設定憑證的基本限制、金鑰用途與延伸金鑰用途。",
-  "pivSubjectDescription": "填寫憑證的識別資訊。"
+  "pivSubjectDescription": "填寫憑證的識別資訊。",
+  "settingsDescription": "管理裝置設定、自訂行為和系統選項。",
+  "settingsDeviceSettings": "裝置設定",
+  "settingsDeviceActions": "裝置操作"
 }

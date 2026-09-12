@@ -965,6 +965,11 @@ class MessageLookup extends MessageLookupByLibrary {
       "確定要清除此裝置上所有已儲存的 PIN 嗎？",
     ),
     "settingsCoreCommit": MessageLookupByLibrary.simpleMessage("Core Commit"),
+    "settingsDescription": MessageLookupByLibrary.simpleMessage(
+      "管理裝置設定、自訂行為和系統選項。",
+    ),
+    "settingsDeviceActions": MessageLookupByLibrary.simpleMessage("裝置操作"),
+    "settingsDeviceSettings": MessageLookupByLibrary.simpleMessage("裝置設定"),
     "settingsFirmwareVersion": MessageLookupByLibrary.simpleMessage("韌體版本"),
     "settingsFixNFC": MessageLookupByLibrary.simpleMessage("修復 NFC"),
     "settingsFixNFCSuccess": MessageLookupByLibrary.simpleMessage("修復 NFC 成功"),

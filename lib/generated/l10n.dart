@@ -5678,6 +5678,36 @@ class S {
       args: [],
     );
   }
+
+  /// `Manage device settings, customize behavior and system preferences.`
+  String get settingsDescription {
+    return Intl.message(
+      'Manage device settings, customize behavior and system preferences.',
+      name: 'settingsDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Device Settings`
+  String get settingsDeviceSettings {
+    return Intl.message(
+      'Device Settings',
+      name: 'settingsDeviceSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Device Actions`
+  String get settingsDeviceActions {
+    return Intl.message(
+      'Device Actions',
+      name: 'settingsDeviceActions',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

@@ -1246,6 +1246,15 @@ class MessageLookup extends MessageLookupByLibrary {
       "Are you sure you want to clear all saved PINs from this device?",
     ),
     "settingsCoreCommit": MessageLookupByLibrary.simpleMessage("Core Commit"),
+    "settingsDescription": MessageLookupByLibrary.simpleMessage(
+      "Manage device settings, customize behavior and system preferences.",
+    ),
+    "settingsDeviceActions": MessageLookupByLibrary.simpleMessage(
+      "Device Actions",
+    ),
+    "settingsDeviceSettings": MessageLookupByLibrary.simpleMessage(
+      "Device Settings",
+    ),
     "settingsFirmwareVersion": MessageLookupByLibrary.simpleMessage(
       "Firmware Version",
     ),

@@ -817,5 +817,8 @@
   "pivKeyOperationsDescription": "使用密钥进行签名或验证操作。",
   "pivDangerDescription": "这些操作可能永久修改或删除密钥，请谨慎操作。",
   "pivExtensionsDescription": "设置证书的基本约束、密钥用途和扩展密钥用途。",
-  "pivSubjectDescription": "填写证书的标识信息。"
+  "pivSubjectDescription": "填写证书的标识信息。",
+  "settingsDescription": "管理设备设置、自定义行为和系统选项。",
+  "settingsDeviceSettings": "设备设置",
+  "settingsDeviceActions": "设备操作"
 }

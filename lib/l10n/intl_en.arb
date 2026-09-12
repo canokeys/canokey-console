@@ -741,5 +741,8 @@
   "pivKeyOperationsDescription": "Sign and verify using this key.",
   "pivDangerDescription": "These actions can permanently change or remove keys.",
   "pivExtensionsDescription": "Configure constraints, key usage and extended key usage.",
-  "pivSubjectDescription": "Enter the identity for this certificate."
+  "pivSubjectDescription": "Enter the identity for this certificate.",
+  "settingsDescription": "Manage device settings, customize behavior and system preferences.",
+  "settingsDeviceSettings": "Device Settings",
+  "settingsDeviceActions": "Device Actions"
 }
