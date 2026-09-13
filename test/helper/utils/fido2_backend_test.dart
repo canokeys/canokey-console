@@ -1,3 +1,6 @@
+@Tags(['native'])
+library;
+
 import 'package:canokey_console/helper/utils/fido2_backend.dart';
 import 'package:cbor/cbor.dart';
 import 'package:convert/convert.dart';
