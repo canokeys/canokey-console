@@ -1253,107 +1253,6 @@ class _PivPageState extends State<PivPage>
     ));
   }
 
-  Future<String> showVerifyManagementKeyDialog() {
-    controller.log.t('Call _PivPageState.showVerifyManagementKeyDialog');
-    Completer<String> c = new Completer<String>();
-
-    FormValidator validator = FormValidator();
-    validator.addField('key',
-        required: true,
-        controller: TextEditingController(),
-        validators: [LengthValidator(exact: 48), HexStringValidator()]);
-
-    AppDialog.show(KeyboardSafeDialog(
-      child: SizedBox(
-        width: AppDialogWidth.compact,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppDialogHeader(
-              title: S.of(context).pivVerifyManagementKey,
-              onClose: () {
-                c.completeError(UserCanceledError());
-                Navigator.pop(Get.context!);
-              },
-            ),
-            Divider(height: 0, thickness: 1),
-            Padding(
-                padding: Spacing.all(16),
-                child: Form(
-                    key: validator.formKey,
-                    child: Column(children: [
-                      Row(children: [
-                        Expanded(
-                          child: TextFormField(
-                            autofocus: true,
-                            onTap: SmartCard.eject,
-                            controller: validator.getController('key'),
-                            validator: validator.getValidator('key'),
-                            decoration: InputDecoration(
-                              labelText: S.of(context).pivManagementKey,
-                              border: OutlineInputBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(4)),
-                                borderSide: BorderSide(
-                                    width: 1,
-                                    strokeAlign: 0,
-                                    color: AppTheme.theme.colorScheme.onSurface
-                                        .withAlpha(80)),
-                              ),
-                              floatingLabelBehavior: FloatingLabelBehavior.auto,
-                            ),
-                          ),
-                        ),
-                        Spacing.width(8),
-                        CustomizedButton(
-                          onPressed: () {
-                            validator.getController('key')!.text =
-                                '010203040506070801020304050607080102030405060708';
-                          },
-                          elevation: 0,
-                          padding: Spacing.xy(8, 16),
-                          backgroundColor: ContentThemeColor.primary.color,
-                          child: CustomizedText.labelMedium(
-                              S.of(context).pivUseDefaultManagementKey,
-                              color: ContentThemeColor.primary.onColor),
-                        ),
-                      ]),
-                    ]))),
-            Divider(height: 0, thickness: 1),
-            AppDialogActions(
-              children: [
-                AppDialogAction(
-                  label: S.of(Get.context!).cancel,
-                  onPressed: () {
-                    c.completeError(UserCanceledError());
-                    Navigator.pop(Get.context!);
-                  },
-                  secondary: true,
-                  destructive: false,
-                ),
-                AppDialogAction(
-                  label: S.of(Get.context!).confirm,
-                  onPressed: () async {
-                    if (validator.validateForm()) {
-                      final key = validator.getController('key')!.text;
-                      c.complete(key);
-                      Navigator.pop(Get.context!);
-                    }
-                  },
-                  secondary: false,
-                  destructive: false,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    ));
-
-    return c.future;
-  }
-
   void _showChangeManagementKeyDialog() {
     controller.log.t('Call _PivPageState._showChangeManagementKeyDialog');
     bool usePinOnly = controller.pinOnlyMode;
@@ -1732,7 +1631,7 @@ class _PivPageState extends State<PivPage>
       ),
     ];
     final exportActions = <Widget>[
-      if (slot != null || certificate?.subjectPublicKeyInfo.isNotEmpty == true)
+      if (controller.publicKeyDerForSlot(slotId) != null)
         _slotActionButton(
           text: S.of(context).pivExportPublicKey,
           onPressed: () {

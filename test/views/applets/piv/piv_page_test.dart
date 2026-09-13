@@ -989,6 +989,14 @@ class _TestPivController extends PivController {
     }
     return slots[slot];
   }
+
+  // Widget tests run without the Rust bridge, so metadata parsing always
+  // fails here; pretend a public key is available whenever a slot exists.
+  @override
+  Uint8List? publicKeyDerForSlot(int slot) {
+    return super.publicKeyDerForSlot(slot) ??
+        (slots[slot] != null ? Uint8List.fromList([1]) : null);
+  }
 }
 
 Widget _app({ThemeData? theme}) {

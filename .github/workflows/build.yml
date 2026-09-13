@@ -29,12 +29,7 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: Test UI and firmware compatibility
-        run: >-
-          flutter test --no-pub --reporter expanded
-          test/views
-          test/helper/widgets
-          test/controller/applets/piv/piv_firmware_compatibility_test.dart
-          test/controller/applets/webauthn/webauthn_firmware_compatibility_test.dart
+        run: flutter test --no-pub --reporter expanded
 
   build:
     if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}

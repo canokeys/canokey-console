@@ -278,16 +278,6 @@ class PivController extends PollingController {
     }
   }
 
-  Future<bool> verifyPin(String pin) async {
-    log.t('Call PivController.verifyPin');
-    final c = Completer<bool>();
-    SmartCard.process((String sn) async {
-      await _client.select();
-      c.complete(await _verifyPinInSession(pin));
-    });
-    return c.future;
-  }
-
   PivPublicKey? publicKeyForSlot(SlotInfo slot) {
     try {
       return PivSignatureTest.publicKeyFromSlot(slot);
@@ -339,16 +329,6 @@ class PivController extends PollingController {
       Prompts.showPrompt(
           S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
     });
-  }
-
-  Future<bool> verifyManagementKey(String key) {
-    log.t('Call PivController.verifyManagementKey');
-    final c = new Completer<bool>();
-    SmartCard.process((String sn) async {
-      await _client.select();
-      c.complete(await _authenticateManagementKey(key));
-    });
-    return c.future;
   }
 
   Future<bool> changeManagementKey(
@@ -1150,15 +1130,6 @@ class PivController extends PollingController {
         4 + certTlv.length + compressedTlv.length, result.length, lrcTlv);
 
     return result;
-  }
-
-  Future<bool> importCert(String slot, Uint8List cert) async {
-    log.t('Call PivController.importCert');
-    final c = new Completer<bool>();
-    SmartCard.process((String sn) async {
-      c.complete(await _importCertInSession(slot, cert));
-    });
-    return c.future;
   }
 
   Future<bool> _importCertInSession(String slot, Uint8List cert) async {

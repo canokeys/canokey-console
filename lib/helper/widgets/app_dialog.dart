@@ -112,6 +112,10 @@ class AppDialogHeader extends StatelessWidget {
 
   final String title;
   final bool showClose;
+
+  /// Defaults to a bare [Navigator.pop]. Dialogs that must run cleanup on
+  /// dismissal (completing a [Completer], invoking `onCancel`, ...) MUST pass
+  /// an explicit [onClose], otherwise closing via the X button skips it.
   final VoidCallback? onClose;
   final bool closeEnabled;
   final IconData? icon;

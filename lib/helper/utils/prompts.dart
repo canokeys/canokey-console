@@ -27,7 +27,7 @@ class Prompts {
     } else if (isStorageFull(resp)) {
       return S.of(Get.context!).storageFull;
     } else {
-      return S.current.pinVerificationFailed;
+      return S.current.operationFailed;
     }
   }
 
@@ -46,7 +46,7 @@ class Prompts {
     } else if (isStorageFull(resp)) {
       showPrompt(S.of(Get.context!).storageFull, ContentThemeColor.danger);
     } else {
-      showPrompt(S.current.pinVerificationFailed, ContentThemeColor.danger);
+      showPrompt(S.current.operationFailed, ContentThemeColor.danger);
     }
   }
 

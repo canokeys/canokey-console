@@ -2,16 +2,14 @@ import 'package:canokey_console/helper/localization/hints.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
-import 'package:canokey_console/helper/widgets/responsive.dart';
+import 'package:platform_detector/platform_detector.dart';
 
 class PollCanoKeyScreen extends StatelessWidget {
   const PollCanoKeyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final mobile = ScreenMedia.getTypeFromWidth(
-      MediaQuery.sizeOf(context).width,
-    ).isMobile;
+    final mobile = isMobile();
     return LayoutBuilder(
       builder: (context, constraints) {
         final prompt = Align(
