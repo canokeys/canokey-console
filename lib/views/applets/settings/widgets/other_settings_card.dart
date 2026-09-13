@@ -41,11 +41,46 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
     installerStore: 'Unknown',
   );
 
+  late final TapGestureRecognizer _repoRecognizer;
+  late final TapGestureRecognizer _privacyPolicyRecognizer;
+  late final TapGestureRecognizer _feedbackEmailRecognizer;
+  late final TapGestureRecognizer _icpFilingRecognizer;
+
   @override
   void initState() {
     super.initState();
+    _repoRecognizer = TapGestureRecognizer()
+      ..onTap = () => _launchUrl(
+        Uri.parse('https://github.com/canokeys/canokey-console'),
+      );
+    _privacyPolicyRecognizer = TapGestureRecognizer()
+      ..onTap = () => _launchUrl(Uri.parse(_privacyPolicyUrl));
+    _feedbackEmailRecognizer = TapGestureRecognizer()
+      ..onTap = () =>
+          _launchUrl(Uri(scheme: 'mailto', path: _feedbackEmail));
+    _icpFilingRecognizer = TapGestureRecognizer()
+      ..onTap = () => _launchUrl(Uri.parse(icpFilingUrl));
     _initPackageInfo();
   }
+
+  @override
+  void dispose() {
+    _repoRecognizer.dispose();
+    _privacyPolicyRecognizer.dispose();
+    _feedbackEmailRecognizer.dispose();
+    _icpFilingRecognizer.dispose();
+    super.dispose();
+  }
+
+  bool get _isChinese =>
+      Localizations.localeOf(context).languageCode == 'zh';
+
+  String get _privacyPolicyUrl => _isChinese
+      ? 'https://www.canokeys.com/privacy/'
+      : 'https://www.canokeys.org/privacy/';
+
+  String get _feedbackEmail =>
+      _isChinese ? 'support@canokeys.com' : 'support@canokeys.org';
 
   Future<void> _initPackageInfo() async {
     final info = await PackageInfo.fromPlatform();
@@ -65,13 +100,6 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
   @override
   Widget build(BuildContext context) {
     final languageName = ThemeCustomizer.instance.currentLanguage.languageName;
-    final isChinese = Localizations.localeOf(context).languageCode == 'zh';
-    final privacyPolicyUrl = isChinese
-        ? 'https://www.canokeys.com/privacy/'
-        : 'https://www.canokeys.org/privacy/';
-    final feedbackEmail = isChinese
-        ? 'support@canokeys.com'
-        : 'support@canokeys.org';
     final startPage = StartPageDialog.pageName(
       context,
       LocalStorage.getStartPage() ?? '/',
@@ -148,12 +176,7 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                           color: contentTheme.primary,
                           decoration: TextDecoration.underline,
                         ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () async {
-                            const repoUrl =
-                                'https://github.com/canokeys/canokey-console';
-                            await _launchUrl(Uri.parse(repoUrl));
-                          },
+                        recognizer: _repoRecognizer,
                       ),
                     ],
                     style: CustomizedTextStyle.bodyMedium(),
@@ -170,9 +193,7 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                             color: contentTheme.primary,
                             decoration: TextDecoration.underline,
                           ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () =>
-                                _launchUrl(Uri.parse(privacyPolicyUrl)),
+                          recognizer: _privacyPolicyRecognizer,
                         ),
                       ],
                       style: CustomizedTextStyle.bodyMedium(),
@@ -185,15 +206,12 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                     children: [
                       TextSpan(text: '${S.of(context).feedback}: '),
                       TextSpan(
-                        text: feedbackEmail,
+                        text: _feedbackEmail,
                         style: TextStyle(
                           color: contentTheme.primary,
                           decoration: TextDecoration.underline,
                         ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () => _launchUrl(
-                            Uri(scheme: 'mailto', path: feedbackEmail),
-                          ),
+                        recognizer: _feedbackEmailRecognizer,
                       ),
                     ],
                     style: CustomizedTextStyle.bodyMedium(),
@@ -214,10 +232,7 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                             color: contentTheme.primary,
                             decoration: TextDecoration.underline,
                           ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () async {
-                              await _launchUrl(Uri.parse(icpFilingUrl));
-                            },
+                          recognizer: _icpFilingRecognizer,
                         ),
                       ],
                       style: CustomizedTextStyle.bodyMedium(),

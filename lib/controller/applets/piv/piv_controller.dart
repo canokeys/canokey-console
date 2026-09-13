@@ -372,6 +372,12 @@ class PivController extends PollingController {
           return;
         }
         if (!await _writePinOnlyObjects(newKey, enabled: true)) {
+          // Roll back to the previous key; otherwise the on-card key and the
+          // stored protected key disagree and the user is locked out.
+          await _setManagementKeyInSession(
+            currentKey,
+            touchPolicy: touchPolicy ?? managementKeyTouchPolicy,
+          );
           c.complete(false);
           return;
         }
@@ -748,7 +754,17 @@ class PivController extends PollingController {
         c.complete(false);
         return;
       }
-      c.complete(await _writePinOnlyObjects(newKey, enabled: true));
+      if (!await _writePinOnlyObjects(newKey, enabled: true)) {
+        // Roll back the random management key; otherwise the card keeps an
+        // unknown key with pin-only mode off and is locked out until reset.
+        await _setManagementKeyInSession(
+          currentManagementKey,
+          touchPolicy: managementKeyTouchPolicy,
+        );
+        c.complete(false);
+        return;
+      }
+      c.complete(true);
     });
     return c.future;
   }

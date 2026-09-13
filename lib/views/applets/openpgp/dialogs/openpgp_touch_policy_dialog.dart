@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
@@ -72,20 +70,27 @@ class _OpenPgpTouchPolicyDialogState
       title: S.of(context).openpgpChangeInteraction(widget.slot.type.label),
       description: Column(
         children: [
-          for (final value in OpenPgpTouchPolicy.writableValues)
-            RadioListTile<OpenPgpTouchPolicy>(
-              dense: true,
-              value: value,
-              groupValue: _policy.value,
-              onChanged: (newValue) {
-                _policy.value = newValue!;
-                if (newValue != OpenPgpTouchPolicy.permanent) {
-                  _permanentConfirmed.value = false;
-                }
-              },
-              title: CustomizedText.bodyMedium(value.label),
-              contentPadding: EdgeInsets.zero,
+          RadioGroup<OpenPgpTouchPolicy>(
+            groupValue: _policy.value,
+            onChanged: (newValue) {
+              if (newValue == null) return;
+              _policy.value = newValue;
+              if (newValue != OpenPgpTouchPolicy.permanent) {
+                _permanentConfirmed.value = false;
+              }
+            },
+            child: Column(
+              children: [
+                for (final value in OpenPgpTouchPolicy.writableValues)
+                  RadioListTile<OpenPgpTouchPolicy>(
+                    dense: true,
+                    value: value,
+                    title: CustomizedText.bodyMedium(value.label),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+              ],
             ),
+          ),
           if (_policy.value == OpenPgpTouchPolicy.permanent)
             CheckboxListTile(
               dense: true,

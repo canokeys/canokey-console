@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
@@ -73,21 +71,29 @@ class _OpenPgpUnblockPinDialogState
       description: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          RadioListTile<bool>(
-            dense: true,
-            value: true,
+          RadioGroup<bool>(
             groupValue: _useAdminPin.value,
-            onChanged: (value) => _useAdminPin.value = value!,
-            title: CustomizedText.bodyMedium(S.of(context).openpgpUseAdminPin),
-            contentPadding: EdgeInsets.zero,
-          ),
-          RadioListTile<bool>(
-            dense: true,
-            value: false,
-            groupValue: _useAdminPin.value,
-            onChanged: (value) => _useAdminPin.value = value!,
-            title: CustomizedText.bodyMedium(S.of(context).openpgpUseResetCode),
-            contentPadding: EdgeInsets.zero,
+            onChanged: (value) {
+              if (value != null) _useAdminPin.value = value;
+            },
+            child: Column(
+              children: [
+                RadioListTile<bool>(
+                  dense: true,
+                  value: true,
+                  title:
+                      CustomizedText.bodyMedium(S.of(context).openpgpUseAdminPin),
+                  contentPadding: EdgeInsets.zero,
+                ),
+                RadioListTile<bool>(
+                  dense: true,
+                  value: false,
+                  title: CustomizedText.bodyMedium(
+                      S.of(context).openpgpUseResetCode),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ],
+            ),
           ),
         ],
       ),

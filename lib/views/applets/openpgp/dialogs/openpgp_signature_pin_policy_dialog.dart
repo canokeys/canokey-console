@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
@@ -63,31 +61,31 @@ class _OpenPgpSignaturePinPolicyDialogState
   Widget buildDialogContent() => Obx(
     () => buildFormContent(
       title: S.of(context).openpgpChangeSignaturePinPolicy,
-      description: Column(
-        children: [
-          RadioListTile<bool>(
-            dense: true,
-            value: true,
-            groupValue: _verifyForEverySignature.value,
-            onChanged: (value) =>
-                _verifyForEverySignature.value = value ?? true,
-            title: CustomizedText.bodyMedium(
-              S.of(context).openpgpVerifyEverySignaturePrompt,
+      description: RadioGroup<bool>(
+        groupValue: _verifyForEverySignature.value,
+        onChanged: (value) {
+          if (value != null) _verifyForEverySignature.value = value;
+        },
+        child: Column(
+          children: [
+            RadioListTile<bool>(
+              dense: true,
+              value: true,
+              title: CustomizedText.bodyMedium(
+                S.of(context).openpgpVerifyEverySignaturePrompt,
+              ),
+              contentPadding: EdgeInsets.zero,
             ),
-            contentPadding: EdgeInsets.zero,
-          ),
-          RadioListTile<bool>(
-            dense: true,
-            value: false,
-            groupValue: _verifyForEverySignature.value,
-            onChanged: (value) =>
-                _verifyForEverySignature.value = value ?? false,
-            title: CustomizedText.bodyMedium(
-              S.of(context).openpgpVerifyOnceAfterInsertionPrompt,
+            RadioListTile<bool>(
+              dense: true,
+              value: false,
+              title: CustomizedText.bodyMedium(
+                S.of(context).openpgpVerifyOnceAfterInsertionPrompt,
+              ),
+              contentPadding: EdgeInsets.zero,
             ),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ],
+          ],
+        ),
       ),
       form: Form(
         key: _validator.formKey,

@@ -231,18 +231,22 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
   Widget _buildTypeSelector() {
     return _buildOptionRow(
       label: S.of(context).oathType,
-      child: Wrap(
-        spacing: _kPadding,
-        children: OathType.values
-            .map(
-              (type) => _buildRadioOption(
-                value: type,
-                groupValue: formData.oathType.value,
-                onChanged: (type) => formData.oathType.value = type!,
-                label: type.name.toUpperCase(),
-              ),
-            )
-            .toList(),
+      child: RadioGroup<OathType>(
+        groupValue: formData.oathType.value,
+        onChanged: (type) {
+          if (type != null) formData.oathType.value = type;
+        },
+        child: Wrap(
+          spacing: _kPadding,
+          children: OathType.values
+              .map(
+                (type) => _buildRadioOption(
+                  value: type,
+                  label: type.name.toUpperCase(),
+                ),
+              )
+              .toList(),
+        ),
       ),
     );
   }
@@ -250,18 +254,22 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
   Widget _buildAlgorithmSelector() {
     return _buildOptionRow(
       label: S.of(context).oathAlgorithm,
-      child: Wrap(
-        spacing: _kPadding,
-        children: OathAlgorithm.values
-            .map(
-              (algo) => _buildRadioOption(
-                value: algo,
-                groupValue: formData.oathAlgorithm.value,
-                onChanged: (algo) => formData.oathAlgorithm.value = algo!,
-                label: algo.name.toUpperCase(),
-              ),
-            )
-            .toList(),
+      child: RadioGroup<OathAlgorithm>(
+        groupValue: formData.oathAlgorithm.value,
+        onChanged: (algo) {
+          if (algo != null) formData.oathAlgorithm.value = algo;
+        },
+        child: Wrap(
+          spacing: _kPadding,
+          children: OathAlgorithm.values
+              .map(
+                (algo) => _buildRadioOption(
+                  value: algo,
+                  label: algo.name.toUpperCase(),
+                ),
+              )
+              .toList(),
+        ),
       ),
     );
   }
@@ -269,18 +277,22 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
   Widget _buildDigitsSelector() {
     return _buildOptionRow(
       label: S.of(context).oathDigits,
-      child: Wrap(
-        spacing: _kPadding,
-        children: _kValidDigits
-            .map(
-              (digits) => _buildRadioOption(
-                value: digits,
-                groupValue: formData.oathDigits.value,
-                onChanged: (digits) => formData.oathDigits.value = digits!,
-                label: digits.toString(),
-              ),
-            )
-            .toList(),
+      child: RadioGroup<int>(
+        groupValue: formData.oathDigits.value,
+        onChanged: (digits) {
+          if (digits != null) formData.oathDigits.value = digits;
+        },
+        child: Wrap(
+          spacing: _kPadding,
+          children: _kValidDigits
+              .map(
+                (digits) => _buildRadioOption(
+                  value: digits,
+                  label: digits.toString(),
+                ),
+              )
+              .toList(),
+        ),
       ),
     );
   }
@@ -296,8 +308,6 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
 
   Widget _buildRadioOption<T>({
     required T value,
-    required T groupValue,
-    required ValueChanged<T?> onChanged,
     required String label,
   }) {
     return InkWell(
@@ -307,8 +317,6 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
           Radio<T>(
             value: value,
             activeColor: contentTheme.primary,
-            groupValue: groupValue,
-            onChanged: onChanged,
             visualDensity: getCompactDensity,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
