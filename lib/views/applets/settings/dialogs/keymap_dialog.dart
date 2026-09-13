@@ -3,7 +3,6 @@ import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
-import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/keyboard_keymap.dart';
@@ -28,10 +27,7 @@ class KeymapDialog extends BaseDialog with UIMixin {
     required Function(KeyboardKeymapPreset) onConfirm,
   }) {
     return AppDialog.show(
-      KeymapDialog(
-        currentState: currentState,
-        onConfirm: onConfirm,
-      ),
+      KeymapDialog(currentState: currentState, onConfirm: onConfirm),
     );
   }
 
@@ -48,7 +44,9 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
   void initState() {
     super.initState();
     selectedId = Rxn<int>(
-      widget.currentState?.isDefault == true ? _defaultSelection : widget.currentState?.preset?.id,
+      widget.currentState?.isDefault == true
+          ? _defaultSelection
+          : widget.currentState?.preset?.id,
     );
   }
 
@@ -59,9 +57,9 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: Spacing.all(16),
-            child: CustomizedText.labelLarge(S.of(context).settingsKeyboardLayout),
+          AppDialogHeader(
+            title: S.of(context).settingsKeyboardLayout,
+            icon: Icons.keyboard_outlined,
           ),
           Divider(height: 0, thickness: 1),
           Flexible(
@@ -71,7 +69,9 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomizedText.bodySmall(
-                    S.of(context).settingsKeyboardLayoutCurrent(
+                    S
+                        .of(context)
+                        .settingsKeyboardLayoutCurrent(
                           widget.currentState?.displayName(
                                 S.of(context).settingsKeyboardLayoutDefault,
                                 S.of(context).settingsKeyboardLayoutCustom,
@@ -82,13 +82,17 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
                   ),
                   Spacing.height(16),
                   ...KeyboardKeymapPresets.presets.map(_buildPresetTile),
-                  if (widget.currentState != null && !widget.currentState!.isDefault && !widget.currentState!.isKnownPreset) ...[
+                  if (widget.currentState != null &&
+                      !widget.currentState!.isDefault &&
+                      !widget.currentState!.isKnownPreset) ...[
                     Spacing.height(8),
                     Container(
                       width: double.infinity,
                       padding: Spacing.all(12),
                       decoration: BoxDecoration(
-                        color: ContentThemeColor.warning.color.withValues(alpha: 0.12),
+                        color: ContentThemeColor.warning.color.withValues(
+                          alpha: 0.12,
+                        ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: CustomizedText.bodySmall(
@@ -101,7 +105,9 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
                     Spacing.height(12),
                     CustomizedText.bodyMedium(
                       errorMessage.value,
-                      color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color,
+                      color: errorLevel.value == 'E'
+                          ? ContentThemeColor.danger.color
+                          : ContentThemeColor.warning.color,
                     ),
                   ],
                 ],
@@ -109,28 +115,21 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
             ),
           ),
           Divider(height: 0, thickness: 1),
-          Padding(
-            padding: Spacing.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                CustomizedButton.rounded(
-                  onPressed: () => Navigator.pop(context),
-                  elevation: 0,
-                  padding: Spacing.xy(20, 16),
-                  backgroundColor: contentTheme.secondary,
-                  child: CustomizedText.labelMedium(S.of(context).cancel, color: contentTheme.onSecondary),
-                ),
-                Spacing.width(16),
-                CustomizedButton.rounded(
-                  onPressed: selectedId.value == null ? null : _confirm,
-                  elevation: 0,
-                  padding: Spacing.xy(20, 16),
-                  backgroundColor: selectedId.value == null ? contentTheme.secondary : contentTheme.primary,
-                  child: CustomizedText.labelMedium(S.of(context).confirm, color: selectedId.value == null ? contentTheme.onSecondary : contentTheme.onPrimary),
-                ),
-              ],
-            ),
+          AppDialogActions(
+            children: [
+              AppDialogAction(
+                label: S.of(context).cancel,
+                onPressed: () => Navigator.pop(context),
+                secondary: true,
+                destructive: false,
+              ),
+              AppDialogAction(
+                label: S.of(context).confirm,
+                onPressed: selectedId.value == null ? null : _confirm,
+                secondary: false,
+                destructive: false,
+              ),
+            ],
           ),
         ],
       ),
@@ -139,15 +138,11 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
 
   Widget _buildPresetTile(KeyboardKeymapPreset preset) {
     final selectionValue = preset.id ?? _defaultSelection;
-    return RadioListTile<int>(
-      value: selectionValue,
-      groupValue: selectedId.value,
-      onChanged: (value) => selectedId.value = value,
-      activeColor: contentTheme.primary,
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      title: CustomizedText.bodyMedium(preset.name, fontWeight: 600),
-      subtitle: CustomizedText.bodySmall(preset.description),
+    return AppDialogChoice(
+      title: preset.name,
+      selected: selectedId.value == selectionValue,
+      onTap: () => selectedId.value = selectionValue,
+      subtitle: preset.description,
     );
   }
 

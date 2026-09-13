@@ -6,7 +6,6 @@ import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
-import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/field_validator.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
@@ -76,13 +75,21 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
   @override
   void initState() {
     super.initState();
-    _validator.addField('pin', required: widget.required, controller: TextEditingController(), validators: widget.validators);
+    _validator.addField(
+      'pin',
+      required: widget.required,
+      controller: TextEditingController(),
+      validators: widget.validators,
+    );
   }
 
   void _onSubmit() async {
     if (_validator.validateForm()) {
       FocusManager.instance.primaryFocus?.unfocus();
-      await widget.onSubmit(_validator.getController('pin')!.text, _savePin.value);
+      await widget.onSubmit(
+        _validator.getController('pin')!.text,
+        _savePin.value,
+      );
     }
   }
 
@@ -93,9 +100,12 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: Spacing.all(16),
-            child: CustomizedText.labelLarge(widget.title),
+          AppDialogHeader(
+            title: widget.title,
+            onClose: () async {
+              Navigator.pop(Get.context!);
+              await widget.onCancel();
+            },
           ),
           Divider(height: 0, thickness: 1),
           Padding(
@@ -111,7 +121,8 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
                   key: _validator.formKey,
                   child: TextFormField(
                     autofocus: true,
-                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
                     onTap: SmartCard.eject,
                     obscureText: !_showPin.value,
                     controller: _validator.getController('pin'),
@@ -121,11 +132,21 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
                       labelText: widget.label,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(width: 1, strokeAlign: 0, color: AppTheme.theme.colorScheme.onSurface.withAlpha(80)),
+                        borderSide: BorderSide(
+                          width: 1,
+                          strokeAlign: 0,
+                          color: AppTheme.theme.colorScheme.onSurface.withAlpha(
+                            80,
+                          ),
+                        ),
                       ),
                       floatingLabelBehavior: FloatingLabelBehavior.auto,
                       suffixIcon: IconButton(
-                        icon: Icon(_showPin.value ? Icons.visibility : Icons.visibility_off),
+                        icon: Icon(
+                          _showPin.value
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
                         onPressed: () => _showPin.toggle(),
                       ),
                     ),
@@ -135,41 +156,41 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
                   CheckboxListTile(
                     value: _savePin.value,
                     onChanged: (value) => _savePin.value = value!,
-                    title: CustomizedText.bodyMedium(S.of(context).savePinOnDevice),
+                    title: CustomizedText.bodyMedium(
+                      S.of(context).savePinOnDevice,
+                    ),
                     controlAffinity: ListTileControlAffinity.leading,
                     contentPadding: EdgeInsets.zero,
                   ),
                 if (errorMessage.value.isNotEmpty)
-                  CustomizedText.bodyMedium(errorMessage.value,
-                      color: errorLevel.value == 'E' ? ContentThemeColor.danger.color : ContentThemeColor.warning.color),
+                  CustomizedText.bodyMedium(
+                    errorMessage.value,
+                    color: errorLevel.value == 'E'
+                        ? ContentThemeColor.danger.color
+                        : ContentThemeColor.warning.color,
+                  ),
               ],
             ),
           ),
           Divider(height: 0, thickness: 1),
-          Padding(
-            padding: Spacing.all(16),
-            child: Row(
-              children: [
-                CustomizedButton.rounded(
-                  onPressed: () async {
-                    Navigator.pop(Get.context!);
-                    await widget.onCancel();
-                  },
-                  elevation: 0,
-                  padding: Spacing.xy(20, 16),
-                  backgroundColor: ContentThemeColor.secondary.color,
-                  child: CustomizedText.labelMedium(S.of(Get.context!).cancel, color: ContentThemeColor.secondary.onColor),
-                ),
-                Spacing.width(16),
-                CustomizedButton.rounded(
-                  onPressed: _onSubmit,
-                  elevation: 0,
-                  padding: Spacing.xy(20, 16),
-                  backgroundColor: ContentThemeColor.primary.color,
-                  child: CustomizedText.labelMedium(S.of(Get.context!).confirm, color: ContentThemeColor.primary.onColor),
-                ),
-              ],
-            ),
+          AppDialogActions(
+            children: [
+              AppDialogAction(
+                label: S.of(Get.context!).cancel,
+                onPressed: () async {
+                  Navigator.pop(Get.context!);
+                  await widget.onCancel();
+                },
+                secondary: true,
+                destructive: false,
+              ),
+              AppDialogAction(
+                label: S.of(Get.context!).confirm,
+                onPressed: _onSubmit,
+                secondary: false,
+                destructive: false,
+              ),
+            ],
           ),
         ],
       ),

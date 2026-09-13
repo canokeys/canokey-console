@@ -1,6 +1,6 @@
-New in 1.2.6:
+New in 1.2.7:
 
-- Added guided PIV certificate setup for Mac login and customizable certificate extensions.
-- Improved the PIV slot manager and visibility of key policies.
-- Fixed reading some PIV certificates.
-- Strengthened PIV PIN-only mode protection and clarified PIN/PUK retry reset results.
+- Refreshed applet and settings pages with improved mobile layouts and large-text support.
+- Improved PIV slot management and access to certificate actions.
+- Added recognizable service icons for OATH accounts and expanded passkey search to include usernames.
+- Improved handling of unreadable PIV certificates and public keys, and corrected certificate replacement warnings.

@@ -10,7 +10,6 @@ import 'package:canokey_console/helper/utils/screenshot_mode.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/pass.dart';
-import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
@@ -39,23 +38,15 @@ class PassController extends PollingController with AdminApplet {
     }
 
     await SmartCard.process((String sn) async {
-      SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));
-
-      // read firmware version
-      String resp = await SmartCard.transceive('0031000000');
-      SmartCard.assertOK(resp);
-      String firmwareVersion =
-          String.fromCharCodes(hex.decode(SmartCard.dropSW(resp)));
-
-      FunctionSetVersion functionSetVersion =
-          CanoKey.functionSetFromFirmwareVersion(firmwareVersion);
-      final functionSet = CanoKey.functionSet(functionSetVersion);
+      final switchStatus = await AppletSwitches.readStatus();
+      final functionSet = switchStatus.functionSet;
       if (!functionSet.contains(Func.pass)) {
         Prompts.showPrompt(
-            S.current.passNotSupported, ContentThemeColor.danger);
+          S.current.passNotSupported,
+          ContentThemeColor.danger,
+        );
         return;
       }
-      final switchStatus = await AppletSwitches.readStatus();
       if (!switchStatus.passEnabled) {
         disabledMessage = AppletSwitches.disabledMessage('Pass');
         polled = false;
@@ -75,7 +66,11 @@ class PassController extends PollingController with AdminApplet {
   }
 
   Future<void> setSlot(
-      int index, PassSlotType type, String password, bool withEnter) async {
+    int index,
+    PassSlotType type,
+    String password,
+    bool withEnter,
+  ) async {
     log.t('Call PassController.setSlot');
     await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
@@ -85,7 +80,9 @@ class PassController extends PollingController with AdminApplet {
       if (type == PassSlotType.hmacSha1) {
         if (!hmacSha1Supported) {
           Prompts.showPrompt(
-              S.of(Get.context!).notSupported, ContentThemeColor.danger);
+            S.of(Get.context!).notSupported,
+            ContentThemeColor.danger,
+          );
           return;
         }
       } else if (type == PassSlotType.oath) {
@@ -95,7 +92,9 @@ class PassController extends PollingController with AdminApplet {
       final success = await _client.setSlot(index, type, password, withEnter);
       if (!success && Prompts.isStorageFull(_client.lastStatusWord ?? '')) {
         Prompts.showPrompt(
-            S.of(Get.context!).storageFull, ContentThemeColor.danger);
+          S.of(Get.context!).storageFull,
+          ContentThemeColor.danger,
+        );
         return;
       }
       SmartCard.assertOK(_client.lastStatusWord ?? '');
@@ -103,8 +102,10 @@ class PassController extends PollingController with AdminApplet {
 
       Navigator.pop(Get.context!);
       Prompts.showPrompt(
-          S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
-          forceSnackBar: true);
+        S.of(Get.context!).successfullyChanged,
+        ContentThemeColor.success,
+        forceSnackBar: true,
+      );
 
       await _refresh();
     });

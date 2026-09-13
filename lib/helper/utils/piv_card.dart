@@ -8,9 +8,8 @@ import 'package:canokey_console/models/piv.dart';
 import 'package:convert/convert.dart';
 
 class PivCardClient {
-  PivCardClient({
-    ApduTransport transport = const SmartCardApduTransport(),
-  }) : _transport = transport;
+  PivCardClient({ApduTransport transport = const SmartCardApduTransport()})
+    : _transport = transport;
 
   final ApduTransport _transport;
   String? lastStatusWord;
@@ -37,17 +36,35 @@ class PivCardClient {
     return response;
   }
 
+  /// Empty VERIFY queries remaining attempts without submitting a PIN.
+  /// 9000 means already authenticated, not a known retry count.
+  Future<int?> readRemainingPinRetries() async {
+    final status = SmartCard.sw(await readPinRetries()).toUpperCase();
+    if (status == '6983') return 0;
+    if (RegExp(r'^63C[0-9A-F]$').hasMatch(status)) {
+      return int.parse(status[3], radix: 16);
+    }
+    return null;
+  }
+
   Future<bool> verifyPin(String pin) async {
-    final response = await _transport.transceive(
-      '0020008008${_padPin(pin)}',
-    );
+    final response = await _transport.transceive('0020008008${_padPin(pin)}');
     lastStatusWord = SmartCard.sw(response);
     return SmartCard.isOK(response);
   }
 
-  Future<bool> changePin(String oldPin, String newPin) async {
+  Future<bool> changePin(String oldPin, String newPin) =>
+      _changePin('00240080', oldPin, newPin);
+
+  Future<bool> changePuk(String oldPuk, String newPuk) =>
+      _changePin('00240081', oldPuk, newPuk);
+
+  Future<bool> unblockPin(String puk, String newPin) =>
+      _changePin('002C0080', puk, newPin);
+
+  Future<bool> _changePin(String command, String oldPin, String newPin) async {
     final response = await _transport.transceive(
-      '0024008010${_padPin(oldPin)}${_padPin(newPin)}',
+      '${command}10${_padPin(oldPin)}${_padPin(newPin)}',
     );
     lastStatusWord = SmartCard.sw(response);
     return SmartCard.isOK(response);
@@ -147,16 +164,7 @@ class PivCardClient {
   }
 
   Future<String> transceive(String capdu) async {
-    var response = '';
-    do {
-      if (response.length >= 4) {
-        final remaining = response.substring(response.length - 2);
-        capdu = '00C00000$remaining';
-        response = response.substring(0, response.length - 4);
-      }
-      response += await _transport.transceive(capdu);
-    } while (
-        response.substring(response.length - 4, response.length - 2) == '61');
+    final response = await _transport.transceiveChained(capdu);
     lastStatusWord = SmartCard.sw(response);
     return response;
   }

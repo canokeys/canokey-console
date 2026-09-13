@@ -134,7 +134,13 @@ pub fn build_piv_public_key(
                 rsa::BigUint::from_bytes_be(modulus),
                 rsa::BigUint::from_bytes_be(exponent),
             )
-            .map_err(|_| "invalid RSA public key")?;
+            .map_err(|error| {
+                format!(
+                    "invalid RSA public key: {error} (modulus: {} bytes, exponent: {} bytes)",
+                    modulus.len(),
+                    exponent.len()
+                )
+            })?;
             let spki = public_key
                 .to_public_key_der()
                 .map_err(|_| "failed to encode RSA public key")?
@@ -915,6 +921,61 @@ mod tests {
     use super::*;
     use ed25519_dalek::pkcs8::EncodePrivateKey as Ed25519EncodePrivateKey;
     use rsa::pkcs8::EncodePrivateKey;
+
+    #[test]
+    fn accepts_all_supported_rsa_metadata_sizes() {
+        for (algorithm, bytes) in [
+            (PIV_RSA1024, 128),
+            (PIV_RSA2048, 256),
+            (PIV_RSA3072, 384),
+            (PIV_RSA4096, 512),
+        ] {
+            // Fixed odd modulus exercises the unsigned, big-endian TLV encoding.
+            let modulus = vec![0xff; bytes];
+            let mut slot = vec![0x81];
+            encode_tlv_length(modulus.len(), &mut slot).unwrap();
+            slot.extend_from_slice(&modulus);
+            slot.extend_from_slice(&[0x82, 3, 1, 0, 1]);
+            let mut generated = vec![0x7f, 0x49];
+            encode_tlv_length(slot.len(), &mut generated).unwrap();
+            generated.extend_from_slice(&slot);
+
+            let metadata = build_piv_public_key(algorithm, slot, false).unwrap();
+            let response = build_piv_public_key(algorithm, generated, true).unwrap();
+            assert_eq!(
+                metadata.subject_public_key_info,
+                response.subject_public_key_info
+            );
+            let key = rsa::RsaPublicKey::from_public_key_der(
+                &metadata.subject_public_key_info,
+            )
+            .unwrap();
+            assert_eq!(key.n().to_bytes_be(), modulus);
+            assert_eq!(key.e().to_bytes_be(), vec![1, 0, 1]);
+        }
+    }
+
+    #[test]
+    fn reports_rsa_validation_reason() {
+        let error = build_piv_public_key(
+            PIV_RSA2048,
+            vec![0x81, 3, 0x80, 0, 0, 0x82, 3, 1, 0, 1],
+            false,
+        )
+        .err()
+        .unwrap();
+        assert!(error.contains(&rsa::errors::Error::InvalidModulus.to_string()));
+        assert!(error.contains("modulus: 3 bytes, exponent: 3 bytes"));
+
+        let error = build_piv_public_key(
+            PIV_RSA2048,
+            vec![0x81, 3, 0x80, 0, 1, 0x82, 1, 2],
+            false,
+        )
+        .err()
+        .unwrap();
+        assert!(error.contains(&rsa::errors::Error::InvalidExponent.to_string()));
+    }
 
     #[test]
     fn prepares_rsa_signing_input() {

@@ -3,9 +3,6 @@ import 'dart:async';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
-import 'package:canokey_console/helper/widgets/customized_button.dart';
-import 'package:canokey_console/helper/widgets/customized_text.dart';
-import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -24,8 +21,9 @@ class QrScannerDialog extends StatefulWidget {
 
 class _QrScannerDialogState extends State<QrScannerDialog>
     with UIMixin, WidgetsBindingObserver {
-  final MobileScannerController scannerController =
-      MobileScannerController(formats: [BarcodeFormat.qrCode]);
+  final MobileScannerController scannerController = MobileScannerController(
+    formats: [BarcodeFormat.qrCode],
+  );
   bool _handledBarcode = false;
 
   void _handleBarcode(BarcodeCapture event) {
@@ -81,34 +79,27 @@ class _QrScannerDialogState extends State<QrScannerDialog>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.labelLarge(S.of(context).oathAddAccount),
-            ),
+            AppDialogHeader(title: S.of(context).oathAddAccount),
             Divider(height: 0, thickness: 1),
-            SizedBox(
-              height: 400,
-              child: MobileScanner(
-                controller: scannerController,
-                onDetect: _handleBarcode,
+            Flexible(
+              child: SizedBox(
+                height: 400,
+                child: MobileScanner(
+                  controller: scannerController,
+                  onDetect: _handleBarcode,
+                ),
               ),
             ),
             Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  CustomizedButton.rounded(
-                    onPressed: () => Navigator.pop(context),
-                    elevation: 0,
-                    padding: Spacing.xy(20, 16),
-                    backgroundColor: contentTheme.secondary,
-                    child: CustomizedText.labelMedium(S.of(context).cancel,
-                        color: contentTheme.onSecondary),
-                  ),
-                ],
-              ),
+            AppDialogActions(
+              children: [
+                AppDialogAction(
+                  label: S.of(context).cancel,
+                  onPressed: () => Navigator.pop(context),
+                  secondary: true,
+                  destructive: false,
+                ),
+              ],
             ),
           ],
         ),

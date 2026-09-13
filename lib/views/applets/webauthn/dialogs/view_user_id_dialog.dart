@@ -50,7 +50,7 @@ class WebAuthnViewUserIdDialog extends StatelessWidget {
             ),
             Spacing.height(16),
           ],
-          CustomizedText.bodyMedium('Hex:'),
+          CustomizedText.bodyMedium('${S.of(context).ndefPayloadHex}:'),
           Row(
             children: [
               Expanded(child: SelectableText(hexValue)),

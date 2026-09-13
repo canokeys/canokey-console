@@ -1,9 +1,14 @@
+import 'package:canokey_console/generated/l10n.dart';
+import 'package:flutter/widgets.dart';
 import 'package:canokey_console/models/webauthn.dart';
 import 'package:canokey_console/views/applets/webauthn/dialogs/sm2_config_dialog.dart';
 import 'package:convert/convert.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() => S.load(const Locale('en')));
+
   test('decodes exact big-endian wire vectors including signed limits', () {
     for (final vector in [
       ('00000009ffffffca', 9, -54),

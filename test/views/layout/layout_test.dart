@@ -40,7 +40,7 @@ void main() {
         ],
         supportedLocales: S.delegate.supportedLocales,
         home: Layout(
-          title: 'TOTP / HOTP',
+          title: 'OTP',
           topActions: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -73,7 +73,7 @@ void main() {
 
     final title = find.descendant(
       of: find.byType(AppBar),
-      matching: find.text('TOTP / HOTP'),
+      matching: find.text('OTP'),
     );
     final titleBox = tester.renderObject<RenderBox>(title);
     expect(
@@ -124,7 +124,7 @@ void main() {
         ],
         supportedLocales: S.delegate.supportedLocales,
         home: Layout(
-          title: 'NDEF',
+          title: 'NFC Tag',
           onRefresh: () async {
             refreshCount++;
           },
@@ -154,7 +154,9 @@ void main() {
       'Pull down or tap refresh, then hold your iPhone near your CanoKey, '
       'or insert it into the USB port',
     );
-    expect(tester.getCenter(target).dy, closeTo(scrollCenter.dy, 1));
+    expect(tester.getCenter(target).dy, lessThan(scrollCenter.dy - 60));
+    expect(tester.getTopLeft(target).dy,
+        greaterThan(tester.getTopLeft(scrollView).dy));
 
     final initialTargetTop = tester.getTopLeft(target).dy;
     final gesture = await tester.startGesture(tester.getCenter(target));
@@ -324,6 +326,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: const [S.delegate],
+        supportedLocales: S.delegate.supportedLocales,
         home: Scaffold(
           body: oath.TopActions(
             controller: controller,

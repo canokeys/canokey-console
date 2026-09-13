@@ -12,7 +12,7 @@ class EmailValidator extends FieldValidatorRule<String> {
       }
     } else if (value != null && value.isNotEmpty) {
       if (!StringUtils.isEmail(value)) {
-        return "Please enter valid email";
+        return S.current.ndefInvalidEmail;
       }
     }
     return null;
@@ -33,13 +33,13 @@ class IntValidator extends FieldValidatorRule<String> {
       }
       int? v = int.tryParse(value);
       if (v == null) {
-        return "Please enter valid number";
+        return S.current.validationNumber;
       }
       if (min != null && v < min!) {
-        return "Number must be greater than $min";
+        return S.current.validationNumberMin(min!);
       }
       if (max != null && v > max!) {
-        return "Number must be lesser than $max";
+        return S.current.validationNumberMax(max!);
       }
     }
     return null;
@@ -62,10 +62,10 @@ class LengthValidator implements FieldValidatorRule<String> {
         return S.of(Get.context!).validationExactLength(exact!);
       }
       if (min != null && value.length < min!) {
-        return "Longer than $min characters";
+        return S.current.validationAtLeastCharacters(min!);
       }
       if (max != null && value.length > max!) {
-        return "Lesser than $max characters";
+        return S.current.validationAtMostCharacters(max!);
       }
     }
     return null;

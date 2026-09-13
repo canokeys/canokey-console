@@ -96,7 +96,7 @@ class WebAuthnController extends PollingController with AdminApplet {
     await SmartCard.process((String sn) async {
       String? pinToTry = _loadPin(sn);
       if (pinToTry == null) {
-        Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
+        Prompts.showPrompt(S.current.webauthnPinRequired, ContentThemeColor.danger);
         return;
       }
 
@@ -170,7 +170,7 @@ class WebAuthnController extends PollingController with AdminApplet {
     await SmartCard.process((String sn) async {
       String? pinToTry = _loadPin(sn);
       if (pinToTry == null) {
-        Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
+        Prompts.showPrompt(S.current.webauthnPinRequired, ContentThemeColor.danger);
         return;
       }
 
@@ -351,7 +351,7 @@ class WebAuthnController extends PollingController with AdminApplet {
         } catch (e, s) {
           await SmartCard.stopPollingNfc(withInput: true);
           log.e('setPin failed', error: e, stackTrace: s);
-          Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
+          Prompts.showPrompt(S.current.webauthnSetPinFailed, ContentThemeColor.danger);
           return;
         }
         await _setPinCache(sn, pin, savePin);
@@ -430,13 +430,13 @@ class WebAuthnController extends PollingController with AdminApplet {
             Prompts.showPrompt(
                 S.of(Get.context!).interrupted, ContentThemeColor.danger);
           } else {
-            Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
+            Prompts.showPrompt(S.current.webauthnChangePinFailed, ContentThemeColor.danger);
           }
           return false;
         } catch (e, s) {
           await SmartCard.stopPollingNfc(withInput: true);
           log.e('force PIN change failed', error: e, stackTrace: s);
-          Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
+          Prompts.showPrompt(S.current.webauthnChangePinFailed, ContentThemeColor.danger);
           return false;
         }
       },
@@ -468,7 +468,7 @@ class WebAuthnController extends PollingController with AdminApplet {
           S.of(Get.context!).changePinPrompt(_ctap.info.minPinLength ?? 4, 63),
           ContentThemeColor.danger);
     } else {
-      Prompts.showPrompt('Unknown error', ContentThemeColor.danger);
+      Prompts.showPrompt(S.current.pinVerificationFailed, ContentThemeColor.danger);
     }
   }
 

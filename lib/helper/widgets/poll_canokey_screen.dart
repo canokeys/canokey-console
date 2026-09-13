@@ -5,15 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:platform_detector/platform_detector.dart';
 
 class PollCanoKeyScreen extends StatelessWidget {
-  const PollCanoKeyScreen({
-    super.key,
-  });
+  const PollCanoKeyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final mobile = isMobile();
     return LayoutBuilder(
       builder: (context, constraints) {
-        final prompt = Center(
+        final prompt = Align(
+          alignment: mobile ? const Alignment(0, -0.25) : Alignment.center,
           child: Padding(
             padding: Spacing.horizontal(36),
             child: CustomizedText.bodyMedium(
@@ -26,10 +26,11 @@ class PollCanoKeyScreen extends StatelessWidget {
         if (constraints.minHeight > 0) {
           return prompt;
         }
-        if (isMobile()) {
+        if (mobile) {
           final mediaQuery = MediaQuery.of(context);
           return SizedBox(
-            height: mediaQuery.size.height -
+            height:
+                mediaQuery.size.height -
                 mediaQuery.viewPadding.vertical -
                 kToolbarHeight,
             child: prompt,

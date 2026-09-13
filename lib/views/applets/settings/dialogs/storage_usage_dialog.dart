@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
-import 'package:canokey_console/helper/widgets/customized_button.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/canokey.dart';
@@ -36,10 +35,7 @@ class StorageUsageDialog extends StatelessWidget with UIMixin {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: Spacing.all(16),
-                child: CustomizedText.labelLarge(S.of(context).settingsStorageUsage),
-              ),
+              AppDialogHeader(title: S.of(context).settingsStorageUsage),
               Divider(height: 0, thickness: 1),
               Flexible(
                 child: SingleChildScrollView(
@@ -69,12 +65,14 @@ class StorageUsageDialog extends StatelessWidget with UIMixin {
                         ),
                         if (slices.isNotEmpty) ...[
                           Spacing.height(16),
-                          ...slices.map((slice) => _LegendRow(
-                                label: slice.label,
-                                value: _formatBytes(slice.bytes),
-                                color: slice.color,
-                                approximate: slice.approximate,
-                              )),
+                          ...slices.map(
+                            (slice) => _LegendRow(
+                              label: slice.label,
+                              value: _formatBytes(slice.bytes),
+                              color: slice.color,
+                              approximate: slice.approximate,
+                            ),
+                          ),
                         ],
                       ],
                     ),
@@ -82,23 +80,15 @@ class StorageUsageDialog extends StatelessWidget with UIMixin {
                 ),
               ),
               Divider(height: 0, thickness: 1),
-              Padding(
-                padding: Spacing.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CustomizedButton.rounded(
-                      onPressed: () => Navigator.pop(context),
-                      elevation: 0,
-                      padding: Spacing.xy(20, 16),
-                      backgroundColor: contentTheme.primary,
-                      child: CustomizedText.labelMedium(
-                        S.of(context).close,
-                        color: contentTheme.onPrimary,
-                      ),
-                    ),
-                  ],
-                ),
+              AppDialogActions(
+                children: [
+                  AppDialogAction(
+                    label: S.of(context).close,
+                    onPressed: () => Navigator.pop(context),
+                    secondary: false,
+                    destructive: false,
+                  ),
+                ],
               ),
             ],
           ),
@@ -127,31 +117,37 @@ class StorageUsageDialog extends StatelessWidget with UIMixin {
         continue;
       }
       attributedBytes += usage.logicalBytes;
-      slices.add(_StorageUsageSlice(
-        label: usage.name,
-        bytes: usage.logicalBytes,
-        color: colors[colorIndex % colors.length],
-        approximate: usage.hasMissingSources,
-      ));
+      slices.add(
+        _StorageUsageSlice(
+          label: usage.name,
+          bytes: usage.logicalBytes,
+          color: colors[colorIndex % colors.length],
+          approximate: usage.hasMissingSources,
+        ),
+      );
       colorIndex++;
     }
 
     final unattributedUsedBytes = usedBytes - attributedBytes;
     if (unattributedUsedBytes > 0) {
-      slices.add(_StorageUsageSlice(
-        label: S.of(Get.context!).other,
-        bytes: unattributedUsedBytes,
-        color: contentTheme.cardTextMuted,
-      ));
+      slices.add(
+        _StorageUsageSlice(
+          label: S.of(Get.context!).other,
+          bytes: unattributedUsedBytes,
+          color: contentTheme.cardTextMuted,
+        ),
+      );
     }
 
     final freeBytes = totalBytes - usedBytes;
     if (freeBytes > 0) {
-      slices.add(_StorageUsageSlice(
-        label: S.of(Get.context!).settingsStorageFree,
-        bytes: freeBytes,
-        color: contentTheme.light,
-      ));
+      slices.add(
+        _StorageUsageSlice(
+          label: S.of(Get.context!).settingsStorageFree,
+          bytes: freeBytes,
+          color: contentTheme.light,
+        ),
+      );
     }
 
     return slices;
@@ -251,6 +247,7 @@ class _StorageUsagePiePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _StorageUsagePiePainter oldDelegate) {
-    return slices != oldDelegate.slices || backgroundColor != oldDelegate.backgroundColor;
+    return slices != oldDelegate.slices ||
+        backgroundColor != oldDelegate.backgroundColor;
   }
 }

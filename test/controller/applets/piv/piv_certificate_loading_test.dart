@@ -5,6 +5,7 @@ import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/piv_card.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../../support/piv_certificate_api.dart';
 
 class CertificateTransport implements ApduTransport {
   CertificateTransport(this.responses);
@@ -35,6 +36,34 @@ void main() {
 
   setUp(() => SmartCard.connectionType = ConnectionType.ccid);
   tearDown(() => SmartCard.connectionType = ConnectionType.none);
+
+  test(
+    'legacy certificate loading exposes SPKI without inventing key metadata',
+    () async {
+      final api = PivCertificateApi();
+      RustLib.initMock(api: api);
+      addTearDown(RustLib.dispose);
+      final transport = CertificateTransport(['9000', '530570033001009000']);
+      final controller = PivController(
+        client: PivCardClient(transport: transport),
+      );
+      controller.certificateSlots.add(0x9a);
+
+      await controller.loadSlotDetails(0x9a);
+
+      expect(controller.supportsMetadata, isFalse);
+      expect(
+        controller.publicKeyDerForSlot(0x9a),
+        api.certificate.subjectPublicKeyInfo,
+      );
+      expect(controller.publicKeyDerForSlot(0x9d), isNull);
+      expect(controller.slots, isEmpty);
+      expect(transport.commands, [
+        '00A4040005A000000308',
+        '00CB3FFF055C035FC10500',
+      ]);
+    },
+  );
 
   test(
     'unreadable certificate stays occupied and does not block the next slot',
@@ -85,6 +114,7 @@ void main() {
       expect(controller.hasCertificate(0x9a), isTrue);
       expect(controller.certificateBytes[0x9a], [0x30, 0x01, 0x00]);
       expect(controller.certificates.containsKey(0x9a), isFalse);
+      expect(controller.publicKeyDerForSlot(0x9a), isNull);
     },
   );
 }

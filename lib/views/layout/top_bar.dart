@@ -1,3 +1,4 @@
+import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
@@ -12,8 +13,9 @@ import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 
 class TopBar extends StatefulWidget {
   final Widget? actions;
+  final Widget? title;
 
-  const TopBar({super.key, this.actions});
+  const TopBar({super.key, this.actions, this.title});
 
   @override
   _TopBarState createState() => _TopBarState();
@@ -61,12 +63,26 @@ class _TopBarState extends State<TopBar>
             onTap: () => ThemeCustomizer.toggleLeftBarCondensed(),
             child: Icon(LucideIcons.menu, color: topBarTheme.onBackground),
           ),
-          if (['/applets/oath', '/applets/webauthn']
-              .contains(Get.currentRoute)) ...{
+          if (widget.title != null) ...[
+            const SizedBox(width: 28),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 240),
+              child: widget.title!,
+            ),
+          ],
+          if ([
+            '/applets/oath',
+            '/applets/webauthn',
+          ].contains(Get.currentRoute)) ...{
             Spacing.width(24),
             Expanded(
-              child: SearchBox(formKey: _searchFormKey),
-            )
+              child: SearchBox(
+                formKey: _searchFormKey,
+                hintText: Get.currentRoute == '/applets/webauthn'
+                    ? S.of(context).webAuthnSearch
+                    : S.of(context).oathSearch,
+              ),
+            ),
           },
           if (widget.actions != null)
             Expanded(

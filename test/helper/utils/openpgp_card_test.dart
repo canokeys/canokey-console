@@ -13,10 +13,7 @@ void main() {
 
     await client.select();
 
-    expect(
-      transport.commands,
-      ['00A4040006D27600012401', '00C0000002'],
-    );
+    expect(transport.commands, ['00A4040006D27600012401', '00C0000002']);
     expect(client.lastStatusWord, '9000');
   });
 
@@ -27,13 +24,10 @@ void main() {
     final changed = await client.changeUserPin('123456', '654321');
 
     expect(changed, isTrue);
-    expect(
-      transport.commands,
-      [
-        '00A4040006D27600012401',
-        '002400810c313233343536363534333231',
-      ],
-    );
+    expect(transport.commands, [
+      '00A4040006D27600012401',
+      '002400810c313233343536363534333231',
+    ]);
   });
 
   test('parses card info with optional legacy data objects missing', () async {
@@ -92,10 +86,14 @@ void main() {
     expect(info.publicKeyUrl, 'https://example.test/key');
     expect(info.touchCacheTime, 15);
     expect(info.pinState.signaturePinForced, isTrue);
-    expect(info.keySlots[OpenPgpKeyType.signature]!.fingerprint,
-        '0102030405060708090A0B0C0D0E0F1011121314');
-    expect(info.keySlots[OpenPgpKeyType.signature]!.generatedAt,
-        DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true));
+    expect(
+      info.keySlots[OpenPgpKeyType.signature]!.fingerprint,
+      '0102030405060708090A0B0C0D0E0F1011121314',
+    );
+    expect(
+      info.keySlots[OpenPgpKeyType.signature]!.generatedAt,
+      DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true),
+    );
     expect(info.keySlots[OpenPgpKeyType.signature]!.touchFixed, isTrue);
     expect(info.keySlots[OpenPgpKeyType.encryption]!.fingerprint, isNull);
     expect(info.keySlots[OpenPgpKeyType.encryption]!.touchFixed, isFalse);
@@ -140,14 +138,40 @@ void main() {
     expect(transport.commands, contains('00DA0102010f'));
   });
 
-  test('stops an admin operation when PIN verification fails', () async {
-    final transport = _QueueApduTransport(['9000', '6982']);
-    final client = OpenPgpCardClient(transport: transport);
-
-    expect(await client.setResetCode('bad', '12345678'), isFalse);
-    expect(transport.commands, hasLength(2));
-    expect(client.lastStatusWord, '6982');
-  });
+  test(
+    'all privileged operations stop on failed authentication and preserve status',
+    () async {
+      final operations = <Future<bool> Function(OpenPgpCardClient)>[
+        (card) => card.setResetCode('12345678', '87654321'),
+        (card) => card.setPinRetries('12345678', 3, 3, 3),
+        (card) => card.setSignaturePinPolicy('12345678', true),
+        (card) => card.unblockUserPinWithAdmin('12345678', '123456'),
+        (card) => card.setTouchPolicy(
+          OpenPgpKeyType.signature,
+          OpenPgpTouchPolicy.on,
+          '12345678',
+        ),
+        (card) => card.setTouchCacheTime('12345678', 15),
+      ];
+      for (final operation in operations) {
+        for (final failure in ['6982', '63C2', '6983']) {
+          final transport = _QueueApduTransport(['9000', failure]);
+          final client = OpenPgpCardClient(transport: transport);
+          expect(await operation(client), isFalse);
+          expect(transport.commands, [
+            '00A4040006D27600012401',
+            '00200083083132333435363738',
+          ]);
+          expect(client.lastStatusWord, failure);
+        }
+        final transport = _QueueApduTransport(['9000', '9000', '6581']);
+        final client = OpenPgpCardClient(transport: transport);
+        expect(await operation(client), isFalse);
+        expect(client.lastStatusWord, '6581');
+        expect(transport.commands, hasLength(3));
+      }
+    },
+  );
 
   test('changes the admin PIN and uses extended APDU lengths', () async {
     final transport = _QueueApduTransport(List.filled(5, '9000'));

@@ -9,9 +9,10 @@ import 'package:get/get.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
 
 class SearchBox extends StatefulWidget {
-  const SearchBox({super.key, this.formKey});
+  const SearchBox({super.key, this.formKey, this.hintText});
 
   final GlobalKey<FormState>? formKey;
+  final String? hintText;
 
   @override
   State<SearchBox> createState() => _SearchBoxState();
@@ -70,7 +71,7 @@ class _SearchBoxState extends State<SearchBox> with UIMixin {
         onTap: SmartCard.eject,
         onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
         decoration: InputDecoration(
-          hintText: S.of(context).search,
+          hintText: widget.hintText ?? S.of(context).search,
           hintStyle: CustomizedTextStyle.bodySmall(xMuted: true),
           border: outlineInputBorder,
           enabledBorder: outlineInputBorder,

@@ -12,8 +12,34 @@ void main() {
 
   tearDown(Get.reset);
 
-  testWidgets('dialog suspends page NFC refresh and restores it on close',
-      (tester) async {
+  testWidgets('header honors custom cancellation and disabled close', (
+    tester,
+  ) async {
+    var cancellations = 0;
+    Future<void> showHeader(bool enabled) => tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: AppDialogHeader(
+            title: 'PIN',
+            closeEnabled: enabled,
+            onClose: () => cancellations++,
+          ),
+        ),
+      ),
+    );
+    await showHeader(false);
+    expect(
+      tester.widget<IconButton>(find.byType(IconButton)).onPressed,
+      isNull,
+    );
+    await showHeader(true);
+    await tester.tap(find.byIcon(Icons.close));
+    expect(cancellations, 1);
+  });
+
+  testWidgets('dialog suspends page NFC refresh and restores it on close', (
+    tester,
+  ) async {
     SmartCard.nfcState = NfcState.idle;
 
     await tester.pumpWidget(
@@ -91,17 +117,17 @@ void main() {
     expect(SmartCard.nfcState, NfcState.idle);
   });
 
-  testWidgets('closing during NFC work restores after the operation settles',
-      (tester) async {
+  testWidgets('closing during NFC work restores after the operation settles', (
+    tester,
+  ) async {
     SmartCard.nfcState = NfcState.idle;
 
     await tester.pumpWidget(
       GetMaterialApp(
         home: Builder(
           builder: (context) => TextButton(
-            onPressed: () => AppDialog.show(
-              const AppDialogSurface(child: Text('Working')),
-            ),
+            onPressed: () =>
+                AppDialog.show(const AppDialogSurface(child: Text('Working'))),
             child: const Text('Open'),
           ),
         ),
@@ -120,8 +146,9 @@ void main() {
     expect(SmartCard.nfcState, NfcState.idle);
   });
 
-  testWidgets('dialog ignores barrier taps but allows system back navigation',
-      (tester) async {
+  testWidgets('dialog ignores barrier taps but allows system back navigation', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       GetMaterialApp(
         theme: AppTheme.lightTheme,
@@ -166,8 +193,9 @@ void main() {
     expect(find.text('Dialog content'), findsNothing);
   });
 
-  testWidgets('large dialog surface respects compact viewport insets',
-      (tester) async {
+  testWidgets('large dialog surface respects compact viewport insets', (
+    tester,
+  ) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(320, 640);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -197,8 +225,9 @@ void main() {
     expect(dialog.clipBehavior, Clip.antiAlias);
     expect(dialog.insetAnimationDuration, Duration.zero);
 
-    final theme =
-        Theme.of(tester.element(find.byKey(const Key('dialog-content'))));
+    final theme = Theme.of(
+      tester.element(find.byKey(const Key('dialog-content'))),
+    );
     final shape = theme.dialogTheme.shape! as RoundedRectangleBorder;
     expect(shape.borderRadius, const BorderRadius.all(Radius.circular(8)));
   });

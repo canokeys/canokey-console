@@ -7,6 +7,54 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
+    'empty VERIFY reads remaining attempts without guessing on success',
+    () async {
+      final transport = _QueueApduTransport([
+        '63C3',
+        '63c1',
+        '63C0',
+        '6983',
+        '9000',
+        '6D00',
+        '6A88',
+        '6F00',
+      ]);
+      final client = PivCardClient(transport: transport);
+      for (final expected in [3, 1, 0, 0, null, null, null, null]) {
+        expect(await client.readRemainingPinRetries(), expected);
+      }
+      expect(transport.commands, List.filled(8, '0020008000'));
+    },
+  );
+
+  test(
+    'PUK change and PIN unblock share PIN encoding and report failures',
+    () async {
+      final transport = _QueueApduTransport(['63C2', '9000']);
+      final client = PivCardClient(transport: transport);
+
+      expect(await client.changePuk('12345678', '87654321'), isFalse);
+      expect(client.lastStatusWord, '63C2');
+      expect(await client.unblockPin('87654321', '123456'), isTrue);
+      expect(client.lastStatusWord, '9000');
+      expect(transport.commands, [
+        '002400811031323334353637383837363534333231',
+        '002C0080103837363534333231313233343536FFFF',
+      ]);
+
+      await expectLater(
+        client.changePuk('123456789', '87654321'),
+        throwsArgumentError,
+      );
+      await expectLater(
+        client.unblockPin('87654321', '123456789'),
+        throwsArgumentError,
+      );
+      expect(transport.commands, hasLength(2));
+    },
+  );
+
+  test(
     'reads the reported four-part certificate without PIV metadata',
     () async {
       final responses = File(
