@@ -6,6 +6,7 @@
 import 'api/crypto.dart';
 import 'api/decode.dart';
 import 'api/piv_crypto.dart';
+import 'api/protocol.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi' as ffi;
@@ -20,6 +21,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     required super.portManager,
   });
 
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_ProtocolOperationPtr => wire
+      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperationPtr;
+
+  @protected
+  ProtocolOperation
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+    dynamic raw,
+  );
+
+  @protected
+  ProtocolOperation
+  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+    dynamic raw,
+  );
+
+  @protected
+  ProtocolOperation
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+    dynamic raw,
+  );
+
   @protected
   String dco_decode_String(dynamic raw);
 
@@ -30,11 +53,23 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PivPrivateKeyData dco_decode_box_autoadd_piv_private_key_data(dynamic raw);
 
   @protected
+  ProtocolError dco_decode_box_autoadd_protocol_error(dynamic raw);
+
+  @protected
   SelfSignedCertificateParams
   dco_decode_box_autoadd_self_signed_certificate_params(dynamic raw);
 
   @protected
+  int dco_decode_box_autoadd_u_16(dynamic raw);
+
+  @protected
+  int dco_decode_box_autoadd_u_8(dynamic raw);
+
+  @protected
   X509CertData dco_decode_box_autoadd_x_509_cert_data(dynamic raw);
+
+  @protected
+  int dco_decode_i_32(dynamic raw);
 
   @protected
   PlatformInt64 dco_decode_i_64(dynamic raw);
@@ -57,6 +92,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ProtocolError? dco_decode_opt_box_autoadd_protocol_error(dynamic raw);
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_16(dynamic raw);
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_8(dynamic raw);
+
+  @protected
   X509CertData? dco_decode_opt_box_autoadd_x_509_cert_data(dynamic raw);
 
   @protected
@@ -70,6 +114,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PivPublicKeyData dco_decode_piv_public_key_data(dynamic raw);
+
+  @protected
+  PivReadOperation dco_decode_piv_read_operation(dynamic raw);
+
+  @protected
+  ProtocolError dco_decode_protocol_error(dynamic raw);
+
+  @protected
+  ProtocolStep dco_decode_protocol_step(dynamic raw);
 
   @protected
   SelfSignedCertificateParams dco_decode_self_signed_certificate_params(
@@ -95,6 +148,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   X509CertData dco_decode_x_509_cert_data(dynamic raw);
 
   @protected
+  ProtocolOperation
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ProtocolOperation
+  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ProtocolOperation
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
@@ -106,15 +177,29 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ProtocolError sse_decode_box_autoadd_protocol_error(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   SelfSignedCertificateParams
   sse_decode_box_autoadd_self_signed_certificate_params(
     SseDeserializer deserializer,
   );
 
   @protected
+  int sse_decode_box_autoadd_u_16(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
+
+  @protected
   X509CertData sse_decode_box_autoadd_x_509_cert_data(
     SseDeserializer deserializer,
   );
+
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
@@ -137,6 +222,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ProtocolError? sse_decode_opt_box_autoadd_protocol_error(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_16(SseDeserializer deserializer);
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer);
+
+  @protected
   X509CertData? sse_decode_opt_box_autoadd_x_509_cert_data(
     SseDeserializer deserializer,
   );
@@ -156,6 +252,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PivPublicKeyData sse_decode_piv_public_key_data(SseDeserializer deserializer);
+
+  @protected
+  PivReadOperation sse_decode_piv_read_operation(SseDeserializer deserializer);
+
+  @protected
+  ProtocolError sse_decode_protocol_error(SseDeserializer deserializer);
+
+  @protected
+  ProtocolStep sse_decode_protocol_step(SseDeserializer deserializer);
 
   @protected
   SelfSignedCertificateParams sse_decode_self_signed_certificate_params(
@@ -181,7 +286,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   X509CertData sse_decode_x_509_cert_data(SseDeserializer deserializer);
 
   @protected
-  int sse_decode_i_32(SseDeserializer deserializer);
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+    ProtocolOperation self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+    ProtocolOperation self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+    ProtocolOperation self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_String(String self, SseSerializer serializer);
@@ -196,16 +319,31 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_protocol_error(
+    ProtocolError self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_self_signed_certificate_params(
     SelfSignedCertificateParams self,
     SseSerializer serializer,
   );
 
   @protected
+  void sse_encode_box_autoadd_u_16(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_x_509_cert_data(
     X509CertData self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
@@ -230,6 +368,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     PivPrivateKeyData? self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_opt_box_autoadd_protocol_error(
+    ProtocolError? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_16(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_x_509_cert_data(
@@ -262,6 +412,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_piv_read_operation(
+    PivReadOperation self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_protocol_error(ProtocolError self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_protocol_step(ProtocolStep self, SseSerializer serializer);
+
+  @protected
   void sse_encode_self_signed_certificate_params(
     SelfSignedCertificateParams self,
     SseSerializer serializer,
@@ -284,9 +446,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_x_509_cert_data(X509CertData self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_i_32(int self, SseSerializer serializer);
 }
 
 // Section: wire_class
@@ -302,4 +461,38 @@ class RustLibWire implements BaseWire {
   /// The symbols are looked up in [dynamicLibrary].
   RustLibWire(ffi.DynamicLibrary dynamicLibrary)
     : _lookup = dynamicLibrary.lookup;
+
+  void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperationPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_canokey_console_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation',
+      );
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation =
+      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperationPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperationPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_canokey_console_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation',
+      );
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation =
+      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperationPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 }

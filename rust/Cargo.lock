@@ -42,6 +42,7 @@ dependencies = [
  "cfg-if",
  "cipher 0.4.4",
  "cpufeatures 0.2.17",
+ "zeroize",
 ]
 
 [[package]]
@@ -352,6 +353,101 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f1fe948ff07f4bd06c30984e69f5b4899c516a3ef74f34df92a2df2ab535495"
 
 [[package]]
+name = "canokey"
+version = "0.1.0"
+source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+dependencies = [
+ "canokey-admin",
+ "canokey-compat",
+ "canokey-oath",
+ "canokey-openpgp",
+ "canokey-piv",
+ "canokey-protocol",
+]
+
+[[package]]
+name = "canokey-admin"
+version = "0.1.0"
+source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+dependencies = [
+ "canokey-compat",
+ "canokey-protocol",
+]
+
+[[package]]
+name = "canokey-compat"
+version = "0.1.0"
+source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+dependencies = [
+ "canokey-protocol",
+]
+
+[[package]]
+name = "canokey-key"
+version = "0.1.0"
+source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+dependencies = [
+ "canokey-compat",
+ "canokey-protocol",
+ "der 0.7.10",
+ "pkcs1",
+ "spki 0.7.3",
+]
+
+[[package]]
+name = "canokey-oath"
+version = "0.1.0"
+source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+dependencies = [
+ "canokey-compat",
+ "canokey-protocol",
+ "hmac 0.12.1",
+ "pbkdf2 0.12.2",
+ "sha1 0.10.7",
+ "zeroize",
+]
+
+[[package]]
+name = "canokey-openpgp"
+version = "0.1.0"
+source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+dependencies = [
+ "canokey-compat",
+ "canokey-key",
+ "canokey-protocol",
+]
+
+[[package]]
+name = "canokey-piv"
+version = "0.1.0"
+source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+dependencies = [
+ "aes 0.8.4",
+ "canokey-compat",
+ "canokey-key",
+ "canokey-protocol",
+ "der 0.7.10",
+ "des 0.8.1",
+ "flate2",
+ "k256 0.13.4",
+ "p256 0.13.2",
+ "p384 0.13.1",
+ "p521 0.13.3",
+ "sm2",
+ "subtle",
+ "zeroize",
+]
+
+[[package]]
+name = "canokey-protocol"
+version = "0.1.0"
+source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+dependencies = [
+ "thiserror 2.0.20",
+ "zeroize",
+]
+
+[[package]]
 name = "cbc"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -430,6 +526,7 @@ checksum = "773f3b9af64447d2ce9850330c473515014aa235e6a783b02db81ff39e4a3dad"
 dependencies = [
  "crypto-common 0.1.6",
  "inout 0.1.4",
+ "zeroize",
 ]
 
 [[package]]
@@ -783,6 +880,15 @@ name = "deranged"
 version = "0.5.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7cd812cc2bc1d69d4764bd80df88b4317eaef9e773c75226407d9bc0876b211c"
+
+[[package]]
+name = "des"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ffdd80ce8ce993de27e9f063a444a4d53ce8e8db4c1f00cc03af5ad5a9867a1e"
+dependencies = [
+ "cipher 0.4.4",
+]
 
 [[package]]
 name = "des"
@@ -1578,6 +1684,16 @@ dependencies = [
 
 [[package]]
 name = "k256"
+version = "0.13.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f6e3919bbaa2945715f0bb6d3934a173d1e9a59ac23767fbaaef277265a7411b"
+dependencies = [
+ "cfg-if",
+ "elliptic-curve 0.13.8",
+]
+
+[[package]]
+name = "k256"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93f50113171a713f4a4231ef82eb26703607139b35dcb56241f0ceab2ae1f7d8"
@@ -1995,6 +2111,16 @@ dependencies = [
 
 [[package]]
 name = "p384"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe42f1670a52a47d448f14b6a5c61dd78fce51856e68edaa38f7ae3a46b8d6b6"
+dependencies = [
+ "elliptic-curve 0.13.8",
+ "primeorder 0.13.6",
+]
+
+[[package]]
+name = "p384"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d17b851e6b3e378ab4ecb07fa2ed23f4d15f075735f8fec9fa1e7bdce5f8301f"
@@ -2005,6 +2131,17 @@ dependencies = [
  "primefield",
  "primeorder 0.14.0",
  "sha2 0.11.0",
+]
+
+[[package]]
+name = "p521"
+version = "0.13.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0fc9e2161f1f215afdfce23677034ae137bbd45016a880c2eb3ba8eb95f085b2"
+dependencies = [
+ "base16ct 0.2.0",
+ "elliptic-curve 0.13.8",
+ "primeorder 0.13.6",
 ]
 
 [[package]]
@@ -2039,6 +2176,16 @@ name = "paste"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
+
+[[package]]
+name = "pbkdf2"
+version = "0.12.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8ed6a7761f76e3b9f92dfb0a60a6a6477c61024b775147ff0973a02653abaf2"
+dependencies = [
+ "digest 0.10.7",
+ "hmac 0.12.1",
+]
 
 [[package]]
 name = "pbkdf2"
@@ -2524,9 +2671,10 @@ name = "rust_lib_canokey_console"
 version = "0.1.0"
 dependencies = [
  "aes 0.9.3",
+ "canokey",
  "const-oid 0.10.2",
  "der 0.8.1",
- "des",
+ "des 0.9.0",
  "ed25519-dalek 3.0.0",
  "fido2_crypto",
  "flutter_rust_bridge",
@@ -2534,17 +2682,17 @@ dependencies = [
  "hex-literal",
  "image",
  "js-sys",
- "k256",
+ "k256 0.14.0",
  "log",
  "once_cell",
  "p256 0.14.0",
- "p384",
- "p521",
- "pbkdf2",
+ "p384 0.14.0",
+ "p521 0.14.0",
+ "pbkdf2 0.13.0",
  "rand 0.10.2",
  "rsa",
  "rxing",
- "sha1",
+ "sha1 0.11.0",
  "sha2 0.10.9",
  "sha2 0.11.0",
  "sm2",
@@ -2723,6 +2871,17 @@ checksum = "66cf8fedced2fcf12406bcb34223dffb92eaf34908ede12fed414c82b7f00b3e"
 dependencies = [
  "base16ct 1.0.0",
  "serde",
+]
+
+[[package]]
+name = "sha1"
+version = "0.10.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a978451301f4db1d02937a4ab3ccce137717b81826e79b7d49ffe3244a13c3b8"
+dependencies = [
+ "cfg-if",
+ "cpufeatures 0.2.17",
+ "digest 0.10.7",
 ]
 
 [[package]]

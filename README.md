@@ -86,6 +86,11 @@ Its native C ABI is linked into the existing console Rust library. The
 wasm-bindgen dependency family is pinned to versions compatible with fido2 2.0.0.
 Web uses the separate JS/WASM loader distributed with the Dart package.
 
+PIV selection, version and algorithm-configuration reads now use a pinned
+libcanokey Rust dependency through Flutter Rust Bridge. See the
+[migration boundary and next steps](docs/libcanokey-migration.md) for the
+implemented scope, session requirements and validation commands.
+
 Before running backend or USB/IP tests locally, build the native backend:
 
 ```bash

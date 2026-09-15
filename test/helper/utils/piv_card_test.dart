@@ -1,4 +1,9 @@
+@Tags(['native'])
+library;
+
 import 'dart:io';
+import 'package:canokey_console/src/rust/frb_generated.dart';
+import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:convert/convert.dart';
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/piv_card.dart';
@@ -6,6 +11,8 @@ import 'package:canokey_console/models/piv.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  setUpAll(() => RustLib.init());
+  tearDownAll(RustLib.dispose);
   test(
     'empty VERIFY reads remaining attempts without guessing on success',
     () async {
@@ -178,7 +185,7 @@ void main() {
       expect(metadata!.retriesCount, 3);
       expect(metadata.remainingCount, 3);
       expect(transport.commands, [
-        '00A4040005A000000308',
+        '00A4040005A00000030800',
         '00FD000000',
         '00F8000000',
         '0020008000',
@@ -231,6 +238,33 @@ void main() {
         final transport = _QueueApduTransport(responses);
         expect(await PivCardClient(transport: transport).blockPuk(), isFalse);
         expect(transport.commands, hasLength(responses.length));
+      }
+    },
+  );
+
+  test(
+    'libcanokey version handles continuation without an extra SELECT',
+    () async {
+      final transport = _QueueApduTransport(['6C03', '066102', '00009000']);
+      expect(await PivCardClient(transport: transport).readVersion(), [
+        6,
+        0,
+        0,
+      ]);
+      expect(transport.commands, ['00FD000000', '00FD000003', '00C0000002']);
+    },
+  );
+
+  test(
+    'algorithm configuration propagates security and malformed replies',
+    () async {
+      for (final response in ['6982', '6F00', '019000']) {
+        final transport = _QueueApduTransport(['9000', response]);
+        await expectLater(
+          PivCardClient(transport: transport).readAlgorithmExtensions(),
+          throwsA(isA<ProtocolException>()),
+        );
+        expect(transport.commands, ['00A4040005A00000030800', '00EE010000']);
       }
     },
   );

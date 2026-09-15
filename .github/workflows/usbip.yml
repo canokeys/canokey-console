@@ -78,10 +78,14 @@ jobs:
 
       - run: flutter pub get
 
-      - name: Test FIDO2 backend and client integration
+      - name: Test native backends and client integration
         env:
           FIDO2_CRYPTO_LIBRARY: ${{ github.workspace }}/build/usbip-backend/librust_lib_canokey_console.so
-        run: flutter test --no-pub test/helper/utils/fido2_backend_test.dart
+          FRB_DART_LOAD_EXTERNAL_LIBRARY_NATIVE_LIB_DIR: ${{ github.workspace }}/build/usbip-backend
+        run: >-
+          flutter test --no-pub
+          test/helper/utils/fido2_backend_test.dart
+          test/helper/utils/piv_card_test.dart
 
       - name: Share native backend with firmware jobs
         uses: actions/upload-artifact@v7

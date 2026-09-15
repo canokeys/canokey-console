@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+import 'package:canokey_console/src/rust/api/protocol.dart';
 import 'package:canokey_console/src/rust/api/crypto.dart';
 import 'package:canokey_console/src/rust/frb_generated.dart';
 import 'package:canokey_console/controller/applets/piv/piv_controller.dart';
@@ -45,7 +47,16 @@ void main() {
       addTearDown(RustLib.dispose);
       final transport = CertificateTransport(['9000', '530570033001009000']);
       final controller = PivController(
-        client: PivCardClient(transport: transport),
+        client: PivCardClient(
+          transport: transport,
+          readExecutor: (kind) async {
+            expect(kind, PivReadOperation.select);
+            SmartCard.assertOK(
+              await transport.transceive('00A4040005A00000030800'),
+            );
+            return Uint8List(0);
+          },
+        ),
       );
       controller.certificateSlots.add(0x9a);
 
@@ -59,7 +70,7 @@ void main() {
       expect(controller.publicKeyDerForSlot(0x9d), isNull);
       expect(controller.slots, isEmpty);
       expect(transport.commands, [
-        '00A4040005A000000308',
+        '00A4040005A00000030800',
         '00CB3FFF055C035FC10500',
       ]);
     },
@@ -79,7 +90,16 @@ void main() {
           '6A82',
         ]);
         final controller = PivController(
-          client: PivCardClient(transport: transport),
+          client: PivCardClient(
+            transport: transport,
+            readExecutor: (kind) async {
+              expect(kind, PivReadOperation.select);
+              SmartCard.assertOK(
+                await transport.transceive('00A4040005A00000030800'),
+              );
+              return Uint8List(0);
+            },
+          ),
         );
         controller.certificateSlots.addAll([0x9a, 0x9d]);
 
@@ -90,9 +110,9 @@ void main() {
         await controller.loadSlotDetails(0x9d);
         expect(transport.responses, isEmpty);
         expect(transport.commands, [
-          '00A4040005A000000308',
+          '00A4040005A00000030800',
           '00CB3FFF055C035FC10500',
-          '00A4040005A000000308',
+          '00A4040005A00000030800',
           '00CB3FFF055C035FC10b00',
         ]);
       }
@@ -105,7 +125,16 @@ void main() {
       addTearDown(RustLib.dispose);
       final transport = CertificateTransport(['9000', '530570033001009000']);
       final controller = PivController(
-        client: PivCardClient(transport: transport),
+        client: PivCardClient(
+          transport: transport,
+          readExecutor: (kind) async {
+            expect(kind, PivReadOperation.select);
+            SmartCard.assertOK(
+              await transport.transceive('00A4040005A00000030800'),
+            );
+            return Uint8List(0);
+          },
+        ),
       );
       controller.certificateSlots.add(0x9a);
 

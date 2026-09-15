@@ -234,6 +234,54 @@
     "license": "Unlicense OR MIT"
   },
   {
+    "package_name": "canokey",
+    "package_version": "0.1.0",
+    "repository": "",
+    "license": "Apache-2.0"
+  },
+  {
+    "package_name": "canokey-admin",
+    "package_version": "0.1.0",
+    "repository": "",
+    "license": "Apache-2.0"
+  },
+  {
+    "package_name": "canokey-compat",
+    "package_version": "0.1.0",
+    "repository": "",
+    "license": "Apache-2.0"
+  },
+  {
+    "package_name": "canokey-key",
+    "package_version": "0.1.0",
+    "repository": "",
+    "license": "Apache-2.0"
+  },
+  {
+    "package_name": "canokey-oath",
+    "package_version": "0.1.0",
+    "repository": "",
+    "license": "Apache-2.0"
+  },
+  {
+    "package_name": "canokey-openpgp",
+    "package_version": "0.1.0",
+    "repository": "",
+    "license": "Apache-2.0"
+  },
+  {
+    "package_name": "canokey-piv",
+    "package_version": "0.1.0",
+    "repository": "",
+    "license": "Apache-2.0"
+  },
+  {
+    "package_name": "canokey-protocol",
+    "package_version": "0.1.0",
+    "repository": "",
+    "license": "Apache-2.0"
+  },
+  {
     "package_name": "cbc",
     "package_version": "0.1.2",
     "repository": "https://github.com/RustCrypto/block-modes",
@@ -471,6 +519,12 @@
     "package_name": "deranged",
     "package_version": "0.5.8",
     "repository": "https://github.com/jhpratt/deranged",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "package_name": "des",
+    "package_version": "0.8.1",
+    "repository": "https://github.com/RustCrypto/block-ciphers",
     "license": "MIT OR Apache-2.0"
   },
   {
@@ -907,6 +961,12 @@
   },
   {
     "package_name": "k256",
+    "package_version": "0.13.4",
+    "repository": "https://github.com/RustCrypto/elliptic-curves/tree/master/k256",
+    "license": "Apache-2.0 OR MIT"
+  },
+  {
+    "package_name": "k256",
     "package_version": "0.14.0",
     "repository": "https://github.com/RustCrypto/elliptic-curves",
     "license": "Apache-2.0 OR MIT"
@@ -1165,8 +1225,20 @@
   },
   {
     "package_name": "p384",
+    "package_version": "0.13.1",
+    "repository": "https://github.com/RustCrypto/elliptic-curves/tree/master/p384",
+    "license": "Apache-2.0 OR MIT"
+  },
+  {
+    "package_name": "p384",
     "package_version": "0.14.0",
     "repository": "https://github.com/RustCrypto/elliptic-curves",
+    "license": "Apache-2.0 OR MIT"
+  },
+  {
+    "package_name": "p521",
+    "package_version": "0.13.3",
+    "repository": "https://github.com/RustCrypto/elliptic-curves/tree/master/p521",
     "license": "Apache-2.0 OR MIT"
   },
   {
@@ -1185,6 +1257,12 @@
     "package_name": "paste",
     "package_version": "1.0.15",
     "repository": "https://github.com/dtolnay/paste",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "package_name": "pbkdf2",
+    "package_version": "0.12.2",
+    "repository": "https://github.com/RustCrypto/password-hashes/tree/master/pbkdf2",
     "license": "MIT OR Apache-2.0"
   },
   {
@@ -1552,6 +1630,12 @@
     "package_version": "0.4.3",
     "repository": "https://github.com/RustCrypto/formats",
     "license": "Apache-2.0 OR MIT"
+  },
+  {
+    "package_name": "sha1",
+    "package_version": "0.10.7",
+    "repository": "https://github.com/RustCrypto/hashes",
+    "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "sha1",

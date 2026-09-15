@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:canokey_console/src/rust/frb_generated.dart';
 
 import 'package:canokey_console/helper/utils/admin_card.dart';
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
@@ -1019,6 +1020,8 @@ void main() {
 }
 
 Future<void> _runSmoke() async {
+  await RustLib.init();
+  addTearDown(RustLib.dispose);
   await initializeFido2Backend();
   final environment = Platform.environment;
   _expect(environment['CANOKEY_USBIP'] == '1', 'CANOKEY_USBIP must be 1');

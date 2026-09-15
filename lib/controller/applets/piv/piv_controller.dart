@@ -150,20 +150,17 @@ class PivController extends PollingController {
   }
 
   Future<void> _refreshCapabilities() async {
-    try {
-      final config = await _client.readAlgorithmExtensions();
-      if (config == null) {
-        throw StateError('PIV algorithm extensions are unavailable');
-      }
+    final config = await _client.readAlgorithmExtensions();
+    if (config != null) {
       algorithmExtensionConfig = config;
-    } catch (_) {
-      final isLegacyV2 =
-          firmwareVersion.compareTo(const FirmwareVersion(2, 0, 0)) >= 0 &&
-              firmwareVersion.compareTo(const FirmwareVersion(3, 0, 0)) < 0;
-      algorithmExtensionConfig = isLegacyV2
-          ? PivAlgorithmExtensionConfig.legacyV2
-          : PivAlgorithmExtensionConfig.defaults;
+      return;
     }
+    final isLegacyV2 =
+        firmwareVersion.compareTo(const FirmwareVersion(2, 0, 0)) >= 0 &&
+        firmwareVersion.compareTo(const FirmwareVersion(3, 0, 0)) < 0;
+    algorithmExtensionConfig = isLegacyV2
+        ? PivAlgorithmExtensionConfig.legacyV2
+        : PivAlgorithmExtensionConfig.defaults;
   }
 
   Future<PivMetadataDirectory?> _readMetadataDirectory() async {

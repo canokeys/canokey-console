@@ -4,24 +4,33 @@ import 'dart:typed_data';
 import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/utils/protocol_operation.dart';
+import 'package:canokey_console/src/rust/api/protocol.dart';
 import 'package:canokey_console/models/piv.dart';
 import 'package:convert/convert.dart';
 
 class PivCardClient {
-  PivCardClient({ApduTransport transport = const SmartCardApduTransport()})
-    : _transport = transport;
+  PivCardClient({
+    ApduTransport transport = const SmartCardApduTransport(),
+    PivReadExecutor? readExecutor,
+  }) : _transport = transport,
+       _readExecutor =
+           readExecutor ??
+           ((kind) => executeProtocolOperation(
+             ProtocolOperation.pivRead(kind: kind),
+             transport,
+           ));
 
   final ApduTransport _transport;
+  final PivReadExecutor _readExecutor;
   String? lastStatusWord;
 
   Future<void> select() async {
-    SmartCard.assertOK(await _transport.transceive('00A4040005A000000308'));
+    await _readExecutor(PivReadOperation.select);
   }
 
   Future<Uint8List> readVersion() async {
-    final response = await _transport.transceive('00FD000000');
-    SmartCard.assertOK(response);
-    return Uint8List.fromList(hex.decode(SmartCard.dropSW(response)));
+    return _readExecutor(PivReadOperation.version);
   }
 
   Future<String> readSerial() async {
@@ -98,11 +107,15 @@ class PivCardClient {
 
   Future<PivAlgorithmExtensionConfig?> readAlgorithmExtensions() async {
     await select();
-    final response = await _transport.transceive('00EE010000');
-    if (!SmartCard.isOK(response)) return null;
-    return PivAlgorithmExtensionConfig.decode(
-      hex.decode(SmartCard.dropSW(response)),
-    );
+    try {
+      final data = await _readExecutor(PivReadOperation.algorithmConfiguration);
+      return PivAlgorithmExtensionConfig.decode(data);
+    } on ProtocolException catch (error) {
+      // Only an unavailable instruction permits the existing firmware fallback.
+      // Security, malformed-data and unexpected card failures remain errors.
+      if (error.details.kind == 'UnsupportedFeature') return null;
+      rethrow;
+    }
   }
 
   Future<SlotInfo?> readMetadata(
