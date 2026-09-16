@@ -4,15 +4,14 @@ import 'package:canokey_console/models/keyboard_keymap.dart';
 final log = Logging.logger('CanoKey:Model');
 
 enum Applet {
-  openpgp(resetApdu: '00030000', name: 'OpenPGP'),
-  piv(resetApdu: '00040000', name: 'PIV'),
-  webauthn(resetApdu: '00090000', name: 'WebAuthn'),
-  oath(resetApdu: '00050000', name: 'OTP'),
-  ndef(resetApdu: '00070000', name: 'NFC Tag'),
-  pass(resetApdu: '00130000', name: 'Pass');
+  openpgp(name: 'OpenPGP'),
+  piv(name: 'PIV'),
+  webauthn(name: 'WebAuthn'),
+  oath(name: 'OTP'),
+  ndef(name: 'NFC Tag'),
+  pass(name: 'Pass');
 
-  const Applet({required this.resetApdu, required this.name});
-  final String resetApdu;
+  const Applet({required this.name});
   final String name;
 }
 
