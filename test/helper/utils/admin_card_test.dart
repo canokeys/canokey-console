@@ -37,13 +37,9 @@ void main() {
         ..[1] = 0x81
         ..[5] = 42;
       final transport = _Transport([
-        '9000',
         '01000001013F9000',
-        '9000',
         '02089000',
-        '9000',
         '${hex.encode(usage)}9000',
-        '9000',
         'AABB9000',
       ]);
       await _prepared(transport, (client) async {
@@ -52,14 +48,11 @@ void main() {
         expect((flash.usedKiB, flash.totalKiB), (2, 8));
         expect(await client.readAppletStorageUsage(), usage);
         expect(await client.readChipId(), 'AABB');
+        // The probe left Admin selected, so each read skips its own SELECT.
         expect(transport.commands, [
-          _select,
           '0042000000',
-          _select,
           '0041000000',
-          _select,
           '0041010000',
-          _select,
           '0032010000',
         ]);
       });
@@ -67,14 +60,21 @@ void main() {
   );
 
   test(
-    'unverified protected reads still require an explicit per-request PIN',
+    'unverified protected reads are rejected and an explicit per-request PIN works',
     () async {
-      final transport = _Transport(['9000', '9000', '0100010101019000']);
+      // Firmware 2.0.0 gates the configuration read on-card: the PIN-less
+      // read reuses the fresh selection and the card itself rejects it.
+      final transport = _Transport(['6982', '9000', '9000', '0100010101019000']);
       await _prepared(transport, (client) async {
         await expectLater(client.readConfig(), _kind('SecurityStatusNotSatisfied'));
-        expect(transport.commands, isEmpty);
+        expect(transport.commands, ['0042000000']);
         expect(await client.readConfig(pin: '123456'), [1, 0, 1, 1, 1, 1]);
-        expect(transport.commands, ['${_select}00', '${_verify}00', '0042000000']);
+        expect(transport.commands, [
+          '0042000000',
+          '${_select}00',
+          '${_verify}00',
+          '0042000000',
+        ]);
       }, firmware: '2.0.0');
     },
   );
@@ -481,14 +481,14 @@ void main() {
 
   test('optional commit only falls back on unsupported feature', () async {
     for (final response in ['6D00', '9000', '6162639000']) {
-      await _prepared(_Transport(['9000', response]), (client) async {
+      await _prepared(_Transport([response]), (client) async {
         expect(
           await client.readCoreCommit(),
           response == '6162639000' ? 'abc' : null,
         );
       });
     }
-    await _prepared(_Transport(['9000', '6982']), (client) async {
+    await _prepared(_Transport(['6982']), (client) async {
       await expectLater(
         client.readCoreCommit(),
         _kind('SecurityStatusNotSatisfied'),
@@ -503,13 +503,14 @@ void main() {
         await client.resetNdef(pin: '123456');
         expect(client.lastProgress!.confirmedWrites, 1);
       });
-      final transport = _Transport(['9000', '6985']);
+      final transport = _Transport(['6985']);
       await _prepared(transport, (client) async {
         await expectLater(
           client.factoryReset(),
           _kind('ConditionsNotSatisfied'),
         );
-        expect(transport.commands, [_select, '00500000055245534554']);
+        // Factory reset submits no PIN; a fresh selection skips the SELECT.
+        expect(transport.commands, ['00500000055245534554']);
         expect(client.lastProgress!.reprobeRequired, isTrue);
       });
     },

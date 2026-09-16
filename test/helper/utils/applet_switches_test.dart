@@ -49,7 +49,6 @@ void main() {
         '${hex.encode(utf8.encode('3.1.0'))}9000',
         '43616e6f4b65799000',
         '010203049000',
-        '9000',
         '01000001000d9000',
       ]);
       final client = AdminCardClient(transport: transport);
@@ -61,7 +60,6 @@ void main() {
         '0031000000',
         '0031010000',
         '0032000000',
-        '00A4040005F000000000',
         '0042000000',
       ]);
       expect(status.featureSwitchesSupported, isTrue);

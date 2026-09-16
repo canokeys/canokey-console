@@ -54,7 +54,7 @@ class WebAuthnInfo {
       if (data.length - offset < 8) {
         throw const FormatException('Truncated WebAuthn minPinLength');
       }
-      minPinLength = ByteData.sublistView(data).getUint64(offset);
+      minPinLength = _readUint64(data, offset);
       offset += 8;
     } else if (minPinLengthFlag != 0) {
       throw const FormatException('Invalid WebAuthn minPinLength flag');
@@ -71,6 +71,18 @@ class WebAuthnInfo {
       pinUvAuthProtocols: List.unmodifiable(data.sublist(offset)),
     );
   }
+}
+
+// dart2js has no 64-bit ByteData accessors; combine two 32-bit halves instead.
+// Exact for all values below 2^53, which covers both fields by construction.
+int _readUint64(Uint8List data, int offset) {
+  final view = ByteData.sublistView(data);
+  return view.getUint32(offset) * 0x100000000 + view.getUint32(offset + 4);
+}
+
+int _readInt64(Uint8List data, int offset) {
+  final view = ByteData.sublistView(data);
+  return view.getInt32(offset) * 0x100000000 + view.getUint32(offset + 4);
 }
 
 /// One relying party with resident credentials.
@@ -285,14 +297,14 @@ class WebAuthnPinToken {
           if (data.length - offset < 8) {
             throw const FormatException('Truncated WebAuthn COSE algorithm');
           }
-          coseAlgorithm = ByteData.sublistView(data).getInt64(offset);
+          coseAlgorithm = _readInt64(data, offset);
           offset += 8;
           publicKey = null;
         case 0x02:
           if (data.length - offset < 8) {
             throw const FormatException('Truncated WebAuthn COSE algorithm');
           }
-          coseAlgorithm = ByteData.sublistView(data).getInt64(offset);
+          coseAlgorithm = _readInt64(data, offset);
           offset += 8;
           publicKey = takeBytes((take() << 8) | take(), 'public key');
         default:

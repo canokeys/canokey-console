@@ -17,13 +17,23 @@ String? formatStatusWord(int? status) =>
 class ProfileBinding {
   ProfileBinding(this.profile, this.lease, {bool bindSelection = false})
     : profileGeneration = lease.profileGeneration,
-      selectionGeneration = bindSelection ? lease.selectionGeneration : null;
+      selectionGeneration = bindSelection ? lease.selectionGeneration : null,
+      _observedSelectionGeneration = lease.selectionGeneration;
 
   final ProtocolProfile profile;
   final CardLease lease;
   final int profileGeneration;
   final int? selectionGeneration;
+  final int _observedSelectionGeneration;
   bool _closed = false;
+
+  /// True while no applet selection has happened since this binding's probe
+  /// left its applet selected. Non-fatal evidence: callers that can re-SELECT
+  /// fall back instead of failing.
+  bool get selectionFresh =>
+      !_closed &&
+      profileGeneration == lease.profileGeneration &&
+      _observedSelectionGeneration == lease.selectionGeneration;
 
   void check() {
     lease.check();

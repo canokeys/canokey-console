@@ -30,19 +30,27 @@ abstract class AdminSessionCardClient extends ProfileCardClient {
   /// Runs one Admin request. When this lease holds a still-valid recorded
   /// Admin authentication (see CardLease.recordAdminAuthentication) and the
   /// caller allows it, the request uses `Access::Existing`: no SELECT and no
-  /// VERIFY are sent, and any supplied PIN stays unused. Otherwise the
-  /// request SELECTs and verifies only the explicitly supplied PIN.
+  /// VERIFY are sent, and any supplied PIN stays unused. A PIN-less request
+  /// also uses `Access::Existing` while the probe's Admin selection is still
+  /// current, skipping a redundant SELECT — unless [selectionSufficient] is
+  /// false for requests whose target is card-gated regardless of firmware
+  /// (Pass slots); there the card remains the enforcement point either way.
+  /// Otherwise the request SELECTs and verifies only the explicitly supplied
+  /// PIN.
   Future<AdminResult> executeAdminRequest(
     ProtocolOperation Function(ProtocolProfile profile, Uint8List? pin, bool existing)
     create, {
     String? pin,
     bool existingAllowed = true,
+    bool selectionSufficient = true,
     bool mutation = false,
   }) async {
     final binding = preparedBinding;
     lastStatusWord = null;
     lastProgress = null;
-    final existing = existingAllowed && binding.lease.hasAdminAuthentication;
+    final existing = existingAllowed &&
+        (binding.lease.hasAdminAuthentication ||
+            (selectionSufficient && pin == null && binding.selectionFresh));
     if (!existing) {
       // Selecting factories invalidate any selected PIV context before
       // starting, even though immutable Admin profile evidence can be reused.

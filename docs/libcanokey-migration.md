@@ -58,7 +58,10 @@ building, UI flows, credential prompting) stays in Console.
 
 - **Admin** — full coverage (config, PIN, NFC, SM2, keymap, applet/factory
   reset, Pass slots). Requests default to SELECT + per-request PIN and
-  converge to `Access::Existing` while session evidence is valid.
+  converge to `Access::Existing` while session evidence is valid. A PIN-less
+  request also reuses the probe's selection (`Access::Existing`, no SELECT)
+  while it is still current, except for the card-gated Pass slot read; the
+  card remains the enforcement point either way.
 - **PIV** — full coverage, including PQ seed import, attestation and
   streaming sign, all with `Access::Existing`. The algorithm-extension read
   uses the upstream profile-based operation: on 3.0.x firmware it requires

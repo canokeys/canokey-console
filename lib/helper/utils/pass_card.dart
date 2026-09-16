@@ -27,6 +27,10 @@ class PassCardClient extends AdminSessionCardClient {
       (profile, pinBytes, existing) =>
           profile.adminPassSlots(pin: pinBytes, existing: existing),
       pin: pin,
+      // The slot read is card-gated on every audited firmware; a fresh
+      // selection alone must not turn the construction-time rejection into
+      // an on-card 6982.
+      selectionSufficient: false,
     );
     return PassSlot.decode(result.data);
   }
