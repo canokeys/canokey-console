@@ -8,7 +8,14 @@ IOS_METADATA_DIR = File.join(__dir__, "metadata")
 
 # Compile-time build metadata shown in the About dialog.
 def build_defines
-  commit = ENV.fetch("GITHUB_SHA") { `git rev-parse HEAD`.strip }
+  commit =
+    if ENV["GITHUB_EVENT_NAME"] == "pull_request" && ENV["GITHUB_EVENT_PATH"]
+      # GITHUB_SHA is a temporary merge commit on pull_request events.
+      require "json"
+      JSON.parse(File.read(ENV["GITHUB_EVENT_PATH"])).dig("pull_request", "head", "sha")
+    else
+      ENV.fetch("GITHUB_SHA") { `git rev-parse HEAD`.strip }
+    end
   time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
   ["--dart-define=BUILD_COMMIT=#{commit}", "--dart-define=BUILD_TIME=#{time}"]
 end

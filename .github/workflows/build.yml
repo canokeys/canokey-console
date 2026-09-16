@@ -154,7 +154,7 @@ jobs:
     - name: Run flutter release build (${{ matrix.target }})
       run: |
         flutter build ${{ matrix.target }} --release ${{ matrix.build-args }} --verbose \
-          --dart-define=BUILD_COMMIT="$GITHUB_SHA" \
+          --dart-define=BUILD_COMMIT="${{ github.event.pull_request.head.sha || github.sha }}" \
           --dart-define=BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
         if [ "${{ matrix.target }}" == "linux" ]; then
           sudo sh -c 'umask 022; exec /snap/bin/snapcraft pack --destructive-mode --platform "$1"' _ "${{ matrix.arch }}"
