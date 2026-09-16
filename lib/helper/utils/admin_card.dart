@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:canokey_console/helper/utils/apdu_transport.dart';
-import 'package:canokey_console/helper/utils/card_session.dart';
+import 'package:canokey_console/helper/utils/card_client.dart';
 import 'package:canokey_console/helper/utils/protocol_operation.dart';
-import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/webauthn.dart';
 import 'package:canokey_console/src/rust/api/protocol.dart';
@@ -16,125 +14,33 @@ class AdminStorageUsage {
   final int totalKiB;
 }
 
-/// Each upstream Admin operation either SELECTs and explicitly authenticates
-/// its own request, or reuses this lease's authenticated Admin session via
-/// `Access::Existing`. That session evidence is recorded only by a successful
-/// explicit [verifyPin] on the same lease and is bound to the lease's
-/// selection/profile generations; a UI PIN cache is never authorization.
-class AdminCardClient {
-  AdminCardClient({
-    ApduTransport transport = const SmartCardApduTransport(),
-    CardLease? lease,
-  }) : _transport = transport,
-       _injectedLease = lease {
-    if (lease != null && transport is SmartCardApduTransport) {
-      throw ArgumentError('Production transport uses SmartCard.currentLease');
-    }
-  }
+/// Shared Admin-facade plumbing for clients whose upstream operations either
+/// SELECT Admin and explicitly verify a PIN, or reuse this lease's recorded
+/// Admin authentication via `Access::Existing`. That session evidence is
+/// recorded only by a successful explicit VerifyPin on the same lease and is
+/// bound to the lease's selection/profile generations; a UI PIN cache is never
+/// authorization.
+abstract class AdminSessionCardClient extends ProfileCardClient {
+  AdminSessionCardClient({super.transport, super.lease})
+    : super(bindSelection: false);
 
-  final ApduTransport _transport;
-  final CardLease? _injectedLease;
-  final CardSessions _injectedSessions = CardSessions();
-  final CardCancellation _cancellation = CardCancellation();
-  _AdminProfileBinding? _profile;
-  String? lastResponse;
+  /// Progress of the most recent Admin operation, including after a failure.
   AdminProgress? lastProgress;
-
-  CardLease get _lease => _transport is SmartCardApduTransport
-      ? SmartCard.currentLease
-      : _injectedLease ??
-            _injectedSessions.current?.lease ??
-            (throw StateError('Injected Admin transport requires withSession'));
-
-  Future<T> withSession<T>(Future<T> Function() action) {
-    if (_transport is SmartCardApduTransport) {
-      throw StateError('Use SmartCard.process for the production transport');
-    }
-    if (_injectedLease != null) {
-      throw StateError('Use the supplied lease owner');
-    }
-    return _injectedSessions.run((session) async {
-      session.bind(_transport.transceive);
-      return action();
-    });
-  }
-
-  void cancelPendingOperations() => _cancellation.cancel();
-
-  /// Explicit minimal discovery, before any authentication. Repeat after a
-  /// profile-affecting write, including an uncertain write; never auto-reprobe.
-  Future<void> prepare() async {
-    _cancellation.check();
-    final lease = _lease;
-    lease.willSelectApplet();
-    _profile?.close();
-    _profile = null;
-    final profile = await executeProfileProbe(
-      ProtocolOperation.probeAdmin(),
-      _transport,
-      lease: lease,
-      cancellation: _cancellation,
-    );
-    final binding = _AdminProfileBinding(profile, lease);
-    try {
-      lease.check();
-      _cancellation.check();
-      lease.onClose(() {
-        binding.close();
-        if (identical(_profile, binding)) _profile = null;
-      });
-      _profile = binding;
-    } catch (_) {
-      binding.close();
-      rethrow;
-    }
-  }
-
-  /// Explicit discovery only when the prepared binding is missing or stale.
-  /// A still-valid binding is reused as-is, preserving the lease's recorded
-  /// Admin session evidence; discovery is never repeated implicitly.
-  Future<void> prepareIfStale() async {
-    final binding = _profile;
-    if (binding != null && identical(binding.lease, _lease)) {
-      try {
-        binding.check();
-        _cancellation.check();
-        return;
-      } on StateError {
-        // Fall through to explicit discovery below.
-      }
-    }
-    await prepare();
-  }
-
-  _AdminProfileBinding get _prepared {
-    final lease = _lease;
-    final binding = _profile;
-    if (binding == null || !identical(binding.lease, lease)) {
-      throw StateError('Prepare Admin in the current lease first');
-    }
-    binding.check();
-    _cancellation.check();
-    if (lease.isExchanging) {
-      throw StateError('A card operation is already active');
-    }
-    return binding;
-  }
 
   /// Runs one Admin request. When this lease holds a still-valid recorded
   /// Admin authentication (see CardLease.recordAdminAuthentication) and the
   /// caller allows it, the request uses `Access::Existing`: no SELECT and no
   /// VERIFY are sent, and any supplied PIN stays unused. Otherwise the
   /// request SELECTs and verifies only the explicitly supplied PIN.
-  Future<AdminResult> _execute(
+  Future<AdminResult> executeAdminRequest(
     ProtocolOperation Function(ProtocolProfile profile, Uint8List? pin, bool existing)
     create, {
     String? pin,
     bool existingAllowed = true,
     bool mutation = false,
   }) async {
-    final binding = _prepared;
-    lastResponse = null;
+    final binding = preparedBinding;
+    lastStatusWord = null;
     lastProgress = null;
     final existing = existingAllowed && binding.lease.hasAdminAuthentication;
     if (!existing) {
@@ -148,27 +54,23 @@ class AdminCardClient {
     try {
       final result = await executeAdminOperation(
         create(binding.profile, pinBytes, existing),
-        _transport,
+        transport,
         lease: binding.lease,
-        cancellation: _cancellation,
+        cancellation: cancellation,
         onProgress: (progress) => lastProgress = progress,
       );
       binding.check();
-      _cancellation.check();
-      lastResponse = '9000';
+      cancellation.check();
+      lastStatusWord = '9000';
       return result;
     } on ProtocolException catch (error) {
-      lastResponse = error.details.statusWord
-          ?.toRadixString(16)
-          .padLeft(4, '0')
-          .toUpperCase();
+      lastStatusWord = formatStatusWord(error.details.statusWord);
       // A failed Existing request leaves the card-side session state
       // uncertain; later requests must re-establish evidence or use a PIN.
       if (existing) binding.lease.invalidateAdminAuthentication();
       rethrow;
     } catch (_) {
-      binding.close();
-      if (identical(_profile, binding)) _profile = null;
+      discardProfile(binding);
       rethrow;
     } finally {
       pinBytes?.fillRange(0, pinBytes.length, 0);
@@ -182,17 +84,47 @@ class AdminCardClient {
       }
       if (progress?.reprobeRequired == true) {
         binding.lease.invalidateProfileEvidence();
-        binding.close();
-        if (identical(_profile, binding)) _profile = null;
+        discardProfile(binding);
       }
     }
   }
+}
 
-  Future<AdminResult> _read(AdminReadOperation kind, {String? pin}) => _execute(
-    (profile, pinBytes, existing) =>
-        profile.adminRead(kind: kind, pin: pinBytes, existing: existing),
-    pin: pin,
-  );
+/// Each upstream Admin operation either SELECTs and explicitly authenticates
+/// its own request, or reuses this lease's authenticated Admin session via
+/// `Access::Existing`. That session evidence is recorded only by a successful
+/// explicit [verifyPin] on the same lease and is bound to the lease's
+/// selection/profile generations; a UI PIN cache is never authorization.
+class AdminCardClient extends AdminSessionCardClient {
+  AdminCardClient({super.transport, super.lease});
+
+  /// Explicit minimal discovery, before any authentication. Repeat after a
+  /// profile-affecting write, including an uncertain write; never auto-reprobe.
+  Future<void> prepare() => prepareProfile(ProtocolOperation.probeAdmin);
+
+  /// Explicit discovery only when the prepared binding is missing or stale.
+  /// A still-valid binding is reused as-is, preserving the lease's recorded
+  /// Admin session evidence; discovery is never repeated implicitly.
+  Future<void> prepareIfStale() async {
+    final binding = currentProfile;
+    if (binding != null && identical(binding.lease, lease)) {
+      try {
+        binding.check();
+        cancellation.check();
+        return;
+      } on StateError {
+        // Fall through to explicit discovery below.
+      }
+    }
+    await prepare();
+  }
+
+  Future<AdminResult> _read(AdminReadOperation kind, {String? pin}) =>
+      executeAdminRequest(
+        (profile, pinBytes, existing) =>
+            profile.adminRead(kind: kind, pin: pinBytes, existing: existing),
+        pin: pin,
+      );
 
   Future<void> _action(
     AdminAction kind, {
@@ -205,7 +137,7 @@ class AdminCardClient {
   }) async {
     final payload = Uint8List.fromList(data);
     try {
-      await _execute(
+      await executeAdminRequest(
         (profile, pinBytes, existing) => profile.adminAction(
           kind: kind,
           pin: pinBytes,
@@ -234,8 +166,9 @@ class AdminCardClient {
         existingAllowed: false,
         mutation: false,
       );
-      // _prepared revalidates the binding and lease identity before stamping.
-      _prepared.lease.recordAdminAuthentication();
+      // preparedBinding revalidates the binding and lease identity before
+      // stamping.
+      preparedBinding.lease.recordAdminAuthentication();
       return true;
     } on ProtocolException catch (error) {
       if (error.details.kind == 'AuthenticationFailed' ||
@@ -256,15 +189,15 @@ class AdminCardClient {
   }
 
   Future<String> readFirmwareVersion() async => utf8.decode(
-    _prepared.profile.firmware() ??
+    preparedBinding.profile.firmware() ??
         (throw StateError('Missing firmware observation')),
   );
   Future<String> readModel() async =>
-      _prepared.profile.model() ??
+      preparedBinding.profile.model() ??
       (throw StateError('Device did not report its model'));
   Future<String> readSerial() async => hex
       .encode(
-        _prepared.profile.serial() ??
+        preparedBinding.profile.serial() ??
             (throw StateError('Device did not report its serial')),
       )
       .toUpperCase();
@@ -330,7 +263,7 @@ class AdminCardClient {
   }) async {
     RangeError.checkValueInInterval(featureMask, 0, 0x3f, 'featureMask');
     RangeError.checkValueInInterval(featureValues, 0, 0x3f, 'featureValues');
-    await _execute(
+    await executeAdminRequest(
       (profile, pinBytes, existing) => profile.adminConfigure(
         pin: pinBytes,
         existing: existing,
@@ -412,30 +345,5 @@ class AdminCardClient {
       algoId: algoId,
     );
     await _action(AdminAction.writeSm2, pin: pin, data: data);
-  }
-}
-
-class _AdminProfileBinding {
-  _AdminProfileBinding(this.profile, this.lease)
-    : generation = lease.profileGeneration;
-  final ProtocolProfile profile;
-  final CardLease lease;
-  final int generation;
-  bool _closed = false;
-  void check() {
-    lease.check();
-    if (_closed || generation != lease.profileGeneration) {
-      throw StateError('Admin profile requires explicit discovery');
-    }
-  }
-
-  void close() {
-    if (_closed) return;
-    _closed = true;
-    try {
-      profile.close();
-    } finally {
-      profile.dispose();
-    }
   }
 }

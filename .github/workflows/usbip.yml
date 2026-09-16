@@ -62,7 +62,7 @@ jobs:
           rust-src-dir: rust
           cache-key: usbip-backend
 
-      - name: Build FIDO2 backend
+      - name: Build native backend
         if: steps.backend_cache.outputs.cache-hit != 'true'
         run: |
           cargo build --manifest-path rust/Cargo.toml --release --locked
@@ -80,7 +80,6 @@ jobs:
 
       - name: Test native backends and client integration
         env:
-          FIDO2_CRYPTO_LIBRARY: ${{ github.workspace }}/build/usbip-backend/librust_lib_canokey_console.so
           FRB_DART_LOAD_EXTERNAL_LIBRARY_NATIVE_LIB_DIR: ${{ github.workspace }}/build/usbip-backend
         run: flutter test --no-pub --tags native
 

@@ -89,7 +89,7 @@ void main() {
           ),
           isTrue,
         );
-        expect(client.lastResponse, '9000');
+        expect(client.lastStatusWord, '9000');
         expect(client.lastProgress!.confirmedWrites, 1);
         expect(client.lastProgress!.reprobeRequired, isTrue);
         expect(transport.commands, [_select, _verify, '00440100050202707701']);
@@ -163,7 +163,7 @@ void main() {
           ),
           isFalse,
         );
-        expect(client.lastResponse, '63C2');
+        expect(client.lastStatusWord, '63C2');
         expect(
           await client.setSlot(
             1,
@@ -174,7 +174,7 @@ void main() {
           ),
           isFalse,
         );
-        expect(client.lastResponse, '6983');
+        expect(client.lastStatusWord, '6983');
         expect(transport.commands, [_select, _verify, _select, _verify]);
       });
     },
@@ -189,7 +189,7 @@ void main() {
           client.setSlot(1, PassSlotType.static, 'pw', false, pin: '123456'),
           _kind('UnexpectedStatusWord'),
         );
-        expect(client.lastResponse, '6A84');
+        expect(client.lastStatusWord, '6A84');
         expect(client.lastProgress!.confirmedWrites, 0);
         expect(client.lastProgress!.reprobeRequired, isTrue);
         expect(transport.commands, [_select, _verify, '00440100050202707700']);

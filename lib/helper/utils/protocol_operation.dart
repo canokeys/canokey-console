@@ -51,6 +51,38 @@ Future<ProtocolProfile> executeProfileProbe(
       step.profile ?? (throw StateError('Expected profile result')),
 );
 
+/// Runs one ClientPIN key agreement and returns the session handle. The
+/// caller owns the handle and closes it after its dependent operations.
+Future<CtapPinSession> executeCtapPinSession(
+  ProtocolOperation operation,
+  ApduTransport transport, {
+  CardLease? lease,
+  CardCancellation? cancellation,
+}) => _execute(
+  operation,
+  transport,
+  lease: lease,
+  cancellation: cancellation,
+  result: (step) =>
+      step.pinSession ?? (throw StateError('Expected CTAP PIN session')),
+);
+
+/// Runs one ClientPIN token request and returns the token handle. The caller
+/// owns the handle and closes it after use; tokens are never cached.
+Future<CtapPinToken> executeCtapPinToken(
+  ProtocolOperation operation,
+  ApduTransport transport, {
+  CardLease? lease,
+  CardCancellation? cancellation,
+}) => _execute(
+  operation,
+  transport,
+  lease: lease,
+  cancellation: cancellation,
+  result: (step) =>
+      step.pinToken ?? (throw StateError('Expected CTAP PIN token')),
+);
+
 Future<AdminResult> executeAdminOperation(
   ProtocolOperation operation,
   ApduTransport transport, {
@@ -96,7 +128,11 @@ Future<T> _execute<T>(
       if (step.error case final error?) {
         throw ProtocolException(error, exchangeAttempted: exchangeAttempted);
       }
-      if (step.data != null || step.profile != null || step.admin != null) {
+      if (step.data != null ||
+          step.profile != null ||
+          step.admin != null ||
+          step.pinSession != null ||
+          step.pinToken != null) {
         try {
           check();
           return result(step);
@@ -109,6 +145,22 @@ Future<T> _execute<T>(
               profile.close();
             } finally {
               profile.dispose();
+            }
+          }
+          final pinSession = step.pinSession;
+          if (pinSession != null) {
+            try {
+              pinSession.close();
+            } finally {
+              pinSession.dispose();
+            }
+          }
+          final pinToken = step.pinToken;
+          if (pinToken != null) {
+            try {
+              pinToken.close();
+            } finally {
+              pinToken.dispose();
             }
           }
           rethrow;

@@ -224,7 +224,7 @@ void main() {
           client.changePin('654321', currentPin: '123456'),
           _kind('AuthenticationFailed'),
         );
-        expect(client.lastResponse, '63C2');
+        expect(client.lastStatusWord, '63C2');
         expect(client.lastProgress!.confirmedWrites, 0);
         expect(transport.commands, [_select, _verify]);
         await client.changePin('CanoKey密码', currentPin: '123456');
@@ -346,7 +346,7 @@ void main() {
         client.cancelPendingOperations();
         finish.complete();
         await rejected;
-        expect(client.lastResponse, isNull);
+        expect(client.lastStatusWord, isNull);
         expect(client.lastProgress!.confirmedWrites, 0);
         expect(client.lastProgress!.reprobeRequired, isTrue);
         expect(transport.commands, hasLength(4));

@@ -2,129 +2,70 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
-import 'package:canokey_console/helper/utils/card_session.dart';
-import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/utils/card_client.dart';
 import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:canokey_console/src/rust/api/protocol.dart';
 import 'package:canokey_console/models/piv.dart';
 import 'package:convert/convert.dart';
 
-class PivCardClient {
+class PivCardClient extends ProfileCardClient {
   PivCardClient({
-    ApduTransport transport = const SmartCardApduTransport(),
-    CardLease? lease,
+    super.transport,
+    super.lease,
     PivReadExecutor? readExecutor,
     PivCertificateExecutor? certificateExecutor,
     Future<void> Function()? prepareExecutor,
-  }) : _transport = transport,
-       _readExecutor = readExecutor,
+  }) : _readExecutor = readExecutor,
        _certificateExecutor = certificateExecutor,
        _prepareExecutor = prepareExecutor,
-       _injectedLease = lease {
-    if (lease != null && transport is SmartCardApduTransport) {
-      throw ArgumentError('Production transport uses SmartCard.currentLease');
-    }
-  }
+       super(bindSelection: true);
 
-  final ApduTransport _transport;
-  final CardLease? _injectedLease;
   final PivReadExecutor? _readExecutor;
   final PivCertificateExecutor? _certificateExecutor;
   final Future<void> Function()? _prepareExecutor;
-  final CardSessions _injectedSessions = CardSessions();
-  _PivProfileBinding? _profile;
-
-  CardLease get _lease => _transport is SmartCardApduTransport
-      ? SmartCard.currentLease
-      : _injectedLease ??
-            _injectedSessions.current?.lease ??
-            (throw StateError('Injected transport requires withSession'));
-
-  /// For caller-owned transports (tests/USB-IP). Production uses SmartCard.process.
-  Future<T> withSession<T>(Future<T> Function() action) {
-    if (_transport is SmartCardApduTransport) {
-      throw StateError('Use SmartCard.process for the production transport');
-    }
-    if (_injectedLease != null) {
-      throw StateError('Use the supplied lease owner');
-    }
-    return _injectedSessions.run((session) async {
-      session.bind(_transport.transceive);
-      return action();
-    });
-  }
 
   /// Explicit discovery/selection before authentication. The lease owns the
   /// immutable observations; later metadata reads never probe or SELECT.
   Future<void> prepare() async {
-    _cancellation.check();
+    cancellation.check();
     final override = _prepareExecutor;
     if (override != null) return override();
-    final lease = _lease;
-    if (lease.isExchanging) {
-      throw StateError('Cannot replace a profile during an active operation');
-    }
-    lease.willSelectApplet();
-    _profile?.close();
-    _profile = null;
-    final profile = await executeProfileProbe(
-      ProtocolOperation.probePiv(),
-      _transport,
-      lease: lease,
-      cancellation: _cancellation,
+    await prepareProfile(
+      ProtocolOperation.probePiv,
+      rejectWhileExchanging: true,
     );
-    final binding = _PivProfileBinding(profile, lease);
-    try {
-      lease.check();
-      _cancellation.check();
-      lease.onClose(() {
-        binding.close();
-        if (identical(_profile, binding)) _profile = null;
-      });
-      _profile = binding;
-    } catch (_) {
-      binding.close();
-      rethrow;
-    }
   }
 
-  final CardCancellation _cancellation = CardCancellation();
-
-  /// Request cancellation; the active executor drains I/O and frees its handle.
-  void cancelPendingOperations() => _cancellation.cancel();
-
   Future<Uint8List> _read(PivReadOperation kind) async {
-    _cancellation.check();
-    final binding = kind == PivReadOperation.select ? null : _profile;
+    cancellation.check();
+    final binding = kind == PivReadOperation.select ? null : currentProfile;
     binding?.check();
     final executor = _readExecutor;
     if (executor != null) return executor(kind);
     final data = await executeProtocolOperation(
       ProtocolOperation.pivRead(kind: kind),
-      _transport,
-      lease: _transport is SmartCardApduTransport
+      transport,
+      lease: transport is SmartCardApduTransport
           ? null
-          : _injectedLease ?? _injectedSessions.current?.lease,
-      cancellation: _cancellation,
+          : injectedCurrentLease,
+      cancellation: cancellation,
     );
     binding?.check();
-    _cancellation.check();
+    cancellation.check();
     return data;
   }
 
-  String? lastStatusWord;
-
   Future<void> select() async {
-    final lease = _transport is SmartCardApduTransport
-        ? SmartCard.currentLease
-        : _injectedLease ?? _injectedSessions.current?.lease;
+    final lease = transport is SmartCardApduTransport
+        ? this.lease
+        : injectedCurrentLease;
     lease?.willSelectApplet();
-    final binding = _profile;
+    final binding = currentProfile;
     if (binding != null) {
       if (binding.lease.isExchanging) {
         throw StateError('Cannot SELECT during an active operation');
       }
-      _discardProfile(binding);
+      discardProfile(binding);
     }
     await _read(PivReadOperation.select);
   }
@@ -181,9 +122,9 @@ class PivCardClient {
   /// A successful write replaces the observed algorithm IDs; upstream marks it
   /// ReprobeRequired, so the prepared profile is always discarded afterwards.
   Future<void> setAlgorithmConfig(Uint8List raw) async {
-    final binding = _prepared;
+    final binding = preparedBinding;
     await _executePrepared((profile) => profile.pivSetAlgorithmConfig(raw: raw));
-    _discardProfile(binding);
+    discardProfile(binding);
   }
 
   Future<void> setContainerName(int slot, String name) async {
@@ -342,71 +283,29 @@ class PivCardClient {
         ));
   }
 
-  _PivProfileBinding get _prepared {
-    final lease = _lease;
-    final binding = _profile;
-    if (binding == null || !identical(binding.lease, lease)) {
-      throw StateError('Prepare PIV in this lease before this operation');
-    }
-    binding.check();
-    _cancellation.check();
-    if (lease.isExchanging) {
-      throw StateError('A card operation is already active');
-    }
-    return binding;
-  }
-
-  void _discardProfile(_PivProfileBinding binding) {
-    binding.close();
-    if (identical(_profile, binding)) _profile = null;
-  }
-
   /// Use the serial observed before authentication; never switch applets here.
   Future<String> readSerial() async {
-    final serial = _prepared.profile.serial();
+    final serial = preparedBinding.profile.serial();
     if (serial == null) throw StateError('Device did not report a serial');
     return hex.encode(serial).toUpperCase();
   }
 
+  /// Runs one prepared PIV operation. A rejected credential leaves immutable
+  /// device observations valid; an uncertain exchange/acknowledgment discards
+  /// the profile and cannot be used for dependent work.
   Future<Uint8List> _executePrepared(
     ProtocolOperation Function(ProtocolProfile) create, {
     bool allowMissing = false,
-  }) async {
-    final binding = _prepared;
-    lastStatusWord = null;
-    try {
-      final data = await executeProtocolOperation(
-        create(binding.profile),
-        _transport,
-        lease: binding.lease,
-        cancellation: _cancellation,
-      );
-      binding.check();
-      _cancellation.check();
-      if (!identical(_profile, binding)) {
-        throw StateError('PIV profile replaced');
-      }
-      lastStatusWord = '9000';
-      return data;
-    } on ProtocolException catch (error) {
-      binding.check();
-      _cancellation.check();
-      final status = error.details.statusWord;
-      lastStatusWord = status?.toRadixString(16).padLeft(4, '0').toUpperCase();
-      // A rejected credential leaves immutable device observations valid. An
-      // uncertain exchange/acknowledgment cannot be used for dependent work.
-      if (error.exchangeAttempted &&
-          error.details.kind != 'AuthenticationFailed' &&
-          error.details.kind != 'PinBlocked' &&
-          !(allowMissing && error.details.kind == 'NotFound')) {
-        _discardProfile(binding);
-      }
-      rethrow;
-    } catch (_) {
-      _discardProfile(binding);
-      rethrow;
-    }
-  }
+  }) => executePrepared(
+    create,
+    verifyProfileIdentity: true,
+    discardOnOtherError: true,
+    discardOnProtocolError: (error) =>
+        error.exchangeAttempted &&
+        error.details.kind != 'AuthenticationFailed' &&
+        error.details.kind != 'PinBlocked' &&
+        !(allowMissing && error.details.kind == 'NotFound'),
+  );
 
   /// Selected-only empty VERIFY; 9000 does not imply a known retry count.
   Future<String> readPinRetries() async {
@@ -546,30 +445,13 @@ class PivCardClient {
     PivAlgorithmExtensionConfig? algorithmExtensionConfig,
   }) async {
     RangeError.checkValueInInterval(slot, 0, 0xff, 'slot');
-    final lease = _lease;
-    final binding = _profile;
-    if (binding == null || !identical(binding.lease, lease)) {
-      throw StateError('Prepare PIV in this lease before reading metadata');
-    }
-    binding.check();
-    _cancellation.check();
-    lastStatusWord = null;
+    final binding = preparedBinding;
     Uint8List data;
     try {
-      data = await executeProtocolOperation(
-        binding.profile.pivMetadata(reference: slot),
-        _transport,
-        lease: lease,
-        cancellation: _cancellation,
+      data = await executePrepared(
+        (profile) => profile.pivMetadata(reference: slot),
       );
-      binding.check();
-      _cancellation.check();
-      lastStatusWord = '9000';
     } on ProtocolException catch (error) {
-      binding.check();
-      _cancellation.check();
-      final status = error.details.statusWord;
-      lastStatusWord = status?.toRadixString(16).padLeft(4, '0').toUpperCase();
       if (error.details.kind == 'NotFound') return null;
       rethrow;
     }
@@ -594,29 +476,29 @@ class PivCardClient {
   Future<Uint8List?> readCertificate(int objectId) async {
     RangeError.checkValueInInterval(objectId, 0, 0xff, 'objectId');
     final executor = _certificateExecutor;
-    final binding = executor == null ? _prepared : null;
+    final binding = executor == null ? preparedBinding : null;
     lastStatusWord = null;
     try {
-      _cancellation.check();
+      cancellation.check();
       final certificate = executor != null
           ? await executor(objectId)
           : await executeProtocolOperation(
               binding!.profile.pivCertificate(objectId: objectId),
-              _transport,
+              transport,
               lease: binding.lease,
-              cancellation: _cancellation,
+              cancellation: cancellation,
             );
-      _cancellation.check();
+      cancellation.check();
       binding?.check();
       lastStatusWord = '9000';
       return certificate;
     } on ProtocolException catch (error) {
       binding?.check();
-      _cancellation.check();
-      final status = error.details.statusWord;
-      lastStatusWord = status?.toRadixString(16).padLeft(4, '0').toUpperCase();
+      cancellation.check();
+      lastStatusWord = formatStatusWord(error.details.statusWord);
       if (error.details.phase == 'Command' &&
-          (status == 0x6a82 || status == 0x6a88)) {
+          (error.details.statusWord == 0x6a82 ||
+              error.details.statusWord == 0x6a88)) {
         return null;
       }
       rethrow;
@@ -655,38 +537,6 @@ class PivCardClient {
       );
     } finally {
       copy.fillRange(0, copy.length, 0);
-    }
-  }
-}
-
-class _PivProfileBinding {
-  _PivProfileBinding(this.profile, this.lease)
-    : selectionGeneration = lease.selectionGeneration,
-      profileGeneration = lease.profileGeneration;
-  final ProtocolProfile profile;
-  final CardLease lease;
-  bool _closed = false;
-  final int selectionGeneration;
-  final int profileGeneration;
-
-  void check() {
-    lease.check();
-    if (_closed ||
-        selectionGeneration != lease.selectionGeneration ||
-        profileGeneration != lease.profileGeneration) {
-      throw StateError(
-        'PIV selection or device observations are no longer current',
-      );
-    }
-  }
-
-  void close() {
-    if (_closed) return;
-    _closed = true;
-    try {
-      profile.close();
-    } finally {
-      profile.dispose();
     }
   }
 }

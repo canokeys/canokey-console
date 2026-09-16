@@ -6,9 +6,68 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `admin_operation`, `admin_progress`, `admin_result`, `bytes`, `drive`, `drive`, `failure`, `from_operation`, `oath_access`, `openpgp_slot`, `pass_slots_data`, `piv_slot`
+// These functions are ignored because they are not marked as `pub`: `admin_operation`, `admin_progress`, `admin_result`, `bytes`, `change_pin_with_iv`, `ctap_credentials_data`, `ctap_info_data`, `ctap_rps_data`, `drive`, `drive`, `failure`, `from_operation`, `new`, `new`, `oath_access`, `openpgp_slot`, `pass_slots_data`, `pin_iv`, `pin_token_with_iv`, `piv_slot`, `set_pin_with_iv`, `token`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `Inner`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `from`
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CtapPinSession>>
+abstract class CtapPinSession implements RustOpaqueInterface {
+  /// Change the PIN (subcommand 0x04); IV handling matches [`Self::set_pin`].
+  ProtocolOperation changePin({
+    required List<int> oldPin,
+    required List<int> newPin,
+  });
+
+  /// Idempotent local cleanup. Does not alter the card or pending operations.
+  void close();
+
+  /// Obtain a pinUvAuthToken with explicit permissions (subcommand 0x09):
+  /// `permissions` is the raw bitfield (credentialManagement = 0x04) and
+  /// `rp_id`, when present, binds the token to that relying party. The
+  /// decrypted token is returned as an opaque handle in the final step.
+  ProtocolOperation getPinTokenWithPermissions({
+    required List<int> pin,
+    required int permissions,
+    String? rpId,
+  });
+
+  /// The pin/UV auth protocol version (1 or 2) this session speaks.
+  /// Dart picks it from getInfo's advertised pinUvAuthProtocols.
+  int protocolVersion();
+
+  /// Set the initial PIN (subcommand 0x03). V2 IVs are generated here from
+  /// the CSPRNG; PIN bytes enter upstream zeroizing owners immediately.
+  ProtocolOperation setPin({required List<int> newPin});
+}
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CtapPinToken>>
+abstract class CtapPinToken implements RustOpaqueInterface {
+  /// Idempotent local cleanup. Does not alter the card or pending operations.
+  void close();
+
+  /// Permanently delete one resident credential by its raw credential ID
+  /// (sent as a `public-key` descriptor). Never retried or rolled back;
+  /// an unknown ID surfaces as NotFound (CTAP 0x2E/0x22).
+  ProtocolOperation deleteCredential({required List<int> credentialId});
+
+  /// Enumerate one RP's resident credentials. `metadata_only` enables the
+  /// CanoKey vendor extension (subCommandParams key 0x80): the raw COSE
+  /// algorithm replaces the public key in responses. Data: see
+  /// `ctap_credentials_data`. A Begin 0x2E yields an empty result.
+  ProtocolOperation enumerateCredentials({
+    required List<int> rpIdHash,
+    required bool metadataOnly,
+  });
+
+  /// Enumerate relying parties with resident credentials (Begin + GetNext
+  /// run inside the one operation). A 0x2E NO_CREDENTIALS status yields an
+  /// empty result, not an error. Data: see `ctap_rps_data`.
+  ProtocolOperation enumerateRps();
+
+  /// The pin/UV auth protocol version (1 or 2) of the session that minted
+  /// this token; credmgmt operations authenticate with it.
+  int protocolVersion();
+}
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolOperation>>
 abstract class ProtocolOperation implements RustOpaqueInterface {
@@ -30,6 +89,21 @@ abstract class ProtocolOperation implements RustOpaqueInterface {
 
   /// Release locally, including on a transport exception. Never retry/rollback.
   void close();
+
+  /// Start ClientPIN key agreement (subcommand 0x02) for protocol version
+  /// 1 or 2, generating the ephemeral P-256 scalar from the CSPRNG. The
+  /// final step carries an opaque [`CtapPinSession`] handle.
+  static ProtocolOperation ctapBeginPinSession({required int protocol}) =>
+      RustLib.instance.api.crateApiProtocolProtocolOperationCtapBeginPinSession(
+        protocol: protocol,
+      );
+
+  /// authenticatorGetInfo (0x04), profile-free with its own SELECT. The
+  /// final `data` carries the parsed fields Dart needs (credMgmt/clientPin
+  /// tri-states, forcePinChange, minPinLength, advertised pinUvAuthProtocol
+  /// versions); see `ctap_info_data` for the encoding.
+  static ProtocolOperation ctapGetInfo() =>
+      RustLib.instance.api.crateApiProtocolProtocolOperationCtapGetInfo();
 
   /// Select the FIDO2 applet only; the caller owns the selected context.
   static ProtocolOperation ctapSelectApplication() => RustLib.instance.api
@@ -643,6 +717,9 @@ enum PivCredentialOperation {
 enum PivReadOperation { select, version, algorithmConfiguration, pinStatus }
 
 /// Structured, payload-free protocol failure. Transport errors remain in Dart.
+/// For CTAP-level failures `status_word` carries the raw CTAP status byte
+/// widened to u16 (for example 0x0031 for PIN_INVALID), NOT an ISO 7816
+/// status word; see canokey-ctap's status table.
 class ProtocolError {
   final String kind;
   final String phase;
@@ -686,6 +763,8 @@ class ProtocolStep {
   final ProtocolError? error;
   final ProtocolProfile? profile;
   final AdminResult? admin;
+  final CtapPinSession? pinSession;
+  final CtapPinToken? pinToken;
 
   const ProtocolStep({
     this.command,
@@ -693,6 +772,8 @@ class ProtocolStep {
     this.error,
     this.profile,
     this.admin,
+    this.pinSession,
+    this.pinToken,
   });
 
   @override
@@ -701,7 +782,9 @@ class ProtocolStep {
       data.hashCode ^
       error.hashCode ^
       profile.hashCode ^
-      admin.hashCode;
+      admin.hashCode ^
+      pinSession.hashCode ^
+      pinToken.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -712,5 +795,7 @@ class ProtocolStep {
           data == other.data &&
           error == other.error &&
           profile == other.profile &&
-          admin == other.admin;
+          admin == other.admin &&
+          pinSession == other.pinSession &&
+          pinToken == other.pinToken;
 }

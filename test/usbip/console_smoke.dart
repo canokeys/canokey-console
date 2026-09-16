@@ -4,20 +4,18 @@ import 'package:canokey_console/src/rust/frb_generated.dart';
 
 import 'package:canokey_console/helper/utils/admin_card.dart';
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
-import 'package:canokey_console/helper/utils/ctap_transmitter.dart';
-import 'package:canokey_console/helper/utils/fido2_backend.dart';
 import 'package:canokey_console/helper/utils/ndef_card.dart';
 import 'package:canokey_console/helper/utils/oath_card.dart';
 import 'package:canokey_console/helper/utils/openpgp_card.dart';
 import 'package:canokey_console/helper/utils/pass_card.dart';
 import 'package:canokey_console/helper/utils/piv_card.dart';
 import 'package:canokey_console/helper/utils/protocol_operation.dart';
+import 'package:canokey_console/helper/utils/webauthn_card.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/oath.dart';
 import 'package:canokey_console/models/openpgp.dart';
 import 'package:canokey_console/models/pass.dart';
 import 'package:ccid/ccid.dart';
-import 'package:fido2/fido2.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -57,7 +55,7 @@ class ConsoleSmoke {
     _oathClient = OathCardClient(transport: _clientTransport('oath'));
     _passClient = PassCardClient(transport: _clientTransport('pass'));
     _pivClient = PivCardClient(transport: _clientTransport('piv'));
-    _webAuthnTransmitter = CtapTransmitter(
+    _webAuthnClient = WebAuthnCardClient(
       transport: _clientTransport('webauthn'),
     );
   }
@@ -71,7 +69,7 @@ class ConsoleSmoke {
   late final OathCardClient _oathClient;
   late final PassCardClient _passClient;
   late final PivCardClient _pivClient;
-  late final CtapTransmitter _webAuthnTransmitter;
+  late final WebAuthnCardClient _webAuthnClient;
   late FunctionSetVersion _functionSet;
   late String _adminSerial;
   late bool _initialNdefReadonly;
@@ -929,34 +927,20 @@ class ConsoleSmoke {
       'WebAuthn getInfo returned CTAP status ${bytes.first}',
     );
     _expect(bytes.length > 1, 'WebAuthn getInfo returned no CBOR payload');
-    final info = AuthenticatorInfo.decode(bytes.sublist(1));
-    _expect(info.versions.isNotEmpty, 'WebAuthn reports no protocol versions');
-    _expect(
-      info.versions.contains('FIDO_2_0'),
-      'WebAuthn does not advertise FIDO_2_0',
-    );
-    _expect(info.aaguid.length == 16, 'WebAuthn AAGUID must be 16 bytes');
-    _expect(
-      info.maxMsgSize == null || info.maxMsgSize! > 0,
-      'WebAuthn max message size is invalid',
-    );
-    _expect(
-      info.algorithms == null || info.algorithms!.isNotEmpty,
-      'WebAuthn algorithms list is empty',
-    );
 
-    final clientResponse = await _webAuthnTransmitter.transceive([0x04]);
-    _expect(
-      clientResponse.status == 0,
-      'Console WebAuthn transmitter returned CTAP status '
-      '${clientResponse.status}',
-    );
-    final clientInfo = AuthenticatorInfo.decode(clientResponse.data);
-    _expect(
-      clientInfo.versions.contains('FIDO_2_0'),
-      'Console WebAuthn transmitter did not parse FIDO_2_0',
-    );
-    stdout.writeln('ok: webauthn.client.get_info');
+    await _webAuthnClient.withSession(() async {
+      final info = await _webAuthnClient.getInfo();
+      _expect(
+        info.clientPin != null,
+        'WebAuthn client getInfo did not advertise clientPin',
+      );
+      _expect(
+        info.pinUvAuthProtocols.contains(1) ||
+            info.pinUvAuthProtocols.contains(2),
+        'WebAuthn client getInfo advertised no PIN protocol',
+      );
+      stdout.writeln('ok: webauthn.client.get_info');
+    });
   }
 
   Future<void> _passApplet() async {
@@ -1089,7 +1073,6 @@ void main() {
 Future<void> _runSmoke() async {
   await RustLib.init();
   addTearDown(RustLib.dispose);
-  await initializeFido2Backend();
   final environment = Platform.environment;
   _expect(environment['CANOKEY_USBIP'] == '1', 'CANOKEY_USBIP must be 1');
   final expectedVersion = _requiredEnvironment('CANOKEY_FIRMWARE_VERSION');

@@ -109,7 +109,7 @@ class PassController extends PollingController with AdminApplet {
           pin: pin,
         );
       } on ProtocolException {
-        if (Prompts.isStorageFull(_client.lastResponse ?? '')) {
+        if (Prompts.isStorageFull(_client.lastStatusWord ?? '')) {
           Prompts.showPrompt(
             S.of(Get.context!).storageFull,
             ContentThemeColor.danger,
@@ -119,7 +119,7 @@ class PassController extends PollingController with AdminApplet {
         rethrow;
       }
       if (!success) {
-        Prompts.promptPinFailureResult(_client.lastResponse ?? '');
+        Prompts.promptPinFailureResult(_client.lastStatusWord ?? '');
         return;
       }
       log.i('Successfully changed slot');

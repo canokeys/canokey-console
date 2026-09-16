@@ -263,24 +263,53 @@ pub fn piv_certificate_supports_macos(
     slot: u8,
     now_unix: i64,
 ) -> bool {
-    let Ok((remaining, cert)) = x509_parser::parse_x509_certificate(&der) else { return false; };
-    if !remaining.is_empty() || cert.public_key().raw != expected_public_key { return false; }
-    let Ok(now) = x509_parser::time::ASN1Time::from_timestamp(now_unix) else { return false; };
-    if !cert.validity().is_valid_at(now) { return false; }
-    let Ok(basic) = cert.basic_constraints() else { return false; };
-    if basic.is_some_and(|ext| ext.value.ca) { return false; }
-    let Ok(usage) = cert.key_usage() else { return false; };
-    let Ok(eku) = cert.extended_key_usage() else { return false; };
-    let Ok(spki) = SubjectPublicKeyInfo::from_der(&expected_public_key) else { return false; };
-    let Ok(algorithm) = algorithm_from_spki(&spki) else { return false; };
-    if algorithm != PIV_ECC_P256 && algorithm != PIV_RSA2048 { return false; }
+    let Ok((remaining, cert)) = x509_parser::parse_x509_certificate(&der) else {
+        return false;
+    };
+    if !remaining.is_empty() || cert.public_key().raw != expected_public_key {
+        return false;
+    }
+    let Ok(now) = x509_parser::time::ASN1Time::from_timestamp(now_unix) else {
+        return false;
+    };
+    if !cert.validity().is_valid_at(now) {
+        return false;
+    }
+    let Ok(basic) = cert.basic_constraints() else {
+        return false;
+    };
+    if basic.is_some_and(|ext| ext.value.ca) {
+        return false;
+    }
+    let Ok(usage) = cert.key_usage() else {
+        return false;
+    };
+    let Ok(eku) = cert.extended_key_usage() else {
+        return false;
+    };
+    let Ok(spki) = SubjectPublicKeyInfo::from_der(&expected_public_key) else {
+        return false;
+    };
+    let Ok(algorithm) = algorithm_from_spki(&spki) else {
+        return false;
+    };
+    if algorithm != PIV_ECC_P256 && algorithm != PIV_RSA2048 {
+        return false;
+    }
     match slot {
-        0x9A => usage.is_none_or(|ext| ext.value.digital_signature())
-            && eku.is_none_or(|ext| ext.value.any || ext.value.client_auth),
-        0x9D => usage.is_none_or(|ext| if algorithm == PIV_RSA2048 {
-            ext.value.key_encipherment()
-        } else { ext.value.key_agreement() })
-            && eku.is_none_or(|ext| ext.value.any),
+        0x9A => {
+            usage.is_none_or(|ext| ext.value.digital_signature())
+                && eku.is_none_or(|ext| ext.value.any || ext.value.client_auth)
+        }
+        0x9D => {
+            usage.is_none_or(|ext| {
+                if algorithm == PIV_RSA2048 {
+                    ext.value.key_encipherment()
+                } else {
+                    ext.value.key_agreement()
+                }
+            }) && eku.is_none_or(|ext| ext.value.any)
+        }
         _ => false,
     }
 }
@@ -946,10 +975,8 @@ mod tests {
                 metadata.subject_public_key_info,
                 response.subject_public_key_info
             );
-            let key = rsa::RsaPublicKey::from_public_key_der(
-                &metadata.subject_public_key_info,
-            )
-            .unwrap();
+            let key =
+                rsa::RsaPublicKey::from_public_key_der(&metadata.subject_public_key_info).unwrap();
             assert_eq!(key.n().to_bytes_be(), modulus);
             assert_eq!(key.e().to_bytes_be(), vec![1, 0, 1]);
         }
@@ -967,13 +994,9 @@ mod tests {
         assert!(error.contains(&rsa::errors::Error::InvalidModulus.to_string()));
         assert!(error.contains("modulus: 3 bytes, exponent: 3 bytes"));
 
-        let error = build_piv_public_key(
-            PIV_RSA2048,
-            vec![0x81, 3, 0x80, 0, 1, 0x82, 1, 2],
-            false,
-        )
-        .err()
-        .unwrap();
+        let error = build_piv_public_key(PIV_RSA2048, vec![0x81, 3, 0x80, 0, 1, 0x82, 1, 2], false)
+            .err()
+            .unwrap();
         assert!(error.contains(&rsa::errors::Error::InvalidExponent.to_string()));
     }
 
@@ -1148,20 +1171,38 @@ mod tests {
     fn macos_capability_requires_wrapping_usage_and_matching_valid_key() {
         let now = 1788912000;
         for (usage, eku, slot, expected) in [
-            (1, true, 0x9A, true), (1, true, 0x9D, false),
-            (16, false, 0x9D, true), (4, false, 0x9D, false),
-            (16, true, 0x9D, false), (0, false, 0x9D, true),
+            (1, true, 0x9A, true),
+            (1, true, 0x9D, false),
+            (16, false, 0x9D, true),
+            (4, false, 0x9D, false),
+            (16, true, 0x9D, false),
+            (0, false, 0x9D, true),
             (16, false, 0x9A, false),
         ] {
             let mut params = extension_test_params();
             params.key_usage = usage;
-            if !eku { params.extended_key_usage.clear(); }
+            if !eku {
+                params.extended_key_usage.clear();
+            }
             let spki = params.subject_public_key_info.clone();
             let tbs = prepare_self_signed_certificate(params).unwrap();
             let cert = finish_self_signed_certificate(tbs, PIV_ECC_P256, vec![1; 64]).unwrap();
-            assert_eq!(piv_certificate_supports_macos(cert.clone(), spki.clone(), slot, now), expected);
-            assert!(!piv_certificate_supports_macos(cert.clone(), vec![], slot, now));
-            assert!(!piv_certificate_supports_macos(cert.clone(), spki.clone(), slot, 1900000000));
+            assert_eq!(
+                piv_certificate_supports_macos(cert.clone(), spki.clone(), slot, now),
+                expected
+            );
+            assert!(!piv_certificate_supports_macos(
+                cert.clone(),
+                vec![],
+                slot,
+                now
+            ));
+            assert!(!piv_certificate_supports_macos(
+                cert.clone(),
+                spki.clone(),
+                slot,
+                1900000000
+            ));
             let mut trailing = cert;
             trailing.push(0);
             assert!(!piv_certificate_supports_macos(trailing, spki, slot, now));
@@ -1266,7 +1307,12 @@ mod tests {
             };
             let certificate =
                 finish_self_signed_certificate(tbs, algorithm, vec![1; signature_len]).unwrap();
-            assert!(piv_certificate_supports_macos(certificate.clone(), spki, 0x9D, 1788912000));
+            assert!(piv_certificate_supports_macos(
+                certificate.clone(),
+                spki,
+                0x9D,
+                1788912000
+            ));
             assert!(parse_x509_cert_from_der(certificate).is_ok());
         }
     }

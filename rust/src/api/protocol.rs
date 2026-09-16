@@ -190,6 +190,9 @@ fn pass_slots_data(slots: admin::PassSlots) -> Vec<u8> {
 }
 
 /// Structured, payload-free protocol failure. Transport errors remain in Dart.
+/// For CTAP-level failures `status_word` carries the raw CTAP status byte
+/// widened to u16 (for example 0x0031 for PIN_INVALID), NOT an ISO 7816
+/// status word; see canokey-ctap's status table.
 pub struct ProtocolError {
     pub kind: String,
     pub phase: String,
@@ -218,6 +221,8 @@ pub struct ProtocolStep {
     pub error: Option<ProtocolError>,
     pub profile: Option<ProtocolProfile>,
     pub admin: Option<AdminResult>,
+    pub pin_session: Option<CtapPinSession>,
+    pub pin_token: Option<CtapPinToken>,
 }
 
 impl ProtocolStep {
@@ -228,6 +233,8 @@ impl ProtocolStep {
             error: Some(error.into()),
             profile: None,
             admin: None,
+            pin_session: None,
+            pin_token: None,
         }
     }
 }
@@ -253,6 +260,11 @@ enum Inner {
     NdefCapability(Operation<ndef::NdefCapability>),
     NdefMessage(Operation<ndef::NdefMessage>),
     Ctap(Operation<ctap::CtapResponse>),
+    CtapGetInfo(Operation<ctap::AuthenticatorInfo>),
+    CtapPinSession(Operation<ctap::PinSession>),
+    CtapPinToken(Operation<ctap::PinToken>, ctap::PinUvAuthProtocol),
+    CtapRps(Operation<Vec<ctap::credmgmt::RpEntry>>),
+    CtapCredentials(Operation<Vec<ctap::credmgmt::CredentialEntry>>),
 }
 
 /// Immutable observations of one device. Dart binds this owner to a card lease.
@@ -2187,6 +2199,349 @@ fn piv_slot(reference: u8) -> Result<piv::Slot, Error> {
     }
 }
 
+/// CTAP getInfo fields Dart needs, parsed in Rust so Dart never touches CBOR:
+/// `credMgmt | clientPin | forcePinChange` as tri-state bytes (0 = absent,
+/// 1 = false, 2 = true), then a minPinLength flag byte (0 = absent; 1 =
+/// present, followed by a big-endian u64), then `count | protocol bytes`
+/// with the raw advertised pinUvAuthProtocol versions.
+fn ctap_info_data(info: &ctap::AuthenticatorInfo) -> Vec<u8> {
+    fn tristate(value: Option<bool>) -> u8 {
+        match value {
+            None => 0,
+            Some(false) => 1,
+            Some(true) => 2,
+        }
+    }
+    let option = |name: &str| {
+        info.options()
+            .and_then(|options| options.iter().find(|(key, _)| key == name).map(|(_, v)| *v))
+    };
+    let mut out = vec![
+        tristate(option("credMgmt")),
+        tristate(option("clientPin")),
+        tristate(info.force_pin_change()),
+    ];
+    match info.min_pin_length() {
+        Some(length) => {
+            out.push(1);
+            out.extend_from_slice(&length.to_be_bytes());
+        }
+        None => out.push(0),
+    }
+    let protocols = info.pin_uv_auth_protocols().unwrap_or(&[]);
+    out.push(protocols.len() as u8);
+    out.extend_from_slice(protocols);
+    out
+}
+
+/// Self-delimiting RP entries: `id_len | id | name_len (0xff = absent) |
+/// name | rp_id_hash[32]`, concatenated. Text fields are length-prefixed so
+/// Dart never parses CBOR.
+fn ctap_rps_data(entries: Vec<ctap::credmgmt::RpEntry>) -> Vec<u8> {
+    let mut out = Vec::new();
+    for entry in entries {
+        out.push(entry.rp.id.len() as u8);
+        out.extend_from_slice(entry.rp.id.as_bytes());
+        match &entry.rp.name {
+            Some(name) => {
+                out.push(name.len() as u8);
+                out.extend_from_slice(name.as_bytes());
+            }
+            None => out.push(0xff),
+        }
+        out.extend_from_slice(&entry.rp_id_hash);
+    }
+    out
+}
+
+/// Self-delimiting credential entries, concatenated:
+/// `cred_id_len (u16 BE) | cred_id | user_flag (0/1)`, and when present
+/// `user_id_len | user_id | name_len (0xff absent) | name | display_len
+/// (0xff absent) | display`; then `cred_protect (0xff absent, else the
+/// value)`; then `key_form`: 0x01 metadataOnly with the raw COSE algorithm
+/// (i64 BE, CanoKey extension key 0x80), or 0x02 publicKey with the resolved
+/// COSE algorithm (i64 BE, i64::MIN when unresolvable) followed by
+/// `key_len (u16 BE) | canonical CBOR COSE key` (opaque pass-through).
+fn ctap_credentials_data(entries: Vec<ctap::credmgmt::CredentialEntry>) -> Vec<u8> {
+    let mut out = Vec::new();
+    for entry in entries {
+        let id = &entry.credential_id.id;
+        out.extend_from_slice(&(id.len() as u16).to_be_bytes());
+        out.extend_from_slice(id);
+        match &entry.user {
+            Some(user) => {
+                out.push(1);
+                out.push(user.id.len() as u8);
+                out.extend_from_slice(&user.id);
+                for text in [&user.name, &user.display_name] {
+                    match text {
+                        Some(text) => {
+                            out.push(text.len() as u8);
+                            out.extend_from_slice(text.as_bytes());
+                        }
+                        None => out.push(0xff),
+                    }
+                }
+            }
+            None => out.push(0),
+        }
+        match entry.cred_protect {
+            Some(policy) => out.push(policy as u8),
+            None => out.push(0xff),
+        }
+        match (&entry.cose_algorithm, &entry.public_key) {
+            (Some(algorithm), None) => {
+                out.push(0x01);
+                out.extend_from_slice(&algorithm.to_be_bytes());
+            }
+            (None, Some(key)) => {
+                out.push(0x02);
+                let algorithm = key.algorithm().map(|a| a.id()).unwrap_or(i64::MIN);
+                out.extend_from_slice(&algorithm.to_be_bytes());
+                let encoded = ctap::cbor::encode(&key.to_value());
+                out.extend_from_slice(&(encoded.len() as u16).to_be_bytes());
+                out.extend_from_slice(&encoded);
+            }
+            // The upstream parser rejects both/neither before this point.
+            _ => unreachable!("credential entries carry exactly one key form"),
+        }
+    }
+    out
+}
+
+/// Fresh V2 IV (16 CSPRNG bytes); protocol V1 uses the spec-mandated zero
+/// IV, which the upstream API expresses as `None`.
+fn pin_iv(protocol: ctap::PinUvAuthProtocol) -> Option<[u8; 16]> {
+    if protocol == ctap::PinUvAuthProtocol::V2 {
+        let mut iv = [0u8; 16];
+        rand::fill(&mut iv);
+        Some(iv)
+    } else {
+        None
+    }
+}
+
+/// A CTAP2 ClientPIN key-agreement session (P-256 ECDH). The shared secret
+/// lives only in this zeroizing Rust owner and never crosses the bridge.
+/// Dart holds the handle between operations; `close` is idempotent local
+/// cleanup and sends nothing.
+#[flutter_rust_bridge::frb(opaque)]
+pub struct CtapPinSession {
+    inner: Option<ctap::PinSession>,
+    protocol: ctap::PinUvAuthProtocol,
+}
+
+impl CtapPinSession {
+    fn new(session: ctap::PinSession) -> Self {
+        Self {
+            protocol: session.protocol(),
+            inner: Some(session),
+        }
+    }
+
+    /// The pin/UV auth protocol version (1 or 2) this session speaks.
+    /// Dart picks it from getInfo's advertised pinUvAuthProtocols.
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn protocol_version(&self) -> u8 {
+        self.protocol.to_u8()
+    }
+
+    /// Set the initial PIN (subcommand 0x03). V2 IVs are generated here from
+    /// the CSPRNG; PIN bytes enter upstream zeroizing owners immediately.
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn set_pin(&self, new_pin: Vec<u8>) -> ProtocolOperation {
+        self.set_pin_with_iv(SecretBytes::new(new_pin), pin_iv(self.protocol))
+    }
+
+    fn set_pin_with_iv(&self, new_pin: SecretBytes, iv: Option<[u8; 16]>) -> ProtocolOperation {
+        ProtocolOperation::from_operation((|| {
+            let session = self
+                .inner
+                .as_ref()
+                .ok_or_else(|| Error::new(ErrorKind::OperationStateError))?;
+            ctap::set_pin(
+                session,
+                new_pin.as_bytes(),
+                iv.as_ref(),
+                OperationOptions::default(),
+            )
+            .map(Inner::Management)
+        })())
+    }
+
+    /// Change the PIN (subcommand 0x04); IV handling matches [`Self::set_pin`].
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn change_pin(&self, old_pin: Vec<u8>, new_pin: Vec<u8>) -> ProtocolOperation {
+        self.change_pin_with_iv(
+            SecretBytes::new(old_pin),
+            SecretBytes::new(new_pin),
+            pin_iv(self.protocol),
+        )
+    }
+
+    fn change_pin_with_iv(
+        &self,
+        old_pin: SecretBytes,
+        new_pin: SecretBytes,
+        iv: Option<[u8; 16]>,
+    ) -> ProtocolOperation {
+        ProtocolOperation::from_operation((|| {
+            let session = self
+                .inner
+                .as_ref()
+                .ok_or_else(|| Error::new(ErrorKind::OperationStateError))?;
+            ctap::change_pin(
+                session,
+                old_pin.as_bytes(),
+                new_pin.as_bytes(),
+                iv.as_ref(),
+                OperationOptions::default(),
+            )
+            .map(Inner::Management)
+        })())
+    }
+
+    /// Obtain a pinUvAuthToken with explicit permissions (subcommand 0x09):
+    /// `permissions` is the raw bitfield (credentialManagement = 0x04) and
+    /// `rp_id`, when present, binds the token to that relying party. The
+    /// decrypted token is returned as an opaque handle in the final step.
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn get_pin_token_with_permissions(
+        &self,
+        pin: Vec<u8>,
+        permissions: u8,
+        rp_id: Option<String>,
+    ) -> ProtocolOperation {
+        self.pin_token_with_iv(
+            SecretBytes::new(pin),
+            permissions,
+            rp_id,
+            pin_iv(self.protocol),
+        )
+    }
+
+    fn pin_token_with_iv(
+        &self,
+        pin: SecretBytes,
+        permissions: u8,
+        rp_id: Option<String>,
+        iv: Option<[u8; 16]>,
+    ) -> ProtocolOperation {
+        let protocol = self.protocol;
+        ProtocolOperation::from_operation((|| {
+            let session = self
+                .inner
+                .as_ref()
+                .ok_or_else(|| Error::new(ErrorKind::OperationStateError))?;
+            ctap::get_pin_token_with_permissions(
+                session,
+                pin.as_bytes(),
+                ctap::Permissions::from_bits(permissions),
+                rp_id.as_deref(),
+                iv.as_ref(),
+                OperationOptions::default(),
+            )
+            .map(|operation| Inner::CtapPinToken(operation, protocol))
+        })())
+    }
+
+    /// Idempotent local cleanup. Does not alter the card or pending operations.
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn close(&mut self) {
+        self.inner.take();
+    }
+}
+
+/// A decrypted pinUvAuthToken held only in zeroizing Rust memory; the raw
+/// token bytes never cross the bridge. Per CTAP 2.1 tokens are
+/// ceremony-scoped: obtain a fresh one per use instead of caching the handle.
+#[flutter_rust_bridge::frb(opaque)]
+pub struct CtapPinToken {
+    inner: Option<ctap::PinToken>,
+    protocol: ctap::PinUvAuthProtocol,
+}
+
+impl CtapPinToken {
+    fn new(token: ctap::PinToken, protocol: ctap::PinUvAuthProtocol) -> Self {
+        Self {
+            inner: Some(token),
+            protocol,
+        }
+    }
+
+    /// The pin/UV auth protocol version (1 or 2) of the session that minted
+    /// this token; credmgmt operations authenticate with it.
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn protocol_version(&self) -> u8 {
+        self.protocol.to_u8()
+    }
+
+    fn token(&self) -> Result<&ctap::PinToken, Error> {
+        self.inner
+            .as_ref()
+            .ok_or_else(|| Error::new(ErrorKind::OperationStateError))
+    }
+
+    /// Enumerate relying parties with resident credentials (Begin + GetNext
+    /// run inside the one operation). A 0x2E NO_CREDENTIALS status yields an
+    /// empty result, not an error. Data: see `ctap_rps_data`.
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn enumerate_rps(&self) -> ProtocolOperation {
+        ProtocolOperation::from_operation(self.token().and_then(|token| {
+            ctap::credmgmt::enumerate_rps(token, self.protocol, OperationOptions::default())
+                .map(Inner::CtapRps)
+        }))
+    }
+
+    /// Enumerate one RP's resident credentials. `metadata_only` enables the
+    /// CanoKey vendor extension (subCommandParams key 0x80): the raw COSE
+    /// algorithm replaces the public key in responses. Data: see
+    /// `ctap_credentials_data`. A Begin 0x2E yields an empty result.
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn enumerate_credentials(
+        &self,
+        rp_id_hash: Vec<u8>,
+        metadata_only: bool,
+    ) -> ProtocolOperation {
+        ProtocolOperation::from_operation((|| {
+            let hash: [u8; 32] = rp_id_hash
+                .try_into()
+                .map_err(|_| Error::new(ErrorKind::InvalidArgument))?;
+            ctap::credmgmt::enumerate_credentials(
+                self.token()?,
+                self.protocol,
+                hash,
+                metadata_only,
+                OperationOptions::default(),
+            )
+            .map(Inner::CtapCredentials)
+        })())
+    }
+
+    /// Permanently delete one resident credential by its raw credential ID
+    /// (sent as a `public-key` descriptor). Never retried or rolled back;
+    /// an unknown ID surfaces as NotFound (CTAP 0x2E/0x22).
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn delete_credential(&self, credential_id: Vec<u8>) -> ProtocolOperation {
+        ProtocolOperation::from_operation((|| {
+            let descriptor = ctap::PublicKeyCredentialDescriptor::new("public-key", credential_id);
+            ctap::credmgmt::delete_credential(
+                self.token()?,
+                self.protocol,
+                &descriptor,
+                OperationOptions::default(),
+            )
+            .map(Inner::Management)
+        })())
+    }
+
+    /// Idempotent local cleanup. Does not alter the card or pending operations.
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn close(&mut self) {
+        self.inner.take();
+    }
+}
+
 // The pinned high-level get_pin_status inserts SELECT. This selected-only
 // adapter uses its upstream command and error classifier, preserving live PIN
 // verification. It returns only the validated status word, never response data.
@@ -2325,6 +2680,42 @@ impl ProtocolOperation {
         )
     }
 
+    /// authenticatorGetInfo (0x04), profile-free with its own SELECT. The
+    /// final `data` carries the parsed fields Dart needs (credMgmt/clientPin
+    /// tri-states, forcePinChange, minPinLength, advertised pinUvAuthProtocol
+    /// versions); see `ctap_info_data` for the encoding.
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn ctap_get_info() -> Self {
+        Self::from_operation(ctap::get_info(OperationOptions::default()).map(Inner::CtapGetInfo))
+    }
+
+    /// Start ClientPIN key agreement (subcommand 0x02) for protocol version
+    /// 1 or 2, generating the ephemeral P-256 scalar from the CSPRNG. The
+    /// final step carries an opaque [`CtapPinSession`] handle.
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn ctap_begin_pin_session(protocol: u8) -> Self {
+        let operation = (|| {
+            let protocol = ctap::PinUvAuthProtocol::from_u8(protocol)
+                .ok_or_else(|| Error::new(ErrorKind::InvalidArgument))?;
+            // A random scalar that is zero or out of range is rejected by the
+            // upstream factory before any I/O; simply draw again.
+            let mut last_error = None;
+            for _ in 0..4 {
+                let mut scalar = [0u8; 32];
+                rand::fill(&mut scalar);
+                match ctap::get_key_agreement(protocol, &scalar, OperationOptions::default()) {
+                    Ok(operation) => return Ok(operation),
+                    Err(error) if error.kind == ErrorKind::InvalidArgument => {
+                        last_error = Some(error)
+                    }
+                    Err(error) => return Err(error),
+                }
+            }
+            Err(last_error.unwrap_or_else(|| Error::new(ErrorKind::InvalidArgument)))
+        })();
+        Self::from_operation(operation.map(Inner::CtapPinSession))
+    }
+
     fn from_operation(operation: Result<Inner, Error>) -> Self {
         match operation {
             Ok(inner) => Self {
@@ -2380,6 +2771,8 @@ impl ProtocolOperation {
                 profile: None,
                 error: None,
                 admin: Some(admin_result(outcome)),
+                pin_session: None,
+                pin_token: None,
             }),
             Some(Inner::Bytes(op)) => drive(op, response, |data| bytes(data.as_bytes().to_vec())),
             Some(Inner::PinStatus(op)) => drive(op, response, |status| {
@@ -2496,6 +2889,8 @@ impl ProtocolOperation {
                 profile: Some(ProtocolProfile {
                     inner: Some(profile),
                 }),
+                pin_session: None,
+                pin_token: None,
             }),
             Some(Inner::NdefCapability(op)) => drive(op, response, |capability| {
                 let max = capability.max_message_length.min(usize::from(u16::MAX)) as u16;
@@ -2511,6 +2906,36 @@ impl ProtocolOperation {
                 data.push(result.status().raw());
                 data.extend_from_slice(result.payload());
                 bytes(data)
+            }),
+            Some(Inner::CtapGetInfo(op)) => {
+                drive(op, response, |info| bytes(ctap_info_data(&info)))
+            }
+            Some(Inner::CtapPinSession(op)) => drive(op, response, |session| ProtocolStep {
+                command: None,
+                data: None,
+                error: None,
+                profile: None,
+                admin: None,
+                pin_session: Some(CtapPinSession::new(session)),
+                pin_token: None,
+            }),
+            Some(Inner::CtapPinToken(op, protocol)) => {
+                let protocol = *protocol;
+                drive(op, response, |token| ProtocolStep {
+                    command: None,
+                    data: None,
+                    error: None,
+                    profile: None,
+                    admin: None,
+                    pin_session: None,
+                    pin_token: Some(CtapPinToken::new(token, protocol)),
+                })
+            }
+            Some(Inner::CtapRps(op)) => {
+                drive(op, response, |entries| bytes(ctap_rps_data(entries)))
+            }
+            Some(Inner::CtapCredentials(op)) => drive(op, response, |entries| {
+                bytes(ctap_credentials_data(entries))
             }),
             None => Err(Error::new(ErrorKind::OperationStateError)),
         };
@@ -2552,6 +2977,8 @@ fn drive<T>(
             error: None,
             profile: None,
             admin: None,
+            pin_session: None,
+            pin_token: None,
         },
         Step::Done => encode(op.take_result()?),
     })
@@ -2564,6 +2991,8 @@ fn bytes(data: Vec<u8>) -> ProtocolStep {
         error: None,
         profile: None,
         admin: None,
+        pin_session: None,
+        pin_token: None,
     }
 }
 
@@ -3797,5 +4226,440 @@ mod tests {
         // An empty CTAP message fails before any I/O.
         let mut op = ProtocolOperation::ctap_transceive(vec![]);
         assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
+    }
+
+    // ---- CTAP2 client-layer bindings (getInfo/ClientPIN/credmgmt) --------
+    //
+    // Golden fixtures are the upstream canokey-ctap known answers
+    // (crates/canokey-ctap/tests/client_pin.rs, credmgmt.rs): ephemeral
+    // scalar 0x01..=0x20, peer scalar 0xA0..=0xBF, PINs "1234"/"654321",
+    // V2 IV 0F..00, token plaintext 0x10..=0x2F.
+
+    const CTAP_SELECT: [u8; 13] = [0, 0xa4, 4, 0, 8, 0xa0, 0, 0, 6, 0x47, 0x2f, 0, 1];
+    const CTAP_EPHEMERAL_SCALAR: [u8; 32] = [
+        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+        0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e,
+        0x1f, 0x20,
+    ];
+    const CTAP_IV_V2: [u8; 16] = [
+        0x0f, 0x0e, 0x0d, 0x0c, 0x0b, 0x0a, 0x09, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
+        0x00,
+    ];
+    const CTAP_PEER_KEY_AGREEMENT: &str = "a101a5010203381820012158200d0918a04198474605615b6df90fdcb34791fb3ecb822f4b26eb6e4fc4511b9d22582019b90c1b83c0c35cfbbb31ead32bb52ae33622f57e3cc1638097ce97f430baba";
+    const CTAP_SET_PIN_V1: &str = "06a50101020303a501020338182001215820515c3d6eb9e396b904d3feca7f54fdcd0cc1e997bf375dca515ad0a6c3b4035f2258204536be3a50f318fbf9a5475902a221502bef0d57e08c53b2cc0a56f17d9f93540450d4421839fa7606bcd586eddc6494d9620558406ce3b2501aea6143416b8de3b22671a0a351bc7cd39c13236e20a0c9e999c7da30a83a78c0ebe15c1948375d871d23c2fc6b34915a52f806f4be73f9c604f056";
+    const CTAP_CHANGE_PIN_V2: &str = "06a60102020403a501020338182001215820515c3d6eb9e396b904d3feca7f54fdcd0cc1e997bf375dca515ad0a6c3b4035f2258204536be3a50f318fbf9a5475902a221502bef0d57e08c53b2cc0a56f17d9f93540458206c2bb83d6ccfae4ce1221fa074d85cd5fae42f9ab7f65dd8c09ac8616429245b0558500f0e0d0c0b0a09080706050403020100a8395df2289b10495a9c1c13919cfdda5971cd6436294c7bafd204cd4eb1c737bbb21695023d71532c8cd847780477e0bf741b09ac0d72fdbc21ac401fe3ff1b0658200f0e0d0c0b0a0908070605040302010017d937071b239273a39da474e04c6376";
+    const CTAP_GET_TOKEN_PERMS_V2: &str = "06a60102020903a501020338182001215820515c3d6eb9e396b904d3feca7f54fdcd0cc1e997bf375dca515ad0a6c3b4035f2258204536be3a50f318fbf9a5475902a221502bef0d57e08c53b2cc0a56f17d9f93540658200f0e0d0c0b0a0908070605040302010017d937071b239273a39da474e04c637609030a6b6578616d706c652e636f6d";
+    const CTAP_TOKEN_CT_V1: &str =
+        "b98cc635132fa3ea8c191b7a4aa3e093ce926c35488221b4684fce766f3b14b0";
+    const CTAP_TOKEN_CT_V2: &str = "0f0e0d0c0b0a09080706050403020100a1f914f091032bf439a162dbf45e137290ccdf4a4476a5f39b912b7dbbbb6f64";
+    const CTAP_MSG_RPS_BEGIN: &str = "0aa3010203010450d5dc1a03a1a284cf096b59a579eaf833";
+    const CTAP_MSG_RPS_NEXT: &str = "0aa201030301";
+    const CTAP_RESP_RP_BEGIN: &str = "a303a26269646b6578616d706c652e636f6d646e616d65674578616d706c65045820a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf0502";
+    const CTAP_RESP_RP_NEXT: &str = "a203a1626964696f746865722e6f7267045820c0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedf";
+    const CTAP_MSG_CREDS_META: &str = "0aa4010402a2015820a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf1880f5030104503ffd7ae91f8e3630cd70f9f245edec40";
+    const CTAP_MSG_CREDS_NEXT: &str = "0aa201050301";
+    const CTAP_RESP_CRED_META: &str = "a406a26269644405060708646e616d6565616c69636507a2626964440102030464747970656a7075626c69632d6b6579090118803830";
+    const CTAP_RESP_CRED_BEGIN: &str = "a606a36269644405060708646e616d6565616c6963656b646973706c61794e616d6565416c69636507a2626964440102030464747970656a7075626c69632d6b657908a50102032620012158201111111111111111111111111111111111111111111111111111111111111111225820222222222222222222222222222222222222222222222222222222222222222209020a020b58203333333333333333333333333333333333333333333333333333333333333333";
+    const CTAP_RESP_CRED_NEXT: &str = "a207a2626964440908070664747970656a7075626c69632d6b657908a501020326200121582044444444444444444444444444444444444444444444444444444444444444442258205555555555555555555555555555555555555555555555555555555555555555";
+    const CTAP_MSG_DELETE: &str = "0aa4010602a102a2626964440102030464747970656a7075626c69632d6b657903010450038bc0ba9fef742b26ce891514a2142c";
+    const CTAP_RP_ID_HASH: [u8; 32] = [
+        0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae,
+        0xaf, 0xb0, 0xb1, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xbb, 0xbc, 0xbd,
+        0xbe, 0xbf,
+    ];
+    const CTAP_RP2_ID_HASH: [u8; 32] = [
+        0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce,
+        0xcf, 0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xdb, 0xdc, 0xdd,
+        0xde, 0xdf,
+    ];
+
+    fn ctap_hex(s: &str) -> Vec<u8> {
+        let clean: String = s.chars().filter(|c| !c.is_whitespace()).collect();
+        (0..clean.len())
+            .step_by(2)
+            .map(|i| u8::from_str_radix(&clean[i..i + 2], 16).unwrap())
+            .collect()
+    }
+
+    /// The APDU wrapping the envelope emits for a CTAP message.
+    fn ctap_wrapped(message: &[u8]) -> Vec<u8> {
+        let mut expected = vec![0x80, 0x10, 0x00, 0x00];
+        if message.len() <= 255 {
+            expected.push(message.len() as u8);
+        } else {
+            expected.push(0);
+            expected.extend_from_slice(&(message.len() as u16).to_be_bytes());
+        }
+        expected.extend_from_slice(message);
+        expected
+    }
+
+    /// A successful CTAP response (status 0x00) carrying `payload`.
+    fn ctap_ok(payload: &[u8]) -> Vec<u8> {
+        let mut reply = vec![0x00];
+        reply.extend_from_slice(payload);
+        reply.extend_from_slice(&[0x90, 0x00]);
+        reply
+    }
+
+    /// Drive a facade operation through SELECT and return the next step.
+    fn ctap_after_select(op: &mut ProtocolOperation) -> ProtocolStep {
+        assert_eq!(op.start().command.unwrap(), CTAP_SELECT);
+        op.advance(vec![0x90, 0])
+    }
+
+    /// A deterministic fixture session built at the upstream API level.
+    fn ctap_fixture_session(protocol: ctap::PinUvAuthProtocol) -> CtapPinSession {
+        let mut op = ctap::get_key_agreement(
+            protocol,
+            &CTAP_EPHEMERAL_SCALAR,
+            OperationOptions::default(),
+        )
+        .unwrap();
+        assert_eq!(op.start().unwrap(), Step::Exchange);
+        assert_eq!(op.advance(&[0x90, 0]).unwrap(), Step::Exchange);
+        assert_eq!(
+            op.advance(&ctap_ok(&ctap_hex(CTAP_PEER_KEY_AGREEMENT)))
+                .unwrap(),
+            Step::Done
+        );
+        CtapPinSession::new(op.take_result().unwrap())
+    }
+
+    /// The fixed V1 token (plaintext 0x10..=0x2F) via the fixture transcript.
+    fn ctap_fixture_token_v1() -> CtapPinToken {
+        let session = ctap_fixture_session(ctap::PinUvAuthProtocol::V1);
+        let mut op = ctap::get_pin_token(
+            session.inner.as_ref().unwrap(),
+            b"1234",
+            None,
+            OperationOptions::default(),
+        )
+        .unwrap();
+        assert_eq!(op.start().unwrap(), Step::Exchange);
+        assert_eq!(op.advance(&[0x90, 0]).unwrap(), Step::Exchange);
+        let mut payload = vec![0xa1, 0x02, 0x58, 0x20];
+        payload.extend_from_slice(&ctap_hex(CTAP_TOKEN_CT_V1));
+        assert_eq!(op.advance(&ctap_ok(&payload)).unwrap(), Step::Done);
+        CtapPinToken::new(op.take_result().unwrap(), ctap::PinUvAuthProtocol::V1)
+    }
+
+    /// getInfo fixture: versions [FIDO_2_0, FIDO_2_1], credMgmt true,
+    /// clientPin false, forcePinChange true, minPinLength 4, protocols [1, 2].
+    fn ctap_get_info_payload() -> Vec<u8> {
+        ctap_hex(
+            "a6 \
+             01 82 684649444f5f325f30 684649444f5f325f31 \
+             03 50 244eb29ee0904e4981fe1f20f8d3b8f4 \
+             04 a3 62726bf5 68637265644d676d74f5 69636c69656e7450696ef4 \
+             06 82 01 02 \
+             0c f5 \
+             0d 04",
+        )
+    }
+
+    #[test]
+    fn ctap_get_info_parses_fields_and_keeps_ctap_status() {
+        let mut op = ProtocolOperation::ctap_get_info();
+        let step = ctap_after_select(&mut op);
+        assert_eq!(step.command.unwrap(), ctap_wrapped(&[0x04]));
+        let data = op.advance(ctap_ok(&ctap_get_info_payload())).data.unwrap();
+        assert_eq!(
+            data,
+            [
+                2, 1, 2, // credMgmt true, clientPin false, forcePinChange true
+                1, 0, 0, 0, 0, 0, 0, 0, 4, // minPinLength 4 (u64 BE)
+                2, 1, 2, // pinUvAuthProtocols [1, 2]
+            ]
+        );
+        assert_eq!(op.start().error.unwrap().kind, "OperationStateError");
+
+        // A tri-state stays absent when the option is unadvertised: minimal
+        // map with only versions and aaguid.
+        let mut op = ProtocolOperation::ctap_get_info();
+        ctap_after_select(&mut op);
+        let minimal =
+            ctap_hex("a2 01 81 684649444f5f325f30 03 50 244eb29ee0904e4981fe1f20f8d3b8f4");
+        let data = op.advance(ctap_ok(&minimal)).data.unwrap();
+        assert_eq!(data, [0, 0, 0, 0, 0]);
+
+        // A CTAP-level failure keeps the raw CTAP status byte, not an ISO SW.
+        let mut op = ProtocolOperation::ctap_get_info();
+        ctap_after_select(&mut op);
+        let error = op.advance(vec![0x30, 0x90, 0x00]).error.unwrap();
+        assert_eq!(error.kind, "ConditionsNotSatisfied");
+        assert_eq!(error.phase, "Command");
+        assert_eq!(error.status_word, Some(0x30));
+
+        // A response missing the required versions key is malformed.
+        let mut op = ProtocolOperation::ctap_get_info();
+        ctap_after_select(&mut op);
+        let bad = ctap_hex("a1 03 50 244eb29ee0904e4981fe1f20f8d3b8f4");
+        let error = op.advance(ctap_ok(&bad)).error.unwrap();
+        assert_eq!(error.kind, "InvalidResponse");
+        assert_eq!(error.phase, "Parsing");
+    }
+
+    #[test]
+    fn ctap_begin_pin_session_drives_handshake_and_validates_protocol() {
+        let mut op = ProtocolOperation::ctap_begin_pin_session(1);
+        let step = ctap_after_select(&mut op);
+        // The ephemeral scalar is random, but the message shape is fixed.
+        assert_eq!(
+            step.command.unwrap(),
+            ctap_wrapped(&ctap_hex("06 a2 01 01 02 02"))
+        );
+        let step = op.advance(ctap_ok(&ctap_hex(CTAP_PEER_KEY_AGREEMENT)));
+        let session = step.pin_session.unwrap();
+        assert_eq!(session.protocol_version(), 1);
+
+        let mut op = ProtocolOperation::ctap_begin_pin_session(2);
+        ctap_after_select(&mut op);
+        let session = op
+            .advance(ctap_ok(&ctap_hex(CTAP_PEER_KEY_AGREEMENT)))
+            .pin_session
+            .unwrap();
+        assert_eq!(session.protocol_version(), 2);
+
+        // Unknown advertised protocol versions fail before any I/O.
+        let mut op = ProtocolOperation::ctap_begin_pin_session(3);
+        assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
+    }
+
+    #[test]
+    fn ctap_set_and_change_pin_match_golden_wire_bytes() {
+        // V1 golden (upstream known answer, zero IV by specification).
+        let session = ctap_fixture_session(ctap::PinUvAuthProtocol::V1);
+        let mut op = session.set_pin(b"1234".to_vec());
+        let step = ctap_after_select(&mut op);
+        assert_eq!(
+            step.command.unwrap(),
+            ctap_wrapped(&ctap_hex(CTAP_SET_PIN_V1))
+        );
+        assert_eq!(
+            op.advance(vec![0x00, 0x90, 0]).data.unwrap(),
+            Vec::<u8>::new()
+        );
+
+        // V2 golden with the fixture IV.
+        let session = ctap_fixture_session(ctap::PinUvAuthProtocol::V2);
+        let mut op = session.change_pin_with_iv(
+            SecretBytes::new(b"1234".to_vec()),
+            SecretBytes::new(b"654321".to_vec()),
+            Some(CTAP_IV_V2),
+        );
+        let step = ctap_after_select(&mut op);
+        assert_eq!(
+            step.command.unwrap(),
+            ctap_wrapped(&ctap_hex(CTAP_CHANGE_PIN_V2))
+        );
+        assert_eq!(
+            op.advance(vec![0x00, 0x90, 0]).data.unwrap(),
+            Vec::<u8>::new()
+        );
+
+        // PIN_INVALID keeps the raw CTAP status byte in status_word.
+        let session = ctap_fixture_session(ctap::PinUvAuthProtocol::V1);
+        let mut op = session.change_pin(b"1234".to_vec(), b"654321".to_vec());
+        ctap_after_select(&mut op);
+        let error = op.advance(vec![0x31, 0x90, 0x00]).error.unwrap();
+        assert_eq!(error.kind, "InvalidPin");
+        assert_eq!(error.status_word, Some(0x31));
+
+        // PIN validation happens before any I/O; a closed session is inert.
+        let session = ctap_fixture_session(ctap::PinUvAuthProtocol::V1);
+        let mut op = session.set_pin(b"ab".to_vec());
+        assert_eq!(op.start().error.unwrap().kind, "InvalidPin");
+        let mut session = ctap_fixture_session(ctap::PinUvAuthProtocol::V1);
+        session.close();
+        let mut op = session.set_pin(b"1234".to_vec());
+        assert_eq!(op.start().error.unwrap().kind, "OperationStateError");
+    }
+
+    #[test]
+    fn ctap_v2_operations_generate_fresh_ivs_internally() {
+        let session = ctap_fixture_session(ctap::PinUvAuthProtocol::V2);
+        let mut first = session.set_pin(b"1234".to_vec());
+        let mut second = session.set_pin(b"1234".to_vec());
+        let first_command = ctap_after_select(&mut first).command.unwrap();
+        let second_command = ctap_after_select(&mut second).command.unwrap();
+        assert_ne!(first_command, second_command, "V2 IVs must be fresh");
+        assert_eq!(first_command.len(), second_command.len());
+        assert_eq!(
+            first.advance(vec![0x00, 0x90, 0]).data.unwrap(),
+            Vec::<u8>::new()
+        );
+    }
+
+    #[test]
+    fn ctap_pin_token_golden_and_ctap_error_mapping() {
+        let session = ctap_fixture_session(ctap::PinUvAuthProtocol::V2);
+        let mut op = session.pin_token_with_iv(
+            SecretBytes::new(b"1234".to_vec()),
+            0x03,
+            Some("example.com".to_string()),
+            Some(CTAP_IV_V2),
+        );
+        let step = ctap_after_select(&mut op);
+        assert_eq!(
+            step.command.unwrap(),
+            ctap_wrapped(&ctap_hex(CTAP_GET_TOKEN_PERMS_V2))
+        );
+        let mut payload = vec![0xa1, 0x02, 0x58, 0x30];
+        payload.extend_from_slice(&ctap_hex(CTAP_TOKEN_CT_V2));
+        let token = op.advance(ctap_ok(&payload)).pin_token.unwrap();
+        assert_eq!(token.protocol_version(), 2);
+
+        // Zero permissions and PIN validation fail before any I/O.
+        let mut op = session.get_pin_token_with_permissions(b"1234".to_vec(), 0, None);
+        assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
+        let mut op = session.get_pin_token_with_permissions(vec![0xff, 0xfe, 0x41, 0x42], 4, None);
+        assert_eq!(op.start().error.unwrap().kind, "InvalidPin");
+
+        // PIN_BLOCKED keeps the raw CTAP status byte.
+        let session = ctap_fixture_session(ctap::PinUvAuthProtocol::V1);
+        let mut op = session.get_pin_token_with_permissions(b"1234".to_vec(), 4, None);
+        ctap_after_select(&mut op);
+        let error = op.advance(vec![0x32, 0x90, 0x00]).error.unwrap();
+        assert_eq!(error.kind, "PinBlocked");
+        assert_eq!(error.status_word, Some(0x32));
+    }
+
+    #[test]
+    fn ctap_enumerate_rps_encodes_entries_and_empty_is_not_an_error() {
+        let token = ctap_fixture_token_v1();
+        let mut op = token.enumerate_rps();
+        let step = ctap_after_select(&mut op);
+        assert_eq!(
+            step.command.unwrap(),
+            ctap_wrapped(&ctap_hex(CTAP_MSG_RPS_BEGIN))
+        );
+        let step = op.advance(ctap_ok(&ctap_hex(CTAP_RESP_RP_BEGIN)));
+        assert_eq!(
+            step.command.unwrap(),
+            ctap_wrapped(&ctap_hex(CTAP_MSG_RPS_NEXT))
+        );
+        let data = op
+            .advance(ctap_ok(&ctap_hex(CTAP_RESP_RP_NEXT)))
+            .data
+            .unwrap();
+        let mut expected = vec![11];
+        expected.extend_from_slice(b"example.com");
+        expected.push(7);
+        expected.extend_from_slice(b"Example");
+        expected.extend_from_slice(&CTAP_RP_ID_HASH);
+        expected.push(9);
+        expected.extend_from_slice(b"other.org");
+        expected.push(0xff); // no rp name
+        expected.extend_from_slice(&CTAP_RP2_ID_HASH);
+        assert_eq!(data, expected);
+
+        // CTAP2_ERR_NO_CREDENTIALS on Begin is an empty list, not an error.
+        let mut op = token.enumerate_rps();
+        ctap_after_select(&mut op);
+        assert_eq!(
+            op.advance(vec![0x2e, 0x90, 0x00]).data.unwrap(),
+            Vec::<u8>::new()
+        );
+    }
+
+    #[test]
+    fn ctap_enumerate_credentials_metadata_only_and_standard_encoding() {
+        let token = ctap_fixture_token_v1();
+        let mut op = token.enumerate_credentials(CTAP_RP_ID_HASH.to_vec(), true);
+        let step = ctap_after_select(&mut op);
+        assert_eq!(
+            step.command.unwrap(),
+            ctap_wrapped(&ctap_hex(CTAP_MSG_CREDS_META))
+        );
+        let data = op
+            .advance(ctap_ok(&ctap_hex(CTAP_RESP_CRED_META)))
+            .data
+            .unwrap();
+        let mut expected = vec![0, 4, 1, 2, 3, 4]; // credential ID
+        expected.push(1); // user present
+        expected.extend_from_slice(&[4, 5, 6, 7, 8]); // user handle
+        expected.push(5);
+        expected.extend_from_slice(b"alice");
+        expected.push(0xff); // no display name
+        expected.push(0xff); // no credProtect
+        expected.push(0x01); // metadataOnly: raw COSE algorithm follows
+        expected.extend_from_slice(&(-49i64).to_be_bytes());
+        assert_eq!(data, expected);
+
+        // Standard mode carries the public key as opaque canonical CBOR.
+        let mut op = token.enumerate_credentials(CTAP_RP_ID_HASH.to_vec(), false);
+        ctap_after_select(&mut op);
+        let step = op.advance(ctap_ok(&ctap_hex(CTAP_RESP_CRED_BEGIN)));
+        assert_eq!(
+            step.command.unwrap(),
+            ctap_wrapped(&ctap_hex(CTAP_MSG_CREDS_NEXT))
+        );
+        let data = op
+            .advance(ctap_ok(&ctap_hex(CTAP_RESP_CRED_NEXT)))
+            .data
+            .unwrap();
+        let mut expected = vec![0, 4, 1, 2, 3, 4];
+        expected.push(1);
+        expected.extend_from_slice(&[4, 5, 6, 7, 8]);
+        expected.push(5);
+        expected.extend_from_slice(b"alice");
+        expected.push(5);
+        expected.extend_from_slice(b"Alice");
+        expected.push(2); // credProtect
+        expected.push(0x02);
+        expected.extend_from_slice(&(-7i64).to_be_bytes());
+        let key0 = ctap_hex(
+            "a501020326200121582011111111111111111111111111111111111111111111111111111111111111112258202222222222222222222222222222222222222222222222222222222222222222",
+        );
+        expected.extend_from_slice(&(key0.len() as u16).to_be_bytes());
+        expected.extend_from_slice(&key0);
+        expected.extend_from_slice(&[0, 4, 9, 8, 7, 6]); // second credential ID
+        expected.push(0); // no user
+        expected.push(0xff); // no credProtect
+        expected.push(0x02);
+        expected.extend_from_slice(&(-7i64).to_be_bytes());
+        let key1 = ctap_hex(
+            "a501020326200121582044444444444444444444444444444444444444444444444444444444444444442258205555555555555555555555555555555555555555555555555555555555555555",
+        );
+        expected.extend_from_slice(&(key1.len() as u16).to_be_bytes());
+        expected.extend_from_slice(&key1);
+        assert_eq!(data, expected);
+
+        // A 31-byte RP ID hash fails before any I/O.
+        let mut op = token.enumerate_credentials(vec![0; 31], false);
+        assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
+    }
+
+    #[test]
+    fn ctap_delete_credential_golden_and_handle_lifecycle() {
+        let token = ctap_fixture_token_v1();
+        let mut op = token.delete_credential(vec![1, 2, 3, 4]);
+        let step = ctap_after_select(&mut op);
+        assert_eq!(
+            step.command.unwrap(),
+            ctap_wrapped(&ctap_hex(CTAP_MSG_DELETE))
+        );
+        assert_eq!(
+            op.advance(vec![0x00, 0x90, 0]).data.unwrap(),
+            Vec::<u8>::new()
+        );
+
+        // An unknown credential is NotFound with the raw CTAP status byte.
+        let mut op = token.delete_credential(vec![1, 2, 3, 4]);
+        ctap_after_select(&mut op);
+        let error = op.advance(vec![0x2e, 0x90, 0x00]).error.unwrap();
+        assert_eq!(error.kind, "NotFound");
+        assert_eq!(error.status_word, Some(0x2e));
+
+        // An empty credential ID fails before any I/O; a closed token handle
+        // rejects further operations.
+        let mut op = token.delete_credential(vec![]);
+        assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
+        let mut token = ctap_fixture_token_v1();
+        token.close();
+        token.close();
+        let mut op = token.enumerate_rps();
+        assert_eq!(op.start().error.unwrap().kind, "OperationStateError");
     }
 }

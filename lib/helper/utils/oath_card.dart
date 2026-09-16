@@ -2,10 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:canokey_console/helper/utils/apdu_transport.dart';
-import 'package:canokey_console/helper/utils/card_session.dart';
-import 'package:canokey_console/helper/utils/protocol_operation.dart';
-import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/utils/card_client.dart';
 import 'package:canokey_console/models/oath.dart';
 import 'package:canokey_console/src/rust/api/crypto.dart';
 import 'package:canokey_console/src/rust/api/protocol.dart';
@@ -54,23 +51,8 @@ class OathCalculatedEntry {
 /// pagination, continuation and response validation. Every operation selects
 /// and, when an access key is supplied, validates within itself — no
 /// authentication state is carried between operations.
-class OathCardClient {
-  OathCardClient({
-    ApduTransport transport = const SmartCardApduTransport(),
-    CardLease? lease,
-  }) : _transport = transport,
-       _injectedLease = lease {
-    if (lease != null && transport is SmartCardApduTransport) {
-      throw ArgumentError('Production transport uses SmartCard.currentLease');
-    }
-  }
-
-  final ApduTransport _transport;
-  final CardLease? _injectedLease;
-  final CardSessions _injectedSessions = CardSessions();
-  final CardCancellation _cancellation = CardCancellation();
-  _OathProfileBinding? _profile;
-  String? lastStatusWord;
+class OathCardClient extends ProfileCardClient {
+  OathCardClient({super.transport, super.lease}) : super(bindSelection: false);
 
   /// Fresh host challenge for each access proof; tests may pin a fixed value.
   Uint8List Function() challengeGenerator = _randomChallenge;
@@ -80,29 +62,6 @@ class OathCardClient {
     return Uint8List.fromList(List.generate(8, (_) => random.nextInt(256)));
   }
 
-  CardLease get _lease => _transport is SmartCardApduTransport
-      ? SmartCard.currentLease
-      : _injectedLease ??
-            _injectedSessions.current?.lease ??
-            (throw StateError('Injected OATH transport requires withSession'));
-
-  /// For caller-owned transports (tests/USB-IP). Production uses SmartCard.process.
-  Future<T> withSession<T>(Future<T> Function() action) {
-    if (_transport is SmartCardApduTransport) {
-      throw StateError('Use SmartCard.process for the production transport');
-    }
-    if (_injectedLease != null) {
-      throw StateError('Use the supplied lease owner');
-    }
-    return _injectedSessions.run((session) async {
-      session.bind(_transport.transceive);
-      return action();
-    });
-  }
-
-  /// Request cancellation; the active executor drains I/O and frees its handle.
-  void cancelPendingOperations() => _cancellation.cancel();
-
   /// OATH password convention: PBKDF2-HMAC-SHA1, 1000 iterations, the SELECT
   /// handle as salt, sixteen output bytes.
   static Uint8List deriveKey(String code, List<int> salt) =>
@@ -110,77 +69,18 @@ class OathCardClient {
 
   /// Explicit minimal discovery, before any authentication. Repeat after a
   /// profile-affecting write, including an uncertain write; never auto-reprobe.
-  Future<void> prepare() async {
-    _cancellation.check();
-    final lease = _lease;
-    lease.willSelectApplet();
-    _profile?.close();
-    _profile = null;
-    final profile = await executeProfileProbe(
-      ProtocolOperation.probeAdmin(),
-      _transport,
-      lease: lease,
-      cancellation: _cancellation,
-    );
-    final binding = _OathProfileBinding(profile, lease);
-    try {
-      lease.check();
-      _cancellation.check();
-      lease.onClose(() {
-        binding.close();
-        if (identical(_profile, binding)) _profile = null;
-      });
-      _profile = binding;
-    } catch (_) {
-      binding.close();
-      rethrow;
-    }
-  }
+  Future<void> prepare() => prepareProfile(ProtocolOperation.probeAdmin);
 
-  _OathProfileBinding get _prepared {
-    final lease = _lease;
-    final binding = _profile;
-    if (binding == null || !identical(binding.lease, lease)) {
-      throw StateError('Prepare OATH in the current lease first');
-    }
-    binding.check();
-    _cancellation.check();
-    if (lease.isExchanging) {
-      throw StateError('A card operation is already active');
-    }
-    return binding;
-  }
-
+  /// All OATH operations SELECT the applet before their target command. A
+  /// non-protocol failure discards the profile evidence.
   Future<Uint8List> _execute(
     ProtocolOperation Function(ProtocolProfile) create,
-  ) async {
-    final binding = _prepared;
-    lastStatusWord = null;
-    // All OATH operations SELECT the applet before their target command.
-    binding.lease.willSelectApplet();
-    try {
-      final data = await executeProtocolOperation(
-        create(binding.profile),
-        _transport,
-        lease: binding.lease,
-        cancellation: _cancellation,
-      );
-      binding.check();
-      _cancellation.check();
-      lastStatusWord = '9000';
-      return data;
-    } on ProtocolException catch (error) {
-      lastStatusWord = error.details.statusWord
-          ?.toRadixString(16)
-          .padLeft(4, '0')
-          .toUpperCase();
-      rethrow;
-    } catch (_) {
-      binding.close();
-      if (identical(_profile, binding)) _profile = null;
-      rethrow;
-    }
-  }
+  ) => executePrepared(
+    create,
+    selectApplet: true,
+    recheckOnProtocolError: false,
+    discardOnOtherError: true,
+  );
 
   (Uint8List?, Uint8List?) _accessParts(Uint8List? key) =>
       key == null ? (null, null) : (key, challengeGenerator());
@@ -404,31 +304,5 @@ class OathCardClient {
       });
     }
     return result;
-  }
-}
-
-class _OathProfileBinding {
-  _OathProfileBinding(this.profile, this.lease)
-    : generation = lease.profileGeneration;
-  final ProtocolProfile profile;
-  final CardLease lease;
-  final int generation;
-  bool _closed = false;
-
-  void check() {
-    lease.check();
-    if (_closed || generation != lease.profileGeneration) {
-      throw StateError('OATH profile requires explicit discovery');
-    }
-  }
-
-  void close() {
-    if (_closed) return;
-    _closed = true;
-    try {
-      profile.close();
-    } finally {
-      profile.dispose();
-    }
   }
 }

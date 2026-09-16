@@ -1,7 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:fido2/fido2.dart';
-
 class WebAuthnSm2Config {
   final bool enabled;
   final int curveId;
@@ -81,7 +79,7 @@ class WebAuthnItem {
   String userName;
   String userDisplayName;
   List<int> userId;
-  PublicKeyCredentialDescriptor credentialId;
+  Uint8List credentialId;
 
   WebAuthnItem({
     required this.rpId,

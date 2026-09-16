@@ -2,10 +2,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:canokey_console/helper/tlv.dart';
-import 'package:canokey_console/helper/utils/apdu_transport.dart';
-import 'package:canokey_console/helper/utils/card_session.dart';
+import 'package:canokey_console/helper/utils/card_client.dart';
 import 'package:canokey_console/helper/utils/protocol_operation.dart';
-import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/openpgp.dart';
 import 'package:canokey_console/src/rust/api/protocol.dart';
 import 'package:convert/convert.dart';
@@ -13,118 +11,21 @@ import 'package:convert/convert.dart';
 /// libcanokey owns every OpenPGP operation: card-info reads, PW1/PW3
 /// credentials and all administrative writes. Each upstream operation SELECTs
 /// OpenPGP and explicitly verifies its own password; the prepared profile is
-/// immutable firmware evidence, never an authorization token.
-class OpenPgpCardClient {
-  OpenPgpCardClient({
-    ApduTransport transport = const SmartCardApduTransport(),
-    CardLease? lease,
-  }) : _transport = transport,
-       _injectedLease = lease {
-    if (lease != null && transport is SmartCardApduTransport) {
-      throw ArgumentError('Production transport uses SmartCard.currentLease');
-    }
-  }
-
-  final ApduTransport _transport;
-  final CardLease? _injectedLease;
-  final CardSessions _injectedSessions = CardSessions();
-  final CardCancellation _cancellation = CardCancellation();
-  _OpenPgpProfileBinding? _profile;
-  String? lastStatusWord;
-
-  CardLease get _lease => _transport is SmartCardApduTransport
-      ? SmartCard.currentLease
-      : _injectedLease ??
-            _injectedSessions.current?.lease ??
-            (throw StateError('Injected OpenPGP transport requires withSession'));
-
-  /// For caller-owned transports (tests/USB-IP). Production uses SmartCard.process.
-  Future<T> withSession<T>(Future<T> Function() action) {
-    if (_transport is SmartCardApduTransport) {
-      throw StateError('Use SmartCard.process for the production transport');
-    }
-    if (_injectedLease != null) {
-      throw StateError('Use the supplied lease owner');
-    }
-    return _injectedSessions.run((session) async {
-      session.bind(_transport.transceive);
-      return action();
-    });
-  }
-
-  void cancelPendingOperations() => _cancellation.cancel();
+/// immutable firmware evidence, never an authorization token. OpenPGP
+/// operations self-SELECT, so applet switches do not invalidate the profile;
+/// only profile evidence and lease generations matter.
+class OpenPgpCardClient extends ProfileCardClient {
+  OpenPgpCardClient({super.transport, super.lease})
+    : super(bindSelection: false);
 
   /// Explicit minimal discovery before any OpenPGP operation. The profile only
   /// carries firmware observations; upstream operations SELECT OpenPGP themselves.
-  Future<void> prepare() async {
-    _cancellation.check();
-    final lease = _lease;
-    lease.willSelectApplet();
-    _profile?.close();
-    _profile = null;
-    final profile = await executeProfileProbe(
-      ProtocolOperation.probeAdmin(),
-      _transport,
-      lease: lease,
-      cancellation: _cancellation,
-    );
-    final binding = _OpenPgpProfileBinding(profile, lease);
-    try {
-      lease.check();
-      _cancellation.check();
-      lease.onClose(() {
-        binding.close();
-        if (identical(_profile, binding)) _profile = null;
-      });
-      _profile = binding;
-    } catch (_) {
-      binding.close();
-      rethrow;
-    }
-  }
+  Future<void> prepare() => prepareProfile(ProtocolOperation.probeAdmin);
 
-  _OpenPgpProfileBinding get _prepared {
-    final lease = _lease;
-    final binding = _profile;
-    if (binding == null || !identical(binding.lease, lease)) {
-      throw StateError('Prepare OpenPGP in the current lease first');
-    }
-    binding.check();
-    _cancellation.check();
-    if (lease.isExchanging) {
-      throw StateError('A card operation is already active');
-    }
-    return binding;
-  }
-
+  /// Every upstream OpenPGP operation SELECTs its applet first.
   Future<Uint8List> _execute(
     ProtocolOperation Function(ProtocolProfile) create,
-  ) async {
-    final binding = _prepared;
-    lastStatusWord = null;
-    // Every upstream OpenPGP operation SELECTs its applet first.
-    binding.lease.willSelectApplet();
-    try {
-      final data = await executeProtocolOperation(
-        create(binding.profile),
-        _transport,
-        lease: binding.lease,
-        cancellation: _cancellation,
-      );
-      binding.check();
-      _cancellation.check();
-      lastStatusWord = '9000';
-      return data;
-    } on ProtocolException catch (error) {
-      binding.check();
-      _cancellation.check();
-      lastStatusWord = error.details.statusWord
-          ?.toRadixString(16)
-          .padLeft(4, '0')
-          .toUpperCase();
-      rethrow;
-    }
-  }
+  ) => executePrepared(create, selectApplet: true);
 
   Future<OpenPgpCardInfo> readCardInfo() async {
     final applicationData = await _readDataObject(0x6E);
@@ -537,32 +438,5 @@ class OpenPgpCardClient {
     final seconds =
         (bytes[0] << 24) + (bytes[1] << 16) + (bytes[2] << 8) + bytes[3];
     return DateTime.fromMillisecondsSinceEpoch(seconds * 1000, isUtc: true);
-  }
-}
-
-/// Firmware-evidence binding; OpenPGP operations self-SELECT, so applet
-/// switches do not invalidate it. Only profile evidence and lease matter.
-class _OpenPgpProfileBinding {
-  _OpenPgpProfileBinding(this.profile, this.lease)
-    : generation = lease.profileGeneration;
-  final ProtocolProfile profile;
-  final CardLease lease;
-  final int generation;
-  bool _closed = false;
-  void check() {
-    lease.check();
-    if (_closed || generation != lease.profileGeneration) {
-      throw StateError('OpenPGP profile requires explicit discovery');
-    }
-  }
-
-  void close() {
-    if (_closed) return;
-    _closed = true;
-    try {
-      profile.close();
-    } finally {
-      profile.dispose();
-    }
   }
 }

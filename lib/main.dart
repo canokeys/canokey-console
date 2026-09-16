@@ -17,7 +17,6 @@ import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/rust_license.dart';
 import 'package:canokey_console/helper/utils/screenshot_mode.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
-import 'package:canokey_console/helper/utils/fido2_backend.dart';
 import 'package:canokey_console/routes.dart';
 import 'package:canokey_console/src/rust/frb_generated.dart';
 import 'package:canokey_console/views/layout/layout.dart';
@@ -45,7 +44,6 @@ Future<void> main() async {
     WidgetsFlutterBinding.ensureInitialized();
     await loadSnapChineseFont();
     await RustLib.init();
-    await initializeFido2Backend();
     await LocalStorage.init();
     AppStyle.init();
     ThemeCustomizer.instance.currentLanguage = Language.languages[1];
@@ -64,7 +62,6 @@ Future<void> main() async {
     await loadSnapChineseFont();
 
     await RustLib.init();
-    await initializeFido2Backend();
     await LocalStorage.init();
     AppStyle.init();
     Language.init();

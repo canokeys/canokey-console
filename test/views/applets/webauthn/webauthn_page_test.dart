@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/views/applets/webauthn/dialogs/sm2_config_dialog.dart';
 import 'package:canokey_console/controller/applets/webauthn/webauthn_controller.dart';
@@ -10,7 +12,6 @@ import 'package:canokey_console/views/applets/webauthn/dialogs/view_user_id_dial
 import 'package:canokey_console/views/applets/webauthn/webauthn_page.dart';
 import 'package:canokey_console/views/applets/webauthn/widgets/webauthn_credential_grid.dart';
 import 'package:canokey_console/views/applets/webauthn/widgets/webauthn_item_card.dart';
-import 'package:fido2/fido2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,7 +30,7 @@ class _Controller extends WebAuthnController {
   @override
   void onReady() {}
   @override
-  Future<void> delete(PublicKeyCredentialDescriptor credentialId) async {
+  Future<void> delete(List<int> credentialId) async {
     deletes++;
   }
 }
@@ -39,7 +40,7 @@ WebAuthnItem _item(int id, {bool long = false}) => WebAuthnItem(
   userName: long ? 'long-account-name' * 8 : 'account$id',
   userDisplayName: long ? 'Long display name ' * 8 : 'Person $id',
   userId: [65, 66, id],
-  credentialId: PublicKeyCredentialDescriptor(type: 'public-key', id: [id]),
+  credentialId: Uint8List.fromList([id]),
 );
 
 void main() {

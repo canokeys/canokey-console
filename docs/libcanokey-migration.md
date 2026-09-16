@@ -117,12 +117,27 @@ The C ABI is unnecessary in Console's existing Rust library.
   write capability, and 6982 maps to `NdefReadOnlyException`. All manual
   chunking, NLEN and capability-container parsing was removed from
   `ndef_card.dart`.
-- CTAP/WebAuthn transport is a thin layer over `ctapSelectApplication` plus
-  `ctapTransceiveSelected`; selection evidence is tracked per lease and a new
-  lease reselects automatically. All six raw SELECT FIDO2 AID sites in
-  webauthn_controller, the manual 80100000 envelope and the 80C00000
-  continuation loop were removed. Non-zero CTAP statuses pass through to the
-  fido2 package as data; CBOR/ClientPin framing stays in Dart.
+- CTAP/WebAuthn is fully upstream: the CTAP2 client-layer bindings cover every
+  WebAuthn management use case — `ctapGetInfo` (options tri-states,
+  forcePinChange, minPinLength and advertised pinUvAuthProtocol versions
+  parsed in Rust), ClientPIN `ctapBeginPinSession`/`setPin`/`changePin`/
+  `getPinTokenWithPermissions`, and credentialManagement `enumerateRps`/
+  `enumerateCredentials` (including the CanoKey metadataOnly 0x80 extension)/
+  `deleteCredential`. PinSession and PinToken are opaque FRB handles holding
+  zeroizing Rust state; ephemeral scalars and V2 IVs are generated in the
+  facade from the CSPRNG (`rand`), never supplied by Dart. For CTAP-level
+  failures `ProtocolError.statusWord` carries the raw CTAP status byte widened
+  to u16, not an ISO 7816 status word. Enumeration results use self-delimiting
+  byte encodings; Dart never parses CBOR. The Dart `WebAuthnCardClient`
+  (`lib/helper/utils/webauthn_card.dart`) decodes those encodings, prefers
+  pinUvAuthProtocol V2 when advertised, and owns session/token handle
+  lifecycles; every operation SELECTs the FIDO2 applet itself, so consecutive
+  operations in one use case never assume a residual selection. Tokens are
+  ceremony-scoped: each use case (enumeration, deletion) mints a fresh one
+  instead of caching the handle, and PIN set/change is followed by a fresh
+  getInfo. The Dart fido2 package, the `fido2_crypto` crate (and its C ABI in
+  `lib.rs`), the `web/fido2` WASM artifacts and the raw CTAP transmitter layer
+  were removed; no Dart CBOR/ClientPin framing remains.
 - Pass reads/writes use `adminPassSlots` (read, not PIN-protected) and
   `adminSetPassSlot` (protected) with the same thin client shape as
   admin_card; both reuse the lease's verified Admin session when one is
@@ -135,11 +150,14 @@ The C ABI is unnecessary in Console's existing Rust library.
   request path (`adminRead`/`adminConfigure`/`adminAction` and the PASS slot
   operations), `pivImportPqSeed`, `oathSetDefault`, `ndefReadCapability`/
   `ndefReadMessage`/`ndefWriteMessage` and `ctapSelectApplication`/
-  `ctapTransceiveSelected`/`ctapTransceive`.
+  `ctapTransceiveSelected`/`ctapTransceive`. The CTAP2 client-layer increment
+  adds `ctapGetInfo`, `ctapBeginPinSession`, the `CtapPinSession` methods
+  `protocolVersion`/`setPin`/`changePin`/`getPinTokenWithPermissions`/`close`
+  and the `CtapPinToken` methods `protocolVersion`/`enumerateRps`/
+  `enumerateCredentials`/`deleteCredential`/`close`.
 
 Existing UI models still map validated configuration bytes to display/algorithm
-fields. The WebAuthn CBOR/ClientPin layer and the keyboard keymap commands remain
-in Dart. Admin coverage and the specific upstream gaps are described below.
+fields. Admin coverage and the specific upstream gaps are described below.
 
 ## Admin integration
 
@@ -219,10 +237,12 @@ order. The result variant comes from the probed firmware, not guessed reply leng
   evidence (see Admin integration above) and otherwise keep `existing: false`
   with an explicit per-request PIN. `Request::VerifyPin` never uses Existing
   (upstream rejects it), so the explicit authentication step is unchanged.
-- **WebAuthn CBOR/ClientPin:** the CBOR framing and ClientPin protocol (fido2
-  package) stay in Dart as a host-side policy choice, not an upstream gap.
-  Only the CTAP transport envelope (80100000) and the 80C00000 continuation
-  loop moved upstream.
+- **WebAuthn CBOR/ClientPin:** converged. The controller migrated off the
+  fido2 package onto the facade's CTAP2 client layer (`ctapGetInfo`,
+  `ctapBeginPinSession`, `setPin`/`changePin`/`getPinTokenWithPermissions`,
+  `enumerateRps`/`enumerateCredentials`/`deleteCredential`); no Dart-side
+  CBOR or ClientPin framing remains, and the `fido2_crypto` crate and its C
+  ABI were removed from `lib.rs`.
 - **Keyboard keymap read/write/reset (45/46/47):** migrated; these commands
   are routed through upstream Admin operations (see the existing-access
   increment below). No Dart-side raw keymap exchanges remain.
@@ -325,11 +345,12 @@ hand-built APDUs.
 flutter_rust_bridge_codegen generate
 cargo test --manifest-path rust/Cargo.toml api::protocol --locked
 cargo build --manifest-path rust/Cargo.toml --release --locked
-flutter test --no-pub test/helper/utils/piv_card_test.dart test/helper/utils/fido2_backend_test.dart
+flutter test --no-pub test/helper/utils/piv_card_test.dart test/helper/utils/webauthn_card_test.dart
 flutter test --no-pub --exclude-tags native
 ```
 
-The native PIV transcript tests run alongside FIDO2 tests in the USB/IP workflow.
+The native PIV transcript tests run alongside the WebAuthn CTAP2 tests in the
+USB/IP workflow.
 The firmware smoke entry point initializes FRB before the migrated PIV operations.
 Native transcripts do not establish physical-device or legacy-firmware coverage.
 
@@ -489,3 +510,70 @@ After this increment the FRB WASM package was regenerated again and
 `flutter build web --no-pub` passed, strict clippy is warning-free and the
 full `flutter test` run passed (381 tests). No physical card, browser
 transport or USB/IP firmware matrix was exercised for this increment.
+
+CTAP2 client-layer increment validation on 2026-09-16: `cargo test --locked`
+passed in full (74 tests, including 8 new facade tests covering the getInfo
+field encoding and tri-states, golden ClientPIN wire bytes for V1/V2 against
+the upstream known answers, fresh-IV generation, pinUvAuthToken handles,
+RP/credential enumeration encodings including the metadataOnly extension,
+deleteCredential, and raw-CTAP-status error mapping). FRB 2.13.0 regeneration,
+`cargo build --release --locked` and `cargo check --target
+wasm32-unknown-unknown --locked` passed (`rand` moved to `[dependencies]`;
+wasm entropy still comes from getrandom's wasm_js feature). Dart business
+code is untouched; the controller migration is a follow-up increment.
+
+## Card-client boilerplate consolidation (2026-09-16)
+
+A pure-Dart, behavior-preserving refactoring after the applet migrations: the
+six card clients now share `CardClientBase` (transport/lease guard,
+`withSession`, cancellation) and `ProfileCardClient` (prepared-profile
+ownership, generic `prepareProfile` and `executePrepared` with per-applet
+flags for applet pre-selection, profile-identity checks and profile-discard
+policy) in `lib/helper/utils/card_client.dart`, plus one `ProfileBinding`
+class (lease + profile generation, optionally the selection generation for
+PIV) replacing the five per-applet binding classes. Admin and Pass share
+`AdminSessionCardClient` (in admin_card.dart) for the lease-evidenced
+`Access::Existing` request path and Admin progress handling; NDEF stays
+profile-free on `CardClientBase`. Admin/Pass `lastResponse` was renamed to
+`lastStatusWord` for uniformity (the three controller call sites updated).
+No protocol flow, lease/profile/selection generation check, error mapping or
+public API semantics changed; the existing card-client, session, executor and
+native transcript suites pin the behavior. `dart analyze` reports no issues
+in the changed files, and the full `flutter test --no-pub` (383 tests) and
+`flutter test --no-pub --tags native` (126 tests) runs passed.
+
+## WebAuthn CTAP2 client-layer migration (2026-09-16)
+
+The WebAuthn controller migrated off the Dart fido2 package onto the facade's
+CTAP2 client layer. `lib/helper/utils/webauthn_card.dart` (a `CardClientBase`)
+parses the getInfo/RP/credential byte encodings, owns the PIN session/token
+handle lifecycles (fresh `beginPinSession` + `getPinTokenWithPermissions` per
+use case, pinUvAuthProtocol V2 preferred when advertised) and marks every
+operation as applet-selecting; `protocol_operation.dart` gained PIN
+session/token executors. `_showPinError` recovers the PIN_INVALID (0x31) /
+PIN_AUTH_BLOCKED (0x34) / PIN_BLOCKED (0x32) / PIN_POLICY_VIOLATION (0x37)
+distinction from the raw CTAP status byte in `ProtocolError.statusWord`.
+`WebAuthnItem.credentialId` is a local `Uint8List`. Removed: the fido2 2.0.0
+pub dependency, `fido2_backend*.dart`, `ctap_transmitter.dart`, the
+`initializeFido2Backend` startup calls, the `web/fido2` WASM artifacts and
+their `index.html` loader, the `fido2_crypto` crate and its retained C ABI in
+`rust/src/lib.rs`, and the FIDO2 web backend steps in deploy.yml (the usbip
+workflow's backend step no longer exports `FIDO2_CRYPTO_LIBRARY`). The
+wasm-bindgen family pins stay, with the comment reworded; FRB bindings were
+not regenerated (no facade change).
+
+Validation: `cargo test --locked` (74 tests), `cargo build --release --locked`
+and `cargo check --target wasm32-unknown-unknown --locked` passed;
+THIRD_PARTY_LICENSES.json regenerated without fido2_crypto. The new
+`test/helper/utils/webauthn_card_test.dart` replays the upstream canokey-ctap
+golden transcripts over injected transports (getInfo tri-states/minPinLength/
+protocols, V1/V2 key agreement, set/changePIN, token minting, RP/credential
+enumeration encodings, deletion, empty-enumeration, closed-handle and
+status-byte error mapping); the old fido2_backend/ctap_transmitter tests were
+removed. `flutter test --no-pub` passed (387 tests, including the updated
+WebAuthn page/model tests and the usbip smoke's new `webauthn.client.get_info`
+section), `flutter test --no-pub --tags native` passed (130 tests), and
+`dart analyze` reports no issues. `flutter build web --no-pub` passed with no
+fido2 reference left in the web output. The FRB WASM package was not
+regenerated (no Rust facade change); no physical card, browser transport or
+USB/IP firmware matrix was exercised.

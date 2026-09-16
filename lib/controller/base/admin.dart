@@ -188,7 +188,7 @@ mixin AdminApplet on GetxController {
       });
       return true;
     } else {
-      Prompts.promptPinFailureResult(adminCardClient.lastResponse ?? '');
+      Prompts.promptPinFailureResult(adminCardClient.lastStatusWord ?? '');
       return false;
     }
   }

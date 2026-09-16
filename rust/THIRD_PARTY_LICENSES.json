@@ -252,7 +252,19 @@
     "license": "Apache-2.0"
   },
   {
+    "package_name": "canokey-ctap",
+    "package_version": "0.1.0",
+    "repository": "",
+    "license": "Apache-2.0"
+  },
+  {
     "package_name": "canokey-key",
+    "package_version": "0.1.0",
+    "repository": "",
+    "license": "Apache-2.0"
+  },
+  {
+    "package_name": "canokey-ndef",
     "package_version": "0.1.0",
     "repository": "",
     "license": "Apache-2.0"
@@ -297,6 +309,12 @@
     "package_name": "cfg-if",
     "package_version": "1.0.4",
     "repository": "https://github.com/rust-lang/cfg-if",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "package_name": "chacha20",
+    "package_version": "0.10.2",
+    "repository": "https://github.com/RustCrypto/stream-ciphers",
     "license": "MIT OR Apache-2.0"
   },
   {
@@ -445,12 +463,6 @@
   },
   {
     "package_name": "curve25519-dalek",
-    "package_version": "4.1.3",
-    "repository": "https://github.com/dalek-cryptography/curve25519-dalek/tree/main/curve25519-dalek",
-    "license": "BSD-3-Clause"
-  },
-  {
-    "package_name": "curve25519-dalek",
     "package_version": "5.0.0",
     "repository": "https://github.com/dalek-cryptography/curve25519-dalek/tree/main/curve25519-dalek",
     "license": "BSD-3-Clause"
@@ -565,21 +577,9 @@
   },
   {
     "package_name": "ed25519",
-    "package_version": "2.2.3",
-    "repository": "https://github.com/RustCrypto/signatures/tree/master/ed25519",
-    "license": "Apache-2.0 OR MIT"
-  },
-  {
-    "package_name": "ed25519",
     "package_version": "3.0.0",
     "repository": "https://github.com/RustCrypto/signatures",
     "license": "Apache-2.0 OR MIT"
-  },
-  {
-    "package_name": "ed25519-dalek",
-    "package_version": "2.2.0",
-    "repository": "https://github.com/dalek-cryptography/curve25519-dalek/tree/main/ed25519-dalek",
-    "license": "BSD-3-Clause"
   },
   {
     "package_name": "ed25519-dalek",
@@ -673,21 +673,9 @@
   },
   {
     "package_name": "fiat-crypto",
-    "package_version": "0.2.9",
-    "repository": "https://github.com/mit-plv/fiat-crypto",
-    "license": "MIT OR Apache-2.0 OR BSD-1-Clause"
-  },
-  {
-    "package_name": "fiat-crypto",
     "package_version": "0.3.0",
     "repository": "https://github.com/mit-plv/fiat-crypto",
     "license": "MIT OR Apache-2.0 OR BSD-1-Clause"
-  },
-  {
-    "package_name": "fido2_crypto",
-    "package_version": "0.1.0",
-    "repository": "https://github.com/nfcim/fido2",
-    "license": "MIT"
   },
   {
     "package_name": "flagset",
@@ -948,12 +936,6 @@
     "license": "MIT OR Apache-2.0"
   },
   {
-    "package_name": "itoa",
-    "package_version": "1.0.18",
-    "repository": "https://github.com/dtolnay/itoa",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
     "package_name": "js-sys",
     "package_version": "0.3.77",
     "repository": "https://github.com/rustwasm/wasm-bindgen/tree/master/crates/js-sys",
@@ -969,12 +951,6 @@
     "package_name": "k256",
     "package_version": "0.14.0",
     "repository": "https://github.com/RustCrypto/elliptic-curves",
-    "license": "Apache-2.0 OR MIT"
-  },
-  {
-    "package_name": "keccak",
-    "package_version": "0.2.2",
-    "repository": "https://github.com/RustCrypto/sponges",
     "license": "Apache-2.0 OR MIT"
   },
   {
@@ -1066,18 +1042,6 @@
     "package_version": "0.9.1",
     "repository": "https://github.com/Frommi/miniz_oxide/tree/master/miniz_oxide",
     "license": "MIT OR Zlib OR Apache-2.0"
-  },
-  {
-    "package_name": "ml-dsa",
-    "package_version": "0.1.1",
-    "repository": "https://github.com/RustCrypto/signatures",
-    "license": "Apache-2.0 OR MIT"
-  },
-  {
-    "package_name": "module-lattice",
-    "package_version": "0.2.3",
-    "repository": "https://github.com/RustCrypto/KEMs",
-    "license": "Apache-2.0 OR MIT"
   },
   {
     "package_name": "moxcms",
@@ -1434,6 +1398,12 @@
     "license": "MIT OR Apache-2.0"
   },
   {
+    "package_name": "rand",
+    "package_version": "0.10.2",
+    "repository": "https://github.com/rust-random/rand",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
     "package_name": "rand_chacha",
     "package_version": "0.3.1",
     "repository": "https://github.com/rust-random/rand",
@@ -1614,12 +1584,6 @@
     "license": "MIT OR Apache-2.0"
   },
   {
-    "package_name": "serde_json",
-    "package_version": "1.0.151",
-    "repository": "https://github.com/serde-rs/json",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
     "package_name": "serde_spanned",
     "package_version": "0.6.9",
     "repository": "https://github.com/toml-rs/toml",
@@ -1653,12 +1617,6 @@
     "package_name": "sha2",
     "package_version": "0.11.0",
     "repository": "https://github.com/RustCrypto/hashes",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "shake",
-    "package_version": "0.1.0",
-    "repository": "https://github.com/RustCrypto/XOFs",
     "license": "MIT OR Apache-2.0"
   },
   {
@@ -1744,12 +1702,6 @@
     "package_version": "0.8.0",
     "repository": "https://github.com/RustCrypto/formats",
     "license": "Apache-2.0 OR MIT"
-  },
-  {
-    "package_name": "sponge-cursor",
-    "package_version": "0.1.0",
-    "repository": "https://github.com/RustCrypto/utils",
-    "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "subtle",
@@ -2074,12 +2026,6 @@
     "package_version": "0.6.7",
     "repository": "https://github.com/trifectatechfoundation/zlib-rs",
     "license": "Zlib"
-  },
-  {
-    "package_name": "zmij",
-    "package_version": "1.0.23",
-    "repository": "https://github.com/dtolnay/zmij",
-    "license": "MIT"
   },
   {
     "package_name": "zune-core",
