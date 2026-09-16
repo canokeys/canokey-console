@@ -1030,10 +1030,12 @@ fn wire__crate__api__protocol__ProtocolOperation_probe_admin_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_observed_serial = <Option<Vec<u8>>>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse::<_, ()>((move || {
-                let output_ok =
-                    Ok::<_, ()>(crate::api::protocol::ProtocolOperation::probe_admin())?;
+                let output_ok = Ok::<_, ()>(crate::api::protocol::ProtocolOperation::probe_admin(
+                    api_observed_serial,
+                ))?;
                 std::result::Result::Ok(output_ok)
             })())
         },
@@ -1060,9 +1062,12 @@ fn wire__crate__api__protocol__ProtocolOperation_probe_piv_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_observed_serial = <Option<Vec<u8>>>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse::<_, ()>((move || {
-                let output_ok = Ok::<_, ()>(crate::api::protocol::ProtocolOperation::probe_piv())?;
+                let output_ok = Ok::<_, ()>(crate::api::protocol::ProtocolOperation::probe_piv(
+                    api_observed_serial,
+                ))?;
                 std::result::Result::Ok(output_ok)
             })())
         },

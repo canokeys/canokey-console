@@ -15,7 +15,9 @@ class PassCardClient extends AdminSessionCardClient {
 
   /// Explicit minimal Admin discovery, before any slot operation. Repeat after
   /// a slot write, including an uncertain write; never auto-reprobe.
-  Future<void> prepare() => prepareProfile(ProtocolOperation.probeAdmin);
+  Future<void> prepare() => prepareProfile(
+    () => ProtocolOperation.probeAdmin(observedSerial: lease.bootstrapSerial),
+  );
 
   /// Reads both slots. INS 43 sits behind the firmware Admin-PIN gate on
   /// every audited firmware: a still-valid recorded Admin authentication is

@@ -69,7 +69,9 @@ class OathCardClient extends ProfileCardClient {
 
   /// Explicit minimal discovery, before any authentication. Repeat after a
   /// profile-affecting write, including an uncertain write; never auto-reprobe.
-  Future<void> prepare() => prepareProfile(ProtocolOperation.probeAdmin);
+  Future<void> prepare() => prepareProfile(
+    () => ProtocolOperation.probeAdmin(observedSerial: lease.bootstrapSerial),
+  );
 
   /// All OATH operations SELECT the applet before their target command. A
   /// non-protocol failure discards the profile evidence.

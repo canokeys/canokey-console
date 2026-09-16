@@ -3,6 +3,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:canokey_console/helper/utils/admin_card.dart';
 import 'package:canokey_console/helper/utils/card_session.dart';
 import 'package:canokey_console/helper/utils/piv_card.dart';
@@ -25,6 +26,39 @@ void main() {
         expect(await client.readModel(), 'CanoKey');
         expect(await client.readSerial(), '01020304');
         expect(transport.commands, isEmpty);
+      });
+    },
+  );
+
+  test(
+    'probe skips the serial read when the bootstrap observed it',
+    () async {
+      final transport = _Transport([
+        '9000',
+        '${hex.encode(utf8.encode('3.1.0'))}9000',
+        '43616E6F4B65799000',
+      ]);
+      final client = AdminCardClient(transport: transport);
+      await client.withSession(() async {
+        client.lease.recordBootstrapSerial(Uint8List.fromList([1, 2, 3, 4]));
+        await client.prepare();
+        // No serial read: the bootstrap observation is the probe's evidence.
+        expect(transport.commands, ['${_select}00', '0031000000', '0031010000']);
+        expect(await client.readSerial(), '01020304');
+      });
+    },
+  );
+
+  test(
+    'bootstrap serial evidence requires exactly four bytes',
+    () async {
+      final transport = _Transport([]);
+      final client = AdminCardClient(transport: transport);
+      await client.withSession(() async {
+        expect(
+          () => client.lease.recordBootstrapSerial(Uint8List(3)),
+          throwsArgumentError,
+        );
       });
     },
   );

@@ -108,7 +108,9 @@ class AdminCardClient extends AdminSessionCardClient {
 
   /// Explicit minimal discovery, before any authentication. Repeat after a
   /// profile-affecting write, including an uncertain write; never auto-reprobe.
-  Future<void> prepare() => prepareProfile(ProtocolOperation.probeAdmin);
+  Future<void> prepare() => prepareProfile(
+    () => ProtocolOperation.probeAdmin(observedSerial: lease.bootstrapSerial),
+  );
 
   /// Explicit discovery only when the prepared binding is missing or stale.
   /// A still-valid binding is reused as-is, preserving the lease's recorded

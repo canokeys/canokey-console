@@ -31,7 +31,7 @@ class PivCardClient extends ProfileCardClient {
     final override = _prepareExecutor;
     if (override != null) return override();
     await prepareProfile(
-      ProtocolOperation.probePiv,
+      () => ProtocolOperation.probePiv(observedSerial: lease.bootstrapSerial),
       rejectWhileExchanging: true,
     );
   }

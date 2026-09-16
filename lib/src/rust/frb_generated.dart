@@ -169,9 +169,13 @@ abstract class RustLibApi extends BaseApi {
     required PivReadOperation kind,
   });
 
-  ProtocolOperation crateApiProtocolProtocolOperationProbeAdmin();
+  ProtocolOperation crateApiProtocolProtocolOperationProbeAdmin({
+    Uint8List? observedSerial,
+  });
 
-  ProtocolOperation crateApiProtocolProtocolOperationProbePiv();
+  ProtocolOperation crateApiProtocolProtocolOperationProbePiv({
+    Uint8List? observedSerial,
+  });
 
   ProtocolStep crateApiProtocolProtocolOperationStart({
     required ProtocolOperation that,
@@ -1495,11 +1499,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  ProtocolOperation crateApiProtocolProtocolOperationProbeAdmin() {
+  ProtocolOperation crateApiProtocolProtocolOperationProbeAdmin({
+    Uint8List? observedSerial,
+  }) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_opt_list_prim_u_8_strict(observedSerial, serializer);
           return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 24)!;
         },
         codec: SseCodec(
@@ -1508,7 +1515,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: null,
         ),
         constMeta: kCrateApiProtocolProtocolOperationProbeAdminConstMeta,
-        argValues: [],
+        argValues: [observedSerial],
         apiImpl: this,
       ),
     );
@@ -1517,15 +1524,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiProtocolProtocolOperationProbeAdminConstMeta =>
       const TaskConstMeta(
         debugName: "ProtocolOperation_probe_admin",
-        argNames: [],
+        argNames: ["observedSerial"],
       );
 
   @override
-  ProtocolOperation crateApiProtocolProtocolOperationProbePiv() {
+  ProtocolOperation crateApiProtocolProtocolOperationProbePiv({
+    Uint8List? observedSerial,
+  }) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_opt_list_prim_u_8_strict(observedSerial, serializer);
           return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 25)!;
         },
         codec: SseCodec(
@@ -1534,7 +1544,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: null,
         ),
         constMeta: kCrateApiProtocolProtocolOperationProbePivConstMeta,
-        argValues: [],
+        argValues: [observedSerial],
         apiImpl: this,
       ),
     );
@@ -1543,7 +1553,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiProtocolProtocolOperationProbePivConstMeta =>
       const TaskConstMeta(
         debugName: "ProtocolOperation_probe_piv",
-        argNames: [],
+        argNames: ["observedSerial"],
       );
 
   @override

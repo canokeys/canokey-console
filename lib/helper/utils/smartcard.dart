@@ -72,6 +72,9 @@ class SmartCard {
       (throw StateError('Protocol operations require SmartCard.process'));
 
   static String _currentSN = '';
+  // The serial read while probing a CCID candidate happens before any session
+  // binds; it is attached to each lease bound for that same physical card.
+  static Uint8List? _ccidBootstrapSerial;
 
   static CcidCard? _ccidCard;
   static bool _connectionQuarantined = false;
@@ -455,6 +458,7 @@ class SmartCard {
             ),
             transport,
           );
+          currentLease.recordBootstrapSerial(serial);
           final sn = hex.encode(serial).toUpperCase();
           _currentSN = sn;
           if (isWeb()) {
@@ -573,6 +577,7 @@ class SmartCard {
     if (session == null) return;
     final card = _ccidCard;
     final ccid = connectionType == ConnectionType.ccid;
+    final ccidBootstrapSerial = ccid ? _ccidBootstrapSerial : null;
     session.bind((command) async {
       try {
         log.d('C-APDU: $command');
@@ -589,7 +594,10 @@ class SmartCard {
         _sessions.invalidate();
         _connectionQuarantined = true;
         if (ccid) {
-          if (identical(_ccidCard, card)) _ccidCard = null;
+          if (identical(_ccidCard, card)) {
+            _ccidCard = null;
+            _ccidBootstrapSerial = null;
+          }
           _connectionQuarantined = !await _disconnectCcidCard(card);
         } else {
           try {
@@ -608,6 +616,9 @@ class SmartCard {
         rethrow;
       }
     });
+    if (ccidBootstrapSerial != null) {
+      session.lease.recordBootstrapSerial(ccidBootstrapSerial);
+    }
   }
 
   static Future<String> transceive(String capdu) async {
@@ -666,6 +677,7 @@ class SmartCard {
       _sessions.invalidate();
       await _disconnectCcidCard(activeCard);
       _ccidCard = null;
+      _ccidBootstrapSerial = null;
       if (connectionType == ConnectionType.ccid) {
         _currentSN = '';
         connectionType = ConnectionType.none;
@@ -702,6 +714,7 @@ class SmartCard {
       );
 
       _ccidCard = candidate;
+      _ccidBootstrapSerial = Uint8List.fromList(serial);
       _currentSN = hex.encode(serial).toUpperCase();
       connectionType = ConnectionType.ccid;
       if (isAndroidApp()) {

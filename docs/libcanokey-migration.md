@@ -24,7 +24,9 @@ building, UI flows, credential prompting) stays in Console.
 - `lib/helper/utils/smartcard.dart` — the `SmartCard.process` queue; every
   use case (connect, SELECT, authenticate, commands, cleanup) runs inside it.
   Connection bootstrap identity commands use upstream `admin::command`
-  builders via `ProtocolOperation.bootstrapIdentity`.
+  builders via `ProtocolOperation.bootstrapIdentity`, and the serial they
+  read is recorded on the lease so later probes skip the duplicate serial
+  read (`observedSerial`).
 
 ## Contracts that must not be broken
 

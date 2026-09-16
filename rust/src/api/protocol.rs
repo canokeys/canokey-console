@@ -2598,15 +2598,26 @@ pub struct ProtocolOperation {
 }
 
 impl ProtocolOperation {
-    /// Admin-only discovery before authentication; does not select PIV.
+    /// Admin-only discovery before authentication; does not select PIV. A
+    /// four-byte serial already observed by the connection bootstrap is
+    /// recorded as the probe observation and the serial read is skipped.
     #[flutter_rust_bridge::frb(sync)]
-    pub fn probe_admin() -> Self {
+    pub fn probe_admin(observed_serial: Option<Vec<u8>>) -> Self {
         Self::from_operation(
-            canokey::probe_device(canokey::ProbeOptions {
-                mode: canokey::ProbeMode::Minimal,
-                ..Default::default()
-            })
-            .map(Inner::Probe),
+            observed_serial
+                .map(|s| {
+                    <[u8; 4]>::try_from(s.as_slice())
+                        .map_err(|_| Error::new(ErrorKind::InvalidArgument))
+                })
+                .transpose()
+                .and_then(|observed_serial| {
+                    canokey::probe_device(canokey::ProbeOptions {
+                        mode: canokey::ProbeMode::Minimal,
+                        observed_serial,
+                        ..Default::default()
+                    })
+                })
+                .map(Inner::Probe),
         )
     }
 
@@ -2643,10 +2654,23 @@ impl ProtocolOperation {
 
     /// Explicit Admin/PIV discovery. Call before authentication in the same
     /// exclusive lease; the completed profile is transferred to Dart exactly once.
+    /// A bootstrap-observed serial skips the duplicate serial read.
     #[flutter_rust_bridge::frb(sync)]
-    pub fn probe_piv() -> Self {
+    pub fn probe_piv(observed_serial: Option<Vec<u8>>) -> Self {
         Self::from_operation(
-            canokey::probe_device(canokey::ProbeOptions::default()).map(Inner::Probe),
+            observed_serial
+                .map(|s| {
+                    <[u8; 4]>::try_from(s.as_slice())
+                        .map_err(|_| Error::new(ErrorKind::InvalidArgument))
+                })
+                .transpose()
+                .and_then(|observed_serial| {
+                    canokey::probe_device(canokey::ProbeOptions {
+                        observed_serial,
+                        ..Default::default()
+                    })
+                })
+                .map(Inner::Probe),
         )
     }
 
@@ -3204,7 +3228,7 @@ mod tests {
 
     #[test]
     fn probe_transfers_profile_and_metadata_copies_its_evidence() {
-        let mut probe = ProtocolOperation::probe_piv();
+        let mut probe = ProtocolOperation::probe_piv(None);
         assert_eq!(
             probe.start().command.unwrap(),
             [0, 0xa4, 4, 0, 5, 0xf0, 0, 0, 0, 0, 0]
@@ -3238,6 +3262,29 @@ mod tests {
                 .unwrap(),
             [1, 1, 0xff, 6, 2, 3, 2]
         );
+    }
+
+    #[test]
+    fn probe_skips_the_serial_read_when_bootstrap_observed() {
+        let mut probe = ProtocolOperation::probe_admin(Some(vec![1, 2, 3, 4]));
+        assert_eq!(
+            probe.start().command.unwrap(),
+            [0, 0xa4, 4, 0, 5, 0xf0, 0, 0, 0, 0, 0]
+        );
+        let mut step = probe.advance(vec![0x90, 0]);
+        for response in [b"3.1.0\x90\0".to_vec(), b"CanoKey\x90\0".to_vec()] {
+            assert!(step.command.is_some());
+            step = probe.advance(response);
+        }
+        // No serial read APDU was issued; the observation is recorded.
+        let profile = step.profile.unwrap();
+        assert_eq!(profile.serial(), Some(vec![1, 2, 3, 4]));
+
+        // A malformed observed serial fails at construction, before any I/O.
+        let mut invalid = ProtocolOperation::probe_admin(Some(vec![1, 2, 3]));
+        assert_eq!(invalid.start().error.unwrap().kind, "InvalidArgument");
+        let mut invalid = ProtocolOperation::probe_piv(Some(vec![0; 5]));
+        assert_eq!(invalid.start().error.unwrap().kind, "InvalidArgument");
     }
 
     #[test]

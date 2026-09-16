@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 /// A local cancellation request. Only the executor closes its Rust operation;
 /// cancellation never races it to free a handle or abort an in-flight exchange.
@@ -148,6 +149,22 @@ class CardLease {
     _adminAuthSelection = null;
     _adminAuthProfile = null;
   }
+
+  Uint8List? _bootstrapSerial;
+
+  /// The four-byte serial read by this lease's connection bootstrap. Probes
+  /// record it as their observation and skip the duplicate serial read.
+  /// Only the transport owner may call this, right after bootstrapping.
+  void recordBootstrapSerial(Uint8List serial) {
+    check();
+    if (serial.length != 4) {
+      throw ArgumentError.value(serial, 'serial', 'Serial must be 4 bytes');
+    }
+    _bootstrapSerial = Uint8List.fromList(serial);
+  }
+
+  /// The bootstrap-observed serial, if this lease's connection read one.
+  Uint8List? get bootstrapSerial => _bootstrapSerial;
 
   /// Reserve the whole protocol operation, including gaps between exchanges.
   /// Competing work fails before I/O rather than sharing selection/auth state.

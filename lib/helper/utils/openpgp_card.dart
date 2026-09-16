@@ -20,7 +20,9 @@ class OpenPgpCardClient extends ProfileCardClient {
 
   /// Explicit minimal discovery before any OpenPGP operation. The profile only
   /// carries firmware observations; upstream operations SELECT OpenPGP themselves.
-  Future<void> prepare() => prepareProfile(ProtocolOperation.probeAdmin);
+  Future<void> prepare() => prepareProfile(
+    () => ProtocolOperation.probeAdmin(observedSerial: lease.bootstrapSerial),
+  );
 
   /// Every upstream OpenPGP operation SELECTs its applet first.
   Future<Uint8List> _execute(

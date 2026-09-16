@@ -148,14 +148,21 @@ abstract class ProtocolOperation implements RustOpaqueInterface {
   static ProtocolOperation pivRead({required PivReadOperation kind}) =>
       RustLib.instance.api.crateApiProtocolProtocolOperationPivRead(kind: kind);
 
-  /// Admin-only discovery before authentication; does not select PIV.
-  static ProtocolOperation probeAdmin() =>
-      RustLib.instance.api.crateApiProtocolProtocolOperationProbeAdmin();
+  /// Admin-only discovery before authentication; does not select PIV. A
+  /// four-byte serial already observed by the connection bootstrap is
+  /// recorded as the probe observation and the serial read is skipped.
+  static ProtocolOperation probeAdmin({Uint8List? observedSerial}) =>
+      RustLib.instance.api.crateApiProtocolProtocolOperationProbeAdmin(
+        observedSerial: observedSerial,
+      );
 
   /// Explicit Admin/PIV discovery. Call before authentication in the same
   /// exclusive lease; the completed profile is transferred to Dart exactly once.
-  static ProtocolOperation probePiv() =>
-      RustLib.instance.api.crateApiProtocolProtocolOperationProbePiv();
+  /// A bootstrap-observed serial skips the duplicate serial read.
+  static ProtocolOperation probePiv({Uint8List? observedSerial}) =>
+      RustLib.instance.api.crateApiProtocolProtocolOperationProbePiv(
+        observedSerial: observedSerial,
+      );
 
   /// Start exactly once; subsequent calls report an operation-state error.
   ProtocolStep start();
