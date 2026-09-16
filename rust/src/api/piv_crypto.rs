@@ -157,16 +157,8 @@ struct SignedDerObject {
     signature: BitString,
 }
 
-pub fn build_piv_public_key(
-    algorithm: u8,
-    card_data: Vec<u8>,
-    generated_response: bool,
-) -> Result<PivPublicKeyData, String> {
-    let key_data = if generated_response {
-        tlv_value(&card_data, 0x7F49)?
-    } else {
-        card_data.as_slice()
-    };
+pub fn build_piv_public_key(algorithm: u8, card_data: Vec<u8>) -> Result<PivPublicKeyData, String> {
+    let key_data = card_data.as_slice();
 
     match algorithm {
         PIV_RSA1024 | PIV_RSA2048 | PIV_RSA3072 | PIV_RSA4096 => {
@@ -959,12 +951,11 @@ mod tests {
             encode_tlv_length(modulus.len(), &mut slot).unwrap();
             slot.extend_from_slice(&modulus);
             slot.extend_from_slice(&[0x82, 3, 1, 0, 1]);
-            let mut generated = vec![0x7f, 0x49];
-            encode_tlv_length(slot.len(), &mut generated).unwrap();
-            generated.extend_from_slice(&slot);
 
-            let metadata = build_piv_public_key(algorithm, slot, false).unwrap();
-            let response = build_piv_public_key(algorithm, generated, true).unwrap();
+            let metadata = build_piv_public_key(algorithm, slot).unwrap();
+            let response =
+                parse_piv_public_key_info(algorithm, metadata.subject_public_key_info.clone())
+                    .unwrap();
             assert_eq!(
                 metadata.subject_public_key_info,
                 response.subject_public_key_info
@@ -994,17 +985,13 @@ mod tests {
 
     #[test]
     fn reports_rsa_validation_reason() {
-        let error = build_piv_public_key(
-            PIV_RSA2048,
-            vec![0x81, 3, 0x80, 0, 0, 0x82, 3, 1, 0, 1],
-            false,
-        )
-        .err()
-        .unwrap();
+        let error = build_piv_public_key(PIV_RSA2048, vec![0x81, 3, 0x80, 0, 0, 0x82, 3, 1, 0, 1])
+            .err()
+            .unwrap();
         assert!(error.contains(&rsa::errors::Error::InvalidModulus.to_string()));
         assert!(error.contains("modulus: 3 bytes, exponent: 3 bytes"));
 
-        let error = build_piv_public_key(PIV_RSA2048, vec![0x81, 3, 0x80, 0, 1, 0x82, 1, 2], false)
+        let error = build_piv_public_key(PIV_RSA2048, vec![0x81, 3, 0x80, 0, 1, 0x82, 1, 2])
             .err()
             .unwrap();
         assert!(error.contains(&rsa::errors::Error::InvalidExponent.to_string()));
@@ -1074,18 +1061,17 @@ mod tests {
     }
 
     #[test]
-    fn converts_slot_and_generate_responses_to_the_same_spki() {
+    fn slot_public_key_roundtrips_through_spki() {
         let key = p256::SecretKey::from_slice(&[4; 32]).unwrap();
         let raw = key.public_key().to_sec1_point(false).as_bytes().to_vec();
         let mut slot = vec![0x86];
         encode_tlv_length(raw.len(), &mut slot).unwrap();
         slot.extend_from_slice(&raw);
-        let mut generated = vec![0x7F, 0x49];
-        encode_tlv_length(slot.len(), &mut generated).unwrap();
-        generated.extend_from_slice(&slot);
 
-        let metadata = build_piv_public_key(PIV_ECC_P256, slot, false).unwrap();
-        let response = build_piv_public_key(PIV_ECC_P256, generated, true).unwrap();
+        let metadata = build_piv_public_key(PIV_ECC_P256, slot).unwrap();
+        let response =
+            parse_piv_public_key_info(PIV_ECC_P256, metadata.subject_public_key_info.clone())
+                .unwrap();
         assert_eq!(
             metadata.subject_public_key_info,
             response.subject_public_key_info

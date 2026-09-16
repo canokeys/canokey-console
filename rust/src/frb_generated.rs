@@ -4017,14 +4017,10 @@ fn wire__crate__api__piv_crypto__build_piv_public_key_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_algorithm = <u8>::sse_decode(&mut deserializer);
             let api_card_data = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_generated_response = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse::<_, String>((move || {
-                let output_ok = crate::api::piv_crypto::build_piv_public_key(
-                    api_algorithm,
-                    api_card_data,
-                    api_generated_response,
-                )?;
+                let output_ok =
+                    crate::api::piv_crypto::build_piv_public_key(api_algorithm, api_card_data)?;
                 std::result::Result::Ok(output_ok)
             })())
         },

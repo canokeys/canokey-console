@@ -522,7 +522,6 @@ abstract class RustLibApi extends BaseApi {
   PivPublicKeyData crateApiPivCryptoBuildPivPublicKey({
     required int algorithm,
     required List<int> cardData,
-    required bool generatedResponse,
   });
 
   String crateApiDecodeDecodePngQrcode({required List<int> pngFile});
@@ -3493,7 +3492,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   PivPublicKeyData crateApiPivCryptoBuildPivPublicKey({
     required int algorithm,
     required List<int> cardData,
-    required bool generatedResponse,
   }) {
     return handler.executeSync(
       SyncTask(
@@ -3501,7 +3499,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_u_8(algorithm, serializer);
           sse_encode_list_prim_u_8_loose(cardData, serializer);
-          sse_encode_bool(generatedResponse, serializer);
           return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 79)!;
         },
         codec: SseCodec(
@@ -3509,7 +3506,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_String,
         ),
         constMeta: kCrateApiPivCryptoBuildPivPublicKeyConstMeta,
-        argValues: [algorithm, cardData, generatedResponse],
+        argValues: [algorithm, cardData],
         apiImpl: this,
       ),
     );
@@ -3518,7 +3515,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiPivCryptoBuildPivPublicKeyConstMeta =>
       const TaskConstMeta(
         debugName: "build_piv_public_key",
-        argNames: ["algorithm", "cardData", "generatedResponse"],
+        argNames: ["algorithm", "cardData"],
       );
 
   @override

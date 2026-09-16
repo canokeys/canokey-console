@@ -34,22 +34,10 @@ enum OpenPgpTouchPolicy {
 
   final int value;
 
-  static OpenPgpTouchPolicy fromValue(int value) {
-    switch (value) {
-      case 0x00:
-        return OpenPgpTouchPolicy.off;
-      case 0x01:
-        return OpenPgpTouchPolicy.on;
-      case 0x02:
-        return OpenPgpTouchPolicy.permanent;
-      case 0x03:
-        return OpenPgpTouchPolicy.cached;
-      case 0x04:
-        return OpenPgpTouchPolicy.cachedPermanent;
-      default:
-        return OpenPgpTouchPolicy.off;
-    }
-  }
+  static OpenPgpTouchPolicy fromValue(int value) => values.firstWhere(
+        (entry) => entry.value == value,
+        orElse: () => OpenPgpTouchPolicy.off,
+      );
 
   static List<OpenPgpTouchPolicy> get writableValues => [off, on, permanent];
 

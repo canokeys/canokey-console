@@ -14,11 +14,9 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 PivPublicKeyData buildPivPublicKey({
   required int algorithm,
   required List<int> cardData,
-  required bool generatedResponse,
 }) => RustLib.instance.api.crateApiPivCryptoBuildPivPublicKey(
   algorithm: algorithm,
   cardData: cardData,
-  generatedResponse: generatedResponse,
 );
 
 PivPublicKeyData parsePivPublicKeyInfo({

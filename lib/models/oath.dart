@@ -31,18 +31,10 @@ enum OathAlgorithm {
 
   const OathAlgorithm(this.value);
 
-  static OathAlgorithm fromName(String name) {
-    switch (name.toUpperCase()) {
-      case 'SHA1':
-        return OathAlgorithm.sha1;
-      case 'SHA256':
-        return OathAlgorithm.sha256;
-      case 'SHA512':
-        return OathAlgorithm.sha512;
-      default:
-        throw ArgumentError('Invalid algorithm name: $name');
-    }
-  }
+  static OathAlgorithm fromName(String name) => values.firstWhere(
+        (entry) => entry.name.toUpperCase() == name.toUpperCase(),
+        orElse: () => throw ArgumentError('Invalid algorithm name: $name'),
+      );
 
   final int value;
 }
