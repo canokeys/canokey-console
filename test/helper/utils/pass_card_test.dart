@@ -22,14 +22,16 @@ void main() {
     () async {
       final transport = _Transport([
         '9000',
+        '9000',
         // Short = static with Enter; long = OATH credential "test" without Enter.
         '0201010474657374009000',
+        '9000',
         '9000',
         // Short = unknown type 0x7F carried verbatim; long = off.
         '7F009000',
       ]);
       await _prepared(transport, (client) async {
-        final slots = await client.readSlots();
+        final slots = await client.readSlots(pin: '123456');
         expect(slots, hasLength(2));
         expect(slots[0].type, PassSlotType.static);
         expect(slots[0].withEnter, isTrue);
@@ -37,22 +39,36 @@ void main() {
         expect(slots[1].name, 'test');
         expect(slots[1].withEnter, isFalse);
 
-        final unknown = await client.readSlots();
+        final unknown = await client.readSlots(pin: '123456');
         expect(unknown[0].type, PassSlotType.unknown);
         expect(unknown[1].type, PassSlotType.none);
 
-        // A PIN-less read SELECTs but never verifies.
+        // INS 43 is PIN-gated on every audited firmware: each read without
+        // recorded session evidence SELECTs and verifies its explicit PIN.
         expect(transport.commands, [
           _select,
+          _verify,
           '0043000000',
           _select,
+          _verify,
           '0043000000',
         ]);
       });
     },
   );
 
-  test('reads verify the supplied PIN on gated firmware', () async {
+  test('a bare read fails at construction without any I/O', () async {
+    final transport = _Transport([]);
+    await _prepared(transport, (client) async {
+      await expectLater(
+        client.readSlots(),
+        _kind('SecurityStatusNotSatisfied'),
+      );
+      expect(transport.commands, isEmpty);
+    });
+  });
+
+  test('reads verify the supplied PIN', () async {
     final transport = _Transport([
       '9000',
       '9000',
@@ -67,10 +83,13 @@ void main() {
   });
 
   test('malformed slot dumps fail instead of fabricating slots', () async {
-    final transport = _Transport(['9000', '029000']);
+    final transport = _Transport(['9000', '9000', '029000']);
     await _prepared(transport, (client) async {
-      await expectLater(client.readSlots(), _kind('InvalidResponse'));
-      expect(transport.commands, [_select, '0043000000']);
+      await expectLater(
+        client.readSlots(pin: '123456'),
+        _kind('InvalidResponse'),
+      );
+      expect(transport.commands, [_select, _verify, '0043000000']);
     });
   });
 

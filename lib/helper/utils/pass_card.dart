@@ -17,9 +17,11 @@ class PassCardClient extends AdminSessionCardClient {
   /// a slot write, including an uncertain write; never auto-reprobe.
   Future<void> prepare() => prepareProfile(ProtocolOperation.probeAdmin);
 
-  /// Reads both slots. Firmware gates INS 43 behind Admin authentication, so
-  /// callers pass the lease's verified PIN; a still-valid recorded Admin
-  /// authentication takes precedence and the PIN is not sent at all.
+  /// Reads both slots. INS 43 sits behind the firmware Admin-PIN gate on
+  /// every audited firmware: a still-valid recorded Admin authentication is
+  /// reused (`Access::Existing`), otherwise callers pass the lease's verified
+  /// PIN. A bare read without either is rejected at construction with
+  /// SecurityStatusNotSatisfied, before any I/O.
   Future<List<PassSlot>> readSlots({String? pin}) async {
     final result = await executeAdminRequest(
       (profile, pinBytes, existing) =>

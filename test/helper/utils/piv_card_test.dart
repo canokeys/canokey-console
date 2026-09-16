@@ -649,12 +649,14 @@ void main() {
     'algorithm configuration propagates security and malformed replies',
     () async {
       for (final response in ['6982', '6F00', '019000']) {
-        final transport = _QueueApduTransport(['9000', response]);
-        await expectLater(
-          PivCardClient(transport: transport).readAlgorithmExtensions(),
-          throwsA(isA<ProtocolException>()),
-        );
-        expect(transport.commands, ['00A4040005A00000030800', '00EE010000']);
+        final transport = _QueueApduTransport([response]);
+        await _withPreparedClient(transport, (client) async {
+          await expectLater(
+            client.readAlgorithmExtensions(),
+            throwsA(isA<ProtocolException>()),
+          );
+          expect(transport.commands, ['00EE010000']);
+        });
       }
     },
   );
@@ -662,55 +664,56 @@ void main() {
   test(
     'algorithm configuration authenticates the management key when supplied',
     () async {
-      // 3.0.x firmware gates the read behind management-key authentication.
-      const firmware = '3.0.3';
-      final probe = [..._probeResponses];
-      probe[1] = '${hex.encode(firmware.codeUnits)}9000';
+      // 3.0.x firmware gates the read behind management-key authentication;
+      // upstream SELECTs, authenticates and reads within one operation.
       final transport = _QueueApduTransport([
-        '9000', // explicit SELECT
-        ...probe,
+        '9000', // SELECT PIV
         '7C0A8108FEDCBA98765432109000', // management challenge
         '9000', // management authentication response
         '01E00516E1531554E2E39000', // extension configuration
       ]);
-      final client = PivCardClient(transport: transport);
-      await client.withSession(() async {
+      await _withPreparedClient(transport, (client) async {
         final config = await client.readAlgorithmExtensions(
           managementKey: '0123456789abcdef23456789abcdef01456789abcdef0123',
         );
         expect(config, isNotNull);
         expect(config!.enabled, isTrue);
-        // No SELECT between the authentication and the gated read.
+        // One SELECT, then the authentication exchange and the gated read.
         expect(transport.commands, [
           '00A4040005A00000030800',
-          '00A4040005F00000000000',
-          '0031000000',
-          '0031010000',
-          '0032000000',
-          '00A4040005A00000030800',
-          '00FD000000',
-          '00EE010000',
           '0087039B047C02810000',
           '0087039B0C7C0A82080737F6C53750D4A400',
           '00EE010000',
         ]);
-      });
+      }, firmware: '3.0.3');
     },
   );
 
   test('reads optional algorithm extensions and missing metadata', () async {
-    final config = await PivCardClient(
-      transport: _QueueApduTransport(['9000', '01E00516E1531554E2E39000']),
-    ).readAlgorithmExtensions();
-    expect(config, isNotNull);
-    expect(config!.enabled, isTrue);
-
-    expect(
-      await PivCardClient(
-        transport: _QueueApduTransport(['9000', '6D00']),
-      ).readAlgorithmExtensions(),
-      isNull,
+    await _withPreparedClient(
+      _QueueApduTransport(['01E00516E1531554E2E39000']),
+      (client) async {
+        final config = await client.readAlgorithmExtensions();
+        expect(config, isNotNull);
+        expect(config!.enabled, isTrue);
+      },
     );
+
+    // A card-side unsupported instruction keeps the null fallback.
+    final unsupported = _QueueApduTransport(['6D00']);
+    await _withPreparedClient(unsupported, (client) async {
+      expect(await client.readAlgorithmExtensions(), isNull);
+      expect(unsupported.commands, ['00EE010000']);
+    });
+
+    // Firmware without the read fails the capability check at construction:
+    // zero I/O, same null fallback.
+    final legacy = _QueueApduTransport([]);
+    await _withPreparedClient(legacy, (client) async {
+      expect(await client.readAlgorithmExtensions(), isNull);
+      expect(legacy.commands, isEmpty);
+    }, firmware: '2.0.0');
+
     expect(
       await _withPreparedClient(
         _QueueApduTransport(['6A88']),

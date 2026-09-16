@@ -12,7 +12,6 @@ use canokey_protocol::operation::{conversation, ResponseData};
 pub enum PivReadOperation {
     Select,
     Version,
-    AlgorithmConfiguration,
     PinStatus,
 }
 
@@ -192,7 +191,9 @@ fn pass_slots_data(slots: admin::PassSlots) -> Vec<u8> {
 /// Structured, payload-free protocol failure. Transport errors remain in Dart.
 /// For CTAP-level failures `status_word` carries the raw CTAP status byte
 /// widened to u16 (for example 0x0031 for PIN_INVALID), NOT an ISO 7816
-/// status word; see canokey-ctap's status table.
+/// status word; see canokey-ctap's status table. Upstream keeps that byte in
+/// `Error::application_status` (`status_word` is ISO-only); the bridge maps it
+/// here so the Dart contract is unchanged.
 pub struct ProtocolError {
     pub kind: String,
     pub phase: String,
@@ -206,7 +207,10 @@ impl From<Error> for ProtocolError {
         Self {
             kind: format!("{:?}", error.kind),
             phase: format!("{:?}", error.phase),
-            status_word: error.status_word.map(|sw| sw.raw()),
+            status_word: match error.application_status {
+                Some(status) => Some(u16::from(status)),
+                None => error.status_word.map(|sw| sw.raw()),
+            },
             reference: error.reference.map(|reference| format!("{reference:?}")),
             retries_remaining: error.retries_remaining,
         }
@@ -557,6 +561,43 @@ impl ProtocolProfile {
             .map(Inner::Management)
         })();
         ProtocolOperation::from_operation(operation)
+    }
+
+    /// Read the PIV algorithm extension configuration (INS EE). Without a
+    /// management key this reuses the caller's selected transaction
+    /// (`Access::Existing`); with one, upstream SELECTs, authenticates
+    /// (external GENERAL AUTHENTICATE) and reads within the same operation.
+    /// On 3.0.x firmware (`PivProtectedAlgorithmConfigRead`) an
+    /// unauthenticated read is rejected with SecurityStatusNotSatisfied; on
+    /// firmware without the read the capability check fails at construction,
+    /// before any authentication I/O.
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn piv_read_algorithm_config(
+        &self,
+        management_key: Option<Vec<u8>>,
+        management_key_algorithm: u8,
+    ) -> ProtocolOperation {
+        let management_key = management_key.map(SecretBytes::new);
+        ProtocolOperation::from_operation((|| {
+            let profile = self
+                .inner
+                .as_ref()
+                .ok_or_else(|| Error::new(ErrorKind::OperationStateError))?;
+            let access = match management_key {
+                None => piv::Access::Existing,
+                Some(key) => {
+                    let algorithm = match management_key_algorithm {
+                        0x03 => piv::ManagementKeyAlgorithm::Tdes,
+                        0x0a => piv::ManagementKeyAlgorithm::Aes192,
+                        _ => return Err(Error::new(ErrorKind::UnsupportedAlgorithm)),
+                    };
+                    let key = piv::ManagementKey::from_bytes(algorithm, key.as_bytes())?;
+                    piv::Access::Management(piv::ManagementAuthentication::external(key))
+                }
+            };
+            piv::read_algorithm_config(profile, access, OperationOptions::default())
+                .map(Inner::Configuration)
+        })())
     }
     /// Read metadata in the caller's already selected PIV session. No probing,
     /// SELECT or authentication is inserted, including after VERIFY.
@@ -2262,7 +2303,8 @@ fn ctap_rps_data(entries: Vec<ctap::credmgmt::RpEntry>) -> Vec<u8> {
 /// (i64 BE, CanoKey extension key 0x80), or 0x02 publicKey with the resolved
 /// COSE algorithm (i64 BE, i64::MIN when unresolvable) followed by
 /// `key_len (u16 BE) | canonical CBOR COSE key` (opaque pass-through).
-fn ctap_credentials_data(entries: Vec<ctap::credmgmt::CredentialEntry>) -> Vec<u8> {
+/// COSE key re-encoding fails without any I/O and stays a protocol failure.
+fn ctap_credentials_data(entries: Vec<ctap::credmgmt::CredentialEntry>) -> Result<Vec<u8>, Error> {
     let mut out = Vec::new();
     for entry in entries {
         let id = &entry.credential_id.id;
@@ -2298,7 +2340,7 @@ fn ctap_credentials_data(entries: Vec<ctap::credmgmt::CredentialEntry>) -> Vec<u
                 out.push(0x02);
                 let algorithm = key.algorithm().map(|a| a.id()).unwrap_or(i64::MIN);
                 out.extend_from_slice(&algorithm.to_be_bytes());
-                let encoded = ctap::cbor::encode(&key.to_value());
+                let encoded = ctap::cbor::encode(&key.to_value())?;
                 out.extend_from_slice(&(encoded.len() as u16).to_be_bytes());
                 out.extend_from_slice(&encoded);
             }
@@ -2306,7 +2348,7 @@ fn ctap_credentials_data(entries: Vec<ctap::credmgmt::CredentialEntry>) -> Vec<u
             _ => unreachable!("credential entries carry exactly one key form"),
         }
     }
-    out
+    Ok(out)
 }
 
 /// Fresh V2 IV (16 CSPRNG bytes); protocol V1 uses the spec-mandated zero
@@ -2619,9 +2661,6 @@ impl ProtocolOperation {
             }
             PivReadOperation::Select => piv::select_application(options).map(Inner::Bytes),
             PivReadOperation::Version => piv::read_version_selected(options).map(Inner::Bytes),
-            PivReadOperation::AlgorithmConfiguration => {
-                piv::read_configuration_selected(options).map(Inner::Configuration)
-            }
         };
         Self::from_operation(operation)
     }
@@ -2870,6 +2909,11 @@ impl ProtocolOperation {
                     }
                     bytes(out)
                 }
+                // Console exposes no serial/challenge-response operation; these
+                // outcomes cannot occur from the facade's request set.
+                oath::Outcome::Serial(_) | oath::Outcome::ChallengeResponse(_) => {
+                    ProtocolStep::failure(Error::new(ErrorKind::InvalidResponse))
+                }
             }),
             Some(Inner::OpenPgp(op)) => drive(op, response, |outcome| match outcome {
                 openpgp::Outcome::Bytes(value) => bytes(value.as_bytes().to_vec()),
@@ -2935,7 +2979,10 @@ impl ProtocolOperation {
                 drive(op, response, |entries| bytes(ctap_rps_data(entries)))
             }
             Some(Inner::CtapCredentials(op)) => drive(op, response, |entries| {
-                bytes(ctap_credentials_data(entries))
+                match ctap_credentials_data(entries) {
+                    Ok(data) => bytes(data),
+                    Err(error) => ProtocolStep::failure(error),
+                }
             }),
             None => Err(Error::new(ErrorKind::OperationStateError)),
         };
@@ -3341,16 +3388,89 @@ mod tests {
     }
 
     #[test]
-    fn configuration_uses_upstream_validation() {
-        let mut op = ProtocolOperation::piv_read(PivReadOperation::AlgorithmConfiguration);
+    fn algorithm_config_read_reuses_selection_and_validates() {
+        // Without a management key the caller's selected transaction is reused.
+        let profile = metadata_profile();
+        let mut op = profile.piv_read_algorithm_config(None, 0x03);
         assert_eq!(op.start().command.unwrap(), [0, 0xee, 1, 0, 0]);
         assert!(op.advance(vec![1, 0x90, 0]).error.is_some());
-        let mut op = ProtocolOperation::piv_read(PivReadOperation::AlgorithmConfiguration);
+        let mut op = profile.piv_read_algorithm_config(None, 0x03);
         op.start();
         let bytes = vec![1, 0xe0, 5, 0x16, 0xe1, 0x53, 0x15, 0x54, 0xe2, 0xe3];
         let mut response = bytes.clone();
         response.extend([0x90, 0]);
         assert_eq!(op.advance(response).data.unwrap(), bytes);
+    }
+
+    fn piv_profile(firmware: &[u8]) -> ProtocolProfile {
+        let mut observations = canokey::compatibility::DeviceObservations::new(firmware.to_vec());
+        observations.piv_version = Some(canokey::compatibility::PivApplicationVersion([6, 0, 0]));
+        ProtocolProfile {
+            inner: Some(canokey::DeviceProfile::from_observations(observations).unwrap()),
+        }
+    }
+
+    #[test]
+    fn algorithm_config_read_capability_gate_precedes_authentication() {
+        // Firmware without the INS EE read fails at construction with zero I/O,
+        // with or without a management key: no SELECT and no GA is emitted.
+        let profile = piv_profile(b"2.0.0");
+        let mut op = profile.piv_read_algorithm_config(None, 0x03);
+        assert_eq!(op.start().error.unwrap().kind, "UnsupportedFeature");
+        let mut op = profile.piv_read_algorithm_config(Some(vec![0; 24]), 0x03);
+        assert_eq!(op.start().error.unwrap().kind, "UnsupportedFeature");
+    }
+
+    #[test]
+    fn algorithm_config_read_authenticates_management_on_gated_firmware() {
+        // 3.0.x gates the read behind management-key authentication; a supplied
+        // key makes upstream SELECT, authenticate and read in one operation.
+        let profile = piv_profile(b"3.0.3");
+        let key = vec![
+            0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd,
+            0xef, 0x01, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23,
+        ];
+        let mut op = profile.piv_read_algorithm_config(Some(key), 0x03);
+        assert_eq!(
+            op.start().command.unwrap(),
+            [0, 0xa4, 4, 0, 5, 0xa0, 0, 0, 3, 8, 0]
+        );
+        assert_eq!(
+            op.advance(vec![0x90, 0]).command.unwrap(),
+            [0, 0x87, 3, 0x9b, 4, 0x7c, 2, 0x81, 0, 0]
+        );
+        let challenge = [
+            0x7c, 0x0a, 0x81, 0x08, 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10, 0x90, 0,
+        ];
+        assert_eq!(
+            op.advance(challenge.to_vec()).command.unwrap(),
+            [
+                0, 0x87, 3, 0x9b, 0x0c, 0x7c, 0x0a, 0x82, 0x08, 0x07, 0x37, 0xf6, 0xc5, 0x37, 0x50,
+                0xd4, 0xa4, 0
+            ]
+        );
+        assert_eq!(
+            op.advance(vec![0x90, 0]).command.unwrap(),
+            [0, 0xee, 1, 0, 0]
+        );
+        let bytes = vec![1, 0xe0, 5, 0x16, 0xe1, 0x53, 0x15, 0x54, 0xe2, 0xe3];
+        let mut response = bytes.clone();
+        response.extend([0x90, 0]);
+        assert_eq!(op.advance(response).data.unwrap(), bytes);
+
+        // An unauthenticated Existing read is constructible; the card-side gate
+        // answers 6982, which stays a security failure.
+        let mut op = profile.piv_read_algorithm_config(None, 0x03);
+        assert_eq!(op.start().command.unwrap(), [0, 0xee, 1, 0, 0]);
+        let error = op.advance(vec![0x69, 0x82]).error.unwrap();
+        assert_eq!(error.kind, "SecurityStatusNotSatisfied");
+        assert_eq!(error.phase, "Command");
+
+        // Unknown key algorithms and malformed keys fail before any I/O.
+        let mut op = profile.piv_read_algorithm_config(Some(vec![0; 24]), 0xff);
+        assert_eq!(op.start().error.unwrap().kind, "UnsupportedAlgorithm");
+        let mut op = profile.piv_read_algorithm_config(Some(vec![0; 8]), 0x03);
+        assert!(op.start().error.is_some());
     }
 
     fn oath_selection(protected_: bool) -> Vec<u8> {
@@ -3838,6 +3958,17 @@ mod tests {
         let error = op.advance(vec![0x02, 0x90, 0]).error.unwrap();
         assert_eq!(error.kind, "InvalidResponse");
         assert_eq!(error.phase, "Parsing");
+    }
+
+    #[test]
+    fn pass_slots_bare_read_fails_at_construction_without_io() {
+        // INS 43 sits behind the firmware Admin-PIN gate on every audited
+        // firmware, so upstream rejects a bare read before any exchange.
+        let profile = metadata_profile();
+        let mut op = profile.admin_pass_slots(None, false);
+        let error = op.start().error.unwrap();
+        assert_eq!(error.kind, "SecurityStatusNotSatisfied");
+        assert!(op.start().command.is_none());
     }
 
     #[test]
@@ -4359,6 +4490,26 @@ mod tests {
     }
 
     #[test]
+    fn ctap_status_bytes_map_through_application_status() {
+        // Upstream keeps CTAP applet status bytes in application_status and
+        // reserves status_word for ISO 7816; the bridge keeps the Dart
+        // contract by widening application_status into status_word.
+        let mut error = Error::new(ErrorKind::InvalidPin).at(Phase::Command);
+        error.application_status = Some(0x31);
+        assert_eq!(ProtocolError::from(error).status_word, Some(0x31));
+        // The ISO status-word path is unchanged.
+        let error = Error::status(
+            canokey_protocol::StatusWord::new(0x6a82),
+            Phase::Command,
+            None,
+        );
+        assert_eq!(ProtocolError::from(error).status_word, Some(0x6a82));
+        // Neither status present stays absent.
+        let error = Error::new(ErrorKind::InvalidResponse);
+        assert_eq!(ProtocolError::from(error).status_word, None);
+    }
+
+    #[test]
     fn ctap_get_info_parses_fields_and_keeps_ctap_status() {
         let mut op = ProtocolOperation::ctap_get_info();
         let step = ctap_after_select(&mut op);
@@ -4383,7 +4534,8 @@ mod tests {
         let data = op.advance(ctap_ok(&minimal)).data.unwrap();
         assert_eq!(data, [0, 0, 0, 0, 0]);
 
-        // A CTAP-level failure keeps the raw CTAP status byte, not an ISO SW.
+        // A CTAP-level failure keeps the raw CTAP status byte (upstream carries
+        // it in application_status; the bridge maps it to status_word).
         let mut op = ProtocolOperation::ctap_get_info();
         ctap_after_select(&mut op);
         let error = op.advance(vec![0x30, 0x90, 0x00]).error.unwrap();
@@ -4458,7 +4610,7 @@ mod tests {
             Vec::<u8>::new()
         );
 
-        // PIN_INVALID keeps the raw CTAP status byte in status_word.
+        // PIN_INVALID keeps the raw CTAP status byte via application_status.
         let session = ctap_fixture_session(ctap::PinUvAuthProtocol::V1);
         let mut op = session.change_pin(b"1234".to_vec(), b"654321".to_vec());
         ctap_after_select(&mut op);
@@ -4516,7 +4668,7 @@ mod tests {
         let mut op = session.get_pin_token_with_permissions(vec![0xff, 0xfe, 0x41, 0x42], 4, None);
         assert_eq!(op.start().error.unwrap().kind, "InvalidPin");
 
-        // PIN_BLOCKED keeps the raw CTAP status byte.
+        // PIN_BLOCKED keeps the raw CTAP status byte via application_status.
         let session = ctap_fixture_session(ctap::PinUvAuthProtocol::V1);
         let mut op = session.get_pin_token_with_permissions(b"1234".to_vec(), 4, None);
         ctap_after_select(&mut op);
@@ -4645,7 +4797,8 @@ mod tests {
             Vec::<u8>::new()
         );
 
-        // An unknown credential is NotFound with the raw CTAP status byte.
+        // An unknown credential is NotFound with the raw CTAP status byte
+        // carried through application_status.
         let mut op = token.delete_credential(vec![1, 2, 3, 4]);
         ctap_after_select(&mut op);
         let error = op.advance(vec![0x2e, 0x90, 0x00]).error.unwrap();

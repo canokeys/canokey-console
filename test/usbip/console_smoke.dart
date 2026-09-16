@@ -773,13 +773,12 @@ class ConsoleSmoke {
         }
       }
 
-      // Firmware 3.0.x gates the extension-config read behind management-key
-      // authentication; newer firmware allows it unauthenticated.
-      final gatesExtensionRead =
-          firmware.compareTo(const FirmwareVersion(3, 0, 0)) >= 0 &&
-          firmware.compareTo(const FirmwareVersion(3, 1, 0)) < 0;
+      // The upstream capability check runs at construction, before any
+      // authentication, so firmware without the extension read fails without
+      // a GENERAL AUTHENTICATE; on 3.0.x the default key authorizes the
+      // management-gated read within the same operation.
       await _pivClient.readAlgorithmExtensions(
-        managementKey: gatesExtensionRead ? _defaultPivManagementKey : null,
+        managementKey: _defaultPivManagementKey,
       );
       stdout.writeln('ok: piv.client.read_change_and_restore');
     });

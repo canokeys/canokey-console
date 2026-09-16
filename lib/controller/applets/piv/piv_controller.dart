@@ -128,8 +128,8 @@ class PivController extends PollingController {
       }
       disabledMessage = null;
 
-      await _refreshCapabilities();
       await _client.prepare();
+      await _refreshCapabilities();
       slots.clear();
       certificateSlots.clear();
       certificateBytes.clear();
@@ -163,15 +163,12 @@ class PivController extends PollingController {
     try {
       config = await _client.readAlgorithmExtensions();
     } on ProtocolException catch (error) {
-      // Firmware 3.0.x gates this read behind management-key authentication
-      // (6982) and Console reads capabilities before any authentication, so
-      // keep the firmware-defaults fallback for exactly that known gate;
+      // Console reads capabilities before any authentication; on 3.0.x the
+      // read sits behind management-key authentication (upstream capability
+      // PivProtectedAlgorithmConfigRead), so the card rejects it with 6982.
+      // That security rejection alone permits the firmware-defaults fallback;
       // every other failure remains visible.
-      final gatedByManagementKey =
-          error.details.kind == 'SecurityStatusNotSatisfied' &&
-          firmwareVersion.compareTo(const FirmwareVersion(3, 0, 0)) >= 0 &&
-          firmwareVersion.compareTo(const FirmwareVersion(3, 1, 0)) < 0;
-      if (!gatedByManagementKey) rethrow;
+      if (error.details.kind != 'SecurityStatusNotSatisfied') rethrow;
     }
     if (config != null) {
       algorithmExtensionConfig = config;

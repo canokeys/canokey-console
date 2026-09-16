@@ -40,7 +40,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1993561274;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -729938;
 
 // Section: executor
 
@@ -4309,6 +4309,60 @@ fn wire__crate__api__protocol__ProtocolProfile_piv_move_key_impl(
         },
     )
 }
+fn wire__crate__api__protocol__ProtocolProfile_piv_read_algorithm_config_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "ProtocolProfile_piv_read_algorithm_config",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
+            >>::sse_decode(&mut deserializer);
+            let api_management_key = <Option<Vec<u8>>>::sse_decode(&mut deserializer);
+            let api_management_key_algorithm = <u8>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, false,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                        _ => unreachable!(),
+                    }
+                }
+                let api_that_guard = api_that_guard.unwrap();
+                let output_ok = Ok::<_, ()>(
+                    crate::api::protocol::ProtocolProfile::piv_read_algorithm_config(
+                        &*api_that_guard,
+                        api_management_key,
+                        api_management_key_algorithm,
+                    ),
+                )?;
+                std::result::Result::Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__protocol__ProtocolProfile_piv_read_object_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -6087,8 +6141,7 @@ impl SseDecode for crate::api::protocol::PivReadOperation {
         return match inner {
             0 => crate::api::protocol::PivReadOperation::Select,
             1 => crate::api::protocol::PivReadOperation::Version,
-            2 => crate::api::protocol::PivReadOperation::AlgorithmConfiguration,
-            3 => crate::api::protocol::PivReadOperation::PinStatus,
+            2 => crate::api::protocol::PivReadOperation::PinStatus,
             _ => unreachable!("Invalid variant for PivReadOperation: {}", inner),
         };
     }
@@ -6631,98 +6684,103 @@ fn pde_ffi_dispatcher_sync_impl(
             rust_vec_len,
             data_len,
         ),
-        86 => wire__crate__api__protocol__ProtocolProfile_piv_read_object_impl(
+        86 => wire__crate__api__protocol__ProtocolProfile_piv_read_algorithm_config_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        87 => wire__crate__api__protocol__ProtocolProfile_piv_reset_pin_puk_retries_impl(
+        87 => wire__crate__api__protocol__ProtocolProfile_piv_read_object_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        88 => wire__crate__api__protocol__ProtocolProfile_piv_set_algorithm_config_impl(
+        88 => wire__crate__api__protocol__ProtocolProfile_piv_reset_pin_puk_retries_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        89 => wire__crate__api__protocol__ProtocolProfile_piv_set_container_name_impl(
+        89 => wire__crate__api__protocol__ProtocolProfile_piv_set_algorithm_config_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        90 => wire__crate__api__protocol__ProtocolProfile_piv_set_management_key_impl(
+        90 => wire__crate__api__protocol__ProtocolProfile_piv_set_container_name_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        91 => {
+        91 => wire__crate__api__protocol__ProtocolProfile_piv_set_management_key_impl(
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        92 => {
             wire__crate__api__protocol__ProtocolProfile_piv_sign_impl(ptr, rust_vec_len, data_len)
         }
-        92 => wire__crate__api__protocol__ProtocolProfile_piv_sign_streaming_impl(
+        93 => wire__crate__api__protocol__ProtocolProfile_piv_sign_streaming_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        93 => wire__crate__api__protocol__ProtocolProfile_piv_sm2_agreement_impl(
+        94 => wire__crate__api__protocol__ProtocolProfile_piv_sm2_agreement_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        94 => wire__crate__api__protocol__ProtocolProfile_piv_write_object_impl(
+        95 => wire__crate__api__protocol__ProtocolProfile_piv_write_object_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        95 => wire__crate__api__protocol__ProtocolProfile_serial_impl(ptr, rust_vec_len, data_len),
-        96 => wire__crate__api__piv_crypto__build_piv_public_key_impl(ptr, rust_vec_len, data_len),
-        97 => wire__crate__api__decode__decode_png_qrcode_impl(ptr, rust_vec_len, data_len),
-        98 => wire__crate__api__crypto__encrypt_piv_management_key_challenge_impl(
+        96 => wire__crate__api__protocol__ProtocolProfile_serial_impl(ptr, rust_vec_len, data_len),
+        97 => wire__crate__api__piv_crypto__build_piv_public_key_impl(ptr, rust_vec_len, data_len),
+        98 => wire__crate__api__decode__decode_png_qrcode_impl(ptr, rust_vec_len, data_len),
+        99 => wire__crate__api__crypto__encrypt_piv_management_key_challenge_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        99 => wire__crate__api__piv_crypto__finish_piv_csr_impl(ptr, rust_vec_len, data_len),
-        100 => wire__crate__api__piv_crypto__finish_self_signed_certificate_impl(
+        100 => wire__crate__api__piv_crypto__finish_piv_csr_impl(ptr, rust_vec_len, data_len),
+        101 => wire__crate__api__piv_crypto__finish_self_signed_certificate_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        101 => wire__crate__api__crypto__hmac_sha1_impl(ptr, rust_vec_len, data_len),
-        102 => wire__crate__api__init_app_impl(ptr, rust_vec_len, data_len),
-        103 => {
+        102 => wire__crate__api__crypto__hmac_sha1_impl(ptr, rust_vec_len, data_len),
+        103 => wire__crate__api__init_app_impl(ptr, rust_vec_len, data_len),
+        104 => {
             wire__crate__api__piv_crypto__parse_piv_import_file_impl(ptr, rust_vec_len, data_len)
         }
-        104 => wire__crate__api__piv_crypto__parse_piv_public_key_info_impl(
+        105 => wire__crate__api__piv_crypto__parse_piv_public_key_info_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        105 => wire__crate__api__crypto__parse_x509_cert_from_der_impl(ptr, rust_vec_len, data_len),
-        106 => wire__crate__api__crypto__parse_x509_cert_from_pem_impl(ptr, rust_vec_len, data_len),
-        107 => wire__crate__api__crypto__pbkdf2_hmac_sha1_impl(ptr, rust_vec_len, data_len),
-        108 => wire__crate__api__piv_crypto__piv_certificate_supports_macos_impl(
+        106 => wire__crate__api__crypto__parse_x509_cert_from_der_impl(ptr, rust_vec_len, data_len),
+        107 => wire__crate__api__crypto__parse_x509_cert_from_pem_impl(ptr, rust_vec_len, data_len),
+        108 => wire__crate__api__crypto__pbkdf2_hmac_sha1_impl(ptr, rust_vec_len, data_len),
+        109 => wire__crate__api__piv_crypto__piv_certificate_supports_macos_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        109 => wire__crate__api__piv_crypto__prepare_piv_csr_impl(ptr, rust_vec_len, data_len),
-        110 => wire__crate__api__piv_crypto__prepare_piv_signing_input_impl(
+        110 => wire__crate__api__piv_crypto__prepare_piv_csr_impl(ptr, rust_vec_len, data_len),
+        111 => wire__crate__api__piv_crypto__prepare_piv_signing_input_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        111 => wire__crate__api__piv_crypto__prepare_self_signed_certificate_impl(
+        112 => wire__crate__api__piv_crypto__prepare_self_signed_certificate_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        112 => wire__crate__api__crypto__sha256_digest_impl(ptr, rust_vec_len, data_len),
-        113 => wire__crate__api__crypto__sha384_digest_impl(ptr, rust_vec_len, data_len),
-        114 => wire__crate__api__crypto__sha512_digest_impl(ptr, rust_vec_len, data_len),
-        115 => wire__crate__api__crypto__sm2_message_digest_impl(ptr, rust_vec_len, data_len),
-        116 => wire__crate__api__crypto__tdes_ede3_enc_impl(ptr, rust_vec_len, data_len),
-        117 => wire__crate__api__crypto__verify_piv_signature_impl(ptr, rust_vec_len, data_len),
+        113 => wire__crate__api__crypto__sha256_digest_impl(ptr, rust_vec_len, data_len),
+        114 => wire__crate__api__crypto__sha384_digest_impl(ptr, rust_vec_len, data_len),
+        115 => wire__crate__api__crypto__sha512_digest_impl(ptr, rust_vec_len, data_len),
+        116 => wire__crate__api__crypto__sm2_message_digest_impl(ptr, rust_vec_len, data_len),
+        117 => wire__crate__api__crypto__tdes_ede3_enc_impl(ptr, rust_vec_len, data_len),
+        118 => wire__crate__api__crypto__verify_piv_signature_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -7071,8 +7129,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::protocol::PivReadOperation {
         match self {
             Self::Select => 0.into_dart(),
             Self::Version => 1.into_dart(),
-            Self::AlgorithmConfiguration => 2.into_dart(),
-            Self::PinStatus => 3.into_dart(),
+            Self::PinStatus => 2.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -7635,8 +7692,7 @@ impl SseEncode for crate::api::protocol::PivReadOperation {
             match self {
                 crate::api::protocol::PivReadOperation::Select => 0,
                 crate::api::protocol::PivReadOperation::Version => 1,
-                crate::api::protocol::PivReadOperation::AlgorithmConfiguration => 2,
-                crate::api::protocol::PivReadOperation::PinStatus => 3,
+                crate::api::protocol::PivReadOperation::PinStatus => 2,
                 _ => {
                     unimplemented!("");
                 }

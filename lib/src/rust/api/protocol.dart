@@ -502,6 +502,19 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
 
   ProtocolOperation pivMoveKey({required int source, required int target});
 
+  /// Read the PIV algorithm extension configuration (INS EE). Without a
+  /// management key this reuses the caller's selected transaction
+  /// (`Access::Existing`); with one, upstream SELECTs, authenticates
+  /// (external GENERAL AUTHENTICATE) and reads within the same operation.
+  /// On 3.0.x firmware (`PivProtectedAlgorithmConfigRead`) an
+  /// unauthenticated read is rejected with SecurityStatusNotSatisfied; on
+  /// firmware without the read the capability check fails at construction,
+  /// before any authentication I/O.
+  ProtocolOperation pivReadAlgorithmConfig({
+    Uint8List? managementKey,
+    required int managementKeyAlgorithm,
+  });
+
   /// Return the normalized object value. libcanokey owns framing and parsing.
   ProtocolOperation pivReadObject({required List<int> objectId});
 
@@ -714,12 +727,14 @@ enum PivCredentialOperation {
 }
 
 /// Initial PIV operations; reads require an already selected PIV application.
-enum PivReadOperation { select, version, algorithmConfiguration, pinStatus }
+enum PivReadOperation { select, version, pinStatus }
 
 /// Structured, payload-free protocol failure. Transport errors remain in Dart.
 /// For CTAP-level failures `status_word` carries the raw CTAP status byte
 /// widened to u16 (for example 0x0031 for PIN_INVALID), NOT an ISO 7816
-/// status word; see canokey-ctap's status table.
+/// status word; see canokey-ctap's status table. Upstream keeps that byte in
+/// `Error::application_status` (`status_word` is ISO-only); the bridge maps it
+/// here so the Dart contract is unchanged.
 class ProtocolError {
   final String kind;
   final String phase;

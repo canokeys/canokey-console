@@ -2,7 +2,8 @@
 
 The first increment uses the Rust facade through Flutter Rust Bridge, following
 [canokey-pkcs11#5](https://github.com/canokeys/canokey-pkcs11/pull/5). Cargo pins
-libcanokey to the same `95e1930ea86eb248d0295bce9880cee5c65fd85e` revision.
+libcanokey to the `9110bc71a0b00f3517b96651ed63e030f8fffadc` revision (with the
+facade's opt-in `clientpin` feature).
 The C ABI is unnecessary in Console's existing Rust library.
 
 ## Implemented
@@ -70,11 +71,16 @@ The C ABI is unnecessary in Console's existing Rust library.
 - Errors retain category, phase, status word, credential reference and retry count
   as separate fields. Transport errors are propagated without conversion.
 - Only an unsupported algorithm-configuration instruction permits the existing
-  firmware defaults, plus one firmware-scoped exception: 3.0.x gates that read
-  behind management-key authentication (every SELECT resets the status), so an
-  unauthenticated capabilities read takes the defaults fallback exactly on
-  3.0.x, and `readAlgorithmExtensions` accepts an optional management key to
-  authenticate within the same selection. Other security failures, malformed
+  firmware defaults, plus the management-gated read on 3.0.x: the upstream
+  `Capability::PivProtectedAlgorithmConfigRead` models that gate, so the
+  profile-based `pivReadAlgorithmConfig` binding rejects an unauthenticated
+  read with SecurityStatusNotSatisfied there (the card answers 6982), and the
+  unauthenticated capabilities read takes the defaults fallback on exactly
+  that kind, without a version check. `readAlgorithmExtensions` still accepts
+  an optional management key; upstream then SELECTs, authenticates and reads
+  within the same operation, and the capability check runs at construction
+  before any authentication, so firmware without the read never sees a
+  GENERAL AUTHENTICATE. Other security failures, malformed
   responses and communication errors never silently choose default algorithms.
 
 - OpenPGP card-info reads, PW1/PW3 credential operations and all
@@ -126,8 +132,10 @@ The C ABI is unnecessary in Console's existing Rust library.
   `deleteCredential`. PinSession and PinToken are opaque FRB handles holding
   zeroizing Rust state; ephemeral scalars and V2 IVs are generated in the
   facade from the CSPRNG (`rand`), never supplied by Dart. For CTAP-level
-  failures `ProtocolError.statusWord` carries the raw CTAP status byte widened
-  to u16, not an ISO 7816 status word. Enumeration results use self-delimiting
+  failures upstream carries the raw CTAP status byte in
+  `Error::application_status` (`status_word` is ISO-only again); the bridge
+  keeps the Dart contract by widening it into `ProtocolError.statusWord`,
+  which therefore is not an ISO 7816 status word for CTAP failures. Enumeration results use self-delimiting
   byte encodings; Dart never parses CBOR. The Dart `WebAuthnCardClient`
   (`lib/helper/utils/webauthn_card.dart`) decodes those encodings, prefers
   pinUvAuthProtocol V2 when advertised, and owns session/token handle
@@ -138,17 +146,23 @@ The C ABI is unnecessary in Console's existing Rust library.
   getInfo. The Dart fido2 package, the `fido2_crypto` crate (and its C ABI in
   `lib.rs`), the `web/fido2` WASM artifacts and the raw CTAP transmitter layer
   were removed; no Dart CBOR/ClientPin framing remains.
-- Pass reads/writes use `adminPassSlots` (read, not PIN-protected) and
-  `adminSetPassSlot` (protected) with the same thin client shape as
+- Pass reads/writes use `adminPassSlots` and
+  `adminSetPassSlot` with the same thin client shape as
   admin_card; both reuse the lease's verified Admin session when one is
-  recorded and otherwise SELECT + verify an explicit per-request PIN. Unknown
-  slot types display as unknown, and a write reporting `reprobeRequired`
+  recorded and otherwise SELECT + verify an explicit per-request PIN. INS 43
+  sits behind the firmware Admin-PIN gate on every audited firmware, so
+  upstream rejects a bare read (no recorded session, no PIN) at construction
+  with SecurityStatusNotSatisfied, before any I/O. Unknown slot types display
+  as unknown, and a write reporting `reprobeRequired`
   invalidates the profile. The manual 0043/0044 commands were removed.
 - New facade bindings in `rust/src/api/protocol.rs`: `adminPassSlots`/
   `adminSetPassSlot` (including the `AdminValueKind.passSlots` encoding),
   `Access::Existing` support (the `existing` parameter) on the whole Admin
   request path (`adminRead`/`adminConfigure`/`adminAction` and the PASS slot
-  operations), `pivImportPqSeed`, `oathSetDefault`, `ndefReadCapability`/
+  operations), `pivImportPqSeed`, `pivReadAlgorithmConfig` (profile-based,
+  optional management key; replaces the profile-free
+  `PivReadOperation.algorithmConfiguration`), `oathSetDefault`,
+  `ndefReadCapability`/
   `ndefReadMessage`/`ndefWriteMessage` and `ctapSelectApplication`/
   `ctapTransceiveSelected`/`ctapTransceive`. The CTAP2 client-layer increment
   adds `ctapGetInfo`, `ctapBeginPinSession`, the `CtapPinSession` methods
@@ -577,3 +591,44 @@ section), `flutter test --no-pub --tags native` passed (130 tests), and
 fido2 reference left in the web output. The FRB WASM package was not
 regenerated (no Rust facade change); no physical card, browser transport or
 USB/IP firmware matrix was exercised.
+
+## Firmware authentication-gate modeling (2026-09-16, rev 9110bc7)
+
+The pin moved to `9110bc71a0b00f3517b96651ed63e030f8fffadc`, which models the
+firmware authentication gates on reads upstream: Admin INS 43/44 (PASS) reads
+are unconditionally protected, so `Access::None` fails at construction with
+SecurityStatusNotSatisfied and zero I/O; the new
+`Capability::PivProtectedAlgorithmConfigRead` (3.0.0–3.0.3) makes
+`piv::read_algorithm_config` reject `Access::None`/`Access::Pin` at
+construction while allowing `Existing`/`Management`. The facade gained the
+profile-based `pivReadAlgorithmConfig` binding: without a key it uses
+`Access::Existing`; with a key it uses
+`Access::Management(ManagementAuthentication::external(...))`, and upstream
+SELECTs, authenticates (GENERAL AUTHENTICATE) and reads within one operation.
+The capability check runs at construction before any authentication, so
+firmware without the INS EE read never receives a GENERAL AUTHENTICATE. The
+Dart client's manual select→prepare→authenticate→read orchestration was
+removed; `PivReadOperation.algorithmConfiguration` (profile-free
+`read_configuration_selected`) was removed from the bridge, and the
+controller's `>= 3.0.0 && < 3.1.0` fallback gate was replaced by an
+unconditional SecurityStatusNotSatisfied fallback. CTAP failures now arrive in
+upstream `Error::application_status` (status_word is ISO-only again); the
+bridge widens the byte into `ProtocolError.statusWord`, so the Dart contract
+is unchanged. The facade's `canokey` dependency enables the now-opt-in
+`clientpin` feature. The OATH `Outcome::Serial`/`ChallengeResponse` variants
+(the renamed vendor challenge-response API) are not exposed by the facade and
+map to InvalidResponse if ever produced.
+
+Validation: `cargo test --locked` passed in full (78 tests, including new
+facade coverage for the application_status mapping, the capability-gate
+precedes-authentication ordering on 2.0.0, the 3.0.3 SELECT+GA+read transcript
+against the known TDES answer, the unauthenticated 6982 path and the PassSlots
+bare-read construction gate). FRB 2.13.0 regeneration, `cargo build --release
+--locked`, `cargo check --target wasm32-unknown-unknown --locked`,
+all-targets clippy and rustfmt passed. `flutter test --no-pub` passed (388
+tests), `flutter test --no-pub --tags native` passed (131 tests, including the
+rewritten Pass transcripts: bare read fails at construction with zero I/O,
+PIN reads keep their SELECT+VERIFY+read transcripts), and `dart analyze`
+reports no errors. The usbip smoke passes the default management key
+unconditionally for the extension read. No physical card, browser transport
+or USB/IP firmware matrix was exercised for this increment.

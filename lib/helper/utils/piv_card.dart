@@ -409,32 +409,54 @@ class PivCardClient extends ProfileCardClient {
     }
   }
 
-  /// Reads the algorithm extension configuration. Firmware 3.0.x gates this
-  /// read behind management-key authentication and every SELECT resets that
-  /// status, so callers on such firmware pass [managementKey]: the client
-  /// SELECTs, prepares and authenticates in the same selection before reading.
+  /// Explicit discovery only when the prepared binding is missing or stale.
+  /// A still-valid binding is reused as-is; discovery is never repeated
+  /// implicitly.
+  Future<void> prepareIfStale() async {
+    final binding = currentProfile;
+    if (binding != null && identical(binding.lease, lease)) {
+      try {
+        binding.check();
+        cancellation.check();
+        return;
+      } on StateError {
+        // Fall through to explicit discovery below.
+      }
+    }
+    await prepare();
+  }
+
+  /// Reads the algorithm extension configuration through the upstream
+  /// profile-based operation. On 3.0.x firmware the read sits behind
+  /// management-key authentication (upstream capability
+  /// PivProtectedAlgorithmConfigRead), so callers on such firmware pass
+  /// [managementKey]: upstream SELECTs, authenticates and reads within one
+  /// operation. Without a key the caller's selected transaction is reused.
+  /// Firmware without the read fails the capability check at construction,
+  /// before any authentication I/O.
   Future<PivAlgorithmExtensionConfig?> readAlgorithmExtensions({
     String? managementKey,
     AlgorithmType managementKeyAlgorithm = AlgorithmType.tdes,
   }) async {
-    await select();
-    if (managementKey != null) {
-      await prepare();
-      if (!await authenticateManagementKey(
-        managementKey,
-        managementKeyAlgorithm,
-      )) {
-        throw StateError('PIV management key authentication failed');
-      }
-    }
+    await prepareIfStale();
+    final keyBytes = managementKey == null
+        ? null
+        : Uint8List.fromList(hex.decode(managementKey));
     try {
-      final data = await _read(PivReadOperation.algorithmConfiguration);
+      final data = await _executePrepared(
+        (profile) => profile.pivReadAlgorithmConfig(
+          managementKey: keyBytes,
+          managementKeyAlgorithm: managementKeyAlgorithm.value,
+        ),
+      );
       return PivAlgorithmExtensionConfig.decode(data);
     } on ProtocolException catch (error) {
       // Only an unavailable instruction permits the existing firmware fallback.
       // Security, malformed-data and unexpected card failures remain errors.
       if (error.details.kind == 'UnsupportedFeature') return null;
       rethrow;
+    } finally {
+      keyBytes?.fillRange(0, keyBytes.length, 0);
     }
   }
 
