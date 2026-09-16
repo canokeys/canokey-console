@@ -40,7 +40,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -729938;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -175027924;
 
 // Section: executor
 
@@ -5462,6 +5462,35 @@ fn wire__crate__api__piv_crypto__prepare_self_signed_certificate_impl(
         },
     )
 }
+fn wire__crate__api__protocol__protocol_step_default_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "protocol_step_default",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Ok::<_, ()>(crate::api::protocol::ProtocolStep::default())?;
+                std::result::Result::Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__crypto__sha256_digest_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -5845,10 +5874,13 @@ impl SseDecode for crate::api::protocol::AdminResult {
         let mut var_kind = <crate::api::protocol::AdminValueKind>::sse_decode(deserializer);
         let mut var_data = <Vec<u8>>::sse_decode(deserializer);
         let mut var_progress = <crate::api::protocol::AdminProgress>::sse_decode(deserializer);
+        let mut var_passSlots =
+            <Option<Vec<crate::api::protocol::PassSlotData>>>::sse_decode(deserializer);
         return crate::api::protocol::AdminResult {
             kind: var_kind,
             data: var_data,
             progress: var_progress,
+            pass_slots: var_passSlots,
         };
     }
 }
@@ -5895,6 +5927,60 @@ impl SseDecode for crate::api::protocol::BootstrapIdentityStep {
     }
 }
 
+impl SseDecode for crate::api::protocol::CtapCredential {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_credentialId = <Vec<u8>>::sse_decode(deserializer);
+        let mut var_userId = <Option<Vec<u8>>>::sse_decode(deserializer);
+        let mut var_userName = <Option<String>>::sse_decode(deserializer);
+        let mut var_userDisplayName = <Option<String>>::sse_decode(deserializer);
+        let mut var_credProtect = <Option<u8>>::sse_decode(deserializer);
+        let mut var_coseAlgorithm = <Option<i64>>::sse_decode(deserializer);
+        let mut var_publicKey = <Option<Vec<u8>>>::sse_decode(deserializer);
+        return crate::api::protocol::CtapCredential {
+            credential_id: var_credentialId,
+            user_id: var_userId,
+            user_name: var_userName,
+            user_display_name: var_userDisplayName,
+            cred_protect: var_credProtect,
+            cose_algorithm: var_coseAlgorithm,
+            public_key: var_publicKey,
+        };
+    }
+}
+
+impl SseDecode for crate::api::protocol::CtapInfo {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_credMgmt = <Option<bool>>::sse_decode(deserializer);
+        let mut var_clientPin = <Option<bool>>::sse_decode(deserializer);
+        let mut var_forcePinChange = <Option<bool>>::sse_decode(deserializer);
+        let mut var_minPinLength = <Option<u64>>::sse_decode(deserializer);
+        let mut var_pinUvAuthProtocols = <Vec<u8>>::sse_decode(deserializer);
+        return crate::api::protocol::CtapInfo {
+            cred_mgmt: var_credMgmt,
+            client_pin: var_clientPin,
+            force_pin_change: var_forcePinChange,
+            min_pin_length: var_minPinLength,
+            pin_uv_auth_protocols: var_pinUvAuthProtocols,
+        };
+    }
+}
+
+impl SseDecode for crate::api::protocol::CtapRp {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_name = <Option<String>>::sse_decode(deserializer);
+        let mut var_idHash = <Vec<u8>>::sse_decode(deserializer);
+        return crate::api::protocol::CtapRp {
+            id: var_id,
+            name: var_name,
+            id_hash: var_idHash,
+        };
+    }
+}
+
 impl SseDecode for i32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5921,6 +6007,72 @@ impl SseDecode for Vec<String> {
     }
 }
 
+impl SseDecode for Vec<crate::api::protocol::CtapCredential> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::protocol::CtapCredential>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::protocol::CtapRp> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::protocol::CtapRp>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::protocol::OathCalculation> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::protocol::OathCalculation>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::protocol::OathEntry> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::protocol::OathEntry>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::protocol::PassSlotData> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::protocol::PassSlotData>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5930,6 +6082,66 @@ impl SseDecode for Vec<u8> {
             ans_.push(<u8>::sse_decode(deserializer));
         }
         return ans_;
+    }
+}
+
+impl SseDecode for crate::api::protocol::OathCalculation {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_name = <Option<Vec<u8>>>::sse_decode(deserializer);
+        let mut var_digits = <u8>::sse_decode(deserializer);
+        let mut var_code = <crate::api::protocol::OathCode>::sse_decode(deserializer);
+        let mut var_rawCode = <Option<u32>>::sse_decode(deserializer);
+        let mut var_fullCode = <Option<Vec<u8>>>::sse_decode(deserializer);
+        return crate::api::protocol::OathCalculation {
+            name: var_name,
+            digits: var_digits,
+            code: var_code,
+            raw_code: var_rawCode,
+            full_code: var_fullCode,
+        };
+    }
+}
+
+impl SseDecode for crate::api::protocol::OathCode {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::protocol::OathCode::Truncated,
+            1 => crate::api::protocol::OathCode::Full,
+            2 => crate::api::protocol::OathCode::Hotp,
+            3 => crate::api::protocol::OathCode::TouchRequired,
+            _ => unreachable!("Invalid variant for OathCode: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::protocol::OathEntry {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_algorithmType = <u8>::sse_decode(deserializer);
+        let mut var_name = <Vec<u8>>::sse_decode(deserializer);
+        return crate::api::protocol::OathEntry {
+            algorithm_type: var_algorithmType,
+            name: var_name,
+        };
+    }
+}
+
+impl SseDecode for crate::api::protocol::OathSelectionData {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_version = <Option<Vec<u8>>>::sse_decode(deserializer);
+        let mut var_salt = <Option<Vec<u8>>>::sse_decode(deserializer);
+        let mut var_challenge = <Option<Vec<u8>>>::sse_decode(deserializer);
+        let mut var_serial = <Option<Vec<u8>>>::sse_decode(deserializer);
+        return crate::api::protocol::OathSelectionData {
+            version: var_version,
+            salt: var_salt,
+            challenge: var_challenge,
+            serial: var_serial,
+        };
     }
 }
 
@@ -6014,6 +6226,41 @@ impl SseDecode for Option<bool> {
     }
 }
 
+impl SseDecode for Option<crate::api::protocol::CtapInfo> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::protocol::CtapInfo>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<i64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<i64>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::protocol::OathSelectionData> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::protocol::OathSelectionData>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<crate::api::piv_crypto::PivPrivateKeyData> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -6051,6 +6298,28 @@ impl SseDecode for Option<u16> {
     }
 }
 
+impl SseDecode for Option<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<u32>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<u64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<u64>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -6073,6 +6342,71 @@ impl SseDecode for Option<crate::api::crypto::X509CertData> {
     }
 }
 
+impl SseDecode for Option<Vec<crate::api::protocol::CtapCredential>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::protocol::CtapCredential>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::protocol::CtapRp>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::protocol::CtapRp>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::protocol::OathCalculation>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::protocol::OathCalculation>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::protocol::OathEntry>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::protocol::OathEntry>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<Vec<crate::api::protocol::PassSlotData>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::protocol::PassSlotData>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<Vec<u8>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -6081,6 +6415,20 @@ impl SseDecode for Option<Vec<u8>> {
         } else {
             return None;
         }
+    }
+}
+
+impl SseDecode for crate::api::protocol::PassSlotData {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_kind = <u8>::sse_decode(deserializer);
+        let mut var_name = <Vec<u8>>::sse_decode(deserializer);
+        let mut var_appendEnter = <bool>::sse_decode(deserializer);
+        return crate::api::protocol::PassSlotData {
+            kind: var_kind,
+            name: var_name,
+            append_enter: var_appendEnter,
+        };
     }
 }
 
@@ -6180,6 +6528,16 @@ impl SseDecode for crate::api::protocol::ProtocolStep {
         let mut var_admin = <Option<crate::api::protocol::AdminResult>>::sse_decode(deserializer);
         let mut var_pinSession = <Option<CtapPinSession>>::sse_decode(deserializer);
         let mut var_pinToken = <Option<CtapPinToken>>::sse_decode(deserializer);
+        let mut var_oathSelection =
+            <Option<crate::api::protocol::OathSelectionData>>::sse_decode(deserializer);
+        let mut var_oathEntries =
+            <Option<Vec<crate::api::protocol::OathEntry>>>::sse_decode(deserializer);
+        let mut var_oathCalculations =
+            <Option<Vec<crate::api::protocol::OathCalculation>>>::sse_decode(deserializer);
+        let mut var_ctapInfo = <Option<crate::api::protocol::CtapInfo>>::sse_decode(deserializer);
+        let mut var_ctapRps = <Option<Vec<crate::api::protocol::CtapRp>>>::sse_decode(deserializer);
+        let mut var_ctapCredentials =
+            <Option<Vec<crate::api::protocol::CtapCredential>>>::sse_decode(deserializer);
         return crate::api::protocol::ProtocolStep {
             command: var_command,
             data: var_data,
@@ -6188,6 +6546,12 @@ impl SseDecode for crate::api::protocol::ProtocolStep {
             admin: var_admin,
             pin_session: var_pinSession,
             pin_token: var_pinToken,
+            oath_selection: var_oathSelection,
+            oath_entries: var_oathEntries,
+            oath_calculations: var_oathCalculations,
+            ctap_info: var_ctapInfo,
+            ctap_rps: var_ctapRps,
+            ctap_credentials: var_ctapCredentials,
         };
     }
 }
@@ -6240,6 +6604,13 @@ impl SseDecode for u32 {
     }
 }
 
+impl SseDecode for u64 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_u64::<NativeEndian>().unwrap()
+    }
+}
+
 impl SseDecode for u8 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -6272,6 +6643,8 @@ impl SseDecode for crate::api::crypto::X509CertData {
         let mut var_signatureValue = <Vec<u8>>::sse_decode(deserializer);
         let mut var_publicKeyAlgorithm = <String>::sse_decode(deserializer);
         let mut var_publicKeySize = <usize>::sse_decode(deserializer);
+        let mut var_publicKeyAlgorithmName = <String>::sse_decode(deserializer);
+        let mut var_signatureAlgorithmName = <String>::sse_decode(deserializer);
         let mut var_subjectPublicKeyInfo = <Vec<u8>>::sse_decode(deserializer);
         let mut var_rawPublicKey = <Vec<u8>>::sse_decode(deserializer);
         return crate::api::crypto::X509CertData {
@@ -6285,6 +6658,8 @@ impl SseDecode for crate::api::crypto::X509CertData {
             signature_value: var_signatureValue,
             public_key_algorithm: var_publicKeyAlgorithm,
             public_key_size: var_publicKeySize,
+            public_key_algorithm_name: var_publicKeyAlgorithmName,
+            signature_algorithm_name: var_signatureAlgorithmName,
             subject_public_key_info: var_subjectPublicKeyInfo,
             raw_public_key: var_rawPublicKey,
         };
@@ -6780,12 +7155,13 @@ fn pde_ffi_dispatcher_sync_impl(
             rust_vec_len,
             data_len,
         ),
-        113 => wire__crate__api__crypto__sha256_digest_impl(ptr, rust_vec_len, data_len),
-        114 => wire__crate__api__crypto__sha384_digest_impl(ptr, rust_vec_len, data_len),
-        115 => wire__crate__api__crypto__sha512_digest_impl(ptr, rust_vec_len, data_len),
-        116 => wire__crate__api__crypto__sm2_message_digest_impl(ptr, rust_vec_len, data_len),
-        117 => wire__crate__api__crypto__tdes_ede3_enc_impl(ptr, rust_vec_len, data_len),
-        118 => wire__crate__api__crypto__verify_piv_signature_impl(ptr, rust_vec_len, data_len),
+        113 => wire__crate__api__protocol__protocol_step_default_impl(ptr, rust_vec_len, data_len),
+        114 => wire__crate__api__crypto__sha256_digest_impl(ptr, rust_vec_len, data_len),
+        115 => wire__crate__api__crypto__sha384_digest_impl(ptr, rust_vec_len, data_len),
+        116 => wire__crate__api__crypto__sha512_digest_impl(ptr, rust_vec_len, data_len),
+        117 => wire__crate__api__crypto__sm2_message_digest_impl(ptr, rust_vec_len, data_len),
+        118 => wire__crate__api__crypto__tdes_ede3_enc_impl(ptr, rust_vec_len, data_len),
+        119 => wire__crate__api__crypto__verify_piv_signature_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -6972,6 +7348,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::protocol::AdminResult {
             self.kind.into_into_dart().into_dart(),
             self.data.into_into_dart().into_dart(),
             self.progress.into_into_dart().into_dart(),
+            self.pass_slots.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -7037,6 +7414,188 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::BootstrapIdentitySt
     for crate::api::protocol::BootstrapIdentityStep
 {
     fn into_into_dart(self) -> crate::api::protocol::BootstrapIdentityStep {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::protocol::CtapCredential {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.credential_id.into_into_dart().into_dart(),
+            self.user_id.into_into_dart().into_dart(),
+            self.user_name.into_into_dart().into_dart(),
+            self.user_display_name.into_into_dart().into_dart(),
+            self.cred_protect.into_into_dart().into_dart(),
+            self.cose_algorithm.into_into_dart().into_dart(),
+            self.public_key.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::protocol::CtapCredential
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::CtapCredential>
+    for crate::api::protocol::CtapCredential
+{
+    fn into_into_dart(self) -> crate::api::protocol::CtapCredential {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::protocol::CtapInfo {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.cred_mgmt.into_into_dart().into_dart(),
+            self.client_pin.into_into_dart().into_dart(),
+            self.force_pin_change.into_into_dart().into_dart(),
+            self.min_pin_length.into_into_dart().into_dart(),
+            self.pin_uv_auth_protocols.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::protocol::CtapInfo
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::CtapInfo>
+    for crate::api::protocol::CtapInfo
+{
+    fn into_into_dart(self) -> crate::api::protocol::CtapInfo {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::protocol::CtapRp {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.id_hash.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::protocol::CtapRp {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::CtapRp>
+    for crate::api::protocol::CtapRp
+{
+    fn into_into_dart(self) -> crate::api::protocol::CtapRp {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::protocol::OathCalculation {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.name.into_into_dart().into_dart(),
+            self.digits.into_into_dart().into_dart(),
+            self.code.into_into_dart().into_dart(),
+            self.raw_code.into_into_dart().into_dart(),
+            self.full_code.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::protocol::OathCalculation
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::OathCalculation>
+    for crate::api::protocol::OathCalculation
+{
+    fn into_into_dart(self) -> crate::api::protocol::OathCalculation {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::protocol::OathCode {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Truncated => 0.into_dart(),
+            Self::Full => 1.into_dart(),
+            Self::Hotp => 2.into_dart(),
+            Self::TouchRequired => 3.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::protocol::OathCode
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::OathCode>
+    for crate::api::protocol::OathCode
+{
+    fn into_into_dart(self) -> crate::api::protocol::OathCode {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::protocol::OathEntry {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.algorithm_type.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::protocol::OathEntry
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::OathEntry>
+    for crate::api::protocol::OathEntry
+{
+    fn into_into_dart(self) -> crate::api::protocol::OathEntry {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::protocol::OathSelectionData {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.version.into_into_dart().into_dart(),
+            self.salt.into_into_dart().into_dart(),
+            self.challenge.into_into_dart().into_dart(),
+            self.serial.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::protocol::OathSelectionData
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::OathSelectionData>
+    for crate::api::protocol::OathSelectionData
+{
+    fn into_into_dart(self) -> crate::api::protocol::OathSelectionData {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::protocol::PassSlotData {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.kind.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.append_enter.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::protocol::PassSlotData
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::PassSlotData>
+    for crate::api::protocol::PassSlotData
+{
+    fn into_into_dart(self) -> crate::api::protocol::PassSlotData {
         self
     }
 }
@@ -7185,6 +7744,12 @@ impl flutter_rust_bridge::IntoDart for crate::api::protocol::ProtocolStep {
             self.admin.into_into_dart().into_dart(),
             self.pin_session.into_into_dart().into_dart(),
             self.pin_token.into_into_dart().into_dart(),
+            self.oath_selection.into_into_dart().into_dart(),
+            self.oath_entries.into_into_dart().into_dart(),
+            self.oath_calculations.into_into_dart().into_dart(),
+            self.ctap_info.into_into_dart().into_dart(),
+            self.ctap_rps.into_into_dart().into_dart(),
+            self.ctap_credentials.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -7246,6 +7811,8 @@ impl flutter_rust_bridge::IntoDart for crate::api::crypto::X509CertData {
             self.signature_value.into_into_dart().into_dart(),
             self.public_key_algorithm.into_into_dart().into_dart(),
             self.public_key_size.into_into_dart().into_dart(),
+            self.public_key_algorithm_name.into_into_dart().into_dart(),
+            self.signature_algorithm_name.into_into_dart().into_dart(),
             self.subject_public_key_info.into_into_dart().into_dart(),
             self.raw_public_key.into_into_dart().into_dart(),
         ]
@@ -7426,6 +7993,7 @@ impl SseEncode for crate::api::protocol::AdminResult {
         <crate::api::protocol::AdminValueKind>::sse_encode(self.kind, serializer);
         <Vec<u8>>::sse_encode(self.data, serializer);
         <crate::api::protocol::AdminProgress>::sse_encode(self.progress, serializer);
+        <Option<Vec<crate::api::protocol::PassSlotData>>>::sse_encode(self.pass_slots, serializer);
     }
 }
 
@@ -7479,6 +8047,39 @@ impl SseEncode for crate::api::protocol::BootstrapIdentityStep {
     }
 }
 
+impl SseEncode for crate::api::protocol::CtapCredential {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<u8>>::sse_encode(self.credential_id, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.user_id, serializer);
+        <Option<String>>::sse_encode(self.user_name, serializer);
+        <Option<String>>::sse_encode(self.user_display_name, serializer);
+        <Option<u8>>::sse_encode(self.cred_protect, serializer);
+        <Option<i64>>::sse_encode(self.cose_algorithm, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.public_key, serializer);
+    }
+}
+
+impl SseEncode for crate::api::protocol::CtapInfo {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<bool>>::sse_encode(self.cred_mgmt, serializer);
+        <Option<bool>>::sse_encode(self.client_pin, serializer);
+        <Option<bool>>::sse_encode(self.force_pin_change, serializer);
+        <Option<u64>>::sse_encode(self.min_pin_length, serializer);
+        <Vec<u8>>::sse_encode(self.pin_uv_auth_protocols, serializer);
+    }
+}
+
+impl SseEncode for crate::api::protocol::CtapRp {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <Option<String>>::sse_encode(self.name, serializer);
+        <Vec<u8>>::sse_encode(self.id_hash, serializer);
+    }
+}
+
 impl SseEncode for i32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7503,6 +8104,56 @@ impl SseEncode for Vec<String> {
     }
 }
 
+impl SseEncode for Vec<crate::api::protocol::CtapCredential> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::protocol::CtapCredential>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::protocol::CtapRp> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::protocol::CtapRp>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::protocol::OathCalculation> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::protocol::OathCalculation>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::protocol::OathEntry> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::protocol::OathEntry>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::protocol::PassSlotData> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::protocol::PassSlotData>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7510,6 +8161,53 @@ impl SseEncode for Vec<u8> {
         for item in self {
             <u8>::sse_encode(item, serializer);
         }
+    }
+}
+
+impl SseEncode for crate::api::protocol::OathCalculation {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<Vec<u8>>>::sse_encode(self.name, serializer);
+        <u8>::sse_encode(self.digits, serializer);
+        <crate::api::protocol::OathCode>::sse_encode(self.code, serializer);
+        <Option<u32>>::sse_encode(self.raw_code, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.full_code, serializer);
+    }
+}
+
+impl SseEncode for crate::api::protocol::OathCode {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::protocol::OathCode::Truncated => 0,
+                crate::api::protocol::OathCode::Full => 1,
+                crate::api::protocol::OathCode::Hotp => 2,
+                crate::api::protocol::OathCode::TouchRequired => 3,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::protocol::OathEntry {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u8>::sse_encode(self.algorithm_type, serializer);
+        <Vec<u8>>::sse_encode(self.name, serializer);
+    }
+}
+
+impl SseEncode for crate::api::protocol::OathSelectionData {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<Vec<u8>>>::sse_encode(self.version, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.salt, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.challenge, serializer);
+        <Option<Vec<u8>>>::sse_encode(self.serial, serializer);
     }
 }
 
@@ -7583,6 +8281,36 @@ impl SseEncode for Option<bool> {
     }
 }
 
+impl SseEncode for Option<crate::api::protocol::CtapInfo> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::protocol::CtapInfo>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<i64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <i64>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::protocol::OathSelectionData> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::protocol::OathSelectionData>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<crate::api::piv_crypto::PivPrivateKeyData> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7613,6 +8341,26 @@ impl SseEncode for Option<u16> {
     }
 }
 
+impl SseEncode for Option<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <u32>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<u64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <u64>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7633,6 +8381,56 @@ impl SseEncode for Option<crate::api::crypto::X509CertData> {
     }
 }
 
+impl SseEncode for Option<Vec<crate::api::protocol::CtapCredential>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::protocol::CtapCredential>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::protocol::CtapRp>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::protocol::CtapRp>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::protocol::OathCalculation>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::protocol::OathCalculation>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::protocol::OathEntry>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::protocol::OathEntry>>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<Vec<crate::api::protocol::PassSlotData>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::protocol::PassSlotData>>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<Vec<u8>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7640,6 +8438,15 @@ impl SseEncode for Option<Vec<u8>> {
         if let Some(value) = self {
             <Vec<u8>>::sse_encode(value, serializer);
         }
+    }
+}
+
+impl SseEncode for crate::api::protocol::PassSlotData {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u8>::sse_encode(self.kind, serializer);
+        <Vec<u8>>::sse_encode(self.name, serializer);
+        <bool>::sse_encode(self.append_enter, serializer);
     }
 }
 
@@ -7728,6 +8535,21 @@ impl SseEncode for crate::api::protocol::ProtocolStep {
         <Option<crate::api::protocol::AdminResult>>::sse_encode(self.admin, serializer);
         <Option<CtapPinSession>>::sse_encode(self.pin_session, serializer);
         <Option<CtapPinToken>>::sse_encode(self.pin_token, serializer);
+        <Option<crate::api::protocol::OathSelectionData>>::sse_encode(
+            self.oath_selection,
+            serializer,
+        );
+        <Option<Vec<crate::api::protocol::OathEntry>>>::sse_encode(self.oath_entries, serializer);
+        <Option<Vec<crate::api::protocol::OathCalculation>>>::sse_encode(
+            self.oath_calculations,
+            serializer,
+        );
+        <Option<crate::api::protocol::CtapInfo>>::sse_encode(self.ctap_info, serializer);
+        <Option<Vec<crate::api::protocol::CtapRp>>>::sse_encode(self.ctap_rps, serializer);
+        <Option<Vec<crate::api::protocol::CtapCredential>>>::sse_encode(
+            self.ctap_credentials,
+            serializer,
+        );
     }
 }
 
@@ -7761,6 +8583,13 @@ impl SseEncode for u32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         serializer.cursor.write_u32::<NativeEndian>(self).unwrap();
+    }
+}
+
+impl SseEncode for u64 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_u64::<NativeEndian>(self).unwrap();
     }
 }
 
@@ -7799,6 +8628,8 @@ impl SseEncode for crate::api::crypto::X509CertData {
         <Vec<u8>>::sse_encode(self.signature_value, serializer);
         <String>::sse_encode(self.public_key_algorithm, serializer);
         <usize>::sse_encode(self.public_key_size, serializer);
+        <String>::sse_encode(self.public_key_algorithm_name, serializer);
+        <String>::sse_encode(self.signature_algorithm_name, serializer);
         <Vec<u8>>::sse_encode(self.subject_public_key_info, serializer);
         <Vec<u8>>::sse_encode(self.raw_public_key, serializer);
     }

@@ -69,7 +69,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => -729938;
+  int get rustContentHash => -175027924;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -716,6 +716,8 @@ abstract class RustLibApi extends BaseApi {
   Uint8List crateApiPivCryptoPrepareSelfSignedCertificate({
     required SelfSignedCertificateParams params,
   });
+
+  ProtocolStep crateApiProtocolProtocolStepDefault();
 
   Uint8List crateApiCryptoSha256Digest({required List<int> data});
 
@@ -4880,6 +4882,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  ProtocolStep crateApiProtocolProtocolStepDefault() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 113,
+          )!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_protocol_step,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiProtocolProtocolStepDefaultConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiProtocolProtocolStepDefaultConstMeta =>
+      const TaskConstMeta(debugName: "protocol_step_default", argNames: []);
+
+  @override
   Uint8List crateApiCryptoSha256Digest({required List<int> data}) {
     return handler.executeSync(
       SyncTask(
@@ -4889,7 +4917,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 113,
+            funcId: 114,
           )!;
         },
         codec: SseCodec(
@@ -4916,7 +4944,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 114,
+            funcId: 115,
           )!;
         },
         codec: SseCodec(
@@ -4943,7 +4971,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 115,
+            funcId: 116,
           )!;
         },
         codec: SseCodec(
@@ -4974,7 +5002,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 116,
+            funcId: 117,
           )!;
         },
         codec: SseCodec(
@@ -5008,7 +5036,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 117,
+            funcId: 118,
           )!;
         },
         codec: SseCodec(
@@ -5045,7 +5073,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 118,
+            funcId: 119,
           )!;
         },
         codec: SseCodec(
@@ -5282,12 +5310,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   AdminResult dco_decode_admin_result(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
     return AdminResult(
       kind: dco_decode_admin_value_kind(arr[0]),
       data: dco_decode_list_prim_u_8_strict(arr[1]),
       progress: dco_decode_admin_progress(arr[2]),
+      passSlots: dco_decode_opt_list_pass_slot_data(arr[3]),
     );
   }
 
@@ -5369,6 +5398,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CtapInfo dco_decode_box_autoadd_ctap_info(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_ctap_info(raw);
+  }
+
+  @protected
+  PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_i_64(raw);
+  }
+
+  @protected
+  OathSelectionData dco_decode_box_autoadd_oath_selection_data(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_oath_selection_data(raw);
+  }
+
+  @protected
   PivPrivateKeyData dco_decode_box_autoadd_piv_private_key_data(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_piv_private_key_data(raw);
@@ -5394,6 +5441,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  BigInt dco_decode_box_autoadd_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_u_64(raw);
+  }
+
+  @protected
   int dco_decode_box_autoadd_u_8(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
@@ -5403,6 +5462,51 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   X509CertData dco_decode_box_autoadd_x_509_cert_data(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_x_509_cert_data(raw);
+  }
+
+  @protected
+  CtapCredential dco_decode_ctap_credential(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    return CtapCredential(
+      credentialId: dco_decode_list_prim_u_8_strict(arr[0]),
+      userId: dco_decode_opt_list_prim_u_8_strict(arr[1]),
+      userName: dco_decode_opt_String(arr[2]),
+      userDisplayName: dco_decode_opt_String(arr[3]),
+      credProtect: dco_decode_opt_box_autoadd_u_8(arr[4]),
+      coseAlgorithm: dco_decode_opt_box_autoadd_i_64(arr[5]),
+      publicKey: dco_decode_opt_list_prim_u_8_strict(arr[6]),
+    );
+  }
+
+  @protected
+  CtapInfo dco_decode_ctap_info(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return CtapInfo(
+      credMgmt: dco_decode_opt_box_autoadd_bool(arr[0]),
+      clientPin: dco_decode_opt_box_autoadd_bool(arr[1]),
+      forcePinChange: dco_decode_opt_box_autoadd_bool(arr[2]),
+      minPinLength: dco_decode_opt_box_autoadd_u_64(arr[3]),
+      pinUvAuthProtocols: dco_decode_list_prim_u_8_strict(arr[4]),
+    );
+  }
+
+  @protected
+  CtapRp dco_decode_ctap_rp(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return CtapRp(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_opt_String(arr[1]),
+      idHash: dco_decode_list_prim_u_8_strict(arr[2]),
+    );
   }
 
   @protected
@@ -5424,6 +5528,36 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<CtapCredential> dco_decode_list_ctap_credential(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_ctap_credential).toList();
+  }
+
+  @protected
+  List<CtapRp> dco_decode_list_ctap_rp(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_ctap_rp).toList();
+  }
+
+  @protected
+  List<OathCalculation> dco_decode_list_oath_calculation(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_oath_calculation).toList();
+  }
+
+  @protected
+  List<OathEntry> dco_decode_list_oath_entry(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_oath_entry).toList();
+  }
+
+  @protected
+  List<PassSlotData> dco_decode_list_pass_slot_data(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_pass_slot_data).toList();
+  }
+
+  @protected
   List<int> dco_decode_list_prim_u_8_loose(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as List<int>;
@@ -5433,6 +5567,53 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as Uint8List;
+  }
+
+  @protected
+  OathCalculation dco_decode_oath_calculation(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return OathCalculation(
+      name: dco_decode_opt_list_prim_u_8_strict(arr[0]),
+      digits: dco_decode_u_8(arr[1]),
+      code: dco_decode_oath_code(arr[2]),
+      rawCode: dco_decode_opt_box_autoadd_u_32(arr[3]),
+      fullCode: dco_decode_opt_list_prim_u_8_strict(arr[4]),
+    );
+  }
+
+  @protected
+  OathCode dco_decode_oath_code(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return OathCode.values[raw as int];
+  }
+
+  @protected
+  OathEntry dco_decode_oath_entry(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return OathEntry(
+      algorithmType: dco_decode_u_8(arr[0]),
+      name: dco_decode_list_prim_u_8_strict(arr[1]),
+    );
+  }
+
+  @protected
+  OathSelectionData dco_decode_oath_selection_data(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return OathSelectionData(
+      version: dco_decode_opt_list_prim_u_8_strict(arr[0]),
+      salt: dco_decode_opt_list_prim_u_8_strict(arr[1]),
+      challenge: dco_decode_opt_list_prim_u_8_strict(arr[2]),
+      serial: dco_decode_opt_list_prim_u_8_strict(arr[3]),
+    );
   }
 
   @protected
@@ -5499,6 +5680,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CtapInfo? dco_decode_opt_box_autoadd_ctap_info(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_ctap_info(raw);
+  }
+
+  @protected
+  PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_i_64(raw);
+  }
+
+  @protected
+  OathSelectionData? dco_decode_opt_box_autoadd_oath_selection_data(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_oath_selection_data(raw);
+  }
+
+  @protected
   PivPrivateKeyData? dco_decode_opt_box_autoadd_piv_private_key_data(
     dynamic raw,
   ) {
@@ -5521,6 +5722,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_u_32(raw);
+  }
+
+  @protected
+  BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_u_64(raw);
+  }
+
+  @protected
   int? dco_decode_opt_box_autoadd_u_8(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_u_8(raw);
@@ -5533,9 +5746,52 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<CtapCredential>? dco_decode_opt_list_ctap_credential(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_ctap_credential(raw);
+  }
+
+  @protected
+  List<CtapRp>? dco_decode_opt_list_ctap_rp(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_ctap_rp(raw);
+  }
+
+  @protected
+  List<OathCalculation>? dco_decode_opt_list_oath_calculation(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_oath_calculation(raw);
+  }
+
+  @protected
+  List<OathEntry>? dco_decode_opt_list_oath_entry(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_oath_entry(raw);
+  }
+
+  @protected
+  List<PassSlotData>? dco_decode_opt_list_pass_slot_data(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_pass_slot_data(raw);
+  }
+
+  @protected
   Uint8List? dco_decode_opt_list_prim_u_8_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_list_prim_u_8_strict(raw);
+  }
+
+  @protected
+  PassSlotData dco_decode_pass_slot_data(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return PassSlotData(
+      kind: dco_decode_u_8(arr[0]),
+      name: dco_decode_list_prim_u_8_strict(arr[1]),
+      appendEnter: dco_decode_bool(arr[2]),
+    );
   }
 
   @protected
@@ -5606,8 +5862,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ProtocolStep dco_decode_protocol_step(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 7)
-      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    if (arr.length != 13)
+      throw Exception('unexpected arr length: expect 13 but see ${arr.length}');
     return ProtocolStep(
       command: dco_decode_opt_list_prim_u_8_strict(arr[0]),
       data: dco_decode_opt_list_prim_u_8_strict(arr[1]),
@@ -5625,6 +5881,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCtapPinToken(
             arr[6],
           ),
+      oathSelection: dco_decode_opt_box_autoadd_oath_selection_data(arr[7]),
+      oathEntries: dco_decode_opt_list_oath_entry(arr[8]),
+      oathCalculations: dco_decode_opt_list_oath_calculation(arr[9]),
+      ctapInfo: dco_decode_opt_box_autoadd_ctap_info(arr[10]),
+      ctapRps: dco_decode_opt_list_ctap_rp(arr[11]),
+      ctapCredentials: dco_decode_opt_list_ctap_credential(arr[12]),
     );
   }
 
@@ -5666,6 +5928,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BigInt dco_decode_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeU64(raw);
+  }
+
+  @protected
   int dco_decode_u_8(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
@@ -5687,8 +5955,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   X509CertData dco_decode_x_509_cert_data(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 12)
-      throw Exception('unexpected arr length: expect 12 but see ${arr.length}');
+    if (arr.length != 14)
+      throw Exception('unexpected arr length: expect 14 but see ${arr.length}');
     return X509CertData(
       bytes: dco_decode_list_prim_u_8_strict(arr[0]),
       subject: dco_decode_String(arr[1]),
@@ -5700,8 +5968,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       signatureValue: dco_decode_list_prim_u_8_strict(arr[7]),
       publicKeyAlgorithm: dco_decode_String(arr[8]),
       publicKeySize: dco_decode_usize(arr[9]),
-      subjectPublicKeyInfo: dco_decode_list_prim_u_8_strict(arr[10]),
-      rawPublicKey: dco_decode_list_prim_u_8_strict(arr[11]),
+      publicKeyAlgorithmName: dco_decode_String(arr[10]),
+      signatureAlgorithmName: dco_decode_String(arr[11]),
+      subjectPublicKeyInfo: dco_decode_list_prim_u_8_strict(arr[12]),
+      rawPublicKey: dco_decode_list_prim_u_8_strict(arr[13]),
     );
   }
 
@@ -5946,7 +6216,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_kind = sse_decode_admin_value_kind(deserializer);
     var var_data = sse_decode_list_prim_u_8_strict(deserializer);
     var var_progress = sse_decode_admin_progress(deserializer);
-    return AdminResult(kind: var_kind, data: var_data, progress: var_progress);
+    var var_passSlots = sse_decode_opt_list_pass_slot_data(deserializer);
+    return AdminResult(
+      kind: var_kind,
+      data: var_data,
+      progress: var_progress,
+      passSlots: var_passSlots,
+    );
   }
 
   @protected
@@ -6035,6 +6311,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CtapInfo sse_decode_box_autoadd_ctap_info(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_ctap_info(deserializer));
+  }
+
+  @protected
+  PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_i_64(deserializer));
+  }
+
+  @protected
+  OathSelectionData sse_decode_box_autoadd_oath_selection_data(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_oath_selection_data(deserializer));
+  }
+
+  @protected
   PivPrivateKeyData sse_decode_box_autoadd_piv_private_key_data(
     SseDeserializer deserializer,
   ) {
@@ -6066,6 +6362,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_u_32(deserializer));
+  }
+
+  @protected
+  BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_u_64(deserializer));
+  }
+
+  @protected
   int sse_decode_box_autoadd_u_8(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_u_8(deserializer));
@@ -6077,6 +6385,53 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_x_509_cert_data(deserializer));
+  }
+
+  @protected
+  CtapCredential sse_decode_ctap_credential(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_credentialId = sse_decode_list_prim_u_8_strict(deserializer);
+    var var_userId = sse_decode_opt_list_prim_u_8_strict(deserializer);
+    var var_userName = sse_decode_opt_String(deserializer);
+    var var_userDisplayName = sse_decode_opt_String(deserializer);
+    var var_credProtect = sse_decode_opt_box_autoadd_u_8(deserializer);
+    var var_coseAlgorithm = sse_decode_opt_box_autoadd_i_64(deserializer);
+    var var_publicKey = sse_decode_opt_list_prim_u_8_strict(deserializer);
+    return CtapCredential(
+      credentialId: var_credentialId,
+      userId: var_userId,
+      userName: var_userName,
+      userDisplayName: var_userDisplayName,
+      credProtect: var_credProtect,
+      coseAlgorithm: var_coseAlgorithm,
+      publicKey: var_publicKey,
+    );
+  }
+
+  @protected
+  CtapInfo sse_decode_ctap_info(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_credMgmt = sse_decode_opt_box_autoadd_bool(deserializer);
+    var var_clientPin = sse_decode_opt_box_autoadd_bool(deserializer);
+    var var_forcePinChange = sse_decode_opt_box_autoadd_bool(deserializer);
+    var var_minPinLength = sse_decode_opt_box_autoadd_u_64(deserializer);
+    var var_pinUvAuthProtocols = sse_decode_list_prim_u_8_strict(deserializer);
+    return CtapInfo(
+      credMgmt: var_credMgmt,
+      clientPin: var_clientPin,
+      forcePinChange: var_forcePinChange,
+      minPinLength: var_minPinLength,
+      pinUvAuthProtocols: var_pinUvAuthProtocols,
+    );
+  }
+
+  @protected
+  CtapRp sse_decode_ctap_rp(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_opt_String(deserializer);
+    var var_idHash = sse_decode_list_prim_u_8_strict(deserializer);
+    return CtapRp(id: var_id, name: var_name, idHash: var_idHash);
   }
 
   @protected
@@ -6104,6 +6459,72 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<CtapCredential> sse_decode_list_ctap_credential(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CtapCredential>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_ctap_credential(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<CtapRp> sse_decode_list_ctap_rp(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CtapRp>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_ctap_rp(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<OathCalculation> sse_decode_list_oath_calculation(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <OathCalculation>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_oath_calculation(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<OathEntry> sse_decode_list_oath_entry(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <OathEntry>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_oath_entry(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<PassSlotData> sse_decode_list_pass_slot_data(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <PassSlotData>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_pass_slot_data(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
@@ -6115,6 +6536,55 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
     return deserializer.buffer.getUint8List(len_);
+  }
+
+  @protected
+  OathCalculation sse_decode_oath_calculation(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_name = sse_decode_opt_list_prim_u_8_strict(deserializer);
+    var var_digits = sse_decode_u_8(deserializer);
+    var var_code = sse_decode_oath_code(deserializer);
+    var var_rawCode = sse_decode_opt_box_autoadd_u_32(deserializer);
+    var var_fullCode = sse_decode_opt_list_prim_u_8_strict(deserializer);
+    return OathCalculation(
+      name: var_name,
+      digits: var_digits,
+      code: var_code,
+      rawCode: var_rawCode,
+      fullCode: var_fullCode,
+    );
+  }
+
+  @protected
+  OathCode sse_decode_oath_code(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return OathCode.values[inner];
+  }
+
+  @protected
+  OathEntry sse_decode_oath_entry(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_algorithmType = sse_decode_u_8(deserializer);
+    var var_name = sse_decode_list_prim_u_8_strict(deserializer);
+    return OathEntry(algorithmType: var_algorithmType, name: var_name);
+  }
+
+  @protected
+  OathSelectionData sse_decode_oath_selection_data(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_version = sse_decode_opt_list_prim_u_8_strict(deserializer);
+    var var_salt = sse_decode_opt_list_prim_u_8_strict(deserializer);
+    var var_challenge = sse_decode_opt_list_prim_u_8_strict(deserializer);
+    var var_serial = sse_decode_opt_list_prim_u_8_strict(deserializer);
+    return OathSelectionData(
+      version: var_version,
+      salt: var_salt,
+      challenge: var_challenge,
+      serial: var_serial,
+    );
   }
 
   @protected
@@ -6214,6 +6684,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CtapInfo? sse_decode_opt_box_autoadd_ctap_info(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_ctap_info(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_i_64(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  OathSelectionData? sse_decode_opt_box_autoadd_oath_selection_data(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_oath_selection_data(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   PivPrivateKeyData? sse_decode_opt_box_autoadd_piv_private_key_data(
     SseDeserializer deserializer,
   ) {
@@ -6251,6 +6756,28 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_u_32(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_u_64(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -6275,6 +6802,69 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<CtapCredential>? sse_decode_opt_list_ctap_credential(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_ctap_credential(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<CtapRp>? sse_decode_opt_list_ctap_rp(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_ctap_rp(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<OathCalculation>? sse_decode_opt_list_oath_calculation(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_oath_calculation(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<OathEntry>? sse_decode_opt_list_oath_entry(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_oath_entry(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  List<PassSlotData>? sse_decode_opt_list_pass_slot_data(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_pass_slot_data(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   Uint8List? sse_decode_opt_list_prim_u_8_strict(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -6283,6 +6873,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     } else {
       return null;
     }
+  }
+
+  @protected
+  PassSlotData sse_decode_pass_slot_data(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_kind = sse_decode_u_8(deserializer);
+    var var_name = sse_decode_list_prim_u_8_strict(deserializer);
+    var var_appendEnter = sse_decode_bool(deserializer);
+    return PassSlotData(
+      kind: var_kind,
+      name: var_name,
+      appendEnter: var_appendEnter,
+    );
   }
 
   @protected
@@ -6386,6 +6989,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCtapPinToken(
           deserializer,
         );
+    var var_oathSelection = sse_decode_opt_box_autoadd_oath_selection_data(
+      deserializer,
+    );
+    var var_oathEntries = sse_decode_opt_list_oath_entry(deserializer);
+    var var_oathCalculations = sse_decode_opt_list_oath_calculation(
+      deserializer,
+    );
+    var var_ctapInfo = sse_decode_opt_box_autoadd_ctap_info(deserializer);
+    var var_ctapRps = sse_decode_opt_list_ctap_rp(deserializer);
+    var var_ctapCredentials = sse_decode_opt_list_ctap_credential(deserializer);
     return ProtocolStep(
       command: var_command,
       data: var_data,
@@ -6394,6 +7007,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       admin: var_admin,
       pinSession: var_pinSession,
       pinToken: var_pinToken,
+      oathSelection: var_oathSelection,
+      oathEntries: var_oathEntries,
+      oathCalculations: var_oathCalculations,
+      ctapInfo: var_ctapInfo,
+      ctapRps: var_ctapRps,
+      ctapCredentials: var_ctapCredentials,
     );
   }
 
@@ -6447,6 +7066,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getBigUint64();
+  }
+
+  @protected
   int sse_decode_u_8(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint8();
@@ -6476,6 +7101,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_signatureValue = sse_decode_list_prim_u_8_strict(deserializer);
     var var_publicKeyAlgorithm = sse_decode_String(deserializer);
     var var_publicKeySize = sse_decode_usize(deserializer);
+    var var_publicKeyAlgorithmName = sse_decode_String(deserializer);
+    var var_signatureAlgorithmName = sse_decode_String(deserializer);
     var var_subjectPublicKeyInfo = sse_decode_list_prim_u_8_strict(
       deserializer,
     );
@@ -6491,6 +7118,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       signatureValue: var_signatureValue,
       publicKeyAlgorithm: var_publicKeyAlgorithm,
       publicKeySize: var_publicKeySize,
+      publicKeyAlgorithmName: var_publicKeyAlgorithmName,
+      signatureAlgorithmName: var_signatureAlgorithmName,
       subjectPublicKeyInfo: var_subjectPublicKeyInfo,
       rawPublicKey: var_rawPublicKey,
     );
@@ -6739,6 +7368,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_admin_value_kind(self.kind, serializer);
     sse_encode_list_prim_u_8_strict(self.data, serializer);
     sse_encode_admin_progress(self.progress, serializer);
+    sse_encode_opt_list_pass_slot_data(self.passSlots, serializer);
   }
 
   @protected
@@ -6838,6 +7468,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_ctap_info(
+    CtapInfo self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_ctap_info(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_i_64(
+    PlatformInt64 self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_64(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_oath_selection_data(
+    OathSelectionData self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_oath_selection_data(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_piv_private_key_data(
     PivPrivateKeyData self,
     SseSerializer serializer,
@@ -6871,6 +7528,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_64(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_u_8(self, serializer);
@@ -6883,6 +7552,39 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_x_509_cert_data(self, serializer);
+  }
+
+  @protected
+  void sse_encode_ctap_credential(
+    CtapCredential self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_prim_u_8_strict(self.credentialId, serializer);
+    sse_encode_opt_list_prim_u_8_strict(self.userId, serializer);
+    sse_encode_opt_String(self.userName, serializer);
+    sse_encode_opt_String(self.userDisplayName, serializer);
+    sse_encode_opt_box_autoadd_u_8(self.credProtect, serializer);
+    sse_encode_opt_box_autoadd_i_64(self.coseAlgorithm, serializer);
+    sse_encode_opt_list_prim_u_8_strict(self.publicKey, serializer);
+  }
+
+  @protected
+  void sse_encode_ctap_info(CtapInfo self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_bool(self.credMgmt, serializer);
+    sse_encode_opt_box_autoadd_bool(self.clientPin, serializer);
+    sse_encode_opt_box_autoadd_bool(self.forcePinChange, serializer);
+    sse_encode_opt_box_autoadd_u_64(self.minPinLength, serializer);
+    sse_encode_list_prim_u_8_strict(self.pinUvAuthProtocols, serializer);
+  }
+
+  @protected
+  void sse_encode_ctap_rp(CtapRp self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_opt_String(self.name, serializer);
+    sse_encode_list_prim_u_8_strict(self.idHash, serializer);
   }
 
   @protected
@@ -6907,6 +7609,63 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_ctap_credential(
+    List<CtapCredential> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_ctap_credential(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_ctap_rp(List<CtapRp> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_ctap_rp(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_oath_calculation(
+    List<OathCalculation> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_oath_calculation(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_oath_entry(
+    List<OathEntry> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_oath_entry(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_pass_slot_data(
+    List<PassSlotData> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_pass_slot_data(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_prim_u_8_loose(
     List<int> self,
     SseSerializer serializer,
@@ -6926,6 +7685,44 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     serializer.buffer.putUint8List(self);
+  }
+
+  @protected
+  void sse_encode_oath_calculation(
+    OathCalculation self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_list_prim_u_8_strict(self.name, serializer);
+    sse_encode_u_8(self.digits, serializer);
+    sse_encode_oath_code(self.code, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.rawCode, serializer);
+    sse_encode_opt_list_prim_u_8_strict(self.fullCode, serializer);
+  }
+
+  @protected
+  void sse_encode_oath_code(OathCode self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_oath_entry(OathEntry self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_8(self.algorithmType, serializer);
+    sse_encode_list_prim_u_8_strict(self.name, serializer);
+  }
+
+  @protected
+  void sse_encode_oath_selection_data(
+    OathSelectionData self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_list_prim_u_8_strict(self.version, serializer);
+    sse_encode_opt_list_prim_u_8_strict(self.salt, serializer);
+    sse_encode_opt_list_prim_u_8_strict(self.challenge, serializer);
+    sse_encode_opt_list_prim_u_8_strict(self.serial, serializer);
   }
 
   @protected
@@ -7026,6 +7823,45 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_ctap_info(
+    CtapInfo? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_ctap_info(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_i_64(
+    PlatformInt64? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_i_64(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_oath_selection_data(
+    OathSelectionData? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_oath_selection_data(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_piv_private_key_data(
     PivPrivateKeyData? self,
     SseSerializer serializer,
@@ -7062,6 +7898,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_u_32(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_u_64(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -7085,6 +7941,71 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_list_ctap_credential(
+    List<CtapCredential>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_ctap_credential(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_ctap_rp(
+    List<CtapRp>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_ctap_rp(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_oath_calculation(
+    List<OathCalculation>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_oath_calculation(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_oath_entry(
+    List<OathEntry>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_oath_entry(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_pass_slot_data(
+    List<PassSlotData>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_pass_slot_data(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_list_prim_u_8_strict(
     Uint8List? self,
     SseSerializer serializer,
@@ -7095,6 +8016,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     if (self != null) {
       sse_encode_list_prim_u_8_strict(self, serializer);
     }
+  }
+
+  @protected
+  void sse_encode_pass_slot_data(PassSlotData self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_8(self.kind, serializer);
+    sse_encode_list_prim_u_8_strict(self.name, serializer);
+    sse_encode_bool(self.appendEnter, serializer);
   }
 
   @protected
@@ -7178,6 +8107,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       self.pinToken,
       serializer,
     );
+    sse_encode_opt_box_autoadd_oath_selection_data(
+      self.oathSelection,
+      serializer,
+    );
+    sse_encode_opt_list_oath_entry(self.oathEntries, serializer);
+    sse_encode_opt_list_oath_calculation(self.oathCalculations, serializer);
+    sse_encode_opt_box_autoadd_ctap_info(self.ctapInfo, serializer);
+    sse_encode_opt_list_ctap_rp(self.ctapRps, serializer);
+    sse_encode_opt_list_ctap_credential(self.ctapCredentials, serializer);
   }
 
   @protected
@@ -7214,6 +8152,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putBigUint64(self);
+  }
+
+  @protected
   void sse_encode_u_8(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint8(self);
@@ -7243,6 +8187,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_prim_u_8_strict(self.signatureValue, serializer);
     sse_encode_String(self.publicKeyAlgorithm, serializer);
     sse_encode_usize(self.publicKeySize, serializer);
+    sse_encode_String(self.publicKeyAlgorithmName, serializer);
+    sse_encode_String(self.signatureAlgorithmName, serializer);
     sse_encode_list_prim_u_8_strict(self.subjectPublicKeyInfo, serializer);
     sse_encode_list_prim_u_8_strict(self.rawPublicKey, serializer);
   }
@@ -7342,8 +8288,8 @@ class CtapPinTokenImpl extends RustOpaque implements CtapPinToken {
 
   /// Enumerate one RP's resident credentials. `metadata_only` enables the
   /// CanoKey vendor extension (subCommandParams key 0x80): the raw COSE
-  /// algorithm replaces the public key in responses. Data: see
-  /// `ctap_credentials_data`. A Begin 0x2E yields an empty result.
+  /// algorithm replaces the public key in typed credential results.
+  /// A Begin 0x2E yields an empty result.
   ProtocolOperation enumerateCredentials({
     required List<int> rpIdHash,
     required bool metadataOnly,
@@ -7355,7 +8301,7 @@ class CtapPinTokenImpl extends RustOpaque implements CtapPinToken {
 
   /// Enumerate relying parties with resident credentials (Begin + GetNext
   /// run inside the one operation). A 0x2E NO_CREDENTIALS status yields an
-  /// empty result, not an error. Data: see `ctap_rps_data`.
+  /// empty result, not an error. Returns typed relying parties.
   ProtocolOperation enumerateRps() =>
       RustLib.instance.api.crateApiProtocolCtapPinTokenEnumerateRps(that: this);
 

@@ -29,7 +29,7 @@ Future<Uint8List> executeProtocolOperation(
   ApduTransport transport, {
   CardLease? lease,
   CardCancellation? cancellation,
-}) => _execute(
+}) => executeProtocolResult(
   operation,
   transport,
   lease: lease,
@@ -42,7 +42,7 @@ Future<ProtocolProfile> executeProfileProbe(
   ApduTransport transport, {
   required CardLease lease,
   CardCancellation? cancellation,
-}) => _execute(
+}) => executeProtocolResult(
   operation,
   transport,
   lease: lease,
@@ -51,45 +51,13 @@ Future<ProtocolProfile> executeProfileProbe(
       step.profile ?? (throw StateError('Expected profile result')),
 );
 
-/// Runs one ClientPIN key agreement and returns the session handle. The
-/// caller owns the handle and closes it after its dependent operations.
-Future<CtapPinSession> executeCtapPinSession(
-  ProtocolOperation operation,
-  ApduTransport transport, {
-  CardLease? lease,
-  CardCancellation? cancellation,
-}) => _execute(
-  operation,
-  transport,
-  lease: lease,
-  cancellation: cancellation,
-  result: (step) =>
-      step.pinSession ?? (throw StateError('Expected CTAP PIN session')),
-);
-
-/// Runs one ClientPIN token request and returns the token handle. The caller
-/// owns the handle and closes it after use; tokens are never cached.
-Future<CtapPinToken> executeCtapPinToken(
-  ProtocolOperation operation,
-  ApduTransport transport, {
-  CardLease? lease,
-  CardCancellation? cancellation,
-}) => _execute(
-  operation,
-  transport,
-  lease: lease,
-  cancellation: cancellation,
-  result: (step) =>
-      step.pinToken ?? (throw StateError('Expected CTAP PIN token')),
-);
-
 Future<AdminResult> executeAdminOperation(
   ProtocolOperation operation,
   ApduTransport transport, {
   required CardLease lease,
   CardCancellation? cancellation,
   required void Function(AdminProgress) onProgress,
-}) => _execute(
+}) => executeProtocolResult(
   operation,
   transport,
   lease: lease,
@@ -102,7 +70,8 @@ Future<AdminResult> executeAdminOperation(
   },
 );
 
-Future<T> _execute<T>(
+/// Executes a typed result under the same lease and cleanup rules as byte results.
+Future<T> executeProtocolResult<T>(
   ProtocolOperation operation,
   ApduTransport transport, {
   CardLease? lease,
@@ -132,13 +101,24 @@ Future<T> _execute<T>(
           step.profile != null ||
           step.admin != null ||
           step.pinSession != null ||
-          step.pinToken != null) {
+          step.pinToken != null ||
+          step.oathSelection != null ||
+          step.oathEntries != null ||
+          step.oathCalculations != null ||
+          step.ctapInfo != null ||
+          step.ctapRps != null ||
+          step.ctapCredentials != null) {
         try {
           check();
           return result(step);
         } catch (_) {
           final data = step.data ?? step.admin?.data;
           data?.fillRange(0, data.length, 0);
+          for (final calculation
+              in step.oathCalculations ?? <OathCalculation>[]) {
+            final code = calculation.fullCode;
+            code?.fillRange(0, code.length, 0);
+          }
           final profile = step.profile;
           if (profile != null) {
             try {

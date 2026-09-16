@@ -187,6 +187,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool dco_decode_box_autoadd_bool(dynamic raw);
 
   @protected
+  CtapInfo dco_decode_box_autoadd_ctap_info(dynamic raw);
+
+  @protected
+  PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
+
+  @protected
+  OathSelectionData dco_decode_box_autoadd_oath_selection_data(dynamic raw);
+
+  @protected
   PivPrivateKeyData dco_decode_box_autoadd_piv_private_key_data(dynamic raw);
 
   @protected
@@ -200,10 +209,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_box_autoadd_u_16(dynamic raw);
 
   @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  BigInt dco_decode_box_autoadd_u_64(dynamic raw);
+
+  @protected
   int dco_decode_box_autoadd_u_8(dynamic raw);
 
   @protected
   X509CertData dco_decode_box_autoadd_x_509_cert_data(dynamic raw);
+
+  @protected
+  CtapCredential dco_decode_ctap_credential(dynamic raw);
+
+  @protected
+  CtapInfo dco_decode_ctap_info(dynamic raw);
+
+  @protected
+  CtapRp dco_decode_ctap_rp(dynamic raw);
 
   @protected
   int dco_decode_i_32(dynamic raw);
@@ -215,10 +239,37 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
+  List<CtapCredential> dco_decode_list_ctap_credential(dynamic raw);
+
+  @protected
+  List<CtapRp> dco_decode_list_ctap_rp(dynamic raw);
+
+  @protected
+  List<OathCalculation> dco_decode_list_oath_calculation(dynamic raw);
+
+  @protected
+  List<OathEntry> dco_decode_list_oath_entry(dynamic raw);
+
+  @protected
+  List<PassSlotData> dco_decode_list_pass_slot_data(dynamic raw);
+
+  @protected
   List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  OathCalculation dco_decode_oath_calculation(dynamic raw);
+
+  @protected
+  OathCode dco_decode_oath_code(dynamic raw);
+
+  @protected
+  OathEntry dco_decode_oath_entry(dynamic raw);
+
+  @protected
+  OathSelectionData dco_decode_oath_selection_data(dynamic raw);
 
   @protected
   String? dco_decode_opt_String(dynamic raw);
@@ -251,6 +302,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
 
   @protected
+  CtapInfo? dco_decode_opt_box_autoadd_ctap_info(dynamic raw);
+
+  @protected
+  PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
+
+  @protected
+  OathSelectionData? dco_decode_opt_box_autoadd_oath_selection_data(
+    dynamic raw,
+  );
+
+  @protected
   PivPrivateKeyData? dco_decode_opt_box_autoadd_piv_private_key_data(
     dynamic raw,
   );
@@ -262,13 +324,37 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? dco_decode_opt_box_autoadd_u_16(dynamic raw);
 
   @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
+
+  @protected
   int? dco_decode_opt_box_autoadd_u_8(dynamic raw);
 
   @protected
   X509CertData? dco_decode_opt_box_autoadd_x_509_cert_data(dynamic raw);
 
   @protected
+  List<CtapCredential>? dco_decode_opt_list_ctap_credential(dynamic raw);
+
+  @protected
+  List<CtapRp>? dco_decode_opt_list_ctap_rp(dynamic raw);
+
+  @protected
+  List<OathCalculation>? dco_decode_opt_list_oath_calculation(dynamic raw);
+
+  @protected
+  List<OathEntry>? dco_decode_opt_list_oath_entry(dynamic raw);
+
+  @protected
+  List<PassSlotData>? dco_decode_opt_list_pass_slot_data(dynamic raw);
+
+  @protected
   Uint8List? dco_decode_opt_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  PassSlotData dco_decode_pass_slot_data(dynamic raw);
 
   @protected
   PivCredentialOperation dco_decode_piv_credential_operation(dynamic raw);
@@ -301,6 +387,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int dco_decode_u_32(dynamic raw);
+
+  @protected
+  BigInt dco_decode_u_64(dynamic raw);
 
   @protected
   int dco_decode_u_8(dynamic raw);
@@ -472,6 +561,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool sse_decode_box_autoadd_bool(SseDeserializer deserializer);
 
   @protected
+  CtapInfo sse_decode_box_autoadd_ctap_info(SseDeserializer deserializer);
+
+  @protected
+  PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
+  OathSelectionData sse_decode_box_autoadd_oath_selection_data(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   PivPrivateKeyData sse_decode_box_autoadd_piv_private_key_data(
     SseDeserializer deserializer,
   );
@@ -491,12 +591,27 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_box_autoadd_u_16(SseDeserializer deserializer);
 
   @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
 
   @protected
   X509CertData sse_decode_box_autoadd_x_509_cert_data(
     SseDeserializer deserializer,
   );
+
+  @protected
+  CtapCredential sse_decode_ctap_credential(SseDeserializer deserializer);
+
+  @protected
+  CtapInfo sse_decode_ctap_info(SseDeserializer deserializer);
+
+  @protected
+  CtapRp sse_decode_ctap_rp(SseDeserializer deserializer);
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
@@ -508,10 +623,45 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
+  List<CtapCredential> sse_decode_list_ctap_credential(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CtapRp> sse_decode_list_ctap_rp(SseDeserializer deserializer);
+
+  @protected
+  List<OathCalculation> sse_decode_list_oath_calculation(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<OathEntry> sse_decode_list_oath_entry(SseDeserializer deserializer);
+
+  @protected
+  List<PassSlotData> sse_decode_list_pass_slot_data(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  OathCalculation sse_decode_oath_calculation(SseDeserializer deserializer);
+
+  @protected
+  OathCode sse_decode_oath_code(SseDeserializer deserializer);
+
+  @protected
+  OathEntry sse_decode_oath_entry(SseDeserializer deserializer);
+
+  @protected
+  OathSelectionData sse_decode_oath_selection_data(
+    SseDeserializer deserializer,
+  );
 
   @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
@@ -548,6 +698,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
 
   @protected
+  CtapInfo? sse_decode_opt_box_autoadd_ctap_info(SseDeserializer deserializer);
+
+  @protected
+  PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
+  OathSelectionData? sse_decode_opt_box_autoadd_oath_selection_data(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   PivPrivateKeyData? sse_decode_opt_box_autoadd_piv_private_key_data(
     SseDeserializer deserializer,
   );
@@ -561,6 +722,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? sse_decode_opt_box_autoadd_u_16(SseDeserializer deserializer);
 
   @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
+
+  @protected
   int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer);
 
   @protected
@@ -569,7 +736,31 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<CtapCredential>? sse_decode_opt_list_ctap_credential(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CtapRp>? sse_decode_opt_list_ctap_rp(SseDeserializer deserializer);
+
+  @protected
+  List<OathCalculation>? sse_decode_opt_list_oath_calculation(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<OathEntry>? sse_decode_opt_list_oath_entry(SseDeserializer deserializer);
+
+  @protected
+  List<PassSlotData>? sse_decode_opt_list_pass_slot_data(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   Uint8List? sse_decode_opt_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  PassSlotData sse_decode_pass_slot_data(SseDeserializer deserializer);
 
   @protected
   PivCredentialOperation sse_decode_piv_credential_operation(
@@ -608,6 +799,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
@@ -808,6 +1002,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_ctap_info(
+    CtapInfo self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_i_64(
+    PlatformInt64 self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_oath_selection_data(
+    OathSelectionData self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_piv_private_key_data(
     PivPrivateKeyData self,
     SseSerializer serializer,
@@ -829,6 +1041,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_box_autoadd_u_16(int self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
 
   @protected
@@ -836,6 +1054,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     X509CertData self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_ctap_credential(
+    CtapCredential self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_ctap_info(CtapInfo self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_ctap_rp(CtapRp self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
@@ -847,11 +1077,56 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_ctap_credential(
+    List<CtapCredential> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_ctap_rp(List<CtapRp> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_oath_calculation(
+    List<OathCalculation> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_oath_entry(
+    List<OathEntry> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_pass_slot_data(
+    List<PassSlotData> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_oath_calculation(
+    OathCalculation self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_oath_code(OathCode self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_oath_entry(OathEntry self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_oath_selection_data(
+    OathSelectionData self,
     SseSerializer serializer,
   );
 
@@ -895,6 +1170,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_box_autoadd_ctap_info(
+    CtapInfo? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_i_64(
+    PlatformInt64? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_oath_selection_data(
+    OathSelectionData? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_piv_private_key_data(
     PivPrivateKeyData? self,
     SseSerializer serializer,
@@ -910,6 +1203,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_u_16(int? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
+
+  @protected
   void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer);
 
   @protected
@@ -919,10 +1218,43 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_list_ctap_credential(
+    List<CtapCredential>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_ctap_rp(
+    List<CtapRp>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_oath_calculation(
+    List<OathCalculation>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_oath_entry(
+    List<OathEntry>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_pass_slot_data(
+    List<PassSlotData>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_list_prim_u_8_strict(
     Uint8List? self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_pass_slot_data(PassSlotData self, SseSerializer serializer);
 
   @protected
   void sse_encode_piv_credential_operation(
@@ -971,6 +1303,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_8(int self, SseSerializer serializer);

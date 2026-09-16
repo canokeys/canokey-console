@@ -6,7 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `admin_operation`, `admin_progress`, `admin_result`, `bytes`, `change_pin_with_iv`, `ctap_credentials_data`, `ctap_info_data`, `ctap_rps_data`, `drive`, `drive`, `failure`, `from_operation`, `new`, `new`, `oath_access`, `openpgp_slot`, `pass_slots_data`, `pin_iv`, `pin_token_with_iv`, `piv_slot`, `set_pin_with_iv`, `token`
+// These functions are ignored because they are not marked as `pub`: `bytes`, `drive`, `drive`, `failure`, `from_operation`, `operation`, `profile`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `Inner`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `from`
 
@@ -52,8 +52,8 @@ abstract class CtapPinToken implements RustOpaqueInterface {
 
   /// Enumerate one RP's resident credentials. `metadata_only` enables the
   /// CanoKey vendor extension (subCommandParams key 0x80): the raw COSE
-  /// algorithm replaces the public key in responses. Data: see
-  /// `ctap_credentials_data`. A Begin 0x2E yields an empty result.
+  /// algorithm replaces the public key in typed credential results.
+  /// A Begin 0x2E yields an empty result.
   ProtocolOperation enumerateCredentials({
     required List<int> rpIdHash,
     required bool metadataOnly,
@@ -61,7 +61,7 @@ abstract class CtapPinToken implements RustOpaqueInterface {
 
   /// Enumerate relying parties with resident credentials (Begin + GetNext
   /// run inside the one operation). A 0x2E NO_CREDENTIALS status yields an
-  /// empty result, not an error. Data: see `ctap_rps_data`.
+  /// empty result, not an error. Returns typed relying parties.
   ProtocolOperation enumerateRps();
 
   /// The pin/UV auth protocol version (1 or 2) of the session that minted
@@ -101,7 +101,7 @@ abstract class ProtocolOperation implements RustOpaqueInterface {
   /// authenticatorGetInfo (0x04), profile-free with its own SELECT. The
   /// final `data` carries the parsed fields Dart needs (credMgmt/clientPin
   /// tri-states, forcePinChange, minPinLength, advertised pinUvAuthProtocol
-  /// versions); see `ctap_info_data` for the encoding.
+  /// versions) as typed fields.
   static ProtocolOperation ctapGetInfo() =>
       RustLib.instance.api.crateApiProtocolProtocolOperationCtapGetInfo();
 
@@ -683,15 +683,18 @@ class AdminResult {
   final AdminValueKind kind;
   final Uint8List data;
   final AdminProgress progress;
+  final List<PassSlotData>? passSlots;
 
   const AdminResult({
     required this.kind,
     required this.data,
     required this.progress,
+    this.passSlots,
   });
 
   @override
-  int get hashCode => kind.hashCode ^ data.hashCode ^ progress.hashCode;
+  int get hashCode =>
+      kind.hashCode ^ data.hashCode ^ progress.hashCode ^ passSlots.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -700,7 +703,8 @@ class AdminResult {
           runtimeType == other.runtimeType &&
           kind == other.kind &&
           data == other.data &&
-          progress == other.progress;
+          progress == other.progress &&
+          passSlots == other.passSlots;
 }
 
 enum AdminValueKind {
@@ -723,6 +727,216 @@ enum AdminValueKind {
 /// Upstream builders own encoding and safe Le correction; no authentication,
 /// no other applet selection and no device observations are created.
 enum BootstrapIdentityStep { selectAdmin, serial }
+
+class CtapCredential {
+  final Uint8List credentialId;
+  final Uint8List? userId;
+  final String? userName;
+  final String? userDisplayName;
+  final int? credProtect;
+  final PlatformInt64? coseAlgorithm;
+  final Uint8List? publicKey;
+
+  const CtapCredential({
+    required this.credentialId,
+    this.userId,
+    this.userName,
+    this.userDisplayName,
+    this.credProtect,
+    this.coseAlgorithm,
+    this.publicKey,
+  });
+
+  @override
+  int get hashCode =>
+      credentialId.hashCode ^
+      userId.hashCode ^
+      userName.hashCode ^
+      userDisplayName.hashCode ^
+      credProtect.hashCode ^
+      coseAlgorithm.hashCode ^
+      publicKey.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CtapCredential &&
+          runtimeType == other.runtimeType &&
+          credentialId == other.credentialId &&
+          userId == other.userId &&
+          userName == other.userName &&
+          userDisplayName == other.userDisplayName &&
+          credProtect == other.credProtect &&
+          coseAlgorithm == other.coseAlgorithm &&
+          publicKey == other.publicKey;
+}
+
+class CtapInfo {
+  final bool? credMgmt;
+  final bool? clientPin;
+  final bool? forcePinChange;
+  final BigInt? minPinLength;
+  final Uint8List pinUvAuthProtocols;
+
+  const CtapInfo({
+    this.credMgmt,
+    this.clientPin,
+    this.forcePinChange,
+    this.minPinLength,
+    required this.pinUvAuthProtocols,
+  });
+
+  @override
+  int get hashCode =>
+      credMgmt.hashCode ^
+      clientPin.hashCode ^
+      forcePinChange.hashCode ^
+      minPinLength.hashCode ^
+      pinUvAuthProtocols.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CtapInfo &&
+          runtimeType == other.runtimeType &&
+          credMgmt == other.credMgmt &&
+          clientPin == other.clientPin &&
+          forcePinChange == other.forcePinChange &&
+          minPinLength == other.minPinLength &&
+          pinUvAuthProtocols == other.pinUvAuthProtocols;
+}
+
+class CtapRp {
+  final String id;
+  final String? name;
+  final Uint8List idHash;
+
+  const CtapRp({required this.id, this.name, required this.idHash});
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode ^ idHash.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CtapRp &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          idHash == other.idHash;
+}
+
+class OathCalculation {
+  final Uint8List? name;
+  final int digits;
+  final OathCode code;
+  final int? rawCode;
+  final Uint8List? fullCode;
+
+  const OathCalculation({
+    this.name,
+    required this.digits,
+    required this.code,
+    this.rawCode,
+    this.fullCode,
+  });
+
+  @override
+  int get hashCode =>
+      name.hashCode ^
+      digits.hashCode ^
+      code.hashCode ^
+      rawCode.hashCode ^
+      fullCode.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OathCalculation &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          digits == other.digits &&
+          code == other.code &&
+          rawCode == other.rawCode &&
+          fullCode == other.fullCode;
+}
+
+enum OathCode { truncated, full, hotp, touchRequired }
+
+class OathEntry {
+  final int algorithmType;
+  final Uint8List name;
+
+  const OathEntry({required this.algorithmType, required this.name});
+
+  @override
+  int get hashCode => algorithmType.hashCode ^ name.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OathEntry &&
+          runtimeType == other.runtimeType &&
+          algorithmType == other.algorithmType &&
+          name == other.name;
+}
+
+/// CTAP getInfo fields Dart needs, parsed in Rust so Dart never touches CBOR:
+/// `credMgmt | clientPin | forcePinChange` as tri-state bytes (0 = absent,
+/// 1 = false, 2 = true), then a minPinLength flag byte (0 = absent; 1 =
+/// present, followed by a big-endian u64), then `count | protocol bytes`
+/// with the raw advertised pinUvAuthProtocol versions.
+class OathSelectionData {
+  final Uint8List? version;
+  final Uint8List? salt;
+  final Uint8List? challenge;
+  final Uint8List? serial;
+
+  const OathSelectionData({
+    this.version,
+    this.salt,
+    this.challenge,
+    this.serial,
+  });
+
+  @override
+  int get hashCode =>
+      version.hashCode ^ salt.hashCode ^ challenge.hashCode ^ serial.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OathSelectionData &&
+          runtimeType == other.runtimeType &&
+          version == other.version &&
+          salt == other.salt &&
+          challenge == other.challenge &&
+          serial == other.serial;
+}
+
+class PassSlotData {
+  final int kind;
+  final Uint8List name;
+  final bool appendEnter;
+
+  const PassSlotData({
+    required this.kind,
+    required this.name,
+    required this.appendEnter,
+  });
+
+  @override
+  int get hashCode => kind.hashCode ^ name.hashCode ^ appendEnter.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PassSlotData &&
+          runtimeType == other.runtimeType &&
+          kind == other.kind &&
+          name == other.name &&
+          appendEnter == other.appendEnter;
+}
 
 /// Explicit actions in an already prepared lease; never SELECT or probe.
 enum PivCredentialOperation {
@@ -787,6 +1001,12 @@ class ProtocolStep {
   final AdminResult? admin;
   final CtapPinSession? pinSession;
   final CtapPinToken? pinToken;
+  final OathSelectionData? oathSelection;
+  final List<OathEntry>? oathEntries;
+  final List<OathCalculation>? oathCalculations;
+  final CtapInfo? ctapInfo;
+  final List<CtapRp>? ctapRps;
+  final List<CtapCredential>? ctapCredentials;
 
   const ProtocolStep({
     this.command,
@@ -796,7 +1016,16 @@ class ProtocolStep {
     this.admin,
     this.pinSession,
     this.pinToken,
+    this.oathSelection,
+    this.oathEntries,
+    this.oathCalculations,
+    this.ctapInfo,
+    this.ctapRps,
+    this.ctapCredentials,
   });
+
+  static ProtocolStep default_() =>
+      RustLib.instance.api.crateApiProtocolProtocolStepDefault();
 
   @override
   int get hashCode =>
@@ -806,7 +1035,13 @@ class ProtocolStep {
       profile.hashCode ^
       admin.hashCode ^
       pinSession.hashCode ^
-      pinToken.hashCode;
+      pinToken.hashCode ^
+      oathSelection.hashCode ^
+      oathEntries.hashCode ^
+      oathCalculations.hashCode ^
+      ctapInfo.hashCode ^
+      ctapRps.hashCode ^
+      ctapCredentials.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -819,5 +1054,11 @@ class ProtocolStep {
           profile == other.profile &&
           admin == other.admin &&
           pinSession == other.pinSession &&
-          pinToken == other.pinToken;
+          pinToken == other.pinToken &&
+          oathSelection == other.oathSelection &&
+          oathEntries == other.oathEntries &&
+          oathCalculations == other.oathCalculations &&
+          ctapInfo == other.ctapInfo &&
+          ctapRps == other.ctapRps &&
+          ctapCredentials == other.ctapCredentials;
 }

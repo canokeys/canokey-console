@@ -2651,11 +2651,12 @@ dependencies = [
  "sha2 0.11.0",
  "sm2",
  "sm3 0.5.0",
+ "time",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
  "x509-cert",
- "x509-parser",
+ "x509-info",
 ]
 
 [[package]]
@@ -3447,6 +3448,22 @@ dependencies = [
  "der 0.8.2",
  "spki 0.8.0",
  "tls_codec",
+]
+
+[[package]]
+name = "x509-info"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dca88fb0c1be3c4b1d3db185056bb98778491de460708c426f5b503a30f177e6"
+dependencies = [
+ "hex",
+ "oid-registry",
+ "pem-rfc7468 1.0.0",
+ "pkcs1",
+ "sha2 0.10.9",
+ "thiserror 2.0.20",
+ "x509-cert",
+ "x509-parser",
 ]
 
 [[package]]

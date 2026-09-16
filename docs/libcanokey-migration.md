@@ -12,7 +12,20 @@ building, UI flows, credential prompting) stays in Console.
   device evidence; `ProtocolOperation` is an opaque state machine that Dart
   drives APDU-by-APDU (`start()`/`advance(response)` → `ProtocolStep`).
   Handles (`CtapPinSession`, `CtapPinToken`, profiles) are opaque and
-  close/dispose locally only.
+  close/dispose locally only. The public types stay in this module so Dart
+  imports remain stable; applet implementations live in `protocol/*_ops.rs`
+  and transcript tests in `protocol/tests.rs`. Profile checks, PIV policy
+  conversion and OpenPGP administrator requests share construction helpers.
+- CTAP information/RPs/credentials, OATH selections/entries/calculations and
+  Pass slot states cross FRB as typed fields. There is no intermediate Console
+  byte format for these results. `executeProtocolResult` and
+  `executePreparedResult` share the existing lease, cancellation and cleanup
+  path with byte-returning operations.
+- Certificate inspection uses `x509-info` for DER/PEM, names, algorithms,
+  key sizes and extensions. Console maps owned results to its display DTO and
+  retains macOS role policy, certificate/CSR construction and signature
+  verification. Unknown key sizes display no bit count; encoded key length
+  is not treated as a key size.
 - `lib/helper/utils/card_client.dart` — shared client infrastructure:
   `CardClientBase` (transport/lease guards, `withSession`, cancellation),
   `ProfileCardClient` (`prepareProfile`, `executePrepared`,

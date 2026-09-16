@@ -17,8 +17,7 @@ use sha2::{Digest, Sha256, Sha384, Sha512};
 use sha2_legacy::Sha256 as RsaSha256;
 use sm2::dsa::{Signature as Sm2Signature, VerifyingKey as Sm2VerifyingKey};
 use sm3::Sm3;
-use x509_parser::pem::parse_x509_pem;
-use x509_parser::prelude::X509Certificate;
+use x509_info::CertificateInfo;
 
 const PIV_TDES: u8 = 0x03;
 const PIV_AES192: u8 = 0x0A;
@@ -51,6 +50,8 @@ pub struct X509CertData {
     pub signature_value: Vec<u8>,
     pub public_key_algorithm: String,
     pub public_key_size: usize,
+    pub public_key_algorithm_name: String,
+    pub signature_algorithm_name: String,
     pub subject_public_key_info: Vec<u8>,
     pub raw_public_key: Vec<u8>,
 }
@@ -249,58 +250,52 @@ fn copy_unsigned_integer(integer: &[u8], output: &mut [u8]) -> Option<()> {
     Some(())
 }
 
-fn x509_public_key_size(parsed_key_size: usize, encoded_key_length: usize) -> usize {
-    if parsed_key_size == 0 {
-        encoded_key_length * 8
-    } else {
-        parsed_key_size
-    }
-}
-
-fn gen_x590_meta(cert: X509Certificate<'_>) -> X509CertData {
-    let subject_pki = &cert.tbs_certificate.subject_pki;
-    let public_key_algorithm = cert
-        .tbs_certificate
-        .subject_pki
-        .algorithm
-        .oid()
-        .to_id_string();
-    let parsed_key_size = subject_pki.parsed().map_or(0, |key| key.key_size());
-    let public_key_size =
-        x509_public_key_size(parsed_key_size, subject_pki.subject_public_key.data.len());
+fn certificate_data(cert: CertificateInfo) -> X509CertData {
+    let date = |seconds| {
+        time::OffsetDateTime::from_unix_timestamp(seconds)
+            .expect("parsed certificate timestamp")
+            .format(time::macros::format_description!("[month repr:short] [day padding:space] [hour]:[minute]:[second] [year padding:none] [offset_hour sign:mandatory]:[offset_minute]"))
+            .expect("valid date format")
+    };
     X509CertData {
-        bytes: cert.as_ref().to_vec(),
-        subject: cert.subject().to_string(),
-        issuer: cert.issuer().to_string(),
-        not_before: cert.validity().not_before.to_string(),
-        not_after: cert.validity().not_after.to_string(),
-        serial_number: format!("{:X}", cert.tbs_certificate.serial),
-        signature_algorithm: cert.tbs_certificate.signature.algorithm.to_string(),
-        signature_value: cert.signature_value.data.to_vec(),
-        public_key_algorithm,
-        public_key_size,
-        subject_public_key_info: subject_pki.raw.to_vec(),
-        raw_public_key: subject_pki.subject_public_key.data.to_vec(),
+        bytes: cert.der,
+        subject: cert.subject.display,
+        issuer: cert.issuer.display,
+        not_before: date(cert.validity.not_before_unix),
+        not_after: date(cert.validity.not_after_unix),
+        serial_number: cert
+            .serial_number
+            .iter()
+            .map(|byte| format!("{byte:02X}"))
+            .collect(),
+        signature_algorithm_name: cert
+            .signature_algorithm
+            .name
+            .unwrap_or_else(|| cert.signature_algorithm.oid.clone()),
+        signature_algorithm: cert.signature_algorithm.oid,
+        signature_value: cert.signature_value,
+        public_key_algorithm_name: cert
+            .public_key
+            .algorithm
+            .name
+            .unwrap_or_else(|| cert.public_key.algorithm.oid.clone()),
+        public_key_algorithm: cert.public_key.algorithm.oid,
+        public_key_size: cert.public_key.key_size_bits.unwrap_or(0),
+        subject_public_key_info: cert.public_key.spki_der,
+        raw_public_key: cert.public_key.key_bytes,
     }
 }
 
 pub fn parse_x509_cert_from_pem(pem: String) -> Result<X509CertData, String> {
-    let pem = parse_x509_pem(pem.as_bytes())
-        .map_err(|_| "failed to parse PEM")?
-        .1;
-    let cert = pem
-        .parse_x509()
-        .map_err(|_| "failed to decode X.509 certificate")?;
-    Ok(gen_x590_meta(cert))
+    x509_info::parse_pem(pem.as_bytes(), Default::default())
+        .map(certificate_data)
+        .map_err(|error| error.to_string())
 }
 
 pub fn parse_x509_cert_from_der(der: Vec<u8>) -> Result<X509CertData, String> {
-    let (remaining, cert) = x509_parser::parse_x509_certificate(der.as_slice())
-        .map_err(|_| "failed to decode X.509 certificate")?;
-    if !remaining.is_empty() {
-        return Err("trailing data after X.509 certificate".into());
-    }
-    Ok(gen_x590_meta(cert))
+    x509_info::parse_der(&der, Default::default())
+        .map(certificate_data)
+        .map_err(|error| error.to_string())
 }
 
 pub fn pbkdf2_hmac_sha1(password: String, salt: Vec<u8>, iterations: u32, key_len: u32) -> Vec<u8> {
@@ -345,8 +340,40 @@ mod tests {
         with_metadata.extend_from_slice(&[0x71, 0x01, 0x00, 0xfe, 0x00]);
         assert_eq!(
             parse_x509_cert_from_der(with_metadata).err().unwrap(),
-            "trailing data after X.509 certificate"
+            "trailing data after certificate"
         );
+    }
+
+    #[test]
+    fn certificate_inspection_uses_library_names_and_strict_single_pem() {
+        use der::EncodePem;
+        let original = include_bytes!("../../../test/fixtures/piv/certificate.der");
+        let cert = x509_cert::Certificate::from_der(original).unwrap();
+        let data = parse_x509_cert_from_der(original.to_vec()).unwrap();
+        assert_eq!(data.public_key_algorithm_name, "RSA");
+        assert_eq!(data.public_key_size, 2048);
+        assert_eq!(data.signature_algorithm_name, "RSA-SHA256");
+        assert_eq!(data.bytes, original);
+        let pem = cert.to_pem(der::pem::LineEnding::LF).unwrap();
+        assert_eq!(
+            parse_x509_cert_from_pem(pem.clone()).unwrap().subject,
+            data.subject
+        );
+        assert!(parse_x509_cert_from_pem(format!("{pem}{pem}")).is_err());
+        assert!(parse_x509_cert_from_pem(pem.replace("CERTIFICATE", "PUBLIC KEY")).is_err());
+
+        // Encoded key size is not a curve size or security-strength estimate.
+        let mut unknown = original.to_vec();
+        let rsa_oid = hex!("06092A864886F70D010101");
+        let offset = unknown
+            .windows(rsa_oid.len())
+            .position(|bytes| bytes == rsa_oid)
+            .unwrap();
+        unknown[offset + rsa_oid.len() - 1] = 99;
+        let unknown = parse_x509_cert_from_der(unknown).unwrap();
+        assert_eq!(unknown.public_key_algorithm_name, "1.2.840.113549.1.1.99");
+        assert_eq!(unknown.public_key_size, 0);
+        assert_eq!(unknown.raw_public_key, data.raw_public_key);
     }
 
     #[test]
@@ -505,14 +532,5 @@ mod tests {
             b"modified".to_vec(),
             signature.to_bytes().to_vec(),
         ));
-    }
-
-    #[test]
-    fn reports_unknown_public_key_size_from_spki_bits() {
-        let key = x509_parser::public_key::PublicKey::Unknown(&[0; 1952]);
-
-        assert_eq!(key.key_size(), 0);
-        assert_eq!(x509_public_key_size(key.key_size(), 1952), 15616);
-        assert_eq!(x509_public_key_size(256, 65), 256);
     }
 }

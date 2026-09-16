@@ -263,29 +263,35 @@ pub fn piv_certificate_supports_macos(
     slot: u8,
     now_unix: i64,
 ) -> bool {
-    let Ok((remaining, cert)) = x509_parser::parse_x509_certificate(&der) else {
+    use x509_info::ExtensionDetails;
+    let Ok(cert) = x509_info::parse_der(&der, Default::default()) else {
         return false;
     };
-    if !remaining.is_empty() || cert.public_key().raw != expected_public_key {
+    if cert.public_key.spki_der != expected_public_key || !cert.validity.contains(now_unix) {
         return false;
     }
-    let Ok(now) = x509_parser::time::ASN1Time::from_timestamp(now_unix) else {
-        return false;
-    };
-    if !cert.validity().is_valid_at(now) {
-        return false;
+    let mut usage = None;
+    let mut eku = None;
+    for ext in &cert.extensions {
+        if !matches!(ext.oid.as_str(), "2.5.29.19" | "2.5.29.15" | "2.5.29.37") {
+            continue;
+        }
+        if ext.duplicate {
+            return false;
+        }
+        match &ext.details {
+            ExtensionDetails::BasicConstraints { ca: false, .. } => {}
+            ExtensionDetails::KeyUsage(value) => usage = Some(value),
+            ExtensionDetails::ExtendedKeyUsage(value) => eku = Some(value),
+            _ => return false,
+        }
     }
-    let Ok(basic) = cert.basic_constraints() else {
-        return false;
-    };
-    if basic.is_some_and(|ext| ext.value.ca) {
-        return false;
-    }
-    let Ok(usage) = cert.key_usage() else {
-        return false;
-    };
-    let Ok(eku) = cert.extended_key_usage() else {
-        return false;
+    let allows_eku = |client_auth| {
+        eku.is_none_or(|purposes| {
+            purposes
+                .iter()
+                .any(|p| p.oid == "2.5.29.37.0" || (client_auth && p.oid == "1.3.6.1.5.5.7.3.2"))
+        })
     };
     let Ok(spki) = SubjectPublicKeyInfo::from_der(&expected_public_key) else {
         return false;
@@ -297,18 +303,15 @@ pub fn piv_certificate_supports_macos(
         return false;
     }
     match slot {
-        0x9A => {
-            usage.is_none_or(|ext| ext.value.digital_signature())
-                && eku.is_none_or(|ext| ext.value.any || ext.value.client_auth)
-        }
+        0x9A => usage.is_none_or(|ext| ext.digital_signature) && allows_eku(true),
         0x9D => {
             usage.is_none_or(|ext| {
                 if algorithm == PIV_RSA2048 {
-                    ext.value.key_encipherment()
+                    ext.key_encipherment
                 } else {
-                    ext.value.key_agreement()
+                    ext.key_agreement
                 }
-            }) && eku.is_none_or(|ext| ext.value.any)
+            }) && allows_eku(false)
         }
         _ => false,
     }

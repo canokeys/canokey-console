@@ -2016,6 +2016,12 @@
     "license": "Apache-2.0 OR MIT"
   },
   {
+    "package_name": "x509-info",
+    "package_version": "0.1.1",
+    "repository": "https://github.com/canokeys/x509-info",
+    "license": "Apache-2.0"
+  },
+  {
     "package_name": "x509-parser",
     "package_version": "0.18.1",
     "repository": "https://github.com/rusticata/x509-parser.git",
