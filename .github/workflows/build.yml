@@ -153,7 +153,9 @@ jobs:
       run: cargo install flutter_rust_bridge_codegen --version 2.13.0 --locked
     - name: Run flutter release build (${{ matrix.target }})
       run: |
-        flutter build ${{ matrix.target }} --release ${{ matrix.build-args }} --verbose
+        flutter build ${{ matrix.target }} --release ${{ matrix.build-args }} --verbose \
+          --dart-define=BUILD_COMMIT="$GITHUB_SHA" \
+          --dart-define=BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
         if [ "${{ matrix.target }}" == "linux" ]; then
           sudo sh -c 'umask 022; exec /snap/bin/snapcraft pack --destructive-mode --platform "$1"' _ "${{ matrix.arch }}"
           sudo chown "$USER:$USER" ./*.snap

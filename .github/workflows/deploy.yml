@@ -49,7 +49,7 @@ jobs:
         cargo install wasm-pack --version "$WASM_PACK_VERSION" --locked
         flutter_rust_bridge_codegen build-web --release \
           --wasm-pack-rustup-toolchain "$RUST_NIGHTLY"
-    - run: flutter build web --verbose
+    - run: flutter build web --verbose --dart-define=BUILD_COMMIT="$GITHUB_SHA" --dart-define=BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     - uses: actions/upload-artifact@v7
       with:
         name: web-spa

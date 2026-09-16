@@ -4,6 +4,7 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
+import 'package:canokey_console/helper/utils/build_info.dart';
 import 'package:canokey_console/helper/utils/icp_filing.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
@@ -160,6 +161,16 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
               ),
               applicationLegalese: '© 2026 canokeys.org',
               children: [
+                if (BuildInfo.commit.isNotEmpty) ...[
+                  Padding(
+                    padding: Spacing.y(8),
+                    child: SelectableText(
+                      'commit ${BuildInfo.shortCommit}'
+                      '${BuildInfo.time.isEmpty ? '' : ' · ${BuildInfo.time}'}',
+                      style: CustomizedTextStyle.bodySmall(),
+                    ),
+                  ),
+                ],
                 Padding(
                   padding: Spacing.y(8),
                   child: CustomizedText.bodyMedium(

@@ -25,9 +25,16 @@ RUSTUP_TOOLCHAIN=1.98.1 flutter_rust_bridge_codegen generate
 rustup run 1.98.1 cargo test --manifest-path rust/Cargo.toml
 flutter test
 dart analyze
-flutter build ios --release --no-codesign
-flutter build appbundle --release
+flutter build ios --release --no-codesign \
+  --dart-define=BUILD_COMMIT="$(git rev-parse HEAD)" \
+  --dart-define=BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+flutter build appbundle --release \
+  --dart-define=BUILD_COMMIT="$(git rev-parse HEAD)" \
+  --dart-define=BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
+
+The `BUILD_COMMIT`/`BUILD_TIME` dart-defines are shown in the About dialog;
+CI and the fastlane lanes inject them automatically.
 
 Test NFC and CCID workflows on physical iOS and Android devices. On Android,
 also verify that each selectable NFC sound plays and that disabling the setting

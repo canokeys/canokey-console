@@ -7,11 +7,18 @@ AAB_BUILD_PATH = File.join(ROOT_DIR, "build", "app", "outputs", "bundle", "relea
 AAB_DIST_PATH = File.join(ROOT_DIR, "dist", "android", "CanoKey-Console.aab")
 ANDROID_METADATA_DIR = File.join(__dir__, "metadata", "android")
 
+# Compile-time build metadata shown in the About dialog.
+def build_defines
+  commit = ENV.fetch("GITHUB_SHA") { `git rev-parse HEAD`.strip }
+  time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+  ["--dart-define=BUILD_COMMIT=#{commit}", "--dart-define=BUILD_TIME=#{time}"]
+end
+
 platform :android do
   desc "Build the signed release AAB without uploading it"
   lane :build_internal do
     Dir.chdir(ROOT_DIR) do
-      sh("flutter", "build", "appbundle", "--release")
+      sh("flutter", "build", "appbundle", "--release", *build_defines)
     end
 
     UI.user_error!("AAB was not generated at #{AAB_BUILD_PATH}") unless File.exist?(AAB_BUILD_PATH)
