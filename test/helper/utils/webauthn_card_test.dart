@@ -38,22 +38,22 @@ void main() {
   setUpAll(() => RustLib.init());
   tearDownAll(RustLib.dispose);
 
-  test('getInfo parses tri-states, minPinLength and protocol versions',
-      () async {
+  // Field-by-field getInfo decoding is pinned by the Rust golden
+  // `ctap_get_info_parses_fields_and_keeps_ctap_status`; these tests only
+  // cover the Dart-side pinProtocol fallback with a tri-state smoke check.
+  test('getInfo prefers PIN protocol V2 when advertised', () async {
     final transport = _QueueApduTransport(['9000', _ctapOk(_getInfoPayload)]);
     await _withClient(transport, (client) async {
       final info = await client.getInfo();
 
-      expect(info.credMgmt, isTrue);
-      expect(info.clientPin, isFalse);
-      expect(info.forcePinChange, isTrue);
-      expect(info.minPinLength, 4);
       expect(info.pinUvAuthProtocols, [1, 2]);
       expect(info.pinProtocol, 2);
+      expect(info.credMgmt, isTrue);
+      expect(info.clientPin, isFalse);
     });
   });
 
-  test('getInfo keeps unadvertised fields absent', () async {
+  test('getInfo falls back to PIN protocol V1 when none advertised', () async {
     final transport = _QueueApduTransport([
       '9000',
       _ctapOk('a20181684649444f5f325f300350244eb29ee0904e4981fe1f20f8d3b8f4'),
@@ -61,13 +61,9 @@ void main() {
     await _withClient(transport, (client) async {
       final info = await client.getInfo();
 
-      expect(info.credMgmt, isNull);
-      expect(info.clientPin, isNull);
-      expect(info.forcePinChange, isNull);
-      expect(info.minPinLength, isNull);
       expect(info.pinUvAuthProtocols, isEmpty);
-      // No advertised pinUvAuthProtocols falls back to protocol V1.
       expect(info.pinProtocol, 1);
+      expect(info.credMgmt, isNull);
     });
   });
 

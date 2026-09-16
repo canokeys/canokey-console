@@ -55,8 +55,9 @@ void main() {
             return Uint8List.fromList([0x30, 1, 0]);
           },
           prepareExecutor: () async {
-            SmartCard.assertOK(
+            expect(
               await transport.transceive('00A4040005A00000030800'),
+              '9000',
             );
           },
         ),
@@ -98,8 +99,9 @@ void main() {
               );
             },
             prepareExecutor: () async {
-              SmartCard.assertOK(
+              expect(
                 await transport.transceive('00A4040005A00000030800'),
+                '9000',
               );
             },
           ),
@@ -133,8 +135,9 @@ void main() {
             return Uint8List.fromList([0x30, 1, 0]);
           },
           prepareExecutor: () async {
-            SmartCard.assertOK(
+            expect(
               await transport.transceive('00A4040005A00000030800'),
+              '9000',
             );
           },
         ),

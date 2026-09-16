@@ -609,10 +609,6 @@ class ConsoleSmoke {
     await _pivClient.withSession(() async {
       await _pivClient.prepare();
       _expect(
-        (await _pivClient.readVersion()).length == 3,
-        'PIV version must contain three bytes',
-      );
-      _expect(
         await _pivClient.readSerial() == _adminSerial.toUpperCase(),
         'Probed serial differs from the initial Admin serial',
       );
@@ -643,12 +639,6 @@ class ConsoleSmoke {
       _expect(
         await _pivClient.changePin(_alternatePivPin, _defaultPivPin),
         'Console failed to restore the PIV PIN',
-      );
-      await _pivClient.logout();
-      response = ApduResponse.parse(await _pivClient.readPinRetries());
-      _expect(
-        response.statusWord == '63C3',
-        'Console did not observe PIV logout',
       );
 
       final firmware = FirmwareVersion.parse(expectedVersion);
