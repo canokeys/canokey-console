@@ -21,6 +21,9 @@ abstract class PollingController extends Controller {
   Future<void> doRefreshData();
   Logger get log;
 
+  /// Pages that own entry refreshes must not also refresh at controller creation.
+  bool get refreshWebOnReady => true;
+
   @override
   void onReady() async {
     super.onReady();
@@ -39,10 +42,12 @@ abstract class PollingController extends Controller {
 
     if (isWeb()) {
       // Web platform: initial read and polling
-      try {
-        await refreshData();
-      } catch (e) {
-        log.w('Failed to read card on web platform', error: e);
+      if (refreshWebOnReady) {
+        try {
+          await refreshData();
+        } catch (e) {
+          log.w('Failed to read card on web platform', error: e);
+        }
       }
       if (_closed) return;
       _webPollTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -133,18 +138,23 @@ abstract class PollingController extends Controller {
     final timer = Stopwatch()..start();
     log.t('refreshData: started');
     late final Future<void> refresh;
-    refresh = Future<void>.sync(doRefreshData).then((_) {
-      _wasNfcConnection = SmartCard.connectionType == ConnectionType.nfc;
-      log.t("wasNfcConnection = $_wasNfcConnection");
-    }, onError: (Object error, StackTrace stack) {
-      log.e('refreshData: failed', error: error, stackTrace: stack);
-      Error.throwWithStackTrace(error, stack);
-    }).whenComplete(() {
-      log.t('refreshData: finished in ${timer.elapsedMilliseconds}ms');
-      if (identical(_refreshFuture, refresh)) {
-        _refreshFuture = null;
-      }
-    });
+    refresh = Future<void>.sync(doRefreshData)
+        .then(
+          (_) {
+            _wasNfcConnection = SmartCard.connectionType == ConnectionType.nfc;
+            log.t("wasNfcConnection = $_wasNfcConnection");
+          },
+          onError: (Object error, StackTrace stack) {
+            log.e('refreshData: failed', error: error, stackTrace: stack);
+            Error.throwWithStackTrace(error, stack);
+          },
+        )
+        .whenComplete(() {
+          log.t('refreshData: finished in ${timer.elapsedMilliseconds}ms');
+          if (identical(_refreshFuture, refresh)) {
+            _refreshFuture = null;
+          }
+        });
     _refreshFuture = refresh;
     return refresh;
   }

@@ -49,7 +49,7 @@ typedef TextStyle GoogleFontFunction({
 
 class CustomizedTextStyle {
   static const List<String> cjkFontFallback = [
-    snapChineseFontFamily,
+    bundledCjkFontFamily,
     'Noto Sans CJK SC',
     'Noto Sans CJK TC',
     'Noto Sans CJK JP',

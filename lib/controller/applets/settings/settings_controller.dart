@@ -1,4 +1,5 @@
 import 'package:canokey_console/helper/utils/applet_switches.dart';
+import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -10,6 +11,7 @@ import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/admin_card.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
+import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:canokey_console/helper/utils/screenshot_mode.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
@@ -21,9 +23,15 @@ import 'package:logger/logger.dart';
 
 class SettingsController extends PollingController with AdminApplet {
   SettingsController({AdminCardClient? client})
-      : _client = client ?? AdminCardClient();
+    : _client = client ?? AdminCardClient();
 
   final AdminCardClient _client;
+  @override
+  AdminCardClient get adminCardClient => _client;
+
+  @override
+  bool get refreshWebOnReady => false;
+
   late CanoKey key;
 
   @override
@@ -63,28 +71,80 @@ class SettingsController extends PollingController with AdminApplet {
         return;
       }
 
+      final pin = adminPinForCurrentLease;
       final featureValues = <Func, bool>{};
+      final standard = {
+        Func.led,
+        Func.ndefReadonly,
+        Func.ndefEnabled,
+        Func.webusbLandingPage,
+      };
+      final known = {
+        ...standard,
+        ...AppletSwitches.featureBits.keys,
+        Func.hotp,
+        Func.keyboardWithReturn,
+        Func.sigTouch,
+        Func.decTouch,
+        Func.autTouch,
+        Func.nfcSwitch,
+      };
+      if (values.keys.any((key) => !known.contains(key))) {
+        throw ArgumentError('Unsupported Admin switch');
+      }
       for (final entry in values.entries) {
         if (AppletSwitches.featureBits.containsKey(entry.key)) {
           featureValues[entry.key] = entry.value;
-        } else {
-          SmartCard.assertOK(await SmartCard.transceive(
-              _changeSwitchAPDUs[entry.key]![entry.value]!));
         }
       }
-
-      if (featureValues.isNotEmpty) {
-        SmartCard.assertOK(await SmartCard.transceive(
-            _changeFeatureSwitchesAPDU(featureValues)));
+      if (values.keys.any(standard.contains) || featureValues.isNotEmpty) {
+        final mask = featureValues.keys.fold(
+          0,
+          (mask, key) => mask | AppletSwitches.featureBits[key]!,
+        );
+        await _client.configure(
+          pin: pin,
+          ledOn: values[Func.led],
+          ndefReadOnly: values[Func.ndefReadonly],
+          ndefEnabled: values[Func.ndefEnabled],
+          webusbLanding: values[Func.webusbLandingPage],
+          featureMask: mask,
+          featureValues: AppletSwitches.updateFeatureMask(0, featureValues),
+        );
+        await _client.prepare();
+      }
+      for (final entry in values.entries) {
+        switch (entry.key) {
+          case Func.hotp:
+            await _client.setKeyboardInterface(entry.value, pin: pin);
+          case Func.keyboardWithReturn:
+            await _client.setKeyboardReturn(entry.value, pin: pin);
+          case Func.sigTouch:
+            await _client.setLegacyTouch(0, entry.value ? 1 : 0, pin: pin);
+          case Func.decTouch:
+            await _client.setLegacyTouch(1, entry.value ? 1 : 0, pin: pin);
+          case Func.autTouch:
+            await _client.setLegacyTouch(2, entry.value ? 1 : 0, pin: pin);
+          case Func.nfcSwitch:
+            await _client.setNfcEnabled(entry.value, pin: pin);
+          default:
+            continue;
+        }
+        // Every successful profile-affecting operation ends its own auth/target
+        // sequence. Explicitly discover before the next operation, never inside it.
+        await _client.prepare();
       }
 
       log.i(
-          'Successfully changed switches: ${values.keys.map((e) => e.name).join(', ')}');
+        'Successfully changed switches: ${values.keys.map((e) => e.name).join(', ')}',
+      );
       Navigator.pop(Get.context!);
 
       Prompts.showPrompt(
-          S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
-          forceSnackBar: true);
+        S.of(Get.context!).successfullyChanged,
+        ContentThemeColor.success,
+        forceSnackBar: true,
+      );
       await _refresh(sn);
     });
   }
@@ -96,13 +156,18 @@ class SettingsController extends PollingController with AdminApplet {
         return;
       }
 
-      await _client.changePin(newPin);
+      final oldPin = adminPinForCurrentLease;
+      // A lost acknowledgment may mean the new PIN is already committed.
+      await forgetAdminPin(sn);
+      await _client.changePin(newPin, currentPin: oldPin);
       log.i('Successfully changed PIN');
 
       Navigator.pop(Get.context!);
       Prompts.showPrompt(
-          S.of(Get.context!).pinChanged, ContentThemeColor.success,
-          forceSnackBar: true);
+        S.of(Get.context!).pinChanged,
+        ContentThemeColor.success,
+        forceSnackBar: true,
+      );
 
       await updatePinCache(sn, newPin, savePin);
     });
@@ -115,36 +180,62 @@ class SettingsController extends PollingController with AdminApplet {
         return;
       }
 
-      SmartCard.assertOK(await SmartCard.transceive(applet.resetApdu));
+      // Clearing first covers committed resets with lost acknowledgments too.
+      if (applet == Applet.oath) {
+        await LocalStorage.setPinCache(sn, 'OATH', null);
+      }
+      if (applet == Applet.webauthn) {
+        await LocalStorage.setPinCache(sn, 'webauthn', null);
+      }
+      await _client.resetApplet(applet, pin: adminPinForCurrentLease);
       log.i('Successfully reset ${applet.name}');
 
       Navigator.pop(Get.context!);
       Prompts.showPrompt(
-          S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success,
-          forceSnackBar: true);
+        S.of(Get.context!).settingsResetSuccess,
+        ContentThemeColor.success,
+        forceSnackBar: true,
+      );
     });
   }
 
-  void resetCanokey() {
+  void resetCanokey() async {
     log.t('Call SettingsController.resetCanokey');
-    SmartCard.process((String sn) async {
-      await _client.select();
+    await SmartCard.process((String sn) async {
+      await _client.prepare();
       AppLoaderOverlay.show();
-      String resp = await SmartCard.transceive('00500000055245534554');
-      AppLoaderOverlay.hide();
+      int? status;
+      try {
+        await LocalStorage.clearPinCacheForDevice(sn);
+        await _client.factoryReset();
+        status = 0x9000;
+      } on ProtocolException catch (error) {
+        status = error.details.statusWord;
+      } finally {
+        AppLoaderOverlay.hide();
+        await forgetAdminPin(sn);
+      }
       Navigator.pop(Get.context!);
-      if (resp == '9000') {
+      if (status == 0x9000) {
         Prompts.showPrompt(
-            S.of(Get.context!).settingsResetSuccess, ContentThemeColor.success);
-      } else if (resp == '6985') {
+          S.of(Get.context!).settingsResetSuccess,
+          ContentThemeColor.success,
+        );
+      } else if (status == 0x6985) {
         Prompts.showPrompt(
-            S.of(Get.context!).settingsResetConditionNotSatisfying,
-            ContentThemeColor.danger);
-      } else if (resp == '6982') {
-        Prompts.showPrompt(S.of(Get.context!).settingsResetPresenceTestFailed,
-            ContentThemeColor.danger);
+          S.of(Get.context!).settingsResetConditionNotSatisfying,
+          ContentThemeColor.danger,
+        );
+      } else if (status == 0x6982) {
+        Prompts.showPrompt(
+          S.of(Get.context!).settingsResetPresenceTestFailed,
+          ContentThemeColor.danger,
+        );
       } else {
-        Prompts.showPrompt(S.current.settingsResetFailed, ContentThemeColor.danger);
+        Prompts.showPrompt(
+          S.current.settingsResetFailed,
+          ContentThemeColor.danger,
+        );
       }
     });
   }
@@ -157,7 +248,7 @@ class SettingsController extends PollingController with AdminApplet {
       }
 
       if (preset.isDefault) {
-        SmartCard.assertOK(await SmartCard.transceive('00470000'));
+        await _client.clearKeyboardKeymap(pin: adminPinForCurrentLease);
       } else {
         final entries = preset.entries;
         final id = preset.id;
@@ -168,20 +259,29 @@ class SettingsController extends PollingController with AdminApplet {
         if (validationError != null) {
           throw Exception(validationError);
         }
-        SmartCard.assertOK(await SmartCard.transceive(
-            '004500${id.toRadixString(16).padLeft(2, '0')}000100${hex.encode(entries)}'));
+        await _client.writeKeyboardKeymap(
+          id,
+          entries,
+          pin: adminPinForCurrentLease,
+        );
       }
       log.i('Successfully changed keyboard layout');
       Navigator.pop(Get.context!);
 
       Prompts.showPrompt(
-          S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
-          forceSnackBar: true);
+        S.of(Get.context!).successfullyChanged,
+        ContentThemeColor.success,
+        forceSnackBar: true,
+      );
       await _refresh(sn);
     });
   }
 
   Future<void> _refresh(String sn) async {
+    // Authentication already discovered and verified this lease; re-probe only
+    // when writes invalidated the profile evidence.
+    await _client.prepareIfStale();
+    final pin = adminPinForCurrentLease;
     final firmwareVersion = await _client.readFirmwareVersion();
     String? coreCommit;
     final model = await _client.readModel();
@@ -194,7 +294,7 @@ class SettingsController extends PollingController with AdminApplet {
     if (functionSetVersion == FunctionSetVersion.v5) {
       coreCommit = await _client.readCoreCommit();
     }
-    final config = await _client.readConfig();
+    final config = await _client.readConfig(pin: pin);
     final switches = AppletSwitchStatus.fromConfig(
       firmwareVersion: FirmwareVersion.parse(firmwareVersion),
       functionSetVersion: functionSetVersion,
@@ -202,7 +302,8 @@ class SettingsController extends PollingController with AdminApplet {
     );
     final legacy = functionSetVersion == FunctionSetVersion.v1;
     final ledOn = config[0] == 1;
-    final hotpOn = functionSetVersion.index <= FunctionSetVersion.v3.index &&
+    final hotpOn =
+        functionSetVersion.index <= FunctionSetVersion.v3.index &&
         config[1] == 1;
     final ndefReadonly = config[2] == 1;
     final ndefEnabled = !legacy && config[3] == 1;
@@ -217,11 +318,11 @@ class SettingsController extends PollingController with AdminApplet {
     StorageUsage? storageUsage;
     KeyboardKeymapState? keyboardKeymap;
     if (functionSet.contains(Func.nfcSwitch)) {
-      nfcEnabled = await _client.readNfcEnabled();
+      nfcEnabled = await _client.readNfcEnabled(pin: pin);
     }
     if (functionSet.contains(Func.dynamicOathCapacity) ||
         functionSet.contains(Func.dynamicWebAuthnCapacity)) {
-      final totalUsage = await _client.readStorageUsage();
+      final totalUsage = await _client.readStorageUsage(pin: pin);
       storageUsage = StorageUsage(
         usedKiB: totalUsage.usedKiB,
         totalKiB: totalUsage.totalKiB,
@@ -236,36 +337,37 @@ class SettingsController extends PollingController with AdminApplet {
       }
     }
     if (functionSet.contains(Func.keyboardKeymap)) {
-      keyboardKeymap = await _tryReadKeyboardKeymap();
+      keyboardKeymap = await _readKeyboardKeymap(pin);
     }
 
     key = CanoKey(
-        model: model,
-        sn: sn,
-        chipId: chipId,
-        firmwareVersion: firmwareVersion,
-        coreCommit: coreCommit,
-        functionSetVersion: functionSetVersion,
-        ledOn: ledOn,
-        hotpOn: hotpOn,
-        ndefReadonly: ndefReadonly,
-        ndefEnabled: ndefEnabled,
-        webusbLandingEnabled: webusbLandingEnabled,
-        keyboardWithReturn: keyboardWithReturn,
-        sigTouch: sigTouch,
-        decTouch: decTouch,
-        autTouch: autTouch,
-        touchCacheTime: cacheTime,
-        nfcEnabled: nfcEnabled,
-        passEnabled: switches.passEnabled,
-        openPgpCcIdEnabled: switches.openPgpUsbEnabled,
-        openPgpNfcEnabled: switches.openPgpNfcEnabled,
-        pivCcIdEnabled: switches.pivUsbEnabled,
-        pivNfcEnabled: switches.pivNfcEnabled,
-        webAuthnEnabled: switches.webAuthnEnabled,
-        featureSwitchesSupported: switches.featureSwitchesSupported,
-        storageUsage: storageUsage,
-        keyboardKeymap: keyboardKeymap);
+      model: model,
+      sn: sn,
+      chipId: chipId,
+      firmwareVersion: firmwareVersion,
+      coreCommit: coreCommit,
+      functionSetVersion: functionSetVersion,
+      ledOn: ledOn,
+      hotpOn: hotpOn,
+      ndefReadonly: ndefReadonly,
+      ndefEnabled: ndefEnabled,
+      webusbLandingEnabled: webusbLandingEnabled,
+      keyboardWithReturn: keyboardWithReturn,
+      sigTouch: sigTouch,
+      decTouch: decTouch,
+      autTouch: autTouch,
+      touchCacheTime: cacheTime,
+      nfcEnabled: nfcEnabled,
+      passEnabled: switches.passEnabled,
+      openPgpCcIdEnabled: switches.openPgpUsbEnabled,
+      openPgpNfcEnabled: switches.openPgpNfcEnabled,
+      pivCcIdEnabled: switches.pivUsbEnabled,
+      pivNfcEnabled: switches.pivNfcEnabled,
+      webAuthnEnabled: switches.webAuthnEnabled,
+      featureSwitchesSupported: switches.featureSwitchesSupported,
+      storageUsage: storageUsage,
+      keyboardKeymap: keyboardKeymap,
+    );
 
     polled = true;
 
@@ -273,18 +375,14 @@ class SettingsController extends PollingController with AdminApplet {
   }
 
   Future<List<AppletStorageUsage>> _tryReadAppletStorageUsage(
-      Set<Func> functionSet) async {
-    final resp = await SmartCard.transceive('0041010030');
-    if (!SmartCard.isOK(resp)) {
-      log.w('Failed to read applet flash usage: $resp');
-      return [];
-    }
-
-    final data = SmartCard.dropSW(resp);
-    if (data.length < _appletUsageMinResponseLengthHex ||
-        data.length % _appletUsageRecordLengthHex != 0) {
-      log.w('Invalid applet flash usage length: ${data.length ~/ 2}');
-      return [];
+    Set<Func> functionSet,
+  ) async {
+    String data;
+    try {
+      data = hex.encode(await _client.readAppletStorageUsage());
+    } on ProtocolException catch (error) {
+      if (error.details.kind == 'UnsupportedFeature') return [];
+      rethrow;
     }
 
     final usages = <AppletStorageUsage>[];
@@ -292,35 +390,45 @@ class SettingsController extends PollingController with AdminApplet {
     for (var i = 0; i < recordCount; i++) {
       final offset = i * _appletUsageRecordLengthHex;
       final id = int.parse(data.substring(offset, offset + 2), radix: 16);
-      final flags =
-          int.parse(data.substring(offset + 2, offset + 4), radix: 16);
+      final flags = int.parse(
+        data.substring(offset + 2, offset + 4),
+        radix: 16,
+      );
       final name = _appletUsageNames[id];
       if (name == null || !_hasAppletStorageUsage(id, functionSet)) {
         continue;
       }
-      usages.add(AppletStorageUsage(
-        id: id,
-        name: name,
-        logicalBytes:
-            int.parse(data.substring(offset + 4, offset + 12), radix: 16),
-        hasMissingSources: flags & 0x01 != 0,
-      ));
+      usages.add(
+        AppletStorageUsage(
+          id: id,
+          name: name,
+          logicalBytes: int.parse(
+            data.substring(offset + 4, offset + 12),
+            radix: 16,
+          ),
+          hasMissingSources: flags & 0x01 != 0,
+        ),
+      );
     }
     return usages;
   }
 
-  Future<KeyboardKeymapState> _tryReadKeyboardKeymap() async {
-    var resp = await SmartCard.transceive('0046000001');
-    if (SmartCard.sw(resp) == '6A88') {
-      return const KeyboardKeymapState(
-        layoutId: null,
-        entries: null,
-        preset: KeyboardKeymapPresets.defaultPreset,
-        isDefault: true,
-      );
-    }
-    if (!SmartCard.isOK(resp)) {
-      log.w('Failed to read keyboard layout id: $resp');
+  Future<KeyboardKeymapState> _readKeyboardKeymap(String pin) async {
+    final int? layoutId;
+    try {
+      layoutId = await _client.readKeyboardLayout(pin: pin);
+    } on ProtocolException catch (error) {
+      if (error.details.kind == 'NotFound') {
+        return const KeyboardKeymapState(
+          layoutId: null,
+          entries: null,
+          preset: KeyboardKeymapPresets.defaultPreset,
+          isDefault: true,
+        );
+      }
+      // A one-off read failure degrades the keymap UI instead of failing the
+      // whole settings refresh.
+      log.w('Failed to read keyboard layout id', error: error);
       return const KeyboardKeymapState(
         layoutId: null,
         entries: null,
@@ -328,11 +436,11 @@ class SettingsController extends PollingController with AdminApplet {
         isDefault: false,
       );
     }
-    final layoutId = int.parse(SmartCard.dropSW(resp), radix: 16);
-
-    resp = await SmartCard.transceive('0046000100');
-    if (!SmartCard.isOK(resp)) {
-      log.w('Failed to read keyboard keymap: $resp');
+    final Uint8List entries;
+    try {
+      entries = await _client.readKeyboardKeymap(pin: pin);
+    } on ProtocolException catch (error) {
+      log.w('Failed to read keyboard keymap', error: error);
       return KeyboardKeymapState(
         layoutId: layoutId,
         entries: null,
@@ -340,13 +448,10 @@ class SettingsController extends PollingController with AdminApplet {
         isDefault: false,
       );
     }
-
-    final entries = Uint8List.fromList(hex.decode(SmartCard.dropSW(resp)));
-    final preset = KeyboardKeymapPresets.findMatching(layoutId, entries);
     return KeyboardKeymapState(
       layoutId: layoutId,
       entries: entries,
-      preset: preset,
+      preset: KeyboardKeymapPresets.findMatching(layoutId, entries),
       isDefault: false,
     );
   }
@@ -354,10 +459,6 @@ class SettingsController extends PollingController with AdminApplet {
   static const int _appletUsageRecordLengthBytes = 6;
   static const int _appletUsageRecordLengthHex =
       _appletUsageRecordLengthBytes * 2;
-  static const int _appletUsageMinRecordCount = 7;
-  static const int _appletUsageMinResponseLengthHex =
-      _appletUsageRecordLengthHex * _appletUsageMinRecordCount;
-
   static const Map<int, String> _appletUsageNames = {
     0x00: 'System',
     0x01: 'Admin',
@@ -388,32 +489,4 @@ class SettingsController extends PollingController with AdminApplet {
         return false;
     }
   }
-
-  int _currentFeatureMask() => AppletSwitches.updateFeatureMask(0, {
-    Func.passSwitch: key.passEnabled,
-    Func.openPgpCcIdSwitch: key.openPgpCcIdEnabled,
-    Func.openPgpNfcSwitch: key.openPgpNfcEnabled,
-    Func.pivCcIdSwitch: key.pivCcIdEnabled,
-    Func.pivNfcSwitch: key.pivNfcEnabled,
-    Func.webAuthnSwitch: key.webAuthnEnabled,
-  });
-
-  String _changeFeatureSwitchesAPDU(Map<Func, bool> values) {
-    final newMask =
-        AppletSwitches.updateFeatureMask(_currentFeatureMask(), values);
-    return '004006${newMask.toRadixString(16).padLeft(2, '0')}';
-  }
-
-  final Map<Func, Map<bool, String>> _changeSwitchAPDUs = {
-    Func.led: {true: '00400101', false: '00400100'},
-    Func.hotp: {true: '00400301', false: '00400300'},
-    Func.ndefEnabled: {true: '00400401', false: '00400400'},
-    Func.ndefReadonly: {true: '00080100', false: '00080000'},
-    Func.webusbLandingPage: {true: '00400501', false: '00400500'},
-    Func.keyboardWithReturn: {true: '00400601', false: '00400600'},
-    Func.sigTouch: {true: '00090001', false: '00090000'},
-    Func.decTouch: {true: '00090101', false: '00090100'},
-    Func.autTouch: {true: '00090201', false: '00090200'},
-    Func.nfcSwitch: {true: '00140101', false: '00140100'},
-  };
 }

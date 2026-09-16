@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
@@ -13,12 +15,14 @@ class ForcePinChangeDialog extends BaseDialog {
   final Future<bool> Function(String currentPin, String newPin, bool savePin)
   onSubmit;
   final VoidCallback onCancel;
+  final Future<void> Function() onFocus;
 
   const ForcePinChangeDialog({
     super.key,
     required this.minPinLength,
     required this.onSubmit,
     required this.onCancel,
+    this.onFocus = SmartCard.eject,
   });
 
   static Future<void> show({
@@ -31,11 +35,14 @@ class ForcePinChangeDialog extends BaseDialog {
     onSubmit,
     required VoidCallback onCancel,
   }) {
+    final zone = Zone.current;
     return AppDialog.show(
       ForcePinChangeDialog(
         minPinLength: minPinLength,
-        onSubmit: onSubmit,
-        onCancel: onCancel,
+        onSubmit: (currentPin, newPin, savePin) =>
+            zone.run(() => onSubmit(currentPin, newPin, savePin)),
+        onCancel: zone.bindCallback(onCancel),
+        onFocus: zone.bindCallback(SmartCard.eject),
       ),
     );
   }
@@ -214,7 +221,7 @@ class _ForcePinChangeDialogState extends BaseDialogState<ForcePinChangeDialog> {
       autofocus: controller == _currentPin,
       obscureText: obscureText,
       validator: (value) => _validatePin(value, minLength: minLength),
-      onTap: SmartCard.eject,
+      onTap: widget.onFocus,
       onFieldSubmitted: onFieldSubmitted,
       decoration: InputDecoration(
         labelText: label,

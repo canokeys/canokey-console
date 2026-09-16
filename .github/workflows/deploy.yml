@@ -40,6 +40,14 @@ jobs:
         channel: stable
         version: ${{ env.FLUTTER_VERSION }}
         cache: true
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+    - name: Generate bundled CJK fonts
+      run: |
+        python -m pip install --quiet fonttools==4.63.0
+        python tool/subset_cjk_font.py
+        git diff --exit-code -- assets/fonts/CanoKeyCJK-Bold.ttf assets/fonts/CanoKeyCJK-Regular.ttf
     - run: flutter pub get
     - name: Build Rust Library
       env:
@@ -49,21 +57,7 @@ jobs:
         cargo install wasm-pack --version "$WASM_PACK_VERSION" --locked
         flutter_rust_bridge_codegen build-web --release \
           --wasm-pack-rustup-toolchain "$RUST_NIGHTLY"
-    - name: Restore FIDO2 Web backend
-      id: fido2_web_cache
-      uses: actions/cache@v5
-      with:
-        path: web/fido2
-        key: fido2-web-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.RUST_NIGHTLY }}-${{ steps.wasm_pack.outputs.version }}-${{ hashFiles('pubspec.lock') }}
-    - name: Build FIDO2 Web backend
-      if: steps.fido2_web_cache.outputs.cache-hit != 'true'
-      env:
-        RUSTUP_TOOLCHAIN: ${{ env.RUST_NIGHTLY }}
-      run: |
-        dart run fido2:setup --web --output=build/fido2
-        mkdir -p web/fido2
-        cp build/fido2/web/fido2_crypto* web/fido2/
-    - run: flutter build web --verbose
+    - run: flutter build web --verbose --dart-define=BUILD_COMMIT="${{ github.event.pull_request.head.sha || github.sha }}" --dart-define=BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     - uses: actions/upload-artifact@v7
       with:
         name: web-spa

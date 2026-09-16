@@ -6,29 +6,32 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/applet_switches.dart';
-import 'package:canokey_console/helper/utils/admin_card.dart';
-import 'package:canokey_console/helper/utils/ctap_transmitter.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
+import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/utils/webauthn_card.dart';
 import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/webauthn.dart';
 import 'package:canokey_console/views/applets/webauthn/dialogs/force_pin_change_dialog.dart';
-import 'package:fido2/fido2.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
 class WebAuthnController extends PollingController with AdminApplet {
-  late Ctap2 _ctap;
-  final Map<String, String> _localPinCache = {};
+  final WebAuthnCardClient _client = WebAuthnCardClient();
+  final _localPinCache = CredentialCache('webauthn');
   final List<WebAuthnItem> webAuthnItems = [];
   FirmwareVersion firmwareVersion = const FirmwareVersion(0, 0, 0);
   FunctionSetVersion functionSetVersion = FunctionSetVersion.v1;
   String? disabledMessage;
+
+  /// Display state from the latest getInfo; refreshed after PIN mutations.
+  WebAuthnInfo? _info;
 
   bool get supportsSm2Settings =>
       CanoKey.functionSet(functionSetVersion).contains(Func.webAuthnSm2Support);
@@ -53,37 +56,28 @@ class WebAuthnController extends PollingController with AdminApplet {
       }
       disabledMessage = null;
 
-      List<int>? pinToken = await _getPinToken(sn);
+      WebAuthnPinToken? pinToken = await _getPinToken(sn);
       if (pinToken == null) {
         return;
       }
 
       webAuthnItems.clear();
 
-      final cp = ClientPin(_ctap);
-      final cm = CredentialManagement(
-          _ctap,
-          cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(),
-          pinToken);
       try {
-        for (var rp in (await cm.enumerateRPs())) {
-          for (var element
-              in (await cm.enumerateCredentialsMetadataOnly(rp.rpIdHash))) {
+        for (var rp in await pinToken.enumerateRps()) {
+          for (var credential
+              in await pinToken.enumerateCredentials(rp.idHash)) {
             webAuthnItems.add(WebAuthnItem(
-              rpId: rp.rp.id,
-              userName: element.user.name ?? '<unknown>',
-              userDisplayName: element.user.displayName ?? '<unknown>',
-              userId: element.user.id,
-              credentialId: element.credentialId,
+              rpId: rp.id,
+              userName: credential.userName ?? '<unknown>',
+              userDisplayName: credential.userDisplayName ?? '<unknown>',
+              userId: credential.userId ?? const [],
+              credentialId: credential.credentialId,
             ));
           }
         }
-      } on CtapError catch (e) {
-        if (e.status == CtapStatusCode.ctap2ErrNoCredentials) {
-          log.i('No credentials');
-        } else {
-          rethrow;
-        }
+      } finally {
+        pinToken.close();
       }
 
       polled = true;
@@ -100,20 +94,16 @@ class WebAuthnController extends PollingController with AdminApplet {
         return;
       }
 
-      SmartCard.assertOK(
-          await SmartCard.transceive('00A4040008A0000006472F0001'));
-      final cp = ClientPin(_ctap);
+      final session = await _client.beginPinSession(await _refreshInfo());
       try {
-        await cp.changePin(pinToTry, newPin);
-      } catch (e) {
-        if (e is CtapError) {
-          _showPinError(e.status);
-          return;
-        } else {
-          rethrow;
-        }
+        await session.changePin(pinToTry, newPin);
+      } on ProtocolException catch (e) {
+        _showPinError(e);
+        return;
+      } finally {
+        session.close();
       }
-
+      await _refreshInfo();
       await _setPinCache(sn, newPin, savePin);
       log.i('Successfully changed PIN');
 
@@ -135,7 +125,7 @@ class WebAuthnController extends PollingController with AdminApplet {
       if (!await authenticate(sn)) {
         return;
       }
-      config = await AdminCardClient().readSm2Config();
+      config = await adminCardClient.readSm2Config(pin: adminPinForCurrentLease);
     });
     return config;
   }
@@ -152,7 +142,8 @@ class WebAuthnController extends PollingController with AdminApplet {
       if (!await authenticate(sn)) {
         return;
       }
-      await AdminCardClient().writeSm2Config(
+      await adminCardClient.writeSm2Config(
+        pin: adminPinForCurrentLease,
         enabled: enabled,
         curveId: curveId,
         algoId: algoId,
@@ -165,7 +156,7 @@ class WebAuthnController extends PollingController with AdminApplet {
     });
   }
 
-  Future<void> delete(PublicKeyCredentialDescriptor credentialId) async {
+  Future<void> delete(List<int> credentialId) async {
     log.t('Call WebAuthnController.delete');
     await SmartCard.process((String sn) async {
       String? pinToTry = _loadPin(sn);
@@ -174,23 +165,22 @@ class WebAuthnController extends PollingController with AdminApplet {
         return;
       }
 
-      SmartCard.assertOK(
-          await SmartCard.transceive('00A4040008A0000006472F0001'));
-      final cp = ClientPin(_ctap);
-      final pinToken = await cp.getPinToken(pinToTry,
-          permissions: [ClientPinPermission.credentialManagement]);
-      final cm = CredentialManagement(
-          _ctap,
-          cp.pinProtocolVersion == 1 ? PinProtocolV1() : PinProtocolV2(),
-          pinToken);
-      await cm.deleteCredential(credentialId);
+      final pinToken = await _doGetPinToken(pinToTry);
+      if (pinToken == null) {
+        return;
+      }
+      try {
+        await pinToken.deleteCredential(credentialId);
+      } finally {
+        pinToken.close();
+      }
       log.i('Successfully deleted credential');
 
       Navigator.pop(Get.context!);
       Prompts.showPrompt(S.of(Get.context!).delete, ContentThemeColor.success,
           forceSnackBar: true);
-      webAuthnItems
-          .removeWhere((element) => element.credentialId == credentialId);
+      webAuthnItems.removeWhere(
+          (element) => listEquals(element.credentialId, credentialId));
       update();
     });
   }
@@ -211,29 +201,29 @@ class WebAuthnController extends PollingController with AdminApplet {
     return null;
   }
 
-  Future<List<int>?> _getPinToken(String sn) async {
-    String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
-    SmartCard.assertOK(resp);
-    _ctap = await Ctap2.create(CtapTransmitter());
+  Future<WebAuthnInfo> _refreshInfo() async =>
+      _info = await _client.getInfo();
+
+  Future<WebAuthnPinToken?> _getPinToken(String sn) async {
+    final info = await _refreshInfo();
 
     // We do nothing if the device does not support credMgmt or clientPin
-    if (_ctap.info.options?['credMgmt'] != true ||
-        _ctap.info.options?['clientPin'] == null) {
+    if (info.credMgmt != true || info.clientPin == null) {
       Prompts.showPrompt(S.of(Get.context!).webauthnClientPinNotSupported,
           ContentThemeColor.danger);
       return null;
     }
 
     // If PIN is not set, ask the user to set PIN first
-    if (_ctap.info.options?['clientPin'] == false) {
+    if (info.clientPin == false) {
       if (!await _setPin(sn)) {
         return null;
       }
     }
 
-    assert(_ctap.info.options?['clientPin'] == true);
+    assert(_info!.clientPin == true);
 
-    if (_ctap.info.forcePinChange == true) {
+    if (_info!.forcePinChange == true) {
       return _forceChangePin(sn);
     }
 
@@ -261,7 +251,7 @@ class WebAuthnController extends PollingController with AdminApplet {
     // Finally, prompt user
     // When using NFC, we need to finish NFC before showing the dialog
     await SmartCard.stopPollingNfc(withInput: true);
-    final completer = Completer<List<int>?>();
+    final completer = Completer<WebAuthnPinToken?>();
     InputPinDialog.show(
       title: S.of(Get.context!).webauthnInputPinTitle,
       label: 'PIN',
@@ -279,7 +269,7 @@ class WebAuthnController extends PollingController with AdminApplet {
           return; // timeout, do not close the dialog
         }
         Prompts.stopPromptAndroidPolling();
-        List<int>? pinToken;
+        WebAuthnPinToken? pinToken;
         try {
           pinToken = await _doGetPinToken(pin);
         } on PlatformException catch (e) {
@@ -330,15 +320,16 @@ class WebAuthnController extends PollingController with AdminApplet {
         }
         Prompts.stopPromptAndroidPolling();
         try {
-          // Set PIN and refresh by recreating Ctap2
-          String resp =
-              await SmartCard.transceive('00A4040008A0000006472F0001');
-          SmartCard.assertOK(resp);
-          final cp = ClientPin(_ctap);
-          await cp.setPin(pin);
-          // Update _ctap before continuing so later PIN-token operations see
-          // the authenticator's new clientPin state.
-          _ctap = await Ctap2.create(CtapTransmitter());
+          final session =
+              await _client.beginPinSession(_info ?? await _refreshInfo());
+          try {
+            await session.setPin(pin);
+          } finally {
+            session.close();
+          }
+          // Refresh getInfo so later PIN-token operations see the
+          // authenticator's new clientPin state.
+          await _refreshInfo();
           log.i('setPin success');
         } on PlatformException catch (e) {
           await SmartCard.stopPollingNfc(withInput: true);
@@ -372,24 +363,24 @@ class WebAuthnController extends PollingController with AdminApplet {
     return await completer.future;
   }
 
-  Future<List<int>?> _doGetPinToken(String pin) async {
+  Future<WebAuthnPinToken?> _doGetPinToken(String pin) async {
+    final session =
+        await _client.beginPinSession(_info ?? await _refreshInfo());
     try {
-      String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
-      SmartCard.assertOK(resp);
-      final cp = ClientPin(_ctap);
-      return await cp.getPinToken(pin,
-          permissions: [ClientPinPermission.credentialManagement]);
-    } on CtapError catch (e) {
-      _showPinError(e.status);
+      return await session.getPinToken(pin);
+    } on ProtocolException catch (e) {
+      _showPinError(e);
       return null;
+    } finally {
+      session.close();
     }
   }
 
-  Future<List<int>?> _forceChangePin(String sn) async {
+  Future<WebAuthnPinToken?> _forceChangePin(String sn) async {
     await SmartCard.stopPollingNfc(withInput: true);
-    final completer = Completer<List<int>?>();
+    final completer = Completer<WebAuthnPinToken?>();
     await ForcePinChangeDialog.show(
-      minPinLength: _ctap.info.minPinLength ?? 4,
+      minPinLength: _info?.minPinLength ?? 4,
       onSubmit: (currentPin, newPin, savePin) async {
         SmartCard.nfcState = NfcState.processWithInput;
         if (!await SmartCard.pollNfcOrWebUsb()) {
@@ -401,11 +392,13 @@ class WebAuthnController extends PollingController with AdminApplet {
         }
         Prompts.stopPromptAndroidPolling();
         try {
-          SmartCard.assertOK(
-              await SmartCard.transceive('00A4040008A0000006472F0001'));
-          final cp = ClientPin(_ctap);
-          await cp.changePin(currentPin, newPin);
-          _ctap = await Ctap2.create(CtapTransmitter());
+          final session = await _client.beginPinSession(_info!);
+          try {
+            await session.changePin(currentPin, newPin);
+          } finally {
+            session.close();
+          }
+          await _refreshInfo();
           final pinToken = await _doGetPinToken(newPin);
           if (pinToken == null) {
             await SmartCard.stopPollingNfc(withInput: true);
@@ -419,9 +412,9 @@ class WebAuthnController extends PollingController with AdminApplet {
           Prompts.showPrompt(
               S.of(Get.context!).pinChanged, ContentThemeColor.success);
           return true;
-        } on CtapError catch (e) {
+        } on ProtocolException catch (e) {
           await SmartCard.stopPollingNfc(withInput: true);
-          _showPinError(e.status);
+          _showPinError(e);
           return false;
         } on PlatformException catch (e) {
           await SmartCard.stopPollingNfc(withInput: true);
@@ -453,22 +446,26 @@ class WebAuthnController extends PollingController with AdminApplet {
     return completer.future;
   }
 
-  void _showPinError(CtapStatusCode status) {
-    if (status == CtapStatusCode.ctap2ErrPinInvalid) {
-      Prompts.showPrompt(
-          S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
-    } else if (status == CtapStatusCode.ctap2ErrPinAuthBlocked) {
-      Prompts.showPrompt(
-          S.of(Get.context!).webauthnPinAuthBlocked, ContentThemeColor.danger);
-    } else if (status == CtapStatusCode.ctap2ErrPinBlocked) {
-      Prompts.showPrompt(
-          S.of(Get.context!).webauthnPinBlocked, ContentThemeColor.danger);
-    } else if (status == CtapStatusCode.ctap2ErrPinPolicyViolation) {
-      Prompts.showPrompt(
-          S.of(Get.context!).changePinPrompt(_ctap.info.minPinLength ?? 4, 63),
-          ContentThemeColor.danger);
-    } else {
-      Prompts.showPrompt(S.current.pinVerificationFailed, ContentThemeColor.danger);
+  /// CTAP failures keep the raw CTAP status byte in [ProtocolError.statusWord]:
+  /// 0x31 PIN_INVALID, 0x32 PIN_BLOCKED, 0x34 PIN_AUTH_BLOCKED and 0x37
+  /// PIN_POLICY_VIOLATION select the same prompts the fido2 statuses did.
+  void _showPinError(ProtocolException error) {
+    switch (error.details.statusWord) {
+      case 0x31:
+        Prompts.showPrompt(
+            S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+      case 0x34:
+        Prompts.showPrompt(
+            S.of(Get.context!).webauthnPinAuthBlocked, ContentThemeColor.danger);
+      case 0x32:
+        Prompts.showPrompt(
+            S.of(Get.context!).webauthnPinBlocked, ContentThemeColor.danger);
+      case 0x37:
+        Prompts.showPrompt(
+            S.of(Get.context!).changePinPrompt(_info?.minPinLength ?? 4, 63),
+            ContentThemeColor.danger);
+      default:
+        Prompts.showPrompt(S.current.pinVerificationFailed, ContentThemeColor.danger);
     }
   }
 

@@ -47,7 +47,6 @@ parts:
       cp --archive "$bundle_dir/." "$CRAFT_PART_INSTALL/"
     stage-packages:
       - libpcsclite1
-      - fonts-droid-fallback
 
   desktop-metadata:
     plugin: nil

@@ -1,21 +1,24 @@
 import 'dart:typed_data';
 
-import 'package:fido2/fido2.dart';
-
 class WebAuthnSm2Config {
   final bool enabled;
   final int curveId;
   final int algoId;
   final bool canChangeEnabled;
+  final Endian legacyEndian;
 
   const WebAuthnSm2Config({
     required this.enabled,
     required this.curveId,
     required this.algoId,
     this.canChangeEnabled = true,
+    this.legacyEndian = Endian.big,
   });
 
-  factory WebAuthnSm2Config.decode(List<int> bytes) {
+  factory WebAuthnSm2Config.decode(
+    List<int> bytes, {
+    Endian legacyEndian = Endian.big,
+  }) {
     if (bytes.length != 8 && bytes.length != 9) {
       throw const FormatException('Invalid WebAuthn SM2 configuration length');
     }
@@ -27,9 +30,10 @@ class WebAuthnSm2Config {
     final offset = legacy ? 1 : 0;
     return WebAuthnSm2Config(
       enabled: !legacy || bytes[0] == 1,
-      curveId: data.getInt32(offset, Endian.big),
-      algoId: data.getInt32(offset + 4, Endian.big),
+      curveId: data.getInt32(offset, legacy ? legacyEndian : Endian.big),
+      algoId: data.getInt32(offset + 4, legacy ? legacyEndian : Endian.big),
       canChangeEnabled: legacy,
+      legacyEndian: legacyEndian,
     );
   }
 
@@ -56,8 +60,16 @@ class WebAuthnSm2Config {
     final data = ByteData(canChangeEnabled ? 9 : 8);
     final offset = canChangeEnabled ? 1 : 0;
     if (canChangeEnabled) data.setUint8(0, enabled ? 1 : 0);
-    data.setInt32(offset, curveId, Endian.big);
-    data.setInt32(offset + 4, algoId, Endian.big);
+    data.setInt32(
+      offset,
+      curveId,
+      canChangeEnabled ? legacyEndian : Endian.big,
+    );
+    data.setInt32(
+      offset + 4,
+      algoId,
+      canChangeEnabled ? legacyEndian : Endian.big,
+    );
     return data.buffer.asUint8List();
   }
 }
@@ -67,7 +79,7 @@ class WebAuthnItem {
   String userName;
   String userDisplayName;
   List<int> userId;
-  PublicKeyCredentialDescriptor credentialId;
+  Uint8List credentialId;
 
   WebAuthnItem({
     required this.rpId,

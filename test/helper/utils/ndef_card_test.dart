@@ -1,61 +1,41 @@
+@Tags(['native'])
+library;
+
 import 'dart:typed_data';
 
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/ndef_card.dart';
+import 'package:canokey_console/helper/utils/protocol_operation.dart';
+import 'package:canokey_console/src/rust/frb_generated.dart';
 import 'package:convert/convert.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+const _selectApplet = '00A4040007D2760000850101';
+const _selectCc = '00A4000C02E103';
+const _selectNdef = '00A4000C02E104';
+const _readCc = '00B000000F';
+const _readNlen = '00B0000002';
+
+/// 15-byte capability container for a writable file of [fileSize] bytes.
+List<int> _capabilityContainer(int fileSize, {bool readOnly = false}) => [
+  0x00, 0x0f, 0x20, 0x00, 0xf0, 0x00, 0xf0, //
+  0x04, 0x06, 0xe1, 0x04,
+  fileSize >> 8, fileSize & 0xff, 0x00, readOnly ? 0xff : 0x00,
+];
+
+String _ok(List<int> data) => '${hex.encode(data)}9000';
+
 void main() {
-  group('NDEF binary APDUs', () {
-    test('builds short READ BINARY commands', () {
-      expect(NdefCardClient.readBinaryApdu(0x0102, 0xf0), '00B00102F0');
-    });
+  setUpAll(() => RustLib.init());
+  tearDownAll(RustLib.dispose);
 
-    test('builds short UPDATE BINARY commands', () {
-      expect(
-        NdefCardClient.updateBinaryApdu(0, Uint8List.fromList([0x00, 0x11])),
-        '00D60000020011',
-      );
-    });
-
-    test('rejects APDUs outside the short command range', () {
-      expect(() => NdefCardClient.readBinaryApdu(0, 0), throwsRangeError);
-      expect(
-        () => NdefCardClient.updateBinaryApdu(0, Uint8List(256)),
-        throwsRangeError,
-      );
-    });
-  });
-  test(
-    'reads capability and message data through the injected transport',
-    () async {
-      final capability = [
-        0x00,
-        0x0f,
-        0x20,
-        0x00,
-        0xf0,
-        0x00,
-        0xf0,
-        0x04,
-        0x06,
-        0xe1,
-        0x04,
-        0x00,
-        0x05,
-        0x00,
-        0x00,
-      ];
-      final transport = _QueueApduTransport([
-        '9000',
-        '9000',
-        '${hex.encode(capability)}9000',
-        '9000',
-        '00039000',
-        '0102039000',
-      ]);
-      final client = NdefCardClient(transport: transport);
-
+  test('reads capability and message through the libcanokey machines', () async {
+    final cc = _capabilityContainer(5); // max message length 3
+    final transport = _QueueApduTransport([
+      '9000', '9000', _ok(cc), // read capability
+      '9000', '9000', _ok(cc), '9000', _ok([0, 3]), _ok([1, 2, 3]), // read
+    ]);
+    await _withClient(transport, (client) async {
       final data = await client.read();
 
       expect(data, isNotNull);
@@ -63,92 +43,158 @@ void main() {
       expect(data.readOnly, isFalse);
       expect(data.message, [1, 2, 3]);
       expect(transport.commands, [
-        '00A4040007D2760000850101',
-        '00A4000C02E103',
-        '00B000000F',
-        '00A4000C020001',
-        '00B0000002',
+        _selectApplet, _selectCc, _readCc,
+        _selectApplet, _selectCc, _readCc, _selectNdef, _readNlen,
         '00B0000203',
       ]);
-    },
-  );
+    });
+  });
 
-  test(
-    'writes messages in production-sized chunks and commits NLEN last',
-    () async {
-      final transport = _QueueApduTransport(List.filled(6, '9000'));
-      final client = NdefCardClient(transport: transport);
-      final message = Uint8List.fromList(List.generate(241, (index) => index));
+  test('reads an empty message without further message reads', () async {
+    final cc = _capabilityContainer(1024, readOnly: true);
+    final transport = _QueueApduTransport([
+      '9000', '9000', _ok(cc),
+      '9000', '9000', _ok(cc), '9000', _ok([0, 0]),
+    ]);
+    await _withClient(transport, (client) async {
+      final data = await client.read();
 
+      expect(data, isNotNull);
+      expect(data!.maxMessageLength, 1022);
+      expect(data.readOnly, isTrue);
+      expect(data.message, isEmpty);
+      expect(transport.commands, [
+        _selectApplet, _selectCc, _readCc,
+        _selectApplet, _selectCc, _readCc, _selectNdef, _readNlen,
+      ]);
+    });
+  });
+
+  test('writes zero NLEN, 240-byte chunks and the real NLEN last', () async {
+    final cc = _capabilityContainer(1024);
+    final transport = _QueueApduTransport([
+      '9000', '9000', _ok(cc), // capability preflight
+      '9000', '9000', '9000', '9000', '9000',
+    ]);
+    final message = Uint8List.fromList(List.generate(241, (index) => index));
+    await _withClient(transport, (client) async {
       expect(await client.write(message), isTrue);
 
-      expect(transport.commands[2], '00D60000020000');
-      expect(transport.commands[3].startsWith('00D60002F0'), isTrue);
-      expect(transport.commands[4], '00D600F201F0');
-      expect(transport.commands[5], '00D600000200F1');
-    },
-  );
-
-  test('reports unavailable and read-only NDEF applets', () async {
-    expect(
-      await NdefCardClient(transport: _QueueApduTransport(['6A82'])).read(),
-      isNull,
-    );
-    expect(
-      await NdefCardClient(
-        transport: _QueueApduTransport(['6A82']),
-      ).write(Uint8List.fromList([1])),
-      isFalse,
-    );
-    expect(
-      NdefCardClient(
-        transport: _QueueApduTransport(['9000', '9000', '6982']),
-      ).write(Uint8List.fromList([1])),
-      throwsA(isA<NdefReadOnlyException>()),
-    );
+      expect(transport.commands, [
+        _selectApplet,
+        _selectCc,
+        _readCc,
+        _selectNdef,
+        '00D60000020000',
+        '00D60002F0${hex.encode(message.sublist(0, 240)).toUpperCase()}',
+        '00D600F201F0',
+        '00D600000200F1',
+      ]);
+    });
   });
 
-  test('rejects malformed capability and oversized message lengths', () async {
-    expect(
-      NdefCardClient(
-        transport: _QueueApduTransport([
-          '9000',
-          '9000',
-          '${hex.encode(List.filled(15, 0))}9000',
-        ]),
-      ).read(),
-      throwsFormatException,
-    );
-
-    final capability = List<int>.filled(15, 0)
-      ..[7] = 0x04
-      ..[8] = 0x06
-      ..[12] = 0x03;
-    expect(
-      NdefCardClient(
-        transport: _QueueApduTransport([
-          '9000',
-          '9000',
-          '${hex.encode(capability)}9000',
-          '9000',
-          '00029000',
-        ]),
-      ).read(),
-      throwsFormatException,
-    );
+  test('writes an empty message as two NLEN updates', () async {
+    final cc = _capabilityContainer(1024);
+    final transport = _QueueApduTransport([
+      '9000', '9000', _ok(cc),
+      '9000', '9000', '9000',
+    ]);
+    await _withClient(transport, (client) async {
+      expect(await client.write(Uint8List(0)), isTrue);
+      expect(transport.commands, [
+        _selectApplet,
+        _selectCc,
+        _readCc,
+        _selectNdef,
+        '00D60000020000',
+        '00D60000020000',
+      ]);
+    });
   });
 
-  test('rejects invalid short APDU ranges', () {
-    expect(() => NdefCardClient.readBinaryApdu(-1, 1), throwsRangeError);
-    expect(
-      () => NdefCardClient.updateBinaryApdu(0, Uint8List(0)),
-      throwsRangeError,
-    );
+  test('reports an absent NDEF applet as unavailable', () async {
+    await _withClient(_QueueApduTransport(['6A82']), (client) async {
+      expect(await client.read(), isNull);
+    });
+    await _withClient(_QueueApduTransport(['6A82']), (client) async {
+      expect(await client.write(Uint8List.fromList([1])), isFalse);
+    });
+  });
+
+  test('maps a read-only capability container to NdefReadOnlyException', () async {
+    final cc = _capabilityContainer(1024, readOnly: true);
+    final transport = _QueueApduTransport(['9000', '9000', _ok(cc)]);
+    await _withClient(transport, (client) async {
+      await expectLater(
+        client.write(Uint8List.fromList([1])),
+        throwsA(isA<NdefReadOnlyException>()),
+      );
+      // The preflight stops after the CC read; no UPDATE is ever sent.
+      expect(transport.commands, [_selectApplet, _selectCc, _readCc]);
+    });
+  });
+
+  test('rejects a malformed capability container', () async {
+    final transport = _QueueApduTransport([
+      '9000', '9000', _ok(List.filled(15, 0)),
+    ]);
+    await _withClient(transport, (client) async {
+      await expectLater(
+        client.read(),
+        throwsA(isA<ProtocolException>()
+            .having((e) => e.details.kind, 'kind', 'InvalidResponse')
+            .having((e) => e.details.phase, 'phase', 'Parsing')),
+      );
+    });
+  });
+
+  test('rejects an NLEN beyond the capability limit before reading', () async {
+    final cc = _capabilityContainer(3); // max message length 1
+    final transport = _QueueApduTransport([
+      '9000', '9000', _ok(cc),
+      '9000', '9000', _ok(cc), '9000', _ok([0, 2]),
+    ]);
+    await _withClient(transport, (client) async {
+      await expectLater(
+        client.read(),
+        throwsA(isA<ProtocolException>()
+            .having((e) => e.details.kind, 'kind', 'InvalidResponse')),
+      );
+      expect(transport.commands, [
+        _selectApplet, _selectCc, _readCc,
+        _selectApplet, _selectCc, _readCc, _selectNdef, _readNlen,
+      ]);
+    });
+  });
+
+  test('rejects an oversized message before any I/O', () async {
+    final transport = _QueueApduTransport([]);
+    await _withClient(transport, (client) async {
+      await expectLater(
+        client.write(Uint8List(1023)),
+        throwsA(isA<ProtocolException>()
+            .having((e) => e.details.kind, 'kind', 'InvalidArgument')),
+      );
+      expect(transport.commands, isEmpty);
+    });
+  });
+
+  test('injected transports require an explicit session', () async {
+    final client = NdefCardClient(transport: _QueueApduTransport([]));
+    await expectLater(client.read(), throwsStateError);
   });
 }
 
+Future<T> _withClient<T>(
+  _QueueApduTransport transport,
+  Future<T> Function(NdefCardClient) action,
+) {
+  final client = NdefCardClient(transport: transport);
+  return client.withSession(() => action(client));
+}
+
 class _QueueApduTransport implements ApduTransport {
-  _QueueApduTransport(this.responses);
+  _QueueApduTransport(List<String> responses) : responses = List.of(responses);
 
   final List<String> responses;
   final List<String> commands = [];

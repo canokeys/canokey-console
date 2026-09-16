@@ -74,6 +74,16 @@ class S {
     return Intl.message('About', name: 'about', desc: '', args: []);
   }
 
+  /// `Commit`
+  String get buildCommit {
+    return Intl.message('Commit', name: 'buildCommit', desc: '', args: []);
+  }
+
+  /// `Built`
+  String get buildTime {
+    return Intl.message('Built', name: 'buildTime', desc: '', args: []);
+  }
+
   /// `CanoKey Console`
   String get homeScreenTitle {
     return Intl.message(

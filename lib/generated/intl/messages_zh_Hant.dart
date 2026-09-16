@@ -95,6 +95,8 @@ class MessageLookup extends MessageLookupByLibrary {
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("關於"),
+    "buildCommit": MessageLookupByLibrary.simpleMessage("提交"),
+    "buildTime": MessageLookupByLibrary.simpleMessage("建置時間"),
     "actions": MessageLookupByLibrary.simpleMessage("操作"),
     "add": MessageLookupByLibrary.simpleMessage("新增"),
     "agreeAndContinue": MessageLookupByLibrary.simpleMessage("同意並繼續"),

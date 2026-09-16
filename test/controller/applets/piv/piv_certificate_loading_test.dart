@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+import 'package:canokey_console/helper/utils/protocol_operation.dart';
+import 'package:canokey_console/src/rust/api/protocol.dart';
 import 'package:canokey_console/src/rust/api/crypto.dart';
 import 'package:canokey_console/src/rust/frb_generated.dart';
 import 'package:canokey_console/controller/applets/piv/piv_controller.dart';
@@ -43,9 +46,20 @@ void main() {
       final api = PivCertificateApi();
       RustLib.initMock(api: api);
       addTearDown(RustLib.dispose);
-      final transport = CertificateTransport(['9000', '530570033001009000']);
+      final transport = CertificateTransport(['9000']);
       final controller = PivController(
-        client: PivCardClient(transport: transport),
+        client: PivCardClient(
+          transport: transport,
+          certificateExecutor: (objectId) async {
+            expect(objectId, 0x05);
+            return Uint8List.fromList([0x30, 1, 0]);
+          },
+          prepareExecutor: () async {
+            SmartCard.assertOK(
+              await transport.transceive('00A4040005A00000030800'),
+            );
+          },
+        ),
       );
       controller.certificateSlots.add(0x9a);
 
@@ -58,28 +72,37 @@ void main() {
       );
       expect(controller.publicKeyDerForSlot(0x9d), isNull);
       expect(controller.slots, isEmpty);
-      expect(transport.commands, [
-        '00A4040005A000000308',
-        '00CB3FFF055C035FC10500',
-      ]);
+      expect(transport.commands, ['00A4040005A00000030800']);
     },
   );
 
   test(
     'unreadable certificate stays occupied and does not block the next slot',
     () async {
-      for (final response in [
-        '5301709000', // Truncated certificate object.
-        '530a7003300100710101fe009000', // Compressed certificate.
+      for (final kind in [
+        'InvalidResponse',
+        'UnsupportedProtocolVersion',
+        'LimitExceeded',
       ]) {
-        final transport = CertificateTransport([
-          '9000',
-          response,
-          '9000',
-          '6A82',
-        ]);
+        final transport = CertificateTransport(['9000', '9000']);
         final controller = PivController(
-          client: PivCardClient(transport: transport),
+          client: PivCardClient(
+            transport: transport,
+            certificateExecutor: (objectId) async {
+              throw ProtocolException(
+                ProtocolError(
+                  kind: objectId == 0x05 ? kind : 'NotFound',
+                  phase: objectId == 0x05 ? 'Parsing' : 'Command',
+                  statusWord: objectId == 0x05 ? null : 0x6a82,
+                ),
+              );
+            },
+            prepareExecutor: () async {
+              SmartCard.assertOK(
+                await transport.transceive('00A4040005A00000030800'),
+              );
+            },
+          ),
         );
         controller.certificateSlots.addAll([0x9a, 0x9d]);
 
@@ -90,10 +113,8 @@ void main() {
         await controller.loadSlotDetails(0x9d);
         expect(transport.responses, isEmpty);
         expect(transport.commands, [
-          '00A4040005A000000308',
-          '00CB3FFF055C035FC10500',
-          '00A4040005A000000308',
-          '00CB3FFF055C035FC10b00',
+          '00A4040005A00000030800',
+          '00A4040005A00000030800',
         ]);
       }
     },
@@ -103,9 +124,20 @@ void main() {
     () async {
       RustLib.initMock(api: InvalidCertificateApi());
       addTearDown(RustLib.dispose);
-      final transport = CertificateTransport(['9000', '530570033001009000']);
+      final transport = CertificateTransport(['9000']);
       final controller = PivController(
-        client: PivCardClient(transport: transport),
+        client: PivCardClient(
+          transport: transport,
+          certificateExecutor: (objectId) async {
+            expect(objectId, 0x05);
+            return Uint8List.fromList([0x30, 1, 0]);
+          },
+          prepareExecutor: () async {
+            SmartCard.assertOK(
+              await transport.transceive('00A4040005A00000030800'),
+            );
+          },
+        ),
       );
       controller.certificateSlots.add(0x9a);
 

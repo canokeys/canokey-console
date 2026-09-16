@@ -6,8 +6,9 @@ use rxing::ImmutableReader;
 static LAZY_STATIC_QR_READER: Lazy<QRCodeReader> = Lazy::new(QRCodeReader::default);
 
 fn rgba_to_argb(rgba: &[u8]) -> Vec<u32> {
-    let mut argb = Vec::with_capacity(rgba.len() / 4);
-    for pixel in rgba.chunks_exact(4) {
+    let (pixels, _) = rgba.as_chunks::<4>();
+    let mut argb = Vec::with_capacity(pixels.len());
+    for pixel in pixels {
         argb.push(
             ((pixel[3] as u32) << 24)
                 | ((pixel[2] as u32) << 16)

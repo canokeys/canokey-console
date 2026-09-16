@@ -7,6 +7,8 @@ edition = "2021"
 crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
+canokey = { git = "https://github.com/canokeys/libcanokey", rev = "f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e", features = ["clientpin"] }
+canokey-protocol = { git = "https://github.com/canokeys/libcanokey", rev = "f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e" }
 aes = "^0.9.3"
 const-oid = "^0.10.1"
 der = { version = "^0.8.1", features = ["derive", "pem"] }
@@ -22,6 +24,7 @@ p256 = { version = "^0.14.0", default-features = false, features = ["ecdsa", "pe
 p384 = { version = "^0.14.0", default-features = false, features = ["ecdsa", "pem", "pkcs8", "std"] }
 p521 = { version = "^0.14.0", default-features = false, features = ["ecdsa", "pem", "pkcs8", "std"] }
 pbkdf2 = { version = "^0.13.0", features = ["hmac"] }
+rand = "^0.10.0"
 rsa = { version = "^0.9.10", default-features = false, features = ["pem", "sha2", "std", "u64_digit"] }
 rxing = { version = "^0.9.2", features = ["client_support", "decoders", "encoding_rs", "image", "qrcode", "wasm_support"], default-features = false }
 sha1 = "^0.11.0"
@@ -34,17 +37,13 @@ x509-parser = "^0.18.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "^0.4.3", features = ["wasm_js"] }
-# Keep the wasm-bindgen family compatible with fido2 2.0.0's exact pin.
-wasm-bindgen = "=0.2.100"
-js-sys = "=0.3.77"
-web-sys = "=0.3.77"
-wasm-bindgen-futures = "=0.4.50"
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-fido2_crypto = { git = "https://github.com/nfcim/fido2", rev = "623bf7de456bb4475b67c14a90bcc46b81d1095d" }
+# wasm-bindgen family tracks the wasm-bindgen-cli used by the FRB web build.
+wasm-bindgen = "=0.2.128"
+js-sys = "=0.3.105"
+web-sys = "=0.3.105"
+wasm-bindgen-futures = "=0.4.78"
 
 [dev-dependencies]
-rand = "^0.10.0"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

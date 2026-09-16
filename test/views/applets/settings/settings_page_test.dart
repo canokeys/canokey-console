@@ -1,5 +1,7 @@
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:platform_detector/platform_detector.dart';
+import 'package:platform_detector/enums.dart';
 import 'package:canokey_console/controller/applets/settings/settings_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
@@ -18,6 +20,14 @@ class _SettingsController extends SettingsController {
   void onReady() {}
 }
 
+class _LifecycleSettingsController extends SettingsController {
+  int refreshes = 0;
+  @override
+  Future<void> doRefreshData() async {
+    refreshes++;
+  }
+}
+
 void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -32,6 +42,32 @@ void main() {
     );
   });
   tearDown(Get.reset);
+
+  testWidgets(
+    'web settings refresh on each page entry with a retained controller',
+    (tester) async {
+      final platform = PlatformDetector.platform;
+      final previousType = platform.type;
+      platform.type = PlatformType.web;
+      addTearDown(() => platform.type = previousType);
+      final controller =
+          Get.put<SettingsController>(
+                _LifecycleSettingsController(),
+                permanent: true,
+              )
+              as _LifecycleSettingsController;
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      expect(controller.refreshes, 1);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      expect(controller.refreshes, 2);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await Get.delete<SettingsController>(force: true);
+    },
+  );
 
   testWidgets('settings adapt to desktop, mobile, dark mode and large text', (
     tester,

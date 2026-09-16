@@ -50,11 +50,29 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 
 3. Run the application:
    ```bash
-   flutter_rust_bridge_codegen build-web --release # for web only, remove --release for debug Rust build (very slow when decoding qrcode!)
-   dart run fido2:setup --web --output=build/fido2 # for web only
-   mkdir -p web/fido2 && cp build/fido2/web/fido2_crypto* web/fido2/ # for web only
+   flutter_rust_bridge_codegen build-web --release --wasm-pack-rustup-toolchain nightly-2026-09-04 # for web only
    flutter run
    ```
+
+For Chrome development, run `flutter run -d chrome --cross-origin-isolation`
+to enable the headers required for shared WASM memory.
+
+The `wasm-bindgen` crate family is pinned in `rust/Cargo.toml` and the
+`wasm-bindgen-cli` used by `wasm-pack` must match it (currently 0.2.128).
+If `wasm-pack` cannot reuse an installed helper and fails while compiling
+`wasm-bindgen-cli` with WASM linker flags on the host, install the matching
+helper separately, e.g. `cargo +stable install wasm-bindgen-cli --version 0.2.128 --locked`,
+and ensure its `bin` directory is on `PATH` before rebuilding.
+
+After changing Rust code or regenerating Flutter Rust Bridge bindings, rebuild
+the web bundle with the `build-web` command above, then stop and relaunch the
+Flutter app. Hot restart does not recompile Rust. A content-hash mismatch means
+the loaded WASM bundle and generated Dart bindings are out of sync.
+
+If hot restart reports `Identifier 'wasm_bindgen' has already been declared`,
+fully reload the browser page or stop and relaunch the app. The bridge's web
+loader inserts its script again on hot restart, while the previous script's
+global declaration remains in the page.
 
 ## Diagnostic Logs
 
@@ -81,24 +99,22 @@ If you change any Rust dependencies (`Cargo.lock`), please run:
 cd rust && cargo bundle-licenses -f json | jq '.third_party_libraries | del(.[].licenses)' > THIRD_PARTY_LICENSES.json
 ```
 
-The fido2 Dart package and native Rust revision are pinned together at 2.0.0.
-Its native C ABI is linked into the existing console Rust library. The
-wasm-bindgen dependency family is pinned to versions compatible with fido2 2.0.0.
-Web uses the separate JS/WASM loader distributed with the Dart package.
+PIV selection, version and algorithm-configuration reads now use a pinned
+libcanokey Rust dependency through Flutter Rust Bridge. See the
+[migration boundary and next steps](docs/libcanokey-migration.md) for the
+implemented scope, session requirements and validation commands.
 
 Before running backend or USB/IP tests locally, build the native backend:
 
 ```bash
 cargo build --manifest-path rust/Cargo.toml --release --locked
-flutter test test/helper/utils/fido2_backend_test.dart
+flutter test --tags native
 ```
 
 ### Web
 
 ```bash
-flutter_rust_bridge_codegen build-web --release
-dart run fido2:setup --web --output=build/fido2
-mkdir -p web/fido2 && cp build/fido2/web/fido2_crypto* web/fido2/
+flutter_rust_bridge_codegen build-web --release --wasm-pack-rustup-toolchain nightly-2026-09-04
 flutter build web
 ```
 

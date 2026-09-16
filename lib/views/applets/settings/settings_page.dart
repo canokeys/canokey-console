@@ -6,6 +6,7 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/localization/hints.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/models/canokey.dart';
+import 'package:canokey_console/helper/utils/screenshot_mode.dart';
 import 'package:canokey_console/views/applets/settings/widgets/action_card.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_card.dart';
 import 'package:canokey_console/views/applets/settings/widgets/other_settings_card.dart';
@@ -25,6 +26,27 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   final _controller = Get.put(SettingsController());
+
+  @override
+  void initState() {
+    super.initState();
+    if (isWeb() && !ScreenshotMode.enabled) {
+      // onReady runs once per controller, not once per page entry. A retained
+      // controller must still read the current card when this page is mounted.
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        try {
+          await _controller.refreshData();
+        } catch (error, stack) {
+          _controller.log.w(
+            'Failed to refresh settings on page entry',
+            error: error,
+            stackTrace: stack,
+          );
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -7,7 +7,6 @@ import 'package:canokey_console/helper/services/navigation_service.dart';
 import 'package:canokey_console/helper/services/log_navigation_observer.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/app_notifier.dart';
-import 'package:canokey_console/helper/theme/snap_fonts.dart';
 import 'package:canokey_console/helper/theme/app_style.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/theme/theme_customizer.dart';
@@ -17,7 +16,6 @@ import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/rust_license.dart';
 import 'package:canokey_console/helper/utils/screenshot_mode.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
-import 'package:canokey_console/helper/utils/fido2_backend.dart';
 import 'package:canokey_console/routes.dart';
 import 'package:canokey_console/src/rust/frb_generated.dart';
 import 'package:canokey_console/views/layout/layout.dart';
@@ -28,12 +26,15 @@ import 'package:canokey_console/helper/webusb_dummy.dart'
     if (dart.library.html) 'package:canokey_console/helper/webusb.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:platform_detector/platform_detector.dart';
 import 'package:provider/provider.dart';
 
 Future<void> main() async {
   final log = Logging.logger('Application');
+  // All fonts are bundled as assets; never fetch them at runtime.
+  GoogleFonts.config.allowRuntimeFetching = false;
   final previousErrorHandler = FlutterError.onError;
   FlutterError.onError = (details) {
     log.e('Flutter framework error',
@@ -43,9 +44,7 @@ Future<void> main() async {
   log.i('CanoKey Console started');
   if (ScreenshotMode.enabled) {
     WidgetsFlutterBinding.ensureInitialized();
-    await loadSnapChineseFont();
     await RustLib.init();
-    await initializeFido2Backend();
     await LocalStorage.init();
     AppStyle.init();
     ThemeCustomizer.instance.currentLanguage = Language.languages[1];
@@ -61,10 +60,8 @@ Future<void> main() async {
 
   await runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
-    await loadSnapChineseFont();
 
     await RustLib.init();
-    await initializeFido2Backend();
     await LocalStorage.init();
     AppStyle.init();
     Language.init();

@@ -22,6 +22,7 @@ class InputPinDialog extends BaseDialog {
   final List<FieldValidatorRule> validators;
   final Future<void> Function(String, bool) onSubmit;
   final Future<void> Function() onCancel;
+  final Future<void> Function() onFocus;
 
   const InputPinDialog({
     super.key,
@@ -33,6 +34,7 @@ class InputPinDialog extends BaseDialog {
     required this.validators,
     required this.onSubmit,
     required this.onCancel,
+    this.onFocus = SmartCard.eject,
   });
 
   static void show({
@@ -53,8 +55,11 @@ class InputPinDialog extends BaseDialog {
         required: required,
         showSaveOption: showSaveOption,
         validators: validators,
-        onSubmit: onSubmit,
-        onCancel: onCancel,
+        // Flutter invokes UI callbacks in its own zone. Preserve the use-case
+        // lease while an authentication prompt is waiting for input.
+        onSubmit: Zone.current.bindBinaryCallback(onSubmit),
+        onCancel: Zone.current.bindCallback(onCancel),
+        onFocus: Zone.current.bindCallback(SmartCard.eject),
       ),
     );
   }
@@ -83,13 +88,21 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
     );
   }
 
+  bool _submitting = false;
+
   void _onSubmit() async {
+    if (_submitting) return;
     if (_validator.validateForm()) {
-      FocusManager.instance.primaryFocus?.unfocus();
-      await widget.onSubmit(
-        _validator.getController('pin')!.text,
-        _savePin.value,
-      );
+      _submitting = true;
+      try {
+        FocusManager.instance.primaryFocus?.unfocus();
+        await widget.onSubmit(
+          _validator.getController('pin')!.text,
+          _savePin.value,
+        );
+      } finally {
+        _submitting = false;
+      }
     }
   }
 
@@ -123,7 +136,7 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
                     autofocus: true,
                     onTapOutside: (_) =>
                         FocusManager.instance.primaryFocus?.unfocus(),
-                    onTap: SmartCard.eject,
+                    onTap: widget.onFocus,
                     obscureText: !_showPin.value,
                     controller: _validator.getController('pin'),
                     validator: _validator.getValidator('pin'),

@@ -1,181 +1,578 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:canokey_console/helper/tlv.dart';
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
-import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/utils/card_client.dart';
+import 'package:canokey_console/helper/utils/protocol_operation.dart';
+import 'package:canokey_console/src/rust/api/protocol.dart';
 import 'package:canokey_console/models/piv.dart';
 import 'package:convert/convert.dart';
 
-class PivCardClient {
-  PivCardClient({ApduTransport transport = const SmartCardApduTransport()})
-    : _transport = transport;
+class PivCardClient extends ProfileCardClient {
+  PivCardClient({
+    super.transport,
+    super.lease,
+    PivReadExecutor? readExecutor,
+    PivCertificateExecutor? certificateExecutor,
+    Future<void> Function()? prepareExecutor,
+  }) : _readExecutor = readExecutor,
+       _certificateExecutor = certificateExecutor,
+       _prepareExecutor = prepareExecutor,
+       super(bindSelection: true);
 
-  final ApduTransport _transport;
-  String? lastStatusWord;
+  final PivReadExecutor? _readExecutor;
+  final PivCertificateExecutor? _certificateExecutor;
+  final Future<void> Function()? _prepareExecutor;
+
+  /// Explicit discovery/selection before authentication. The lease owns the
+  /// immutable observations; later metadata reads never probe or SELECT.
+  Future<void> prepare() async {
+    cancellation.check();
+    final override = _prepareExecutor;
+    if (override != null) return override();
+    await prepareProfile(
+      () => ProtocolOperation.probePiv(observedSerial: lease.bootstrapSerial),
+      rejectWhileExchanging: true,
+    );
+  }
+
+  Future<Uint8List> _read(PivReadOperation kind) async {
+    cancellation.check();
+    final binding = kind == PivReadOperation.select ? null : currentProfile;
+    binding?.check();
+    final executor = _readExecutor;
+    if (executor != null) return executor(kind);
+    final data = await executeProtocolOperation(
+      ProtocolOperation.pivRead(kind: kind),
+      transport,
+      lease: transport is SmartCardApduTransport
+          ? null
+          : injectedCurrentLease,
+      cancellation: cancellation,
+    );
+    binding?.check();
+    cancellation.check();
+    return data;
+  }
 
   Future<void> select() async {
-    SmartCard.assertOK(await _transport.transceive('00A4040005A000000308'));
+    final lease = transport is SmartCardApduTransport
+        ? this.lease
+        : injectedCurrentLease;
+    lease?.willSelectApplet();
+    final binding = currentProfile;
+    if (binding != null) {
+      if (binding.lease.isExchanging) {
+        throw StateError('Cannot SELECT during an active operation');
+      }
+      discardProfile(binding);
+    }
+    await _read(PivReadOperation.select);
   }
 
   Future<Uint8List> readVersion() async {
-    final response = await _transport.transceive('00FD000000');
-    SmartCard.assertOK(response);
-    return Uint8List.fromList(hex.decode(SmartCard.dropSW(response)));
+    return _read(PivReadOperation.version);
   }
 
+  /// Read the validated metadata directory without inserting SELECT.
+  Future<Uint8List> readMetadataDirectory() async {
+    return _executePrepared((profile) => profile.pivMetadataDirectory());
+  }
+
+  Future<Uint8List> generateKey({
+    required int slot,
+    required int algorithm,
+    required int pinPolicy,
+    required int touchPolicy,
+  }) async {
+    return _executePrepared((profile) => profile.pivGenerateKey(
+          slot: slot,
+          algorithm: algorithm,
+          pinPolicy: pinPolicy,
+          touchPolicy: touchPolicy,
+        ));
+  }
+
+  Future<void> deleteCertificate(int slot) async {
+    await _executePrepared((profile) => profile.pivDeleteCertificate(objectId: slot));
+  }
+
+  Future<void> deleteKey(int slot) async {
+    await _executePrepared((profile) => profile.pivDeleteKey(slot: slot));
+  }
+
+  Future<void> moveKey(int source, int target) async {
+    await _executePrepared((profile) => profile.pivMoveKey(source: source, target: target));
+  }
+
+  Future<void> setManagementKey({
+    required int algorithm,
+    required Uint8List key,
+    int touch = 0,
+    bool updateProtected = false,
+  }) async {
+    await _executePrepared((profile) => profile.pivSetManagementKey(
+          algorithm: algorithm,
+          key: key,
+          touch: touch,
+          updateProtected: updateProtected,
+        ));
+  }
+
+  /// A successful write replaces the observed algorithm IDs; upstream marks it
+  /// ReprobeRequired, so the prepared profile is always discarded afterwards.
+  Future<void> setAlgorithmConfig(Uint8List raw) async {
+    final binding = preparedBinding;
+    await _executePrepared((profile) => profile.pivSetAlgorithmConfig(raw: raw));
+    discardProfile(binding);
+  }
+
+  Future<void> setContainerName(int slot, String name) async {
+    await _executePrepared((profile) => profile.pivSetContainerName(slot: slot, name: name));
+  }
+
+  Future<void> resetPinPukRetries(int pinRetries, int pukRetries) async {
+    await _executePrepared((profile) => profile.pivResetPinPukRetries(
+          pinRetries: pinRetries,
+          pukRetries: pukRetries,
+        ));
+  }
+
+  Future<Uint8List> sign({
+    required int slot,
+    required int algorithm,
+    required Uint8List input,
+    int inputKind = 1,
+  }) async {
+    return _executePrepared((profile) => profile.pivSign(
+          slot: slot,
+          algorithm: algorithm,
+          input: input,
+          inputKind: inputKind,
+        ));
+  }
+
+  /// Firmware streaming modes: 0 = ML-DSA-65 (empty context), 1 = randomized
+  /// Ed25519, 2 = SM2 full message. Classic digest/padded signing uses [sign].
+  Future<Uint8List> signStreaming({
+    required int slot,
+    required int mode,
+    required Uint8List message,
+    Uint8List? userId,
+  }) async {
+    return _executePrepared((profile) => profile.pivSignStreaming(
+          slot: slot,
+          mode: mode,
+          message: message,
+          userId: userId,
+        ));
+  }
+
+  /// INS F9 attestation certificate for a generated slot.
+  Future<Uint8List> attest(int slot) async =>
+      _executePrepared((profile) => profile.pivAttest(slot: slot));
+
+  Future<Uint8List> decrypt(int slot, int algorithm, Uint8List ciphertext) async =>
+      _executePrepared((profile) => profile.pivDecrypt(
+            slot: slot,
+            algorithm: algorithm,
+            ciphertext: ciphertext,
+          ));
+
+  Future<Uint8List> derive(int slot, int algorithm, Uint8List peer) async =>
+      _executePrepared((profile) => profile.pivDerive(
+            slot: slot,
+            algorithm: algorithm,
+            peer: peer,
+          ));
+
+  Future<Uint8List> decapsulate(int slot, Uint8List ciphertext) async =>
+      _executePrepared((profile) => profile.pivDecapsulate(
+            slot: slot,
+            ciphertext: ciphertext,
+          ));
+
+  Future<Uint8List> sm2Agreement({
+    required int slot,
+    required int role,
+    required Uint8List peerStatic,
+    required Uint8List peerEphemeral,
+    Uint8List? userId,
+    Uint8List? peerId,
+    int keyLen = 32,
+  }) async =>
+      _executePrepared((profile) => profile.pivSm2Agreement(
+            slot: slot,
+            role: role,
+            peerStatic: peerStatic,
+            peerEphemeral: peerEphemeral,
+            userId: userId,
+            peerId: peerId,
+            keyLen: keyLen,
+          ));
+
+  Future<void> importEcKey({
+    required int slot,
+    required int algorithm,
+    required Uint8List scalar,
+    int pinPolicy = 0,
+    int touchPolicy = 0,
+  }) async {
+    await _executePrepared((profile) => profile.pivImportEcKey(
+          slot: slot,
+          algorithm: algorithm,
+          scalar: scalar,
+          pinPolicy: pinPolicy,
+          touchPolicy: touchPolicy,
+        ));
+  }
+
+  Future<void> importRsaKey({
+    required int slot,
+    required int algorithm,
+    required Uint8List p,
+    required Uint8List q,
+    required Uint8List dp,
+    required Uint8List dq,
+    required Uint8List qinv,
+    int pinPolicy = 0,
+    int touchPolicy = 0,
+  }) async {
+    await _executePrepared((profile) => profile.pivImportRsaKey(
+          slot: slot,
+          algorithm: algorithm,
+          p: p,
+          q: q,
+          dp: dp,
+          dq: dq,
+          qinv: qinv,
+          pinPolicy: pinPolicy,
+          touchPolicy: touchPolicy,
+        ));
+  }
+
+  Future<void> importEd25519Key({
+    required int slot,
+    required Uint8List seed,
+    int pinPolicy = 0,
+    int touchPolicy = 0,
+  }) async {
+    await _executePrepared((profile) => profile.pivImportEd25519Key(
+          slot: slot,
+          seed: seed,
+          pinPolicy: pinPolicy,
+          touchPolicy: touchPolicy,
+        ));
+  }
+
+  /// Import a post-quantum seed (INS FE): kind 0 = ML-DSA-65 (32-byte seed),
+  /// 1 = ML-KEM-768 (64-byte d||z seed).
+  Future<void> importPqSeed({
+    required int slot,
+    required int kind,
+    required Uint8List seed,
+    int pinPolicy = 0,
+    int touchPolicy = 0,
+  }) async {
+    await _executePrepared((profile) => profile.pivImportPqSeed(
+          slot: slot,
+          kind: kind,
+          seed: seed,
+          pinPolicy: pinPolicy,
+          touchPolicy: touchPolicy,
+        ));
+  }
+
+  /// Use the serial observed before authentication; never switch applets here.
   Future<String> readSerial() async {
-    final response = await _transport.transceive('00F8000000');
-    SmartCard.assertOK(response);
-    return SmartCard.dropSW(response).toUpperCase();
+    final serial = preparedBinding.profile.serial();
+    if (serial == null) throw StateError('Device did not report a serial');
+    return hex.encode(serial).toUpperCase();
   }
 
+  /// Runs one prepared PIV operation. A rejected credential leaves immutable
+  /// device observations valid; an uncertain exchange/acknowledgment discards
+  /// the profile and cannot be used for dependent work.
+  Future<Uint8List> _executePrepared(
+    ProtocolOperation Function(ProtocolProfile) create, {
+    bool allowMissing = false,
+  }) => executePrepared(
+    create,
+    verifyProfileIdentity: true,
+    discardOnOtherError: true,
+    discardOnProtocolError: (error) =>
+        error.exchangeAttempted &&
+        error.details.kind != 'AuthenticationFailed' &&
+        error.details.kind != 'PinBlocked' &&
+        !(allowMissing && error.details.kind == 'NotFound'),
+  );
+
+  /// Selected-only empty VERIFY; 9000 does not imply a known retry count.
   Future<String> readPinRetries() async {
-    final response = await _transport.transceive('0020008000');
-    lastStatusWord = SmartCard.sw(response);
-    return response;
+    final data = await _executePrepared(
+      (_) => ProtocolOperation.pivRead(kind: PivReadOperation.pinStatus),
+    );
+    return lastStatusWord = hex.encode(data).toUpperCase();
   }
 
-  /// Empty VERIFY queries remaining attempts without submitting a PIN.
-  /// 9000 means already authenticated, not a known retry count.
   Future<int?> readRemainingPinRetries() async {
-    final status = SmartCard.sw(await readPinRetries()).toUpperCase();
+    final status = await readPinRetries();
     if (status == '6983') return 0;
-    if (RegExp(r'^63C[0-9A-F]$').hasMatch(status)) {
-      return int.parse(status[3], radix: 16);
-    }
+    if (status.startsWith('63C')) return int.parse(status[3], radix: 16);
     return null;
   }
 
-  Future<bool> verifyPin(String pin) async {
-    final response = await _transport.transceive('0020008008${_padPin(pin)}');
-    lastStatusWord = SmartCard.sw(response);
-    return SmartCard.isOK(response);
-  }
+  Future<bool> verifyPin(String pin) =>
+      _credential(PivCredentialOperation.verifyPin, pin);
 
   Future<bool> changePin(String oldPin, String newPin) =>
-      _changePin('00240080', oldPin, newPin);
+      _credential(PivCredentialOperation.changePin, oldPin, newPin);
 
   Future<bool> changePuk(String oldPuk, String newPuk) =>
-      _changePin('00240081', oldPuk, newPuk);
+      _credential(PivCredentialOperation.changePuk, oldPuk, newPuk);
 
   Future<bool> unblockPin(String puk, String newPin) =>
-      _changePin('002C0080', puk, newPin);
+      _credential(PivCredentialOperation.unblockPin, puk, newPin);
 
-  Future<bool> _changePin(String command, String oldPin, String newPin) async {
-    final response = await _transport.transceive(
-      '${command}10${_padPin(oldPin)}${_padPin(newPin)}',
-    );
-    lastStatusWord = SmartCard.sw(response);
-    return SmartCard.isOK(response);
-  }
-
-  /// Exhaust PUK retries without changing or unblocking the PIN.
-  /// Only an explicit blocked response counts as success.
-  Future<bool> blockPuk() async {
-    final random = Random.secure();
-    // A byte-sized retry counter plus one final blocked-status probe.
-    for (var attempt = 0; attempt < 257; attempt++) {
-      final candidate = List.generate(8, (_) => random.nextInt(10)).join();
-      final encoded = _padPin(candidate);
-      final response = await _transport.transceive(
-        '0024008110$encoded$encoded',
+  Future<bool> _credential(
+    PivCredentialOperation kind,
+    String current, [
+    String replacement = '',
+  ]) async {
+    final currentBytes = Uint8List.fromList(current.codeUnits);
+    final replacementBytes = Uint8List.fromList(replacement.codeUnits);
+    try {
+      if (current.codeUnits.any((byte) => byte > 0xff) ||
+          replacement.codeUnits.any((byte) => byte > 0xff)) {
+        throw ArgumentError(
+          'PIV credentials must contain single-byte characters',
+        );
+      }
+      await _executePrepared(
+        (profile) => profile.pivCredential(
+          kind: kind,
+          current: currentBytes,
+          replacement: replacementBytes,
+        ),
       );
-      final status = SmartCard.sw(response).toUpperCase();
-      lastStatusWord = status;
-      if (status == '6983') return true;
-      // An accidental match leaves the PUK unchanged; try another candidate.
-      if (status != '9000' && !RegExp(r'^63C[0-9A-F]$').hasMatch(status)) {
+      return true;
+    } on ProtocolException catch (error) {
+      if (kind != PivCredentialOperation.logout &&
+          (error.details.kind == 'AuthenticationFailed' ||
+              error.details.kind == 'PinBlocked')) {
         return false;
       }
+      rethrow;
+    } finally {
+      currentBytes.fillRange(0, currentBytes.length, 0);
+      replacementBytes.fillRange(0, replacementBytes.length, 0);
+    }
+  }
+
+  /// Explicit destructive workflow; each attempt is an upstream credential
+  /// operation. No retry follows transport, parsing or unexpected card failures.
+  Future<bool> blockPuk() async {
+    final random = Random.secure();
+    for (var attempt = 0; attempt < 257; attempt++) {
+      final candidate = List.generate(8, (_) => random.nextInt(10)).join();
+      await changePuk(candidate, candidate);
+      if (lastStatusWord == '6983') return true;
     }
     return false;
   }
 
   Future<void> logout() async {
-    SmartCard.assertOK(await _transport.transceive('0020FF8000'));
+    await _credential(PivCredentialOperation.logout, '');
   }
 
-  Future<PivAlgorithmExtensionConfig?> readAlgorithmExtensions() async {
-    await select();
-    final response = await _transport.transceive('00EE010000');
-    if (!SmartCard.isOK(response)) return null;
-    return PivAlgorithmExtensionConfig.decode(
-      hex.decode(SmartCard.dropSW(response)),
-    );
-  }
-
-  Future<SlotInfo?> readMetadata(
-    int slot, {
-    PivAlgorithmExtensionConfig? algorithmExtensionConfig,
-  }) async {
-    final response = await transceive(
-      '00F700${slot.toRadixString(16).padLeft(2, '0')}00',
-    );
-    final statusWord = SmartCard.sw(response);
-    if (!SmartCard.isOK(response) ||
-        statusWord == '6A88' ||
-        statusWord == '6700') {
-      return null;
+  Future<bool> authenticateManagementKey(
+    String key,
+    AlgorithmType algorithm,
+  ) async {
+    final bytes = Uint8List.fromList(hex.decode(key));
+    try {
+      await _executePrepared(
+        (profile) => profile.pivAuthenticateManagement(
+          algorithm: algorithm.value,
+          key: bytes,
+        ),
+      );
+      return true;
+    } on ProtocolException catch (error) {
+      if (error.details.kind == 'AuthenticationFailed' ||
+          error.details.kind == 'SecurityStatusNotSatisfied') {
+        return false;
+      }
+      rethrow;
+    } finally {
+      bytes.fillRange(0, bytes.length, 0);
     }
-    final data = hex.decode(SmartCard.dropSW(response));
-    if (algorithmExtensionConfig == null) {
-      return SlotInfo.parse(slot, data);
+  }
+
+  /// Explicit discovery only when the prepared binding is missing or stale.
+  /// A still-valid binding is reused as-is; discovery is never repeated
+  /// implicitly.
+  Future<void> prepareIfStale() async {
+    final binding = currentProfile;
+    if (binding != null && identical(binding.lease, lease)) {
+      try {
+        binding.check();
+        cancellation.check();
+        return;
+      } on StateError {
+        // Fall through to explicit discovery below.
+      }
+    }
+    await prepare();
+  }
+
+  /// Reads the algorithm extension configuration through the upstream
+  /// profile-based operation. On 3.0.x firmware the read sits behind
+  /// management-key authentication (upstream capability
+  /// PivProtectedAlgorithmConfigRead), so callers on such firmware pass
+  /// [managementKey]: upstream SELECTs, authenticates and reads within one
+  /// operation. Without a key the caller's selected transaction is reused.
+  /// Firmware without the read fails the capability check at construction,
+  /// before any authentication I/O.
+  Future<PivAlgorithmExtensionConfig?> readAlgorithmExtensions({
+    String? managementKey,
+    AlgorithmType managementKeyAlgorithm = AlgorithmType.tdes,
+  }) async {
+    // The keyed operation SELECTs PIV and authenticates management within one
+    // operation. A fresh prepared binding already implies PIV is the selected
+    // applet (the binding is selection-bound), so the internal re-SELECT does
+    // not disturb anyone else's evidence.
+    await prepareIfStale();
+    final keyBytes = managementKey == null
+        ? null
+        : Uint8List.fromList(hex.decode(managementKey));
+    try {
+      final data = await executePrepared(
+        (profile) => profile.pivReadAlgorithmConfig(
+          managementKey: keyBytes,
+          managementKeyAlgorithm: managementKeyAlgorithm.value,
+        ),
+        verifyProfileIdentity: true,
+        discardOnOtherError: true,
+        discardOnProtocolError: (error) =>
+            // The 3.0.x management-key gate rejects an unauthenticated read
+            // with 6982 without touching card state; the profile stays valid.
+            error.exchangeAttempted &&
+            error.details.kind != 'AuthenticationFailed' &&
+            error.details.kind != 'PinBlocked' &&
+            error.details.kind != 'SecurityStatusNotSatisfied',
+      );
+      return PivAlgorithmExtensionConfig.decode(data);
+    } on ProtocolException catch (error) {
+      // An unavailable instruction (or the 3.0.x authentication gate on an
+      // unauthenticated read) permits the existing firmware defaults. Other
+      // security, malformed-data and unexpected card failures remain errors.
+      if (error.details.kind == 'UnsupportedFeature' ||
+          error.details.kind == 'SecurityStatusNotSatisfied') {
+        return null;
+      }
+      rethrow;
+    } finally {
+      keyBytes?.fillRange(0, keyBytes.length, 0);
+    }
+  }
+
+  /// Requires prepare() in this same lease. Algorithm interpretation comes from
+  /// its observed profile, never caller-side cached UI configuration.
+  Future<SlotInfo?> readMetadata(int slot) async {
+    RangeError.checkValueInInterval(slot, 0, 0xff, 'slot');
+    final binding = preparedBinding;
+    Uint8List data;
+    try {
+      data = await executePrepared(
+        (profile) => profile.pivMetadata(reference: slot),
+      );
+    } on ProtocolException catch (error) {
+      if (error.details.kind == 'NotFound') return null;
+      rethrow;
     }
     return SlotInfo.parse(
       slot,
       data,
-      algorithmExtensionConfig: algorithmExtensionConfig,
+      resolveAlgorithm: (wireId) {
+        if (slot == 0x80 || slot == 0x81 || slot == 0x9b) {
+          return AlgorithmType.fromValue(wireId);
+        }
+        final displayId = binding.profile.pivAlgorithmDisplayId(wireId: wireId);
+        if (displayId == null) {
+          throw FormatException('Unknown PIV metadata algorithm $wireId');
+        }
+        return AlgorithmType.fromValue(displayId);
+      },
     );
   }
 
-  /// Read the DER bytes from a PIV certificate object (5FC1xx).
-  /// Tag 70 contains the certificate; tags 71 and FE are object metadata.
+  /// Read and decompress a PIV certificate through libcanokey without SELECT.
+  /// Only a missing object returns null; other card/protocol failures propagate.
   Future<Uint8List?> readCertificate(int objectId) async {
-    final response = await transceive(
-      '00CB3FFF055C035FC1${hex.encode([objectId])}00',
-    );
-    if (!SmartCard.isOK(response)) return null;
+    RangeError.checkValueInInterval(objectId, 0, 0xff, 'objectId');
+    final executor = _certificateExecutor;
+    final binding = executor == null ? preparedBinding : null;
+    lastStatusWord = null;
     try {
-      final object = TLV.parse(hex.decode(SmartCard.dropSW(response)))[0x53];
-      if (object is! Uint8List) {
-        throw FormatException('Missing PIV certificate object (53)');
-      }
-      final fields = TLV.parse(object);
-      final certificate = fields[0x70];
-      if (certificate is! Uint8List || certificate.isEmpty) {
-        throw FormatException('Missing PIV certificate data (70)');
-      }
-      final info = fields[0x71];
-      if (info != null) {
-        if (info is! Uint8List || info.length != 1) {
-          throw FormatException('Invalid PIV certificate information (71)');
-        }
-        if (info[0] & 1 != 0) {
-          throw FormatException(
-            'Compressed PIV certificates are not supported',
-          );
-        }
-      }
+      cancellation.check();
+      final certificate = executor != null
+          ? await executor(objectId)
+          : await executeProtocolOperation(
+              binding!.profile.pivCertificate(objectId: objectId),
+              transport,
+              lease: binding.lease,
+              cancellation: cancellation,
+            );
+      cancellation.check();
+      binding?.check();
+      lastStatusWord = '9000';
       return certificate;
-    } on RangeError {
-      throw FormatException('Truncated PIV certificate object');
+    } on ProtocolException catch (error) {
+      binding?.check();
+      cancellation.check();
+      lastStatusWord = formatStatusWord(error.details.statusWord);
+      if (error.details.phase == 'Command' &&
+          (error.details.statusWord == 0x6a82 ||
+              error.details.statusWord == 0x6a88)) {
+        return null;
+      }
+      rethrow;
     }
   }
 
-  Future<String> transceive(String capdu) async {
-    final response = await _transport.transceiveChained(capdu);
-    lastStatusWord = SmartCard.sw(response);
-    return response;
+  Uint8List _objectIdBytes(int objectId) {
+    RangeError.checkValueInInterval(objectId, 0, 0xffffff, 'objectId');
+    return Uint8List.fromList(
+      hex.decode(objectId.toRadixString(16).padLeft(6, '0')),
+    );
   }
 
-  String _padPin(String pin) {
-    final bytes = Uint8List(8)..fillRange(0, 8, 0xff);
-    final pinBytes = pin.codeUnits;
-    if (pinBytes.length > bytes.length) {
-      throw ArgumentError.value(pin, 'pin', 'PIV PIN must not exceed 8 bytes');
+  /// Read the normalized 53 value; only an absent object becomes null.
+  Future<Uint8List?> readObject(int objectId) async {
+    final id = _objectIdBytes(objectId);
+    try {
+      return await _executePrepared(
+        (profile) => profile.pivReadObject(objectId: id),
+        allowMissing: true,
+      );
+    } on ProtocolException catch (error) {
+      if (error.details.kind == 'NotFound') return null;
+      rethrow;
     }
-    bytes.setRange(0, pinBytes.length, pinBytes);
-    return hex.encode(bytes).toUpperCase();
+  }
+
+  /// The card checks existing authorization. Partial/uncertain writes terminate
+  /// preparation; the executor never replays a mutation or runs a rollback.
+  Future<void> writeObject(int objectId, Uint8List data) async {
+    final id = _objectIdBytes(objectId);
+    final copy = Uint8List.fromList(data);
+    try {
+      await _executePrepared(
+        (profile) => profile.pivWriteObject(objectId: id, data: copy),
+      );
+    } finally {
+      copy.fillRange(0, copy.length, 0);
+    }
   }
 }
