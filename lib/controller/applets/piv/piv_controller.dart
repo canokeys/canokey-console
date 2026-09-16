@@ -401,7 +401,11 @@ class PivController extends PollingController {
         }
         if (!await _writePinOnlyObjects(newKey, enabled: true)) {
           // Roll back to the previous key; otherwise the on-card key and the
-          // stored protected key disagree and the user is locked out.
+          // stored protected key disagree and the user is locked out. A failed
+          // write discards the prepared profile, so re-establish the profile
+          // and the management-key authorization before restoring the key.
+          await _client.prepareIfStale();
+          await _authenticateManagementKey(newKey);
           await _setManagementKeyInSession(
             currentKey,
             touchPolicy: touchPolicy ?? managementKeyTouchPolicy,
@@ -870,7 +874,11 @@ class PivController extends PollingController {
       }
       if (!await _writePinOnlyObjects(newKey, enabled: true)) {
         // Roll back the random management key; otherwise the card keeps an
-        // unknown key with pin-only mode off and is locked out until reset.
+        // unknown key with pin-only mode off and is locked out until reset. A
+        // failed write discards the prepared profile, so re-establish the
+        // profile and the management-key authorization before restoring the key.
+        await _client.prepareIfStale();
+        await _authenticateManagementKey(newKey);
         await _setManagementKeyInSession(
           currentManagementKey,
           touchPolicy: managementKeyTouchPolicy,
@@ -1623,8 +1631,12 @@ class PivController extends PollingController {
       _client.readObject(objectId);
 
   Future<bool> _putDataObject(int objectId, Uint8List data) async {
-    await _client.writeObject(objectId, data);
-    return true;
+    try {
+      await _client.writeObject(objectId, data);
+      return true;
+    } on ProtocolException {
+      return false;
+    }
   }
 
   String _tlv(int tag, List<int> value) {

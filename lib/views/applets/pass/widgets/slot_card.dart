@@ -123,6 +123,6 @@ class SlotCard extends StatelessWidget {
     PassSlotType.oath => '${S.of(context).passSlotHotp} (${slot.name})',
     PassSlotType.static => S.of(context).passSlotStatic,
     PassSlotType.hmacSha1 => S.of(context).passSlotHmacSha1,
-    PassSlotType.unknown => S.of(context).settingsKeyboardLayoutUnknown,
+    PassSlotType.unknown => S.of(context).passSlotUnknown,
   };
 }

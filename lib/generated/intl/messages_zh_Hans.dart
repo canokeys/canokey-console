@@ -95,8 +95,6 @@ class MessageLookup extends MessageLookupByLibrary {
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("关于"),
-    "buildCommit": MessageLookupByLibrary.simpleMessage("提交"),
-    "buildTime": MessageLookupByLibrary.simpleMessage("构建时间"),
     "actions": MessageLookupByLibrary.simpleMessage("操作"),
     "add": MessageLookupByLibrary.simpleMessage("添加"),
     "agreeAndContinue": MessageLookupByLibrary.simpleMessage("同意并继续"),
@@ -117,6 +115,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "browserNotSupported": MessageLookupByLibrary.simpleMessage(
       "当前环境无法使用 WebUSB",
     ),
+    "buildCommit": MessageLookupByLibrary.simpleMessage("提交"),
+    "buildTime": MessageLookupByLibrary.simpleMessage("构建时间"),
     "cancel": MessageLookupByLibrary.simpleMessage("取消"),
     "change": MessageLookupByLibrary.simpleMessage("修改"),
     "changePin": MessageLookupByLibrary.simpleMessage("修改 PIN"),
@@ -486,6 +486,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "passSlotOff": MessageLookupByLibrary.simpleMessage("关闭"),
     "passSlotShort": MessageLookupByLibrary.simpleMessage("短按"),
     "passSlotStatic": MessageLookupByLibrary.simpleMessage("固定密码"),
+    "passSlotUnknown": MessageLookupByLibrary.simpleMessage("未知"),
     "passSlotWithEnter": MessageLookupByLibrary.simpleMessage("输出后按回车"),
     "passStatus": MessageLookupByLibrary.simpleMessage("状态"),
     "passkey": MessageLookupByLibrary.simpleMessage("通行密钥"),

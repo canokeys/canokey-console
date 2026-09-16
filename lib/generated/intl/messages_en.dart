@@ -104,8 +104,6 @@ class MessageLookup extends MessageLookupByLibrary {
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("About"),
-    "buildCommit": MessageLookupByLibrary.simpleMessage("Commit"),
-    "buildTime": MessageLookupByLibrary.simpleMessage("Built"),
     "actions": MessageLookupByLibrary.simpleMessage("Actions"),
     "add": MessageLookupByLibrary.simpleMessage("Add"),
     "agreeAndContinue": MessageLookupByLibrary.simpleMessage(
@@ -132,6 +130,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "browserNotSupported": MessageLookupByLibrary.simpleMessage(
       "Your browser does not support WebUSB",
     ),
+    "buildCommit": MessageLookupByLibrary.simpleMessage("Commit"),
+    "buildTime": MessageLookupByLibrary.simpleMessage("Built"),
     "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
     "change": MessageLookupByLibrary.simpleMessage("Change"),
     "changePin": MessageLookupByLibrary.simpleMessage("Change PIN"),
@@ -625,6 +625,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "passSlotOff": MessageLookupByLibrary.simpleMessage("Off"),
     "passSlotShort": MessageLookupByLibrary.simpleMessage("Short press"),
     "passSlotStatic": MessageLookupByLibrary.simpleMessage("Static Password"),
+    "passSlotUnknown": MessageLookupByLibrary.simpleMessage("Unknown"),
     "passSlotWithEnter": MessageLookupByLibrary.simpleMessage(
       "Press Enter after typing",
     ),

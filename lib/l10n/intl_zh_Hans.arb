@@ -331,6 +331,7 @@
   "passSlotHmacSha1": "HMAC-SHA1",
   "passSlotHmacSha1Key": "20 字节 HMAC-SHA1 密钥（十六进制）",
   "passSlotWithEnter": "输出后按回车",
+  "passSlotUnknown": "未知",
   "webauthnClientPinNotSupported": "此 CanoKey 不支持设置 WebAuthn PIN。",
   "webauthnSetPinTitle": "设置 WebAuthn PIN",
   "webauthnSetPinPrompt": "设置 WebAuthn PIN 后即可管理登录凭据。PIN 需要 4 至 63 个字符。",

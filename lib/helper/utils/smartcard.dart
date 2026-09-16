@@ -677,7 +677,11 @@ class SmartCard {
         'CanoKey (USB) removed: $_currentSN. Connection Type updated to None.',
       );
       _sessions.invalidate();
-      await _disconnectCcidCard(activeCard);
+      if (!await _disconnectCcidCard(activeCard)) {
+        _connectionQuarantined = true;
+        connectionError =
+            'Card transport cleanup failed; restart the app before reuse';
+      }
       _ccidCard = null;
       _ccidBootstrapSerial = null;
       if (connectionType == ConnectionType.ccid) {
@@ -728,7 +732,11 @@ class SmartCard {
         'Successfully connected to CanoKey (USB). SN: $_currentSN. Connection Type updated to CCID.',
       );
     } catch (e) {
-      await _disconnectCcidCard(candidate);
+      if (!await _disconnectCcidCard(candidate)) {
+        _connectionQuarantined = true;
+        connectionError =
+            'Card transport cleanup failed; restart the app before reuse';
+      }
       if (_isUsbPermissionDenied(e)) {
         _permissionDeniedCcidReaders.add(name);
         log.w('USB permission denied for CanoKey reader $name.');
