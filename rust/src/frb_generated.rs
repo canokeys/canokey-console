@@ -41,7 +41,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -476924793;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -112589686;
 
 // Section: executor
 
@@ -199,54 +199,6 @@ fn wire__crate__api__protocol__CtapPinSession_get_pin_token_with_permissions_imp
                         api_permissions,
                         api_rp_id,
                     ),
-                )?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__CtapPinSession_protocol_version_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "CtapPinSession_protocol_version",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CtapPinSession>,
-            >>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok = Ok::<_, ()>(
-                    crate::api::protocol::CtapPinSession::protocol_version(&*api_that_guard),
                 )?;
                 std::result::Result::Ok(output_ok)
             })())
@@ -496,54 +448,6 @@ fn wire__crate__api__protocol__CtapPinToken_enumerate_rps_impl(
                 }
                 let api_that_guard = api_that_guard.unwrap();
                 let output_ok = Ok::<_, ()>(crate::api::protocol::CtapPinToken::enumerate_rps(
-                    &*api_that_guard,
-                ))?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__CtapPinToken_protocol_version_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "CtapPinToken_protocol_version",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CtapPinToken>,
-            >>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok = Ok::<_, ()>(crate::api::protocol::CtapPinToken::protocol_version(
                     &*api_that_guard,
                 ))?;
                 std::result::Result::Ok(output_ok)
@@ -2966,58 +2870,6 @@ fn wire__crate__api__protocol__ProtocolProfile_piv_decapsulate_impl(
         },
     )
 }
-fn wire__crate__api__protocol__ProtocolProfile_piv_delete_certificate_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_piv_delete_certificate",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_object_id = <u8>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok = Ok::<_, ()>(
-                    crate::api::protocol::ProtocolProfile::piv_delete_certificate(
-                        &*api_that_guard,
-                        api_object_id,
-                    ),
-                )?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
 fn wire__crate__api__protocol__ProtocolProfile_piv_delete_key_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -3668,60 +3520,6 @@ fn wire__crate__api__protocol__ProtocolProfile_piv_set_algorithm_config_impl(
         },
     )
 }
-fn wire__crate__api__protocol__ProtocolProfile_piv_set_container_name_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_piv_set_container_name",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_slot = <u8>::sse_decode(&mut deserializer);
-            let api_name = <String>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok = Ok::<_, ()>(
-                    crate::api::protocol::ProtocolProfile::piv_set_container_name(
-                        &*api_that_guard,
-                        api_slot,
-                        api_name,
-                    ),
-                )?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
 fn wire__crate__api__protocol__ProtocolProfile_piv_set_management_key_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -4123,37 +3921,6 @@ fn wire__crate__api__piv_crypto__finish_self_signed_certificate_impl(
                     api_algorithm,
                     api_signature,
                 )?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__crypto__hmac_sha1_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "hmac_sha1",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_key = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_data = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let output_ok = Ok::<_, ()>(crate::api::crypto::hmac_sha1(api_key, api_data))?;
                 std::result::Result::Ok(output_ok)
             })())
         },
@@ -4709,17 +4476,16 @@ impl SseDecode for crate::api::protocol::AdminAction {
             3 => crate::api::protocol::AdminAction::KeyboardReturn,
             4 => crate::api::protocol::AdminAction::KeyboardKeymap,
             5 => crate::api::protocol::AdminAction::ClearKeyboardKeymap,
-            6 => crate::api::protocol::AdminAction::LegacyPivExtensions,
-            7 => crate::api::protocol::AdminAction::LegacyTouch,
-            8 => crate::api::protocol::AdminAction::WriteSm2,
-            9 => crate::api::protocol::AdminAction::Nfc,
-            10 => crate::api::protocol::AdminAction::ResetOpenPgp,
-            11 => crate::api::protocol::AdminAction::ResetPiv,
-            12 => crate::api::protocol::AdminAction::ResetOath,
-            13 => crate::api::protocol::AdminAction::ResetNdef,
-            14 => crate::api::protocol::AdminAction::ResetCtap,
-            15 => crate::api::protocol::AdminAction::ResetPass,
-            16 => crate::api::protocol::AdminAction::FactoryReset,
+            6 => crate::api::protocol::AdminAction::LegacyTouch,
+            7 => crate::api::protocol::AdminAction::WriteSm2,
+            8 => crate::api::protocol::AdminAction::Nfc,
+            9 => crate::api::protocol::AdminAction::ResetOpenPgp,
+            10 => crate::api::protocol::AdminAction::ResetPiv,
+            11 => crate::api::protocol::AdminAction::ResetOath,
+            12 => crate::api::protocol::AdminAction::ResetNdef,
+            13 => crate::api::protocol::AdminAction::ResetCtap,
+            14 => crate::api::protocol::AdminAction::ResetPass,
+            15 => crate::api::protocol::AdminAction::FactoryReset,
             _ => unreachable!("Invalid variant for AdminAction: {}", inner),
         };
     }
@@ -5650,370 +5416,349 @@ fn pde_ffi_dispatcher_sync_impl(
             rust_vec_len,
             data_len,
         ),
-        4 => wire__crate__api__protocol__CtapPinSession_protocol_version_impl(
+        4 => wire__crate__api__protocol__CtapPinSession_set_pin_impl(ptr, rust_vec_len, data_len),
+        5 => wire__crate__api__protocol__CtapPinToken_close_impl(ptr, rust_vec_len, data_len),
+        6 => wire__crate__api__protocol__CtapPinToken_delete_credential_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        5 => wire__crate__api__protocol__CtapPinSession_set_pin_impl(ptr, rust_vec_len, data_len),
-        6 => wire__crate__api__protocol__CtapPinToken_close_impl(ptr, rust_vec_len, data_len),
-        7 => wire__crate__api__protocol__CtapPinToken_delete_credential_impl(
+        7 => wire__crate__api__protocol__CtapPinToken_enumerate_credentials_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        8 => wire__crate__api__protocol__CtapPinToken_enumerate_credentials_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        9 => {
+        8 => {
             wire__crate__api__protocol__CtapPinToken_enumerate_rps_impl(ptr, rust_vec_len, data_len)
         }
-        10 => wire__crate__api__protocol__CtapPinToken_protocol_version_impl(
+        9 => wire__crate__api__piv_crypto__PivPrivateKeyData_algorithm_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        11 => wire__crate__api__piv_crypto__PivPrivateKeyData_algorithm_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        12 => {
+        10 => {
             wire__crate__api__piv_crypto__PivPrivateKeyData_close_impl(ptr, rust_vec_len, data_len)
         }
-        13 => wire__crate__api__piv_crypto__PivPrivateKeyData_subject_public_key_info_impl(
+        11 => wire__crate__api__piv_crypto__PivPrivateKeyData_subject_public_key_info_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        14 => wire__crate__api__protocol__ProtocolOperation_admin_progress_impl(
+        12 => wire__crate__api__protocol__ProtocolOperation_admin_progress_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        15 => {
+        13 => {
             wire__crate__api__protocol__ProtocolOperation_advance_impl(ptr, rust_vec_len, data_len)
         }
-        16 => wire__crate__api__protocol__ProtocolOperation_bootstrap_identity_impl(
+        14 => wire__crate__api__protocol__ProtocolOperation_bootstrap_identity_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        17 => wire__crate__api__protocol__ProtocolOperation_close_impl(ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__protocol__ProtocolOperation_ctap_begin_pin_session_impl(
+        15 => wire__crate__api__protocol__ProtocolOperation_close_impl(ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__protocol__ProtocolOperation_ctap_begin_pin_session_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        19 => wire__crate__api__protocol__ProtocolOperation_ctap_get_info_impl(
+        17 => wire__crate__api__protocol__ProtocolOperation_ctap_get_info_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        20 => wire__crate__api__protocol__ProtocolOperation_ndef_read_capability_impl(
+        18 => wire__crate__api__protocol__ProtocolOperation_ndef_read_capability_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        21 => wire__crate__api__protocol__ProtocolOperation_ndef_read_message_impl(
+        19 => wire__crate__api__protocol__ProtocolOperation_ndef_read_message_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        22 => wire__crate__api__protocol__ProtocolOperation_ndef_write_message_impl(
+        20 => wire__crate__api__protocol__ProtocolOperation_ndef_write_message_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        23 => {
+        21 => {
             wire__crate__api__protocol__ProtocolOperation_piv_read_impl(ptr, rust_vec_len, data_len)
         }
-        24 => wire__crate__api__protocol__ProtocolOperation_probe_admin_impl(
+        22 => wire__crate__api__protocol__ProtocolOperation_probe_admin_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        25 => wire__crate__api__protocol__ProtocolOperation_probe_piv_impl(
+        23 => wire__crate__api__protocol__ProtocolOperation_probe_piv_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        26 => wire__crate__api__protocol__ProtocolOperation_start_impl(ptr, rust_vec_len, data_len),
-        27 => wire__crate__api__protocol__ProtocolProfile_admin_action_impl(
+        24 => wire__crate__api__protocol__ProtocolOperation_start_impl(ptr, rust_vec_len, data_len),
+        25 => wire__crate__api__protocol__ProtocolProfile_admin_action_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        28 => wire__crate__api__protocol__ProtocolProfile_admin_configure_impl(
+        26 => wire__crate__api__protocol__ProtocolProfile_admin_configure_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        29 => wire__crate__api__protocol__ProtocolProfile_admin_pass_slots_impl(
+        27 => wire__crate__api__protocol__ProtocolProfile_admin_pass_slots_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        30 => {
+        28 => {
             wire__crate__api__protocol__ProtocolProfile_admin_read_impl(ptr, rust_vec_len, data_len)
         }
-        31 => wire__crate__api__protocol__ProtocolProfile_admin_set_pass_slot_impl(
+        29 => wire__crate__api__protocol__ProtocolProfile_admin_set_pass_slot_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        32 => wire__crate__api__protocol__ProtocolProfile_close_impl(ptr, rust_vec_len, data_len),
-        33 => {
+        30 => wire__crate__api__protocol__ProtocolProfile_close_impl(ptr, rust_vec_len, data_len),
+        31 => {
             wire__crate__api__protocol__ProtocolProfile_firmware_impl(ptr, rust_vec_len, data_len)
         }
-        34 => wire__crate__api__protocol__ProtocolProfile_model_impl(ptr, rust_vec_len, data_len),
-        35 => wire__crate__api__protocol__ProtocolProfile_oath_calculate_impl(
+        32 => wire__crate__api__protocol__ProtocolProfile_model_impl(ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__protocol__ProtocolProfile_oath_calculate_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        36 => wire__crate__api__protocol__ProtocolProfile_oath_calculate_all_impl(
+        34 => wire__crate__api__protocol__ProtocolProfile_oath_calculate_all_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        37 => wire__crate__api__protocol__ProtocolProfile_oath_clear_code_impl(
+        35 => wire__crate__api__protocol__ProtocolProfile_oath_clear_code_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        38 => wire__crate__api__protocol__ProtocolProfile_oath_delete_impl(
+        36 => wire__crate__api__protocol__ProtocolProfile_oath_delete_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        39 => {
+        37 => {
             wire__crate__api__protocol__ProtocolProfile_oath_put_impl(ptr, rust_vec_len, data_len)
         }
-        40 => wire__crate__api__protocol__ProtocolProfile_oath_select_impl(
+        38 => wire__crate__api__protocol__ProtocolProfile_oath_select_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        41 => wire__crate__api__protocol__ProtocolProfile_oath_set_code_impl(
+        39 => wire__crate__api__protocol__ProtocolProfile_oath_set_code_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        42 => wire__crate__api__protocol__ProtocolProfile_oath_set_default_impl(
+        40 => wire__crate__api__protocol__ProtocolProfile_oath_set_default_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        43 => wire__crate__api__protocol__ProtocolProfile_oath_validate_impl(
+        41 => wire__crate__api__protocol__ProtocolProfile_oath_validate_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        44 => wire__crate__api__protocol__ProtocolProfile_openpgp_change_password_impl(
+        42 => wire__crate__api__protocol__ProtocolProfile_openpgp_change_password_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        45 => wire__crate__api__protocol__ProtocolProfile_openpgp_read_data_impl(
+        43 => wire__crate__api__protocol__ProtocolProfile_openpgp_read_data_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        46 => wire__crate__api__protocol__ProtocolProfile_openpgp_reset_retries_impl(
+        44 => wire__crate__api__protocol__ProtocolProfile_openpgp_reset_retries_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        47 => wire__crate__api__protocol__ProtocolProfile_openpgp_unblock_with_admin_impl(
+        45 => wire__crate__api__protocol__ProtocolProfile_openpgp_unblock_with_admin_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        48 => wire__crate__api__protocol__ProtocolProfile_openpgp_unblock_with_code_impl(
+        46 => wire__crate__api__protocol__ProtocolProfile_openpgp_unblock_with_code_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        49 => wire__crate__api__protocol__ProtocolProfile_openpgp_verify_impl(
+        47 => wire__crate__api__protocol__ProtocolProfile_openpgp_verify_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        50 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_reset_code_impl(
+        48 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_reset_code_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        51 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_signature_pin_policy_impl(
+        49 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_signature_pin_policy_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        52 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_touch_cache_time_impl(
+        50 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_touch_cache_time_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        53 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_touch_policy_impl(
+        51 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_touch_policy_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        54 => wire__crate__api__protocol__ProtocolProfile_piv_algorithm_display_id_impl(
+        52 => wire__crate__api__protocol__ProtocolProfile_piv_algorithm_display_id_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        55 => {
+        53 => {
             wire__crate__api__protocol__ProtocolProfile_piv_attest_impl(ptr, rust_vec_len, data_len)
         }
-        56 => wire__crate__api__protocol__ProtocolProfile_piv_authenticate_management_impl(
+        54 => wire__crate__api__protocol__ProtocolProfile_piv_authenticate_management_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        57 => wire__crate__api__protocol__ProtocolProfile_piv_certificate_impl(
+        55 => wire__crate__api__protocol__ProtocolProfile_piv_certificate_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        58 => wire__crate__api__protocol__ProtocolProfile_piv_credential_impl(
+        56 => wire__crate__api__protocol__ProtocolProfile_piv_credential_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        59 => wire__crate__api__protocol__ProtocolProfile_piv_decapsulate_impl(
+        57 => wire__crate__api__protocol__ProtocolProfile_piv_decapsulate_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        60 => wire__crate__api__protocol__ProtocolProfile_piv_delete_certificate_impl(
+        58 => wire__crate__api__protocol__ProtocolProfile_piv_delete_key_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        61 => wire__crate__api__protocol__ProtocolProfile_piv_delete_key_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        62 => {
+        59 => {
             wire__crate__api__protocol__ProtocolProfile_piv_derive_impl(ptr, rust_vec_len, data_len)
         }
-        63 => wire__crate__api__protocol__ProtocolProfile_piv_generate_key_impl(
+        60 => wire__crate__api__protocol__ProtocolProfile_piv_generate_key_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        64 => wire__crate__api__protocol__ProtocolProfile_piv_import_pq_seed_impl(
+        61 => wire__crate__api__protocol__ProtocolProfile_piv_import_pq_seed_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        65 => wire__crate__api__protocol__ProtocolProfile_piv_import_private_key_impl(
+        62 => wire__crate__api__protocol__ProtocolProfile_piv_import_private_key_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        66 => wire__crate__api__protocol__ProtocolProfile_piv_metadata_impl(
+        63 => wire__crate__api__protocol__ProtocolProfile_piv_metadata_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        67 => wire__crate__api__protocol__ProtocolProfile_piv_metadata_directory_impl(
+        64 => wire__crate__api__protocol__ProtocolProfile_piv_metadata_directory_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        68 => wire__crate__api__protocol__ProtocolProfile_piv_move_key_impl(
+        65 => wire__crate__api__protocol__ProtocolProfile_piv_move_key_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        69 => wire__crate__api__protocol__ProtocolProfile_piv_read_algorithm_config_impl(
+        66 => wire__crate__api__protocol__ProtocolProfile_piv_read_algorithm_config_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        70 => wire__crate__api__protocol__ProtocolProfile_piv_read_object_impl(
+        67 => wire__crate__api__protocol__ProtocolProfile_piv_read_object_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        71 => wire__crate__api__protocol__ProtocolProfile_piv_reset_pin_puk_retries_impl(
+        68 => wire__crate__api__protocol__ProtocolProfile_piv_reset_pin_puk_retries_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        72 => wire__crate__api__protocol__ProtocolProfile_piv_set_algorithm_config_impl(
+        69 => wire__crate__api__protocol__ProtocolProfile_piv_set_algorithm_config_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        73 => wire__crate__api__protocol__ProtocolProfile_piv_set_container_name_impl(
+        70 => wire__crate__api__protocol__ProtocolProfile_piv_set_management_key_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        74 => wire__crate__api__protocol__ProtocolProfile_piv_set_management_key_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        75 => {
+        71 => {
             wire__crate__api__protocol__ProtocolProfile_piv_sign_impl(ptr, rust_vec_len, data_len)
         }
-        76 => wire__crate__api__protocol__ProtocolProfile_piv_sign_streaming_impl(
+        72 => wire__crate__api__protocol__ProtocolProfile_piv_sign_streaming_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        77 => wire__crate__api__protocol__ProtocolProfile_piv_write_object_impl(
+        73 => wire__crate__api__protocol__ProtocolProfile_piv_write_object_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        78 => wire__crate__api__protocol__ProtocolProfile_serial_impl(ptr, rust_vec_len, data_len),
-        79 => wire__crate__api__piv_crypto__build_piv_public_key_impl(ptr, rust_vec_len, data_len),
-        80 => wire__crate__api__decode__decode_png_qrcode_impl(ptr, rust_vec_len, data_len),
-        81 => wire__crate__api__piv_crypto__finish_piv_csr_impl(ptr, rust_vec_len, data_len),
-        82 => wire__crate__api__piv_crypto__finish_self_signed_certificate_impl(
+        74 => wire__crate__api__protocol__ProtocolProfile_serial_impl(ptr, rust_vec_len, data_len),
+        75 => wire__crate__api__piv_crypto__build_piv_public_key_impl(ptr, rust_vec_len, data_len),
+        76 => wire__crate__api__decode__decode_png_qrcode_impl(ptr, rust_vec_len, data_len),
+        77 => wire__crate__api__piv_crypto__finish_piv_csr_impl(ptr, rust_vec_len, data_len),
+        78 => wire__crate__api__piv_crypto__finish_self_signed_certificate_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        83 => wire__crate__api__crypto__hmac_sha1_impl(ptr, rust_vec_len, data_len),
-        84 => wire__crate__api__init_app_impl(ptr, rust_vec_len, data_len),
-        85 => wire__crate__api__piv_crypto__parse_piv_import_file_impl(ptr, rust_vec_len, data_len),
-        86 => wire__crate__api__piv_crypto__parse_piv_public_key_info_impl(
+        79 => wire__crate__api__init_app_impl(ptr, rust_vec_len, data_len),
+        80 => wire__crate__api__piv_crypto__parse_piv_import_file_impl(ptr, rust_vec_len, data_len),
+        81 => wire__crate__api__piv_crypto__parse_piv_public_key_info_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        87 => wire__crate__api__crypto__parse_x509_cert_from_der_impl(ptr, rust_vec_len, data_len),
-        88 => wire__crate__api__crypto__pbkdf2_hmac_sha1_impl(ptr, rust_vec_len, data_len),
-        89 => wire__crate__api__piv_crypto__piv_certificate_supports_macos_impl(
+        82 => wire__crate__api__crypto__parse_x509_cert_from_der_impl(ptr, rust_vec_len, data_len),
+        83 => wire__crate__api__crypto__pbkdf2_hmac_sha1_impl(ptr, rust_vec_len, data_len),
+        84 => wire__crate__api__piv_crypto__piv_certificate_supports_macos_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        90 => wire__crate__api__piv_crypto__prepare_piv_csr_impl(ptr, rust_vec_len, data_len),
-        91 => wire__crate__api__piv_crypto__prepare_piv_signing_input_impl(
+        85 => wire__crate__api__piv_crypto__prepare_piv_csr_impl(ptr, rust_vec_len, data_len),
+        86 => wire__crate__api__piv_crypto__prepare_piv_signing_input_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        92 => wire__crate__api__piv_crypto__prepare_self_signed_certificate_impl(
+        87 => wire__crate__api__piv_crypto__prepare_self_signed_certificate_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        93 => wire__crate__api__protocol__protocol_step_default_impl(ptr, rust_vec_len, data_len),
-        94 => wire__crate__api__crypto__sha256_digest_impl(ptr, rust_vec_len, data_len),
-        95 => wire__crate__api__crypto__verify_piv_signature_impl(ptr, rust_vec_len, data_len),
+        88 => wire__crate__api__protocol__protocol_step_default_impl(ptr, rust_vec_len, data_len),
+        89 => wire__crate__api__crypto__sha256_digest_impl(ptr, rust_vec_len, data_len),
+        90 => wire__crate__api__crypto__verify_piv_signature_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -6105,17 +5850,16 @@ impl flutter_rust_bridge::IntoDart for crate::api::protocol::AdminAction {
             Self::KeyboardReturn => 3.into_dart(),
             Self::KeyboardKeymap => 4.into_dart(),
             Self::ClearKeyboardKeymap => 5.into_dart(),
-            Self::LegacyPivExtensions => 6.into_dart(),
-            Self::LegacyTouch => 7.into_dart(),
-            Self::WriteSm2 => 8.into_dart(),
-            Self::Nfc => 9.into_dart(),
-            Self::ResetOpenPgp => 10.into_dart(),
-            Self::ResetPiv => 11.into_dart(),
-            Self::ResetOath => 12.into_dart(),
-            Self::ResetNdef => 13.into_dart(),
-            Self::ResetCtap => 14.into_dart(),
-            Self::ResetPass => 15.into_dart(),
-            Self::FactoryReset => 16.into_dart(),
+            Self::LegacyTouch => 6.into_dart(),
+            Self::WriteSm2 => 7.into_dart(),
+            Self::Nfc => 8.into_dart(),
+            Self::ResetOpenPgp => 9.into_dart(),
+            Self::ResetPiv => 10.into_dart(),
+            Self::ResetOath => 11.into_dart(),
+            Self::ResetNdef => 12.into_dart(),
+            Self::ResetCtap => 13.into_dart(),
+            Self::ResetPass => 14.into_dart(),
+            Self::FactoryReset => 15.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -6829,17 +6573,16 @@ impl SseEncode for crate::api::protocol::AdminAction {
                 crate::api::protocol::AdminAction::KeyboardReturn => 3,
                 crate::api::protocol::AdminAction::KeyboardKeymap => 4,
                 crate::api::protocol::AdminAction::ClearKeyboardKeymap => 5,
-                crate::api::protocol::AdminAction::LegacyPivExtensions => 6,
-                crate::api::protocol::AdminAction::LegacyTouch => 7,
-                crate::api::protocol::AdminAction::WriteSm2 => 8,
-                crate::api::protocol::AdminAction::Nfc => 9,
-                crate::api::protocol::AdminAction::ResetOpenPgp => 10,
-                crate::api::protocol::AdminAction::ResetPiv => 11,
-                crate::api::protocol::AdminAction::ResetOath => 12,
-                crate::api::protocol::AdminAction::ResetNdef => 13,
-                crate::api::protocol::AdminAction::ResetCtap => 14,
-                crate::api::protocol::AdminAction::ResetPass => 15,
-                crate::api::protocol::AdminAction::FactoryReset => 16,
+                crate::api::protocol::AdminAction::LegacyTouch => 6,
+                crate::api::protocol::AdminAction::WriteSm2 => 7,
+                crate::api::protocol::AdminAction::Nfc => 8,
+                crate::api::protocol::AdminAction::ResetOpenPgp => 9,
+                crate::api::protocol::AdminAction::ResetPiv => 10,
+                crate::api::protocol::AdminAction::ResetOath => 11,
+                crate::api::protocol::AdminAction::ResetNdef => 12,
+                crate::api::protocol::AdminAction::ResetCtap => 13,
+                crate::api::protocol::AdminAction::ResetPass => 14,
+                crate::api::protocol::AdminAction::FactoryReset => 15,
                 _ => {
                     unimplemented!("");
                 }

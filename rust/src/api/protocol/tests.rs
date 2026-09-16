@@ -1533,7 +1533,7 @@ fn ctap_begin_pin_session_drives_handshake_and_validates_protocol() {
     );
     let step = op.advance(ctap_ok(&ctap_hex(CTAP_PEER_KEY_AGREEMENT)));
     let session = step.pin_session.unwrap();
-    assert_eq!(session.protocol_version(), 1);
+    assert_eq!(session.protocol.to_u8(), 1);
 
     let mut op = ProtocolOperation::ctap_begin_pin_session(2);
     ctap_after_select(&mut op);
@@ -1541,7 +1541,7 @@ fn ctap_begin_pin_session_drives_handshake_and_validates_protocol() {
         .advance(ctap_ok(&ctap_hex(CTAP_PEER_KEY_AGREEMENT)))
         .pin_session
         .unwrap();
-    assert_eq!(session.protocol_version(), 2);
+    assert_eq!(session.protocol.to_u8(), 2);
 
     // Unknown advertised protocol versions fail before any I/O.
     let mut op = ProtocolOperation::ctap_begin_pin_session(3);
@@ -1630,7 +1630,7 @@ fn ctap_pin_token_golden_and_ctap_error_mapping() {
     let mut payload = vec![0xa1, 0x02, 0x58, 0x30];
     payload.extend_from_slice(&ctap_hex(CTAP_TOKEN_CT_V2));
     let token = op.advance(ctap_ok(&payload)).pin_token.unwrap();
-    assert_eq!(token.protocol_version(), 2);
+    assert_eq!(token.protocol.to_u8(), 2);
 
     // Zero permissions and PIN validation fail before any I/O.
     let mut op = session.get_pin_token_with_permissions(b"1234".to_vec(), 0, None);

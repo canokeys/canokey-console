@@ -8,13 +8,6 @@ impl CtapPinSession {
         }
     }
 
-    /// The pin/UV auth protocol version (1 or 2) this session speaks.
-    /// Dart picks it from getInfo's advertised pinUvAuthProtocols.
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn protocol_version(&self) -> u8 {
-        self.protocol.to_u8()
-    }
-
     /// Set the initial PIN (subcommand 0x03). V2 IVs are generated here from
     /// the CSPRNG; PIN bytes enter upstream zeroizing owners immediately.
     #[flutter_rust_bridge::frb(sync)]
@@ -131,13 +124,6 @@ impl CtapPinToken {
             inner: Some(token),
             protocol,
         }
-    }
-
-    /// The pin/UV auth protocol version (1 or 2) of the session that minted
-    /// this token; credmgmt operations authenticate with it.
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn protocol_version(&self) -> u8 {
-        self.protocol.to_u8()
     }
 
     pub(super) fn token(&self) -> Result<&ctap::PinToken, Error> {

@@ -176,19 +176,6 @@ impl ProtocolProfile {
     }
 
     #[flutter_rust_bridge::frb(sync)]
-    pub fn piv_delete_certificate(&self, object_id: u8) -> ProtocolOperation {
-        self.operation(|profile| {
-            piv::delete_certificate(
-                profile,
-                piv_slot(object_id)?,
-                piv::Access::Existing,
-                OperationOptions::default(),
-            )
-            .map(Inner::Credential)
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
     pub fn piv_delete_key(&self, slot: u8) -> ProtocolOperation {
         self.operation(|profile| {
             piv::delete_key(
@@ -255,21 +242,6 @@ impl ProtocolProfile {
             piv::set_algorithm_config(
                 profile,
                 config,
-                piv::Access::Existing,
-                OperationOptions::default(),
-            )
-            .map(Inner::Credential)
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn piv_set_container_name(&self, slot: u8, name: String) -> ProtocolOperation {
-        self.operation(|profile| {
-            let name = piv::ContainerName::from_text(&name)?;
-            piv::set_container_name(
-                profile,
-                piv_slot(slot)?,
-                name,
                 piv::Access::Existing,
                 OperationOptions::default(),
             )

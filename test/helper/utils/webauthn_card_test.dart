@@ -138,7 +138,6 @@ void main() {
     await _withClient(transport, (client) async {
       final session = await client.beginPinSession(_info(protocols: [1, 2]));
 
-      expect(session.protocolVersion, 2);
       expect(transport.commands, [
         _select,
         '801000000606A201020202',
@@ -154,7 +153,6 @@ void main() {
     await _withClient(transport, (client) async {
       final session = await client.beginPinSession(_info(protocols: [1]));
 
-      expect(session.protocolVersion, 1);
       expect(transport.commands, [
         _select,
         '801000000606A201010202',
@@ -234,7 +232,6 @@ void main() {
       final session = await client.beginPinSession(_info(protocols: [1]));
       final token = await session.getPinToken('1234');
       session.close();
-      expect(token.protocolVersion, 1);
 
       final rps = await token.enumerateRps();
       expect(rps, hasLength(2));

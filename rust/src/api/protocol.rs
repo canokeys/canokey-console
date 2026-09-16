@@ -68,7 +68,6 @@ pub enum AdminAction {
     KeyboardReturn,
     KeyboardKeymap,
     ClearKeyboardKeymap,
-    LegacyPivExtensions,
     LegacyTouch,
     WriteSm2,
     Nfc,

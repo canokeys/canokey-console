@@ -81,8 +81,6 @@ class WebAuthnPinSession {
   CtapPinSession get _session =>
       _handle ?? (throw StateError('WebAuthn PIN session is closed'));
 
-  int get protocolVersion => _session.protocolVersion();
-
   Future<void> setPin(String newPin) async {
     final newPinBytes = utf8.encode(newPin);
     try {
@@ -150,8 +148,6 @@ class WebAuthnPinToken {
 
   CtapPinToken get _token =>
       _handle ?? (throw StateError('WebAuthn PIN token is closed'));
-
-  int get protocolVersion => _token.protocolVersion();
 
   Future<List<WebAuthnRp>> enumerateRps() async =>
       (await _client._executeResult(

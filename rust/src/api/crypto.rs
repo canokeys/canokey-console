@@ -3,7 +3,6 @@ use der::{Decode, Sequence};
 use ed25519_dalek::{Signature as Ed25519Signature, VerifyingKey as Ed25519VerifyingKey};
 use hex_literal::hex;
 use p256::ecdsa::signature::Verifier as EcdsaVerifier;
-use pbkdf2::hmac::{Hmac, KeyInit as HmacKeyInit, Mac};
 use pbkdf2::pbkdf2_hmac;
 use rsa::pkcs1v15::{Signature as RsaSignature, VerifyingKey as RsaVerifyingKey};
 use rsa::pkcs8::DecodePublicKey;
@@ -257,13 +256,6 @@ pub fn pbkdf2_hmac_sha1(password: String, salt: Vec<u8>, iterations: u32, key_le
         key.as_mut_slice(),
     );
     key
-}
-
-pub fn hmac_sha1(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
-    type HmacSha1 = Hmac<Sha1>;
-    let mut mac = <HmacSha1 as HmacKeyInit>::new_from_slice(key.as_slice()).unwrap();
-    mac.update(data.as_slice());
-    mac.finalize().into_bytes().to_vec()
 }
 
 #[cfg(test)]

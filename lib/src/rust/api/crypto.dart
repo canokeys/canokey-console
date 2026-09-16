@@ -40,9 +40,6 @@ Uint8List pbkdf2HmacSha1({
   keyLen: keyLen,
 );
 
-Uint8List hmacSha1({required List<int> key, required List<int> data}) =>
-    RustLib.instance.api.crateApiCryptoHmacSha1(key: key, data: data);
-
 class X509CertData {
   final Uint8List bytes;
   final String subject;

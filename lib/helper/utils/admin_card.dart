@@ -309,12 +309,6 @@ class AdminCardClient extends AdminSessionCardClient {
       _action(AdminAction.keyboardInterface, pin: pin, value: enabled ? 1 : 0);
   Future<void> setKeyboardReturn(bool enabled, {required String pin}) =>
       _action(AdminAction.keyboardReturn, pin: pin, value: enabled ? 1 : 0);
-  Future<void> setLegacyPivExtensions(bool enabled, {required String pin}) =>
-      _action(
-        AdminAction.legacyPivExtensions,
-        pin: pin,
-        value: enabled ? 1 : 0,
-      );
   Future<void> setLegacyTouch(int index, int value, {required String pin}) {
     RangeError.checkValueInInterval(index, 0, 3, 'index');
     RangeError.checkValueInInterval(value, 0, 0xff, 'value');

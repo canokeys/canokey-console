@@ -31,24 +31,8 @@ class Prompts {
     }
   }
 
-  static void promptPinFailureResult(String resp) {
-    resp = resp.toUpperCase();
-    if (resp == '6983') {
-      showPrompt(S.of(Get.context!).appletLocked, ContentThemeColor.danger);
-    } else if (resp == '6982') {
-      showPrompt(S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
-    } else if (resp.toUpperCase().startsWith('63C')) {
-      String retries = resp[resp.length - 1];
-      showPrompt(
-          S.of(Get.context!).pinRetries(retries), ContentThemeColor.danger);
-    } else if (resp == '6700') {
-      showPrompt(S.of(Get.context!).pinLength, ContentThemeColor.danger);
-    } else if (isStorageFull(resp)) {
-      showPrompt(S.of(Get.context!).storageFull, ContentThemeColor.danger);
-    } else {
-      showPrompt(S.current.operationFailed, ContentThemeColor.danger);
-    }
-  }
+  static void promptPinFailureResult(String resp) =>
+      showPrompt(getPinFailureResult(resp), ContentThemeColor.danger);
 
   static bool isStorageFull(String resp) {
     final sw = resp.toUpperCase();

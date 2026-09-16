@@ -32,10 +32,6 @@ abstract class CtapPinSession implements RustOpaqueInterface {
     String? rpId,
   });
 
-  /// The pin/UV auth protocol version (1 or 2) this session speaks.
-  /// Dart picks it from getInfo's advertised pinUvAuthProtocols.
-  int protocolVersion();
-
   /// Set the initial PIN (subcommand 0x03). V2 IVs are generated here from
   /// the CSPRNG; PIN bytes enter upstream zeroizing owners immediately.
   ProtocolOperation setPin({required List<int> newPin});
@@ -64,10 +60,6 @@ abstract class CtapPinToken implements RustOpaqueInterface {
   /// run inside the one operation). A 0x2E NO_CREDENTIALS status yields an
   /// empty result, not an error. Returns typed relying parties.
   ProtocolOperation enumerateRps();
-
-  /// The pin/UV auth protocol version (1 or 2) of the session that minted
-  /// this token; credmgmt operations authenticate with it.
-  int protocolVersion();
 }
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolOperation>>
@@ -360,8 +352,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     required List<int> ciphertext,
   });
 
-  ProtocolOperation pivDeleteCertificate({required int objectId});
-
   ProtocolOperation pivDeleteKey({required int slot});
 
   ProtocolOperation pivDerive({
@@ -430,11 +420,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
 
   ProtocolOperation pivSetAlgorithmConfig({required List<int> raw});
 
-  ProtocolOperation pivSetContainerName({
-    required int slot,
-    required String name,
-  });
-
   ProtocolOperation pivSetManagementKey({
     required int algorithm,
     required List<int> key,
@@ -477,7 +462,6 @@ enum AdminAction {
   keyboardReturn,
   keyboardKeymap,
   clearKeyboardKeymap,
-  legacyPivExtensions,
   legacyTouch,
   writeSm2,
   nfc,

@@ -94,12 +94,6 @@ class PivCardClient extends ProfileCardClient {
     );
   }
 
-  Future<void> deleteCertificate(int slot) async {
-    await _executePrepared(
-      (profile) => profile.pivDeleteCertificate(objectId: slot),
-    );
-  }
-
   Future<void> deleteKey(int slot) async {
     await _executePrepared((profile) => profile.pivDeleteKey(slot: slot));
   }
@@ -134,12 +128,6 @@ class PivCardClient extends ProfileCardClient {
       (profile) => profile.pivSetAlgorithmConfig(raw: raw),
     );
     discardProfile(binding);
-  }
-
-  Future<void> setContainerName(int slot, String name) async {
-    await _executePrepared(
-      (profile) => profile.pivSetContainerName(slot: slot, name: name),
-    );
   }
 
   Future<void> resetPinPukRetries(int pinRetries, int pukRetries) async {

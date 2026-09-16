@@ -86,7 +86,6 @@ impl ProtocolProfile {
                     }
                 }
                 AdminAction::ClearKeyboardKeymap => Request::ClearKeyboardKeymap,
-                AdminAction::LegacyPivExtensions => Request::SetLegacyPivExtensions(boolean()?),
                 AdminAction::LegacyTouch => Request::SetLegacyOpenPgpTouch(match index {
                     0 => admin::LegacyOpenPgpTouch::Signature(boolean()?),
                     1 => admin::LegacyOpenPgpTouch::Decryption(boolean()?),
