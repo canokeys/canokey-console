@@ -87,7 +87,7 @@ class AppletSwitches {
     AdminCardClient? client,
   }) async {
     final card = client ?? AdminCardClient();
-    await card.select();
+    await card.prepare();
     final firmware = await card.readFirmwareVersion();
     final functionSetVersion = CanoKey.functionSetFromFirmwareVersion(firmware);
     final config = functionSetVersion == FunctionSetVersion.v5

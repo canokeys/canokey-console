@@ -1,4 +1,6 @@
 import 'dart:typed_data';
+import 'dart:async';
+import 'package:canokey_console/helper/utils/card_session.dart';
 
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/protocol_operation.dart';
@@ -92,6 +94,119 @@ void main() {
     expect(operation.closed && operation.disposed, isTrue);
   });
 
+  test(
+    'cancellation waits for I/O and closes before releasing the lease',
+    () async {
+      final sessions = CardSessions();
+      final cancellation = CardCancellation();
+      final response = Completer<String>();
+      final started = Completer<void>();
+      final command = Uint8List.fromList([0, 0xfd, 0, 0, 0]);
+      final operation = _Operation([ProtocolStep(command: command)]);
+      final useCase = sessions.run((session) async {
+        session.bind((_) {
+          started.complete();
+          return response.future;
+        });
+        await expectLater(
+          executeProtocolOperation(
+            operation,
+            _Transport((_) async => throw StateError('Wrong transport')),
+            lease: session.lease,
+            cancellation: cancellation,
+          ),
+          throwsStateError,
+        );
+      });
+      await started.future;
+      cancellation.cancel();
+      var nextStarted = false;
+      final next = sessions.run((_) async {
+        expect(operation.closed && operation.disposed, isTrue);
+        nextStarted = true;
+      });
+      await Future<void>.delayed(Duration.zero);
+      expect(operation.closed, isFalse);
+      expect(nextStarted, isFalse);
+      response.complete('0600009000');
+      await Future.wait([useCase, next]);
+      expect(operation.responses, isEmpty);
+      expect(command, everyElement(0));
+    },
+  );
+
+  test('connection replacement rejects response before Rust advance', () async {
+    final sessions = CardSessions();
+    final operation = _Operation([ProtocolStep(command: Uint8List(5))]);
+    await sessions.run((session) async {
+      session.bind((_) async {
+        sessions.invalidate();
+        return '9000';
+      });
+      await expectLater(
+        executeProtocolOperation(
+          operation,
+          _Transport((_) async => throw StateError('Wrong transport')),
+          lease: session.lease,
+        ),
+        throwsStateError,
+      );
+    });
+    expect(operation.responses, isEmpty);
+    expect(operation.closed && operation.disposed, isTrue);
+  });
+
+  test('cancellation before start performs no exchange and closes', () async {
+    final cancellation = CardCancellation()..cancel();
+    final operation = _Operation([]);
+    await expectLater(
+      executeProtocolOperation(
+        operation,
+        _Transport((_) async => fail('Unexpected exchange')),
+        cancellation: cancellation,
+      ),
+      throwsStateError,
+    );
+    expect(operation.closed && operation.disposed, isTrue);
+  });
+
+  test(
+    'production transport refuses an operation outside a use-case lease',
+    () async {
+      final operation = _Operation([]);
+      await expectLater(
+        executeProtocolOperation(operation, const SmartCardApduTransport()),
+        throwsStateError,
+      );
+      expect(operation.closed && operation.disposed, isTrue);
+    },
+  );
+
+  test('cancelled probe result is freed instead of published', () async {
+    final cancellation = CardCancellation();
+    final profile = _Profile();
+    final operation = _Operation([
+      ProtocolStep(profile: profile),
+    ], onStart: cancellation.cancel);
+    final sessions = CardSessions();
+    await sessions.run((session) async {
+      session.bind((_) async => fail('Unexpected exchange'));
+      await expectLater(
+        executeProfileProbe(
+          operation,
+          _Transport((_) async => fail('Unexpected exchange')),
+          lease: session.lease,
+          cancellation: cancellation,
+        ),
+        throwsStateError,
+      );
+      expect(profile.closed && profile.disposed, isTrue);
+      // The executor releases its reservation even when result publication fails.
+      session.lease.beginOperation().close();
+    });
+    expect(operation.closed && operation.disposed, isTrue);
+  });
+
   test('unexpected bridge exception still releases the operation', () async {
     final operation = _Operation([]);
     await expectLater(
@@ -103,7 +218,8 @@ void main() {
 }
 
 class _Operation implements ProtocolOperation {
-  _Operation(this.steps);
+  _Operation(this.steps, {this.onStart});
+  final void Function()? onStart;
   final List<ProtocolStep> steps;
   final responses = <List<int>>[];
   Uint8List? borrowedResponse;
@@ -111,7 +227,11 @@ class _Operation implements ProtocolOperation {
   bool disposed = false;
 
   @override
-  ProtocolStep start() => steps.removeAt(0);
+  ProtocolStep start() {
+    onStart?.call();
+    return steps.removeAt(0);
+  }
+
   @override
   ProtocolStep advance({required List<int> response}) {
     responses.add(List.of(response));
@@ -132,4 +252,15 @@ class _Transport implements ApduTransport {
   final Future<String> Function(String) exchange;
   @override
   Future<String> transceive(String capdu) => exchange(capdu);
+}
+
+class _Profile implements ProtocolProfile {
+  bool closed = false;
+  bool disposed = false;
+  @override
+  void close() => closed = true;
+  @override
+  void dispose() => disposed = true;
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

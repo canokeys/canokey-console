@@ -125,6 +125,8 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
         return S.of(context).passSlotStatic;
       case PassSlotType.hmacSha1:
         return S.of(context).passSlotHmacSha1;
+      case PassSlotType.unknown:
+        return S.of(context).settingsKeyboardLayoutUnknown;
     }
   }
 

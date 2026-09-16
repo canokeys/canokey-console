@@ -6,7 +6,6 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/applet_switches.dart';
-import 'package:canokey_console/helper/utils/admin_card.dart';
 import 'package:canokey_console/helper/utils/ctap_transmitter.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
@@ -24,7 +23,8 @@ import 'package:logger/logger.dart';
 
 class WebAuthnController extends PollingController with AdminApplet {
   late Ctap2 _ctap;
-  final Map<String, String> _localPinCache = {};
+  final CtapTransmitter _transmitter = CtapTransmitter();
+  final _localPinCache = CredentialCache('webauthn');
   final List<WebAuthnItem> webAuthnItems = [];
   FirmwareVersion firmwareVersion = const FirmwareVersion(0, 0, 0);
   FunctionSetVersion functionSetVersion = FunctionSetVersion.v1;
@@ -100,8 +100,7 @@ class WebAuthnController extends PollingController with AdminApplet {
         return;
       }
 
-      SmartCard.assertOK(
-          await SmartCard.transceive('00A4040008A0000006472F0001'));
+      await _transmitter.selectApplication();
       final cp = ClientPin(_ctap);
       try {
         await cp.changePin(pinToTry, newPin);
@@ -135,7 +134,7 @@ class WebAuthnController extends PollingController with AdminApplet {
       if (!await authenticate(sn)) {
         return;
       }
-      config = await AdminCardClient().readSm2Config();
+      config = await adminCardClient.readSm2Config(pin: adminPinForCurrentLease);
     });
     return config;
   }
@@ -152,7 +151,8 @@ class WebAuthnController extends PollingController with AdminApplet {
       if (!await authenticate(sn)) {
         return;
       }
-      await AdminCardClient().writeSm2Config(
+      await adminCardClient.writeSm2Config(
+        pin: adminPinForCurrentLease,
         enabled: enabled,
         curveId: curveId,
         algoId: algoId,
@@ -174,8 +174,7 @@ class WebAuthnController extends PollingController with AdminApplet {
         return;
       }
 
-      SmartCard.assertOK(
-          await SmartCard.transceive('00A4040008A0000006472F0001'));
+      await _transmitter.selectApplication();
       final cp = ClientPin(_ctap);
       final pinToken = await cp.getPinToken(pinToTry,
           permissions: [ClientPinPermission.credentialManagement]);
@@ -212,9 +211,8 @@ class WebAuthnController extends PollingController with AdminApplet {
   }
 
   Future<List<int>?> _getPinToken(String sn) async {
-    String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
-    SmartCard.assertOK(resp);
-    _ctap = await Ctap2.create(CtapTransmitter());
+    await _transmitter.selectApplication();
+    _ctap = await Ctap2.create(_transmitter);
 
     // We do nothing if the device does not support credMgmt or clientPin
     if (_ctap.info.options?['credMgmt'] != true ||
@@ -331,14 +329,12 @@ class WebAuthnController extends PollingController with AdminApplet {
         Prompts.stopPromptAndroidPolling();
         try {
           // Set PIN and refresh by recreating Ctap2
-          String resp =
-              await SmartCard.transceive('00A4040008A0000006472F0001');
-          SmartCard.assertOK(resp);
+          await _transmitter.selectApplication();
           final cp = ClientPin(_ctap);
           await cp.setPin(pin);
           // Update _ctap before continuing so later PIN-token operations see
           // the authenticator's new clientPin state.
-          _ctap = await Ctap2.create(CtapTransmitter());
+          _ctap = await Ctap2.create(_transmitter);
           log.i('setPin success');
         } on PlatformException catch (e) {
           await SmartCard.stopPollingNfc(withInput: true);
@@ -374,8 +370,7 @@ class WebAuthnController extends PollingController with AdminApplet {
 
   Future<List<int>?> _doGetPinToken(String pin) async {
     try {
-      String resp = await SmartCard.transceive('00A4040008A0000006472F0001');
-      SmartCard.assertOK(resp);
+      await _transmitter.selectApplication();
       final cp = ClientPin(_ctap);
       return await cp.getPinToken(pin,
           permissions: [ClientPinPermission.credentialManagement]);
@@ -401,11 +396,10 @@ class WebAuthnController extends PollingController with AdminApplet {
         }
         Prompts.stopPromptAndroidPolling();
         try {
-          SmartCard.assertOK(
-              await SmartCard.transceive('00A4040008A0000006472F0001'));
+          await _transmitter.selectApplication();
           final cp = ClientPin(_ctap);
           await cp.changePin(currentPin, newPin);
-          _ctap = await Ctap2.create(CtapTransmitter());
+          _ctap = await Ctap2.create(_transmitter);
           final pinToken = await _doGetPinToken(newPin);
           if (pinToken == null) {
             await SmartCard.stopPollingNfc(withInput: true);

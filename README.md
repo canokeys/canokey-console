@@ -50,11 +50,29 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 
 3. Run the application:
    ```bash
-   flutter_rust_bridge_codegen build-web --release # for web only, remove --release for debug Rust build (very slow when decoding qrcode!)
+   flutter_rust_bridge_codegen build-web --release --wasm-pack-rustup-toolchain nightly-2026-09-04 # for web only
    dart run fido2:setup --web --output=build/fido2 # for web only
    mkdir -p web/fido2 && cp build/fido2/web/fido2_crypto* web/fido2/ # for web only
    flutter run
    ```
+
+For Chrome development, run `flutter run -d chrome --cross-origin-isolation`
+to enable the headers required for shared WASM memory.
+
+If `wasm-pack` cannot download its helper and fails while compiling
+`wasm-bindgen-cli` with WASM linker flags on the host, install the matching
+helper separately with `cargo +stable install wasm-bindgen-cli --version 0.2.100 --locked`
+and ensure its `bin` directory is on `PATH` before rebuilding.
+
+After changing Rust code or regenerating Flutter Rust Bridge bindings, rebuild
+the web bundle with the `build-web` command above, then stop and relaunch the
+Flutter app. Hot restart does not recompile Rust. A content-hash mismatch means
+the loaded WASM bundle and generated Dart bindings are out of sync.
+
+If hot restart reports `Identifier 'wasm_bindgen' has already been declared`,
+fully reload the browser page or stop and relaunch the app. The bridge's web
+loader inserts its script again on hot restart, while the previous script's
+global declaration remains in the page.
 
 ## Diagnostic Logs
 
@@ -101,7 +119,7 @@ flutter test test/helper/utils/fido2_backend_test.dart
 ### Web
 
 ```bash
-flutter_rust_bridge_codegen build-web --release
+flutter_rust_bridge_codegen build-web --release --wasm-pack-rustup-toolchain nightly-2026-09-04
 dart run fido2:setup --web --output=build/fido2
 mkdir -p web/fido2 && cp build/fido2/web/fido2_crypto* web/fido2/
 flutter build web

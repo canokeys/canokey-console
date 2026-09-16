@@ -1,48 +1,74 @@
+@Tags(['native'])
+library;
+
 import 'dart:convert';
 
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/openpgp_card.dart';
+import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:canokey_console/models/openpgp.dart';
+import 'package:canokey_console/src/rust/frb_generated.dart';
 import 'package:convert/convert.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('uses the injected transport and follows GET RESPONSE', () async {
-    final transport = _QueueApduTransport(['6102', '9000']);
-    final client = OpenPgpCardClient(transport: transport);
+  setUpAll(() => RustLib.init());
+  tearDownAll(RustLib.dispose);
 
-    await client.select();
-
-    expect(transport.commands, ['00A4040006D27600012401', '00C0000002']);
-    expect(client.lastStatusWord, '9000');
+  test('every operation SELECTs through libcanokey and follows GET RESPONSE',
+      () async {
+    final transport = _QueueApduTransport(['6102', '9000', '6A82']);
+    await _withPreparedClient(transport, (client) async {
+      await expectLater(
+        client.verifyAdminPin('12345678'),
+        throwsA(
+          isA<ProtocolException>().having(
+            (e) => e.details.kind,
+            'kind',
+            'NotFound',
+          ),
+        ),
+      );
+      // The upstream engine owns continuation and Le correction.
+      expect(transport.commands, [
+        '00A4040006D27600012401',
+        '00C0000002',
+        '00200083083132333435363738',
+      ]);
+    });
   });
 
-  test('changes the user PIN through the injected transport', () async {
-    final transport = _QueueApduTransport(['9000', '9000']);
+  test('operations require an explicitly prepared lease', () async {
+    final transport = _QueueApduTransport([]);
     final client = OpenPgpCardClient(transport: transport);
-
-    final changed = await client.changeUserPin('123456', '654321');
-
-    expect(changed, isTrue);
-    expect(transport.commands, [
-      '00A4040006D27600012401',
-      '002400810c313233343536363534333231',
-    ]);
+    await client.withSession(() async {
+      await expectLater(client.readCardInfo(), throwsStateError);
+      await expectLater(
+        client.changeUserPin('123456', '654321'),
+        throwsStateError,
+      );
+    });
+    expect(transport.commands, isEmpty);
   });
 
-  test('parses card info with optional legacy data objects missing', () async {
+  test('reads card info with optional legacy data objects missing', () async {
     const aid = 'D2760001240103040000010203040000';
     const application = '4F10${aid}C40700000000030303';
     final transport = _QueueApduTransport([
       '9000',
       '${application}9000',
+      '9000',
       '6A88',
+      '9000',
       '6A88',
+      '9000',
       '6A88',
     ]);
-    final client = OpenPgpCardClient(transport: transport);
 
-    final info = await client.readCardInfo();
+    final info = await _withPreparedClient(
+      transport,
+      (client) => client.readCardInfo(),
+    );
 
     expect(info.version, '3.4');
     expect(info.serialNumber, '01020304');
@@ -51,6 +77,16 @@ void main() {
     expect(info.keySlots.keys, containsAll(OpenPgpKeyType.values));
     expect(info.keySlots.values.every((slot) => !slot.hasKey), isTrue);
     expect(info.touchCacheTime, isNull);
+    expect(transport.commands, [
+      '00A4040006D27600012401',
+      '00CA006E00',
+      '00A4040006D27600012401',
+      '00CA006500',
+      '00A4040006D27600012401',
+      '00CA5F5000',
+      '00A4040006D27600012401',
+      '00CA010200',
+    ]);
   });
 
   test('parses current card data, key metadata, and touch policies', () async {
@@ -74,12 +110,18 @@ void main() {
     final transport = _QueueApduTransport([
       '9000',
       '${hex.encode(application)}9000',
+      '9000',
       '${hex.encode(holder)}9000',
+      '9000',
       '${hex.encode(utf8.encode('https://example.test/key'))}9000',
+      '9000',
       '0F9000',
     ]);
 
-    final info = await OpenPgpCardClient(transport: transport).readCardInfo();
+    final info = await _withPreparedClient(
+      transport,
+      (client) => client.readCardInfo(),
+    );
 
     expect(info.manufacturer, 'Yubico');
     expect(info.cardHolder, 'Alice Example');
@@ -101,41 +143,148 @@ void main() {
     expect(info.keySlots[OpenPgpKeyType.authentication]!.touchFixed, isTrue);
   });
 
+  test('legacy firmware gates the touch cache read before any exchange',
+      () async {
+    const aid = 'D2760001240103040000010203040000';
+    const application = '4F10${aid}C40700000000030303';
+    final transport = _QueueApduTransport([
+      '9000',
+      '${application}9000',
+      '9000',
+      '6A88',
+      '9000',
+      '6A88',
+    ]);
+
+    final info = await _withPreparedClient(
+      transport,
+      (client) => client.readCardInfo(),
+      firmware: '1.3.0',
+    );
+
+    expect(info.touchCacheTime, isNull);
+    // Legacy explicit Le applies to SELECT; the gated 0102 read performs no I/O.
+    expect(transport.commands, [
+      '00A4040006D2760001240100',
+      '00CA006E00',
+      '00A4040006D2760001240100',
+      '00CA006500',
+      '00A4040006D2760001240100',
+      '00CA5F5000',
+    ]);
+  });
+
+  test('changes the user PIN through libcanokey', () async {
+    final transport = _QueueApduTransport(['9000', '9000']);
+    await _withPreparedClient(transport, (client) async {
+      expect(await client.changeUserPin('123456', '654321'), isTrue);
+      expect(client.lastStatusWord, '9000');
+      expect(transport.commands, [
+        '00A4040006D27600012401',
+        '002400810C313233343536363534333231',
+      ]);
+    });
+  });
+
+  test('changes the admin PIN through libcanokey', () async {
+    final transport = _QueueApduTransport(['9000', '9000']);
+    await _withPreparedClient(transport, (client) async {
+      expect(await client.changeAdminPin('12345678', '87654321'), isTrue);
+      expect(transport.commands, [
+        '00A4040006D27600012401',
+        '002400831031323334353637383837363534333231',
+      ]);
+    });
+  });
+
+  test('credential rejections keep the status word and retries', () async {
+    final transport = _QueueApduTransport([
+      '9000', '63C2', '9000', '6983', '9000', '6982', '9000', '9000',
+    ]);
+    await _withPreparedClient(transport, (client) async {
+      expect(await client.changeUserPin('123456', '654321'), isFalse);
+      expect(client.lastStatusWord, '63C2');
+      expect(await client.changeAdminPin('12345678', '87654321'), isFalse);
+      expect(client.lastStatusWord, '6983');
+      expect(await client.verifyAdminPin('12345678'), isFalse);
+      expect(client.lastStatusWord, '6982');
+      expect(await client.verifyAdminPin('12345678'), isTrue);
+      expect(transport.commands, [
+        '00A4040006D27600012401',
+        '002400810C313233343536363534333231',
+        '00A4040006D27600012401',
+        '002400831031323334353637383837363534333231',
+        '00A4040006D27600012401',
+        '00200083083132333435363738',
+        '00A4040006D27600012401',
+        '00200083083132333435363738',
+      ]);
+    });
+  });
+
+  test('invalid credential lengths fail before any exchange', () async {
+    final transport = _QueueApduTransport(['9000', '9000']);
+    await _withPreparedClient(transport, (client) async {
+      await expectLater(
+        client.changeUserPin('12345', '654321'),
+        throwsA(
+          isA<ProtocolException>().having(
+            (e) => e.details.kind,
+            'kind',
+            'InvalidPin',
+          ),
+        ),
+      );
+      expect(transport.commands, isEmpty);
+      expect(await client.changeUserPin('123456', '654321'), isTrue);
+    });
+  });
+
   test('builds OpenPGP administration operations', () async {
-    final transport = _QueueApduTransport(List.filled(20, '9000'));
-    final client = OpenPgpCardClient(transport: transport);
+    final transport = _QueueApduTransport(List.filled(23, '9000'));
+    await _withPreparedClient(transport, (client) async {
+      expect(await client.setResetCode('12345678', '12345678'), isTrue);
+      expect(await client.setResetCode('12345678', ''), isTrue);
+      expect(await client.setPinRetries('12345678', 3, 3, 3), isTrue);
+      expect(await client.setSignaturePinPolicy('12345678', true), isTrue);
+      expect(
+        await client.unblockUserPinWithAdmin('12345678', '123456'),
+        isTrue,
+      );
+      expect(
+        await client.unblockUserPinWithResetCode('12345678', '123456'),
+        isTrue,
+      );
+      expect(
+        await client.setTouchPolicy(
+          OpenPgpKeyType.signature,
+          OpenPgpTouchPolicy.on,
+          '12345678',
+        ),
+        isTrue,
+      );
+      expect(await client.setTouchCacheTime('12345678', 15), isTrue);
+    });
 
-    expect(await client.setResetCode('12345678', '12345678'), isTrue);
-    expect(await client.setPinRetries('12345678', 3, 3, 3), isTrue);
-    expect(await client.setSignaturePinPolicy('12345678', true), isTrue);
-    expect(await client.unblockUserPinWithAdmin('12345678', '123456'), isTrue);
+    final commands = transport.commands;
+    expect(commands, contains('00DA00D3083132333435363738'));
+    // Clearing the reset code is a dataless PUT DATA.
+    expect(commands, contains('00DA00D3'));
+    expect(commands, contains('00F2000003030303'));
+    expect(commands, contains('00DA00C40100'));
+    expect(commands, contains('002C028106313233343536'));
     expect(
-      await client.unblockUserPinWithResetCode('12345678', '123456'),
-      isTrue,
+      commands,
+      contains('002C00810E3132333435363738313233343536'),
     );
-    expect(
-      await client.setTouchPolicy(
-        OpenPgpKeyType.signature,
-        OpenPgpTouchPolicy.on,
-        '12345678',
-      ),
-      isTrue,
-    );
-    expect(await client.setTouchCacheTime('12345678', 15), isTrue);
-
-    expect(
-      transport.commands.any((command) => command.startsWith('00DA00d3')),
-      isTrue,
-    );
-    expect(transport.commands, contains('00F2000003030303'));
-    expect(transport.commands, contains('00DA00c40100'));
-    expect(transport.commands, contains('002C028106313233343536'));
-    expect(
-      transport.commands,
-      contains('002C00810e3132333435363738313233343536'),
-    );
-    expect(transport.commands, contains('00DA00d6020120'));
-    expect(transport.commands, contains('00DA0102010f'));
+    expect(commands, contains('00DA00D6020120'));
+    expect(commands, contains('00DA0102010F'));
+    // Every PW3-protected operation explicitly verifies after its own SELECT;
+    // only the reset-code unblock skips verification.
+    final verifyCount = commands
+        .where((command) => command == '00200083083132333435363738')
+        .length;
+    expect(verifyCount, 7);
   });
 
   test(
@@ -156,35 +305,152 @@ void main() {
       for (final operation in operations) {
         for (final failure in ['6982', '63C2', '6983']) {
           final transport = _QueueApduTransport(['9000', failure]);
-          final client = OpenPgpCardClient(transport: transport);
-          expect(await operation(client), isFalse);
-          expect(transport.commands, [
-            '00A4040006D27600012401',
-            '00200083083132333435363738',
-          ]);
-          expect(client.lastStatusWord, failure);
+          await _withPreparedClient(transport, (client) async {
+            expect(await operation(client), isFalse);
+            expect(transport.commands, [
+              '00A4040006D27600012401',
+              '00200083083132333435363738',
+            ]);
+            expect(client.lastStatusWord, failure);
+          });
         }
+        // Unexpected target-stage statuses are protocol failures, not a
+        // credential result; the status word is still preserved.
         final transport = _QueueApduTransport(['9000', '9000', '6581']);
-        final client = OpenPgpCardClient(transport: transport);
-        expect(await operation(client), isFalse);
-        expect(client.lastStatusWord, '6581');
-        expect(transport.commands, hasLength(3));
+        await _withPreparedClient(transport, (client) async {
+          await expectLater(
+            operation(client),
+            throwsA(
+              isA<ProtocolException>().having(
+                (e) => e.details.statusWord,
+                'statusWord',
+                0x6581,
+              ),
+            ),
+          );
+          expect(client.lastStatusWord, '6581');
+          expect(transport.commands, hasLength(3));
+        });
       }
     },
   );
 
-  test('changes the admin PIN and uses extended APDU lengths', () async {
-    final transport = _QueueApduTransport(List.filled(5, '9000'));
-    final client = OpenPgpCardClient(transport: transport);
+  test('administrative inputs are validated before any exchange', () async {
+    final transport = _QueueApduTransport([]);
+    await _withPreparedClient(transport, (client) async {
+      // Reset codes must satisfy the 8..64 administrative length.
+      await expectLater(
+        client.setResetCode('12345678', List.filled(65, 'A').join()),
+        throwsA(
+          isA<ProtocolException>().having(
+            (e) => e.details.kind,
+            'kind',
+            'InvalidPin',
+          ),
+        ),
+      );
+      // Retry limits are exactly three values in 1..15.
+      await expectLater(
+        client.setPinRetries('12345678', 0, 3, 3),
+        throwsA(
+          isA<ProtocolException>().having(
+            (e) => e.details.kind,
+            'kind',
+            'InvalidArgument',
+          ),
+        ),
+      );
+      // A short reset code fails construction without I/O.
+      await expectLater(
+        client.unblockUserPinWithResetCode('123456', '654321'),
+        throwsA(
+          isA<ProtocolException>().having(
+            (e) => e.details.kind,
+            'kind',
+            'InvalidPin',
+          ),
+        ),
+      );
+    });
+    expect(transport.commands, isEmpty);
+  });
 
-    expect(await client.changeAdminPin('12345678', '87654321'), isTrue);
-    expect(
-      await client.setResetCode('12345678', List.filled(256, 'A').join()),
-      isTrue,
-    );
+  test('legacy firmware gates UIF and retry-limit writes before any exchange',
+      () async {
+    for (final firmware in ['1.3.0', '1.6.0']) {
+      final transport = _QueueApduTransport([]);
+      await _withPreparedClient(transport, firmware: firmware, (client) async {
+        if (firmware == '1.3.0') {
+          await expectLater(
+            client.setTouchPolicy(
+              OpenPgpKeyType.signature,
+              OpenPgpTouchPolicy.on,
+              '12345678',
+            ),
+            throwsA(
+              isA<ProtocolException>().having(
+                (e) => e.details.kind,
+                'kind',
+                'UnsupportedFeature',
+              ),
+            ),
+          );
+          await expectLater(
+            client.setTouchCacheTime('12345678', 15),
+            throwsA(
+              isA<ProtocolException>().having(
+                (e) => e.details.kind,
+                'kind',
+                'UnsupportedFeature',
+              ),
+            ),
+          );
+        } else {
+          // Retry-limit configuration exists from firmware 3.1.0.
+          await expectLater(
+            client.setPinRetries('12345678', 3, 3, 3),
+            throwsA(
+              isA<ProtocolException>().having(
+                (e) => e.details.kind,
+                'kind',
+                'UnsupportedFeature',
+              ),
+            ),
+          );
+        }
+      });
+      expect(transport.commands, isEmpty);
+    }
+  });
 
-    expect(transport.commands[1], startsWith('0024008310'));
-    expect(transport.commands[4], startsWith('00DA00d3000100'));
+  test('reset-code unblock maps credential failures without a verify', () async {
+    final transport = _QueueApduTransport([
+      '9000', '63C2', '9000', '6983', '9000', '9000',
+    ]);
+    await _withPreparedClient(transport, (client) async {
+      expect(
+        await client.unblockUserPinWithResetCode('24682468', '654321'),
+        isFalse,
+      );
+      expect(client.lastStatusWord, '63C2');
+      expect(
+        await client.unblockUserPinWithResetCode('24682468', '654321'),
+        isFalse,
+      );
+      expect(client.lastStatusWord, '6983');
+      expect(
+        await client.unblockUserPinWithResetCode('24682468', '654321'),
+        isTrue,
+      );
+      expect(transport.commands, [
+        '00A4040006D27600012401',
+        '002C00810E3234363832343638363534333231',
+        '00A4040006D27600012401',
+        '002C00810E3234363832343638363534333231',
+        '00A4040006D27600012401',
+        '002C00810E3234363832343638363534333231',
+      ]);
+    });
   });
 }
 
@@ -193,8 +459,35 @@ List<int> _tlv(int tag, List<int> value) {
   return [...tagBytes, value.length, ...value];
 }
 
+const _probeCommands = [
+  '00A4040005F00000000000',
+  '0031000000',
+  '0031010000',
+  '0032000000',
+];
+
+Future<T> _withPreparedClient<T>(
+  _QueueApduTransport transport,
+  Future<T> Function(OpenPgpCardClient) action, {
+  String firmware = '3.1.0',
+}) async {
+  transport.responses.insertAll(0, [
+    '9000',
+    '${hex.encode(firmware.codeUnits)}9000',
+    '43616E6F4B65799000',
+    '010203049000',
+  ]);
+  final client = OpenPgpCardClient(transport: transport);
+  return client.withSession(() async {
+    await client.prepare();
+    expect(transport.commands, _probeCommands);
+    transport.commands.clear();
+    return action(client);
+  });
+}
+
 class _QueueApduTransport implements ApduTransport {
-  _QueueApduTransport(this.responses);
+  _QueueApduTransport(List<String> responses) : responses = List.of(responses);
 
   final List<String> responses;
   final List<String> commands = [];

@@ -47,9 +47,33 @@ class LocalStorage {
     return preferences.getInt(_nfcSoundKey);
   }
 
+  // Generations coordinate local credential caches without storing secrets here.
+  static final Map<String, int> _credentialGenerations = {};
+  static int _generation = 0;
+  static int credentialGeneration(String sn, String tag) =>
+      _credentialGenerations.putIfAbsent('pin:$sn:$tag', () => _generation);
+
+  static void _invalidateCredential(String key) {
+    _credentialGenerations[key] = ++_generation;
+  }
+
+  /// Reset/change may have committed even when its acknowledgment is lost.
+  static Future<void> clearPinCacheForDevice(String sn) async {
+    final prefix = 'pin:$sn:';
+    final keys = {
+      ..._credentialGenerations.keys,
+      ...preferences.getKeys(),
+    }.where((key) => key.startsWith(prefix)).toList();
+    for (final key in keys) {
+      _invalidateCredential(key);
+      await preferences.remove(key);
+    }
+  }
+
   static Future<bool> setPinCache(String sn, String tag, String? pin) {
     log.t('Call LocalStorage.setPinCache');
     if (pin == null) {
+      _invalidateCredential('pin:$sn:$tag');
       return preferences.remove('pin:$sn:$tag');
     }
     return preferences.setString('pin:$sn:$tag', pin);
@@ -61,7 +85,13 @@ class LocalStorage {
 
   static Future<void> clearPinCache() async {
     log.t('Call LocalStorage.clearPinCache');
-    final keys = preferences.getKeys().where((key) => key.startsWith('pin:'));
+    final keys = {
+      ..._credentialGenerations.keys,
+      ...preferences.getKeys(),
+    }.where((key) => key.startsWith('pin:')).toList();
+    for (final key in keys) {
+      _invalidateCredential(key);
+    }
     log.i('Clearing pin cache: $keys');
     await Future.wait(keys.map((key) => preferences.remove(key)));
   }
@@ -97,4 +127,30 @@ class LocalStorage {
   static bool isPrivacyAgreed() {
     return preferences.getBool(_privacyAgreedKey) ?? false;
   }
+}
+
+/// A page-local credential cache invalidated by device PIN changes/resets on
+/// another page. Values are inputs only and never assert live authentication.
+class CredentialCache {
+  CredentialCache(this.tag);
+  final String tag;
+  final Map<String, (String, int)> _entries = {};
+
+  String? operator [](String sn) {
+    final entry = _entries[sn];
+    if (entry == null) return null;
+    if (entry.$2 != LocalStorage.credentialGeneration(sn, tag)) {
+      _entries.remove(sn);
+      return null;
+    }
+    return entry.$1;
+  }
+
+  void operator []=(String sn, String value) {
+    _entries[sn] = (value, LocalStorage.credentialGeneration(sn, tag));
+  }
+
+  bool containsKey(String sn) => this[sn] != null;
+  void remove(String sn) => _entries.remove(sn);
+  void clear() => _entries.clear();
 }

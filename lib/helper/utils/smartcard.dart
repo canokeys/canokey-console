@@ -1,12 +1,18 @@
 import 'dart:async';
 
+import 'package:canokey_console/helper/utils/card_session.dart';
+
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/audio.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
+import 'package:canokey_console/helper/utils/protocol_operation.dart';
+import 'package:canokey_console/src/rust/api/protocol.dart';
 import 'package:ccid/ccid.dart'
     if (dart.library.html) 'package:canokey_console/helper/ccid_dummy.dart';
+import 'package:convert/convert.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
@@ -59,9 +65,16 @@ enum NfcState {
 typedef RefreshCallback = Future<void> Function();
 
 class SmartCard {
+  static final CardSessions _sessions = CardSessions();
+
+  static CardLease get currentLease =>
+      _sessions.current?.lease ??
+      (throw StateError('Protocol operations require SmartCard.process'));
+
   static String _currentSN = '';
 
   static CcidCard? _ccidCard;
+  static bool _connectionQuarantined = false;
 
   static Completer<bool>? _androidNfcCompleter;
 
@@ -162,9 +175,20 @@ class SmartCard {
   /// On iOS, the built-in keyboard will be hidden if an external keyboard is connected.
   /// This function shows the keyboard by sending an eject consumer report.
   static Future<void> eject() async {
-    if (isIOSApp() && connectionType == ConnectionType.ccid) {
-      await _ccidCard?.transceive("FFEEFFEE");
+    if (!isIOSApp() || connectionType != ConnectionType.ccid) return;
+    final session = _sessions.current;
+    if (session != null) {
+      // PIN prompts retain the owner zone. The keyboard consumer report must
+      // not overlap card I/O; it does not SELECT or change authentication.
+      final lease = session.lease;
+      if (!lease.isExchanging) await lease.exchange('FFEEFFEE');
+      return;
     }
+    if (_sessions.isBusy) return;
+    await _sessions.run((session) async {
+      _bindConnection();
+      await session.lease.exchange('FFEEFFEE');
+    });
   }
 
   static Future<void> startAndroidNfcHandler() async {
@@ -177,6 +201,7 @@ class SmartCard {
           readIso15693: false,
           androidPlatformSound: false,
         );
+        if (connectionType != ConnectionType.ccid) _sessions.invalidate();
         log.t('[nfcHandler] NFC tag polled: ${tag.id}');
         switch (nfcState) {
           case NfcState.mute:
@@ -192,29 +217,38 @@ class SmartCard {
             if (DateTime.now().millisecondsSinceEpoch - _lastFinishedTime <
                 2000) {
               log.t(
-                  "[nfcHandler] Current state: $nfcState. Too soon. Ignored.");
+                "[nfcHandler] Current state: $nfcState. Too soon. Ignored.",
+              );
               break;
             }
             log.t(
-                "[nfcHandler] Current state: $nfcState. Next state: refresh.");
+              "[nfcHandler] Current state: $nfcState. Next state: refresh.",
+            );
             _beginAndroidNfcOperation();
             Audio.poll();
             Prompts.promptAndroidPolling();
             nfcState = NfcState.refresh;
-            unawaited(handler().catchError((Object error, StackTrace stack) {
-              log.e('[nfcHandler] Failed to refresh NFC data.',
-                  error: error, stackTrace: stack);
-            }));
+            unawaited(
+              handler().catchError((Object error, StackTrace stack) {
+                log.e(
+                  '[nfcHandler] Failed to refresh NFC data.',
+                  error: error,
+                  stackTrace: stack,
+                );
+              }),
+            );
 
           case NfcState.refresh:
             log.e(
-                "[nfcHandler] Current state: $nfcState. No tag should be polled. Next state: idle.");
+              "[nfcHandler] Current state: $nfcState. No tag should be polled. Next state: idle.",
+            );
             nfcState = NfcState.idle;
 
           case NfcState.processWithoutInput:
           case NfcState.processWithInput:
             log.t(
-                "[nfcHandler] Current state: $nfcState. Continue to process.");
+              "[nfcHandler] Current state: $nfcState. Continue to process.",
+            );
             _androidNfcTimer?.cancel();
             final completer = _androidNfcCompleter;
             if (completer != null && !completer.isCompleted) {
@@ -231,14 +265,17 @@ class SmartCard {
           rethrow;
         }
       } catch (e) {
-        log.e('[nfcHandler] Current state: $nfcState. Error polling NFC tag.',
-            error: e);
+        log.e(
+          '[nfcHandler] Current state: $nfcState. Error polling NFC tag.',
+          error: e,
+        );
       }
       await Future.delayed(const Duration(milliseconds: 100));
     }
   }
 
   static Future<bool> pollNfcOrWebUsb() async {
+    _requireReusableConnection();
     if (connectionType == ConnectionType.ccid) {
       // No need to poll
       return true;
@@ -249,7 +286,8 @@ class SmartCard {
         case NfcState.idle:
         case NfcState.input:
           log.e(
-              "[pollNfcOrWebUsb] Tag should not be polled in $nfcState state.");
+            "[pollNfcOrWebUsb] Tag should not be polled in $nfcState state.",
+          );
           return false;
 
         case NfcState.processWithoutInput:
@@ -266,19 +304,25 @@ class SmartCard {
             completer.complete(false);
             if (nfcState == NfcState.processWithoutInput) {
               log.t(
-                  "[pollNfcOrWebUsb] Current state: $nfcState. Timeout. Next state: idle.");
+                "[pollNfcOrWebUsb] Current state: $nfcState. Timeout. Next state: idle.",
+              );
               nfcState = NfcState.idle;
             } else {
               log.t(
-                  "[pollNfcOrWebUsb] Current state: $nfcState. Timeout. Next state: input.");
+                "[pollNfcOrWebUsb] Current state: $nfcState. Timeout. Next state: input.",
+              );
               nfcState = NfcState.input;
             }
           });
-          return completer.future;
+          final found = await completer.future;
+          if (found) _bindConnection();
+          return found;
 
         case NfcState.refresh:
           log.t(
-              "[pollNfcOrWebUsb] Current state: refresh. Tag has been polled.");
+            "[pollNfcOrWebUsb] Current state: refresh. Tag has been polled.",
+          );
+          _bindConnection();
           return true;
       }
     } else {
@@ -287,7 +331,9 @@ class SmartCard {
         await SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
       }
       await FlutterNfcKit.poll(
-          iosAlertMessage: S.of(Get.context!).iosAlertMessage);
+        iosAlertMessage: S.of(Get.context!).iosAlertMessage,
+      );
+      _bindConnection();
       return true;
     }
   }
@@ -303,8 +349,11 @@ class SmartCard {
     return ++_androidNfcOperation;
   }
 
-  static Future<void> stopPollingNfc(
-      {bool withInput = false, int? operation, int? process}) async {
+  static Future<void> stopPollingNfc({
+    bool withInput = false,
+    int? operation,
+    int? process,
+  }) async {
     if (connectionType == ConnectionType.ccid) {
       return;
     }
@@ -326,7 +375,8 @@ class SmartCard {
       switch (nfcState) {
         case NfcState.mute:
           log.e(
-              "[stopPollingNfc] Current state: $nfcState. Tag should not be polled.");
+            "[stopPollingNfc] Current state: $nfcState. Tag should not be polled.",
+          );
 
         case NfcState.idle:
           log.t("[stopPollingNfc] Current state: $nfcState. Do nothing.");
@@ -336,13 +386,15 @@ class SmartCard {
         case NfcState.processWithoutInput:
           final nextState = withInput ? NfcState.input : NfcState.idle;
           log.t(
-              "[stopPollingNfc] Current state: $nfcState. Next state: $nextState.");
+            "[stopPollingNfc] Current state: $nfcState. Next state: $nextState.",
+          );
           nfcState = nextState;
           Audio.finish();
 
         case NfcState.processWithInput:
           log.t(
-              "[stopPollingNfc] Current state: $nfcState. Next state: input.");
+            "[stopPollingNfc] Current state: $nfcState. Next state: input.",
+          );
           nfcState = NfcState.input;
 
         case NfcState.input: // CHECKED CASE
@@ -353,23 +405,30 @@ class SmartCard {
         case NfcState.refresh: // CHECKED CASE
           final nextState = withInput ? NfcState.input : NfcState.idle;
           log.t(
-              "[stopPollingNfc] Current state: $nfcState. Next state: $nextState.");
+            "[stopPollingNfc] Current state: $nfcState. Next state: $nextState.",
+          );
           nfcState = nextState;
           _lastFinishedTime = DateTime.now().millisecondsSinceEpoch;
           Audio.finish();
       }
     } else {
+      _sessions.invalidate();
       await FlutterNfcKit.finish();
     }
   }
 
-  static Future<void> process(Function(String sn) f) async {
+  static Future<void> process(Function(String sn) f) =>
+      _sessions.run((_) => _process(f));
+
+  static Future<void> _process(Function(String sn) f) async {
+    _requireReusableConnection();
     final processGeneration = ++_cardProcessGeneration;
     final timer = Stopwatch()..start();
     log.t('process #$processGeneration: started; connection=$connectionType');
     _activeCardOperations++;
     try {
       if (connectionType == ConnectionType.ccid) {
+        _bindConnection();
         await f(_currentSN);
       } else {
         if (nfcState == NfcState.idle) {
@@ -383,24 +442,39 @@ class SmartCard {
           return;
         }
         try {
-          assertOK(await SmartCard.transceive('00A4040005F000000000'));
-          final resp = await SmartCard.transceive('0032000000');
-          SmartCard.assertOK(resp);
-          final sn = SmartCard.dropSW(resp).toUpperCase();
+          const transport = SmartCardApduTransport();
+          await executeProtocolOperation(
+            ProtocolOperation.bootstrapIdentity(
+              step: BootstrapIdentityStep.selectAdmin,
+            ),
+            transport,
+          );
+          final serial = await executeProtocolOperation(
+            ProtocolOperation.bootstrapIdentity(
+              step: BootstrapIdentityStep.serial,
+            ),
+            transport,
+          );
+          final sn = hex.encode(serial).toUpperCase();
           _currentSN = sn;
           if (isWeb()) {
             connectionType = ConnectionType.webusb;
             log.i(
-                '[process] CanoKey (WebUSB) Polled. SN: $sn. Connection Type updated to WebUSB.');
+              '[process] CanoKey (WebUSB) Polled. SN: $sn. Connection Type updated to WebUSB.',
+            );
           } else {
             connectionType = ConnectionType.nfc;
             log.i(
-                '[process] CanoKey (NFC) Polled. SN: $sn. Connection Type updated to NFC.');
+              '[process] CanoKey (NFC) Polled. SN: $sn. Connection Type updated to NFC.',
+            );
           }
           await f(sn);
         } on PlatformException catch (e, stack) {
-          log.e('process #$processGeneration: communication failed',
-              error: e, stackTrace: stack);
+          log.e(
+            'process #$processGeneration: communication failed',
+            error: e,
+            stackTrace: stack,
+          );
           if (e.message?.contains('SecurityError') == true) {
             // This is for WebUSB, handled by PollingController
             rethrow;
@@ -409,37 +483,50 @@ class SmartCard {
           // TODO: check error messages
           if (e.message == 'NotFoundError: No device selected.') {
             Prompts.showPrompt(
-                S.of(Get.context!).pollCanceled, ContentThemeColor.danger);
+              S.of(Get.context!).pollCanceled,
+              ContentThemeColor.danger,
+            );
           } else if (e.message ==
               'NetworkError: A transfer error has occurred.') {
             Prompts.showPrompt(
-                S.of(Get.context!).networkError, ContentThemeColor.danger);
+              S.of(Get.context!).networkError,
+              ContentThemeColor.danger,
+            );
           } else if (e.message == 'SessionCanceled') {
             Prompts.showPrompt(
-                S.of(Get.context!).pollCanceled, ContentThemeColor.danger);
+              S.of(Get.context!).pollCanceled,
+              ContentThemeColor.danger,
+            );
           } else if (e.code == '500') {
             Prompts.showPrompt(
-                S.of(Get.context!).interrupted, ContentThemeColor.danger);
+              S.of(Get.context!).interrupted,
+              ContentThemeColor.danger,
+            );
           } else {
             Prompts.showPrompt(
-                S.current.operationFailed, ContentThemeColor.danger);
+              S.current.operationFailed,
+              ContentThemeColor.danger,
+            );
           }
           if (isAndroidApp()) {
             Audio.error();
             switch (nfcState) {
               case NfcState.refresh:
                 log.t(
-                    "[process] Current state: refresh. Communication error. Next state: idle.");
+                  "[process] Current state: refresh. Communication error. Next state: idle.",
+                );
                 nfcState = NfcState.idle;
 
               case NfcState.processWithoutInput:
                 log.t(
-                    "[process] Current state: processWithoutInput. Communication error. Next state: idle.");
+                  "[process] Current state: processWithoutInput. Communication error. Next state: idle.",
+                );
                 nfcState = NfcState.idle;
 
               case NfcState.processWithInput:
                 log.t(
-                    "[process] Current state: processWithInput. Communication error. Next state: input.");
+                  "[process] Current state: processWithInput. Communication error. Next state: input.",
+                );
                 nfcState = NfcState.input;
 
               case NfcState.mute:
@@ -450,37 +537,87 @@ class SmartCard {
           }
         } finally {
           await stopPollingNfc(
-              operation: _androidNfcOperation, process: processGeneration);
+            operation: _androidNfcOperation,
+            process: processGeneration,
+          );
         }
       }
     } catch (error, stack) {
-      log.e('process #$processGeneration: failed',
-          error: error, stackTrace: stack);
+      log.e(
+        'process #$processGeneration: failed',
+        error: error,
+        stackTrace: stack,
+      );
       rethrow;
     } finally {
       log.t(
-          'process #$processGeneration: finished in ${timer.elapsedMilliseconds}ms');
+        'process #$processGeneration: finished in ${timer.elapsedMilliseconds}ms',
+      );
       _activeCardOperations--;
     }
   }
 
-  static Future<String> transceive(String capdu) async {
-    String? rapdu;
-    log.d('C-APDU: $capdu');
-    if (connectionType != ConnectionType.ccid) {
-      rapdu = await FlutterNfcKit.transceive(capdu);
-    } else {
-      if (_ccidCard == null) {
-        Prompts.showPrompt(S.of(Get.context!).noCard, ContentThemeColor.danger);
-        throw Exception('Card is not connected');
-      }
-      rapdu = await _ccidCard!.transceive(capdu);
-      if (rapdu == null) {
-        throw Exception('Transceive failed');
-      }
+  // Capture the physical connection once; never route an old operation through
+  // a newly selected global connection after an await.
+  static void _requireReusableConnection() {
+    if (_connectionQuarantined) {
+      throw StateError(
+        'Card transport cleanup failed; restart the app before reuse',
+      );
     }
-    log.d('R-APDU: $rapdu');
-    return rapdu!;
+  }
+
+  static void _bindConnection() {
+    _requireReusableConnection();
+    final session = _sessions.current;
+    if (session == null) return;
+    final card = _ccidCard;
+    final ccid = connectionType == ConnectionType.ccid;
+    session.bind((command) async {
+      try {
+        log.d('C-APDU: $command');
+        final response = ccid
+            ? await (card ?? (throw StateError('Card is not connected')))
+                  .transceive(command)
+            : await FlutterNfcKit.transceive(command);
+        if (response == null) throw StateError('Transceive failed');
+        log.d('R-APDU: $response');
+        return response;
+      } catch (_) {
+        // Isolate a failed/timed-out backend before the use-case lock is freed.
+        // Never replay the APDU. A later use case must connect/poll afresh.
+        _sessions.invalidate();
+        _connectionQuarantined = true;
+        if (ccid) {
+          if (identical(_ccidCard, card)) _ccidCard = null;
+          _connectionQuarantined = !await _disconnectCcidCard(card);
+        } else {
+          try {
+            await FlutterNfcKit.finish();
+            _connectionQuarantined = false;
+          } catch (_) {
+            // Preserve the original transport failure and prevent channel reuse.
+          }
+        }
+        if (_connectionQuarantined) {
+          connectionError =
+              'Card transport cleanup failed; restart the app before reuse';
+        }
+        _currentSN = '';
+        connectionType = ConnectionType.none;
+        rethrow;
+      }
+    });
+  }
+
+  static Future<String> transceive(String capdu) async {
+    final session = _sessions.current;
+    if (session != null) return session.lease.exchange(capdu);
+    // Legacy one-off users also respect an active protocol use-case lease.
+    return _sessions.run((session) async {
+      _bindConnection();
+      return session.lease.exchange(capdu);
+    });
   }
 
   static void pollCcid() {
@@ -498,9 +635,11 @@ class SmartCard {
   }
 
   static Future<void> _pollCcidOnce() async {
+    if (_connectionQuarantined) return;
     List<String> readers;
     try {
       readers = await Ccid().listReaders();
+      if (_connectionQuarantined) return;
       connectionError = null;
       _permissionDeniedCcidReaders.retainAll(readers);
     } catch (e) {
@@ -509,10 +648,22 @@ class SmartCard {
       return;
     }
 
+    // Observe unplug events without waiting for an in-flight use case. Channel
+    // teardown and connection/probe APDUs still wait for exclusive ownership.
+    if (_ccidCard case final card?) {
+      if (!readers.contains(card.reader)) _sessions.invalidate();
+    }
+    await _sessions.run((_) => _updateCcidConnection(readers));
+  }
+
+  static Future<void> _updateCcidConnection(List<String> readers) async {
+    if (_connectionQuarantined) return;
     final activeCard = _ccidCard;
     if (activeCard != null && !readers.contains(activeCard.reader)) {
       log.i(
-          'CanoKey (USB) removed: $_currentSN. Connection Type updated to None.');
+        'CanoKey (USB) removed: $_currentSN. Connection Type updated to None.',
+      );
+      _sessions.invalidate();
       await _disconnectCcidCard(activeCard);
       _ccidCard = null;
       if (connectionType == ConnectionType.ccid) {
@@ -524,9 +675,11 @@ class SmartCard {
       }
     }
 
-    final name = readers.firstWhereOrNull((name) =>
-        name.toLowerCase().contains('canokey') &&
-        !_permissionDeniedCcidReaders.contains(name));
+    final name = readers.firstWhereOrNull(
+      (name) =>
+          name.toLowerCase().contains('canokey') &&
+          !_permissionDeniedCcidReaders.contains(name),
+    );
     if (name == null || _ccidCard != null || _activeCardOperations > 0) {
       return;
     }
@@ -534,13 +687,22 @@ class SmartCard {
     CcidCard? candidate;
     try {
       candidate = await Ccid().connect(name);
-      var resp = await candidate.transceive('00A4040005F000000000');
-      assertOK(resp!);
-      resp = await candidate.transceive('0032000000');
-      assertOK(resp!);
+      // The probe shares the use-case queue but binds no session yet; exchange
+      // directly on the candidate until it becomes the active card.
+      final probe = _CcidProbeTransport(candidate);
+      await executeProtocolOperation(
+        ProtocolOperation.bootstrapIdentity(
+          step: BootstrapIdentityStep.selectAdmin,
+        ),
+        probe,
+      );
+      final serial = await executeProtocolOperation(
+        ProtocolOperation.bootstrapIdentity(step: BootstrapIdentityStep.serial),
+        probe,
+      );
 
       _ccidCard = candidate;
-      _currentSN = SmartCard.dropSW(resp).toUpperCase();
+      _currentSN = hex.encode(serial).toUpperCase();
       connectionType = ConnectionType.ccid;
       if (isAndroidApp()) {
         _beginAndroidNfcOperation();
@@ -548,7 +710,8 @@ class SmartCard {
         nfcState = NfcState.mute;
       }
       log.i(
-          'Successfully connected to CanoKey (USB). SN: $_currentSN. Connection Type updated to CCID.');
+        'Successfully connected to CanoKey (USB). SN: $_currentSN. Connection Type updated to CCID.',
+      );
     } catch (e) {
       await _disconnectCcidCard(candidate);
       if (_isUsbPermissionDenied(e)) {
@@ -562,14 +725,14 @@ class SmartCard {
     }
   }
 
-  static Future<void> _disconnectCcidCard(CcidCard? card) async {
-    if (card == null) {
-      return;
-    }
+  static Future<bool> _disconnectCcidCard(CcidCard? card) async {
+    if (card == null) return true;
     try {
       await card.disconnect();
+      return true;
     } catch (e) {
       log.w('Failed to disconnect CanoKey (USB)', error: e);
+      return false;
     }
   }
 
@@ -590,9 +753,23 @@ class SmartCard {
   }
 
   static void onWebUSBDisconnected() {
+    _sessions.invalidate();
     log.i(
-        'CanoKey (WebUSB) removed: $_currentSN. Connection Type updated to None.');
+      'CanoKey (WebUSB) removed: $_currentSN. Connection Type updated to None.',
+    );
     _currentSN = '';
     connectionType = ConnectionType.none;
   }
+}
+
+/// Bootstrap probe of a not-yet-active CCID candidate. The caller still owns
+/// connection cleanup and disconnects the candidate on any failure.
+class _CcidProbeTransport implements ApduTransport {
+  const _CcidProbeTransport(this.card);
+
+  final CcidCard card;
+
+  @override
+  Future<String> transceive(String capdu) async =>
+      await card.transceive(capdu) ?? (throw StateError('Transceive failed'));
 }

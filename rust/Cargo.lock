@@ -355,10 +355,12 @@ checksum = "8f1fe948ff07f4bd06c30984e69f5b4899c516a3ef74f34df92a2df2ab535495"
 [[package]]
 name = "canokey"
 version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+source = "git+https://github.com/canokeys/libcanokey?rev=95e1930ea86eb248d0295bce9880cee5c65fd85e#95e1930ea86eb248d0295bce9880cee5c65fd85e"
 dependencies = [
  "canokey-admin",
  "canokey-compat",
+ "canokey-ctap",
+ "canokey-ndef",
  "canokey-oath",
  "canokey-openpgp",
  "canokey-piv",
@@ -368,7 +370,7 @@ dependencies = [
 [[package]]
 name = "canokey-admin"
 version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+source = "git+https://github.com/canokeys/libcanokey?rev=95e1930ea86eb248d0295bce9880cee5c65fd85e#95e1930ea86eb248d0295bce9880cee5c65fd85e"
 dependencies = [
  "canokey-compat",
  "canokey-protocol",
@@ -377,7 +379,15 @@ dependencies = [
 [[package]]
 name = "canokey-compat"
 version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+source = "git+https://github.com/canokeys/libcanokey?rev=95e1930ea86eb248d0295bce9880cee5c65fd85e#95e1930ea86eb248d0295bce9880cee5c65fd85e"
+dependencies = [
+ "canokey-protocol",
+]
+
+[[package]]
+name = "canokey-ctap"
+version = "0.1.0"
+source = "git+https://github.com/canokeys/libcanokey?rev=95e1930ea86eb248d0295bce9880cee5c65fd85e#95e1930ea86eb248d0295bce9880cee5c65fd85e"
 dependencies = [
  "canokey-protocol",
 ]
@@ -385,7 +395,7 @@ dependencies = [
 [[package]]
 name = "canokey-key"
 version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+source = "git+https://github.com/canokeys/libcanokey?rev=95e1930ea86eb248d0295bce9880cee5c65fd85e#95e1930ea86eb248d0295bce9880cee5c65fd85e"
 dependencies = [
  "canokey-compat",
  "canokey-protocol",
@@ -395,9 +405,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "canokey-ndef"
+version = "0.1.0"
+source = "git+https://github.com/canokeys/libcanokey?rev=95e1930ea86eb248d0295bce9880cee5c65fd85e#95e1930ea86eb248d0295bce9880cee5c65fd85e"
+dependencies = [
+ "canokey-protocol",
+]
+
+[[package]]
 name = "canokey-oath"
 version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+source = "git+https://github.com/canokeys/libcanokey?rev=95e1930ea86eb248d0295bce9880cee5c65fd85e#95e1930ea86eb248d0295bce9880cee5c65fd85e"
 dependencies = [
  "canokey-compat",
  "canokey-protocol",
@@ -410,7 +428,7 @@ dependencies = [
 [[package]]
 name = "canokey-openpgp"
 version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+source = "git+https://github.com/canokeys/libcanokey?rev=95e1930ea86eb248d0295bce9880cee5c65fd85e#95e1930ea86eb248d0295bce9880cee5c65fd85e"
 dependencies = [
  "canokey-compat",
  "canokey-key",
@@ -420,7 +438,7 @@ dependencies = [
 [[package]]
 name = "canokey-piv"
 version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+source = "git+https://github.com/canokeys/libcanokey?rev=95e1930ea86eb248d0295bce9880cee5c65fd85e#95e1930ea86eb248d0295bce9880cee5c65fd85e"
 dependencies = [
  "aes 0.8.4",
  "canokey-compat",
@@ -441,7 +459,7 @@ dependencies = [
 [[package]]
 name = "canokey-protocol"
 version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=10808e1760bf5efa86b5ff2e0b4acbeaba441edc#10808e1760bf5efa86b5ff2e0b4acbeaba441edc"
+source = "git+https://github.com/canokeys/libcanokey?rev=95e1930ea86eb248d0295bce9880cee5c65fd85e#95e1930ea86eb248d0295bce9880cee5c65fd85e"
 dependencies = [
  "thiserror 2.0.20",
  "zeroize",
@@ -2672,6 +2690,7 @@ version = "0.1.0"
 dependencies = [
  "aes 0.9.3",
  "canokey",
+ "canokey-protocol",
  "const-oid 0.10.2",
  "der 0.8.1",
  "des 0.9.0",

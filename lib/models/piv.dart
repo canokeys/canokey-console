@@ -338,37 +338,53 @@ class SlotInfo {
   static SlotInfo parse(
     int number,
     List<int> buf, {
+    AlgorithmType Function(int wireId)? resolveAlgorithm,
     PivAlgorithmExtensionConfig algorithmExtensionConfig =
         PivAlgorithmExtensionConfig.defaults,
   }) {
     Map map = TLV.parse(buf);
-    final algoId = map[0x01][0] as int;
-    var algo = algorithmExtensionConfig.enabled
+    List<int> requiredField(int tag, int length) {
+      final value = map[tag];
+      if (value is! List<int> || value.length != length) {
+        throw FormatException(
+          'PIV metadata lacks a displayable field ${tag.toRadixString(16)}',
+        );
+      }
+      return value;
+    }
+    final algoId = requiredField(0x01, 1)[0];
+    var algo = resolveAlgorithm != null
+        ? resolveAlgorithm(algoId)
+        : algorithmExtensionConfig.enabled
         ? (algorithmExtensionConfig.toAlgorithmMap()[algoId] ??
             AlgorithmType.fromValue(algoId))
         : AlgorithmType.fromValue(algoId);
     var pinPolicy = PinPolicy.defaultPolicy;
     var touchPolicy = TouchPolicy.defaultPolicy;
     if (number != 0x80 && number != 0x81) {
-      pinPolicy = PinPolicy.fromValue(map[0x02][0]);
-      touchPolicy = TouchPolicy.fromValue(map[0x02][1]);
+      pinPolicy = PinPolicy.fromValue(requiredField(0x02, 2)[0]);
+      touchPolicy = TouchPolicy.fromValue(requiredField(0x02, 2)[1]);
     }
     var origin = Origin.generated;
     if (number != 0x80 && number != 0x81 && number != 0x9B) {
-      origin = Origin.fromValue(map[0x03][0]);
+      origin = Origin.fromValue(requiredField(0x03, 1)[0]);
     }
     List<int> public = [];
     if (number != 0x80 && number != 0x81 && number != 0x9B) {
-      public = map[0x04];
+      public = (map[0x04] as List<int>?) ?? const [];
     }
     var defaultValue = false;
     if (number == 0x80 || number == 0x81 || number == 0x9B) {
-      defaultValue = map[0x05][0] == 0x01;
+      final flag = requiredField(0x05, 1)[0];
+      if (flag != 0 && flag != 1) {
+        throw const FormatException('Unknown PIV default-credential flag');
+      }
+      defaultValue = flag == 1;
     }
     var retriesCount = 0, remainingCount = 0;
     if (number == 0x80 || number == 0x81) {
-      retriesCount = map[0x06][0];
-      remainingCount = map[0x06][1];
+      retriesCount = requiredField(0x06, 2)[0];
+      remainingCount = requiredField(0x06, 2)[1];
     }
     return SlotInfo(number, algo, pinPolicy, touchPolicy, origin, public,
         defaultValue, retriesCount, remainingCount);

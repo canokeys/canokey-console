@@ -6,6 +6,7 @@ import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/utils/pass_card.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
+import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:canokey_console/helper/utils/screenshot_mode.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
@@ -24,6 +25,12 @@ class PassController extends PollingController with AdminApplet {
 
   @override
   Logger get log => Logging.logger('Pass:Controller');
+
+  @override
+  void onClose() {
+    _client.cancelPendingOperations();
+    super.onClose();
+  }
 
   @override
   Future<void> doRefreshData() async {
@@ -61,6 +68,7 @@ class PassController extends PollingController with AdminApplet {
         return;
       }
 
+      await _client.prepare();
       await _refresh();
     });
   }
@@ -85,19 +93,35 @@ class PassController extends PollingController with AdminApplet {
           );
           return;
         }
-      } else if (type == PassSlotType.oath) {
+      } else if (type == PassSlotType.oath || type == PassSlotType.unknown) {
         log.w('unsupported slot type');
         return;
       }
-      final success = await _client.setSlot(index, type, password, withEnter);
-      if (!success && Prompts.isStorageFull(_client.lastStatusWord ?? '')) {
-        Prompts.showPrompt(
-          S.of(Get.context!).storageFull,
-          ContentThemeColor.danger,
+      final pin = adminPinForCurrentLease;
+      await _client.prepare();
+      final bool success;
+      try {
+        success = await _client.setSlot(
+          index,
+          type,
+          password,
+          withEnter,
+          pin: pin,
         );
+      } on ProtocolException {
+        if (Prompts.isStorageFull(_client.lastResponse ?? '')) {
+          Prompts.showPrompt(
+            S.of(Get.context!).storageFull,
+            ContentThemeColor.danger,
+          );
+          return;
+        }
+        rethrow;
+      }
+      if (!success) {
+        Prompts.promptPinFailureResult(_client.lastResponse ?? '');
         return;
       }
-      SmartCard.assertOK(_client.lastStatusWord ?? '');
       log.i('Successfully changed slot');
 
       Navigator.pop(Get.context!);
@@ -107,6 +131,9 @@ class PassController extends PollingController with AdminApplet {
         forceSnackBar: true,
       );
 
+      // A slot write invalidates profile evidence; explicitly re-probe before
+      // the dependent read instead of reusing stale evidence.
+      await _client.prepare();
       await _refresh();
     });
   }

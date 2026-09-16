@@ -1,9 +1,10 @@
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
+import 'package:canokey_console/helper/utils/card_session.dart';
+import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
-import 'package:convert/convert.dart';
+import 'package:canokey_console/src/rust/api/protocol.dart';
 
 class NdefCardData {
   const NdefCardData({
@@ -21,112 +22,90 @@ class NdefReadOnlyException implements Exception {
   const NdefReadOnlyException();
 }
 
+/// libcanokey-backed NDEF operations. These profile-free operations SELECT the
+/// NDEF applet and own CC/file selection, 240-byte chunking, continuation and
+/// the crash-safe write order (zero NLEN, message, real NLEN). A failed write
+/// is never replayed; transport errors propagate unchanged.
 class NdefCardClient {
-  NdefCardClient({ApduTransport transport = const SmartCardApduTransport()})
-    : _transport = transport;
-
-  static const int _chunkSize = 240;
-  static const String _selectApplet = '00A4040007D2760000850101';
-  static const String _selectCapabilityContainer = '00A4000C02E103';
-  static const String _selectNdefFile = '00A4000C020001';
+  NdefCardClient({
+    ApduTransport transport = const SmartCardApduTransport(),
+    CardLease? lease,
+  }) : _transport = transport,
+       _injectedLease = lease {
+    if (lease != null && transport is SmartCardApduTransport) {
+      throw ArgumentError('Production transport uses SmartCard.currentLease');
+    }
+  }
 
   final ApduTransport _transport;
+  final CardLease? _injectedLease;
+  final CardSessions _injectedSessions = CardSessions();
+  final CardCancellation _cancellation = CardCancellation();
+
+  CardLease get _lease => _transport is SmartCardApduTransport
+      ? SmartCard.currentLease
+      : _injectedLease ??
+            _injectedSessions.current?.lease ??
+            (throw StateError('Injected NDEF transport requires withSession'));
+
+  /// For caller-owned transports (tests/USB-IP). Production uses SmartCard.process.
+  Future<T> withSession<T>(Future<T> Function() action) {
+    if (_transport is SmartCardApduTransport) {
+      throw StateError('Use SmartCard.process for the production transport');
+    }
+    if (_injectedLease != null) {
+      throw StateError('Use the supplied lease owner');
+    }
+    return _injectedSessions.run((session) async {
+      session.bind(_transport.transceive);
+      return action();
+    });
+  }
+
+  /// Request cancellation; the active executor drains I/O and frees its handle.
+  void cancelPendingOperations() => _cancellation.cancel();
 
   Future<NdefCardData?> read() async {
-    if (!await _select()) return null;
-
-    SmartCard.assertOK(await _transport.transceive(_selectCapabilityContainer));
-    final capability = await _readBytes(0, 15);
-    if (capability.length != 15 ||
-        capability[7] != 0x04 ||
-        capability[8] != 0x06) {
-      throw const FormatException('Invalid NDEF capability container');
+    final capability = await _execute(ProtocolOperation.ndefReadCapability());
+    if (capability == null) return null;
+    if (capability.length != 3) {
+      throw const FormatException('Invalid NDEF capability data');
     }
-    final fileLength = (capability[11] << 8) | capability[12];
-    if (fileLength < 2) {
-      throw const FormatException('Invalid NDEF file capacity');
-    }
-
-    SmartCard.assertOK(await _transport.transceive(_selectNdefFile));
-    final lengthData = await _readBytes(0, 2);
-    final messageLength = (lengthData[0] << 8) | lengthData[1];
-    final maxMessageLength = fileLength - 2;
-    if (messageLength > maxMessageLength) {
-      throw FormatException(
-        'NDEF message length $messageLength exceeds $maxMessageLength',
-      );
-    }
-
+    final message = await _execute(ProtocolOperation.ndefReadMessage());
+    if (message == null) return null;
     return NdefCardData(
-      maxMessageLength: maxMessageLength,
-      readOnly: capability[14] != 0,
-      message: await _readBytes(2, messageLength),
+      maxMessageLength: (capability[0] << 8) | capability[1],
+      readOnly: capability[2] != 0,
+      message: message,
     );
   }
 
-  Future<bool> write(Uint8List message) async {
-    if (!await _select()) return false;
+  Future<bool> write(Uint8List message) async =>
+      await _execute(ProtocolOperation.ndefWriteMessage(message: message)) !=
+      null;
 
-    SmartCard.assertOK(await _transport.transceive(_selectNdefFile));
-    await _updateBytes(0, Uint8List.fromList([0, 0]));
-    for (var offset = 0; offset < message.length; offset += _chunkSize) {
-      final end = min(offset + _chunkSize, message.length);
-      await _updateBytes(2 + offset, message.sublist(offset, end));
-    }
-    await _updateBytes(
-      0,
-      Uint8List.fromList([message.length >> 8, message.length & 0xff]),
-    );
-    return true;
-  }
-
-  Future<bool> _select() async {
-    final response = await _transport.transceive(_selectApplet);
-    if (SmartCard.sw(response) == '6A82') return false;
-    SmartCard.assertOK(response);
-    return true;
-  }
-
-  Future<Uint8List> _readBytes(int offset, int length) async {
-    final result = <int>[];
-    for (var cursor = 0; cursor < length; cursor += _chunkSize) {
-      final count = min(_chunkSize, length - cursor);
-      final response = await _transport.transceive(
-        readBinaryApdu(offset + cursor, count),
+  /// Null only when the NDEF applet is absent (6A82 at SELECT).
+  Future<Uint8List?> _execute(ProtocolOperation operation) async {
+    _cancellation.check();
+    final lease = _lease;
+    // Every NDEF operation selects the applet before its target commands.
+    lease.willSelectApplet();
+    try {
+      return await executeProtocolOperation(
+        operation,
+        _transport,
+        lease: lease,
+        cancellation: _cancellation,
       );
-      SmartCard.assertOK(response);
-      result.addAll(hex.decode(SmartCard.dropSW(response)));
+    } on ProtocolException catch (error) {
+      if (error.details.kind == 'UnsupportedDevice' &&
+          error.details.phase == 'Select') {
+        return null;
+      }
+      if (error.details.statusWord == 0x6982) {
+        throw const NdefReadOnlyException();
+      }
+      rethrow;
     }
-    return Uint8List.fromList(result);
-  }
-
-  Future<void> _updateBytes(int offset, Uint8List data) async {
-    if (data.isEmpty) return;
-    final response = await _transport.transceive(
-      updateBinaryApdu(offset, data),
-    );
-    if (SmartCard.sw(response) == '6982') {
-      throw const NdefReadOnlyException();
-    }
-    SmartCard.assertOK(response);
-  }
-
-  static String readBinaryApdu(int offset, int length) {
-    if (offset < 0 || offset > 0xffff || length < 1 || length > 0xff) {
-      throw RangeError('Invalid READ BINARY range');
-    }
-    return '00B0${offset.toRadixString(16).padLeft(4, '0')}'
-            '${length.toRadixString(16).padLeft(2, '0')}'
-        .toUpperCase();
-  }
-
-  static String updateBinaryApdu(int offset, Uint8List data) {
-    if (offset < 0 || offset > 0xffff || data.isEmpty || data.length > 0xff) {
-      throw RangeError('Invalid UPDATE BINARY range');
-    }
-    return '00D6${offset.toRadixString(16).padLeft(4, '0')}'
-            '${data.length.toRadixString(16).padLeft(2, '0')}'
-            '${hex.encode(data)}'
-        .toUpperCase();
   }
 }

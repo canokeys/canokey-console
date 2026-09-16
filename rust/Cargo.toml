@@ -7,7 +7,8 @@ edition = "2021"
 crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
-canokey = { git = "https://github.com/canokeys/libcanokey", rev = "10808e1760bf5efa86b5ff2e0b4acbeaba441edc" }
+canokey = { git = "https://github.com/canokeys/libcanokey", rev = "95e1930ea86eb248d0295bce9880cee5c65fd85e" }
+canokey-protocol = { git = "https://github.com/canokeys/libcanokey", rev = "95e1930ea86eb248d0295bce9880cee5c65fd85e" }
 aes = "^0.9.3"
 const-oid = "^0.10.1"
 der = { version = "^0.8.1", features = ["derive", "pem"] }

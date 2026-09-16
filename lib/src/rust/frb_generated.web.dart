@@ -27,9 +27,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   get rust_arc_decrement_strong_count_ProtocolOperationPtr => wire
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation;
 
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_ProtocolProfilePtr => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile;
+
   @protected
   ProtocolOperation
   dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+    dynamic raw,
+  );
+
+  @protected
+  ProtocolProfile
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     dynamic raw,
   );
 
@@ -40,8 +50,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ProtocolProfile
+  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    dynamic raw,
+  );
+
+  @protected
+  ProtocolProfile
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    dynamic raw,
+  );
+
+  @protected
   ProtocolOperation
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+    dynamic raw,
+  );
+
+  @protected
+  ProtocolProfile
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     dynamic raw,
   );
 
@@ -49,7 +77,48 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String dco_decode_String(dynamic raw);
 
   @protected
+  AdminAction dco_decode_admin_action(dynamic raw);
+
+  @protected
+  AdminConfigurationPatch dco_decode_admin_configuration_patch(dynamic raw);
+
+  @protected
+  AdminProgress dco_decode_admin_progress(dynamic raw);
+
+  @protected
+  AdminReadOperation dco_decode_admin_read_operation(dynamic raw);
+
+  @protected
+  AdminResult dco_decode_admin_result(dynamic raw);
+
+  @protected
+  AdminValueKind dco_decode_admin_value_kind(dynamic raw);
+
+  @protected
   bool dco_decode_bool(dynamic raw);
+
+  @protected
+  BootstrapIdentityStep dco_decode_bootstrap_identity_step(dynamic raw);
+
+  @protected
+  ProtocolProfile
+  dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    dynamic raw,
+  );
+
+  @protected
+  AdminConfigurationPatch dco_decode_box_autoadd_admin_configuration_patch(
+    dynamic raw,
+  );
+
+  @protected
+  AdminProgress dco_decode_box_autoadd_admin_progress(dynamic raw);
+
+  @protected
+  AdminResult dco_decode_box_autoadd_admin_result(dynamic raw);
+
+  @protected
+  bool dco_decode_box_autoadd_bool(dynamic raw);
 
   @protected
   PivPrivateKeyData dco_decode_box_autoadd_piv_private_key_data(dynamic raw);
@@ -89,6 +158,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String? dco_decode_opt_String(dynamic raw);
 
   @protected
+  ProtocolProfile?
+  dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    dynamic raw,
+  );
+
+  @protected
+  AdminProgress? dco_decode_opt_box_autoadd_admin_progress(dynamic raw);
+
+  @protected
+  AdminResult? dco_decode_opt_box_autoadd_admin_result(dynamic raw);
+
+  @protected
+  bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
+
+  @protected
   PivPrivateKeyData? dco_decode_opt_box_autoadd_piv_private_key_data(
     dynamic raw,
   );
@@ -107,6 +191,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Uint8List? dco_decode_opt_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  PivCredentialOperation dco_decode_piv_credential_operation(dynamic raw);
 
   @protected
   PivImportFileData dco_decode_piv_import_file_data(dynamic raw);
@@ -156,8 +243,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ProtocolProfile
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ProtocolOperation
   sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ProtocolProfile
+  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ProtocolProfile
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     SseDeserializer deserializer,
   );
 
@@ -168,10 +273,65 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ProtocolProfile
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
+  AdminAction sse_decode_admin_action(SseDeserializer deserializer);
+
+  @protected
+  AdminConfigurationPatch sse_decode_admin_configuration_patch(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  AdminProgress sse_decode_admin_progress(SseDeserializer deserializer);
+
+  @protected
+  AdminReadOperation sse_decode_admin_read_operation(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  AdminResult sse_decode_admin_result(SseDeserializer deserializer);
+
+  @protected
+  AdminValueKind sse_decode_admin_value_kind(SseDeserializer deserializer);
+
+  @protected
   bool sse_decode_bool(SseDeserializer deserializer);
+
+  @protected
+  BootstrapIdentityStep sse_decode_bootstrap_identity_step(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ProtocolProfile
+  sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  AdminConfigurationPatch sse_decode_box_autoadd_admin_configuration_patch(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  AdminProgress sse_decode_box_autoadd_admin_progress(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  AdminResult sse_decode_box_autoadd_admin_result(SseDeserializer deserializer);
+
+  @protected
+  bool sse_decode_box_autoadd_bool(SseDeserializer deserializer);
 
   @protected
   PivPrivateKeyData sse_decode_box_autoadd_piv_private_key_data(
@@ -219,6 +379,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
+  ProtocolProfile?
+  sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  AdminProgress? sse_decode_opt_box_autoadd_admin_progress(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  AdminResult? sse_decode_opt_box_autoadd_admin_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
+
+  @protected
   PivPrivateKeyData? sse_decode_opt_box_autoadd_piv_private_key_data(
     SseDeserializer deserializer,
   );
@@ -241,6 +420,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Uint8List? sse_decode_opt_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  PivCredentialOperation sse_decode_piv_credential_operation(
+    SseDeserializer deserializer,
+  );
 
   @protected
   PivImportFileData sse_decode_piv_import_file_data(
@@ -296,8 +480,29 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    ProtocolProfile self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
     ProtocolOperation self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    ProtocolProfile self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    ProtocolProfile self,
     SseSerializer serializer,
   );
 
@@ -309,10 +514,78 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    ProtocolProfile self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
+  void sse_encode_admin_action(AdminAction self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_admin_configuration_patch(
+    AdminConfigurationPatch self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_admin_progress(AdminProgress self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_admin_read_operation(
+    AdminReadOperation self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_admin_result(AdminResult self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_admin_value_kind(
+    AdminValueKind self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_bootstrap_identity_step(
+    BootstrapIdentityStep self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    ProtocolProfile self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_admin_configuration_patch(
+    AdminConfigurationPatch self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_admin_progress(
+    AdminProgress self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_admin_result(
+    AdminResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_piv_private_key_data(
@@ -366,6 +639,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_String(String? self, SseSerializer serializer);
 
   @protected
+  void
+  sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    ProtocolProfile? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_admin_progress(
+    AdminProgress? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_admin_result(
+    AdminResult? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
+
+  @protected
   void sse_encode_opt_box_autoadd_piv_private_key_data(
     PivPrivateKeyData? self,
     SseSerializer serializer,
@@ -392,6 +687,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_list_prim_u_8_strict(
     Uint8List? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_piv_credential_operation(
+    PivCredentialOperation self,
     SseSerializer serializer,
   );
 
@@ -470,6 +771,22 @@ class RustLibWire implements BaseWire {
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
         ptr,
       );
+
+  void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    int ptr,
+  ) => wasmModule
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+        ptr,
+      );
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    int ptr,
+  ) => wasmModule
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+        ptr,
+      );
 }
 
 @JS('wasm_bindgen')
@@ -485,6 +802,16 @@ extension type RustLibWasmModule._(JSObject _) implements JSObject {
 
   external void
   rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
+    int ptr,
+  );
+
+  external void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
+    int ptr,
+  );
+
+  external void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     int ptr,
   );
 }

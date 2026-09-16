@@ -1,7 +1,8 @@
 import 'package:canokey_console/models/piv_macos_setup.dart';
 import 'package:canokey_console/models/piv_self_sign_options.dart';
 import 'dart:async';
-import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart' show PlatformInt64Util;
+import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart'
+    show PlatformInt64Util;
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -14,11 +15,10 @@ import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/piv_card.dart';
 import 'package:canokey_console/helper/utils/piv_pin_retries.dart';
 import 'package:canokey_console/helper/utils/piv_csr.dart';
-import 'package:canokey_console/helper/utils/piv_management_key.dart';
 import 'package:canokey_console/helper/utils/piv_metadata_directory.dart';
-import 'package:canokey_console/helper/utils/piv_post_quantum.dart';
 import 'package:canokey_console/helper/utils/piv_signature.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
+import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/piv.dart';
@@ -33,6 +33,13 @@ class PivController extends PollingController {
   PivController({PivCardClient? client}) : _client = client ?? PivCardClient();
 
   final PivCardClient _client;
+
+  @override
+  void onClose() {
+    _client.cancelPendingOperations();
+    super.onClose();
+  }
+
   Map<int, SlotInfo> slots = {};
   final Set<int> certificateSlots = {};
   final Map<int, Uint8List> certificateBytes = {};
@@ -122,7 +129,7 @@ class PivController extends PollingController {
       disabledMessage = null;
 
       await _refreshCapabilities();
-      await _client.select();
+      await _client.prepare();
       slots.clear();
       certificateSlots.clear();
       certificateBytes.clear();
@@ -133,10 +140,12 @@ class PivController extends PollingController {
         legacyPinRetriesRemaining = await _client.readRemainingPinRetries();
       }
       pukInfo = supportsMetadata ? await _client.readMetadata(0x81) : null;
-      managementKeyInfo =
-          supportsMetadata ? await _client.readMetadata(0x9B) : null;
-      pinOnlyMode =
-          supportsPinOnlyMode ? await _readPinOnlyModeInSession() : false;
+      managementKeyInfo = supportsMetadata
+          ? await _client.readMetadata(0x9B)
+          : null;
+      pinOnlyMode = supportsPinOnlyMode
+          ? await _readPinOnlyModeInSession()
+          : false;
       final directory = await _readMetadataDirectory();
       if (directory == null) {
         await _refreshSlotsLegacy();
@@ -167,12 +176,14 @@ class PivController extends PollingController {
     if (!supportsMetadataDirectory) {
       return null;
     }
-    final resp = await _client.transceive('00F7010000');
-    if (!SmartCard.isOK(resp)) {
-      return null;
-    }
     try {
-      return PivMetadataDirectory.parse(hex.decode(SmartCard.dropSW(resp)));
+      return PivMetadataDirectory.parse(await _client.readMetadataDirectory());
+    } on ProtocolException catch (error) {
+      if (error.details.kind == 'NotFound' ||
+          error.details.kind == 'UnsupportedFeature') {
+        return null;
+      }
+      rethrow;
     } catch (error) {
       log.w('Failed to parse PIV metadata directory', error: error);
       return null;
@@ -205,7 +216,7 @@ class PivController extends PollingController {
 
     SlotInfo? loaded = current;
     await SmartCard.process((String sn) async {
-      await _client.select();
+      await _client.prepare();
       if (needsKeyMetadata) {
         loaded = await _readKeyMetadata(slot) ?? current;
       }
@@ -253,11 +264,18 @@ class PivController extends PollingController {
     Uint8List? bytes;
     try {
       bytes = await _client.readCertificate(certObject);
-    } on FormatException catch (error) {
+    } catch (error) {
+      if (error is! FormatException &&
+          !(error is ProtocolException && error.details.phase == 'Parsing')) {
+        rethrow;
+      }
       // An unreadable object still occupies the slot: replacement needs consent.
       certificateSlots.add(slot);
-      log.w('Unable to decode PIV certificate object in slot '
-          '${slot.toRadixString(16)}', error: error);
+      log.w(
+        'Unable to decode PIV certificate object in slot '
+        '${slot.toRadixString(16)}',
+        error: error,
+      );
       return;
     }
     if (bytes == null) return;
@@ -270,8 +288,11 @@ class PivController extends PollingController {
       slotInfo?.cert = cert;
     } on String catch (error) {
       // The Rust Result<X509CertData, String> bridge throws decoding errors.
-      log.w('Unable to parse PIV certificate in slot '
-          '${slot.toRadixString(16)}', error: error);
+      log.w(
+        'Unable to parse PIV certificate in slot '
+        '${slot.toRadixString(16)}',
+        error: error,
+      );
     }
   }
 
@@ -314,18 +335,25 @@ class PivController extends PollingController {
     _runPinChange(() => _client.unblockPin(puk, newPin), refresh: true);
   }
 
-  void _runPinChange(Future<bool> Function() operation, {bool refresh = false}) {
-    SmartCard.process((String sn) async {
-      await _client.select();
+  void _runPinChange(
+    Future<bool> Function() operation, {
+    bool refresh = false,
+  }) async {
+    var changed = false;
+    await SmartCard.process((String sn) async {
+      await _client.prepare();
       if (!await operation()) {
         Prompts.promptPinFailureResult(_client.lastStatusWord ?? '');
         return;
       }
       Navigator.pop(Get.context!);
-      if (refresh) await refreshData();
+      changed = true;
       Prompts.showPrompt(
-          S.of(Get.context!).successfullyChanged, ContentThemeColor.success);
+        S.of(Get.context!).successfullyChanged,
+        ContentThemeColor.success,
+      );
     });
+    if (changed && refresh) await refreshData();
   }
 
   Future<bool> changeManagementKey(
@@ -341,14 +369,17 @@ class PivController extends PollingController {
     if ((usePinOnly || storeOnDevice) && !supportsPinOnlyMode) {
       return false;
     }
-    SmartCard.process((String sn) async {
-      await _client.select();
+    await SmartCard.process((String sn) async {
+      await _client.prepare();
       if ((usePinOnly || storeOnDevice) && !await _verifyPinInSession(pin)) {
         c.complete(false);
         return;
       }
       if (!await _authenticateManagementKeyOrPinOnly(
-          pin, currentKey, usePinOnly)) {
+        pin,
+        currentKey,
+        usePinOnly,
+      )) {
         c.complete(false);
         return;
       }
@@ -387,106 +418,125 @@ class PivController extends PollingController {
       }
       c.complete(true);
     });
+    if (!c.isCompleted) c.complete(false);
     return c.future;
   }
 
   Future<String?> generateCsr(
-      String slot,
-      AlgorithmType algorithm,
-      PinPolicy pinPolicy,
-      TouchPolicy touchPolicy,
-      String pin,
-      String managementKey,
-      Map<String, String> subject,
-      List<String> subjectAlternativeNames,
-      bool usePinOnly) async {
+    String slot,
+    AlgorithmType algorithm,
+    PinPolicy pinPolicy,
+    TouchPolicy touchPolicy,
+    String pin,
+    String managementKey,
+    Map<String, String> subject,
+    List<String> subjectAlternativeNames,
+    bool usePinOnly,
+  ) async {
     log.t('Call PivController.generateCsr');
     final c = Completer<String?>();
-    final data = _generateAsymmetricKeyData(algorithm, pinPolicy, touchPolicy);
-    final capdu =
-        '004700$slot${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}${data}00';
-
-    SmartCard.process((String sn) async {
-      await _client.select();
+    await SmartCard.process((String sn) async {
+      await _client.prepare();
       if (!await _verifyPinInSession(pin)) {
         c.complete(null);
         return;
       }
       if (!await _authenticateManagementKeyOrPinOnly(
-          pin, managementKey, usePinOnly)) {
+        pin,
+        managementKey,
+        usePinOnly,
+      )) {
         c.complete(null);
         return;
       }
-      final resp = await _client.transceive(capdu);
-      if (!SmartCard.isOK(resp)) {
+      Uint8List spki;
+      try {
+        spki = await _client.generateKey(
+          slot: int.parse(slot, radix: 16),
+          algorithm: algorithm.value,
+          pinPolicy: pinPolicy.value,
+          touchPolicy: touchPolicy.value,
+        );
+      } catch (_) {
         c.complete(null);
         return;
       }
-      final publicKey = PivPublicKey.fromGenerateResponse(
-          algorithm, hex.decode(SmartCard.dropSW(resp)));
+      final publicKey = PivPublicKey.fromSubjectPublicKeyInfo(algorithm, spki);
       final certificationRequestInfo =
           PivCsrBuilder.buildCertificationRequestInfo(
-        subject: subject,
-        publicKey: publicKey,
-        subjectAlternativeNames: subjectAlternativeNames,
-      );
+            subject: subject,
+            publicKey: publicKey,
+            subjectAlternativeNames: subjectAlternativeNames,
+          );
 
-      final signResp = await _generalAuthenticate(
+      final signature = await _signInSession(
         slot,
         algorithm,
         certificationRequestInfo,
         publicKey,
       );
-      if (!SmartCard.isOK(signResp)) {
+      if (signature == null) {
         c.complete(null);
         return;
       }
-      final signature =
-          _parseAuthenticateSignature(hex.decode(SmartCard.dropSW(signResp)));
-      c.complete(PivCsrBuilder.buildPem(
-        certificationRequestInfo: certificationRequestInfo,
-        algorithm: algorithm,
-        signature: signature,
-      ));
+      c.complete(
+        PivCsrBuilder.buildPem(
+          certificationRequestInfo: certificationRequestInfo,
+          algorithm: algorithm,
+          signature: signature,
+        ),
+      );
     });
+    if (!c.isCompleted) c.complete(null);
     return c.future;
   }
 
-  Future<PivMacOsSetupSlot> _readMacOsSetupSlotInSession(String slotNumber) async {
+  Future<PivMacOsSetupSlot> _readMacOsSetupSlotInSession(
+    String slotNumber,
+  ) async {
     final id = int.parse(slotNumber, radix: 16);
     final key = await _readKeyMetadata(id);
     if (key == null && _client.lastStatusWord?.toUpperCase() != '6A88') {
       throw StateError('Unable to inspect PIV key metadata');
     }
     final cert = await _client.readCertificate(_certDO[id]!);
-    if (cert == null && !{'6A82', '6A88'}.contains(_client.lastStatusWord?.toUpperCase())) {
+    if (cert == null &&
+        !{'6A82', '6A88'}.contains(_client.lastStatusWord?.toUpperCase())) {
       throw StateError('Unable to inspect PIV certificate');
     }
-    final supported = key != null && key.public.isNotEmpty &&
-        (key.algorithm == AlgorithmType.eccp256 || key.algorithm == AlgorithmType.rsa2048);
-    final compatible = supported && cert != null && pivCertificateSupportsMacos(
-      der: cert,
-      expectedPublicKey: PivPublicKey.fromSlotMetadata(key.algorithm, key.public).encodedSubjectPublicKeyInfo,
-      slot: id,
-      nowUnix: PlatformInt64Util.from(DateTime.now().millisecondsSinceEpoch ~/ 1000),
+    final supported =
+        key != null &&
+        key.public.isNotEmpty &&
+        (key.algorithm == AlgorithmType.eccp256 ||
+            key.algorithm == AlgorithmType.rsa2048);
+    final compatible =
+        supported &&
+        cert != null &&
+        pivCertificateSupportsMacos(
+          der: cert,
+          expectedPublicKey: PivPublicKey.fromSlotMetadata(
+            key.algorithm,
+            key.public,
+          ).encodedSubjectPublicKeyInfo,
+          slot: id,
+          nowUnix: PlatformInt64Util.from(
+            DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          ),
+        );
+    return PivMacOsSetupSlot(
+      slotNumber: slotNumber,
+      key: key,
+      certificate: cert,
+      compatible: compatible,
     );
-    return PivMacOsSetupSlot(slotNumber: slotNumber, key: key,
-        certificate: cert, compatible: compatible);
-  }
-
-  Future<String> _readMacOsSetupSerialInSession() async {
-    SmartCard.assertOK(await SmartCard.transceive('00A4040005F000000000'));
-    final response = await SmartCard.transceive('0032000000');
-    SmartCard.assertOK(response);
-    return SmartCard.dropSW(response).toUpperCase();
   }
 
   Future<PivMacOsSetupPlan?> inspectMacOsSetup() async {
     if (!supportsMetadata) return null;
     PivMacOsSetupPlan? plan;
     await SmartCard.process((_) async {
-      final serial = await _readMacOsSetupSerialInSession();
-      await _client.select();
+      await _client.prepare();
+      final serial = await _client.readSerial();
       final entries = <PivMacOsSetupSlot>[];
       for (final slot in ['9A', '9D']) {
         entries.add(await _readMacOsSetupSlotInSession(slot));
@@ -494,15 +544,22 @@ class PivController extends PollingController {
       plan = PivMacOsSetupPlan(serial: serial, slots: entries);
       for (final entry in entries) {
         final id = int.parse(entry.slotNumber, radix: 16);
-        if (entry.key == null) { slots.remove(id); } else { slots[id] = entry.key!; }
+        if (entry.key == null) {
+          slots.remove(id);
+        } else {
+          slots[id] = entry.key!;
+        }
         certificates.remove(id);
         certificateBytes.remove(id);
         certificateSlots.remove(id);
         if (entry.certificate != null) {
           certificateSlots.add(id);
           certificateBytes[id] = entry.certificate!;
-          try { certificates[id] = parseX509CertFromDer(der: entry.certificate!); }
-          catch (_) { /* Invalid certificates remain visible for replacement. */ }
+          try {
+            certificates[id] = parseX509CertFromDer(der: entry.certificate!);
+          } catch (_) {
+            /* Invalid certificates remain visible for replacement. */
+          }
         }
       }
       update();
@@ -520,30 +577,51 @@ class PivController extends PollingController {
     required bool allowReplacement,
     required void Function(String slot, bool done) onProgress,
   }) async {
-    if (plan.slots.length != 2 || plan.slots[0].slotNumber != '9A' || plan.slots[1].slotNumber != '9D') return false;
+    if (plan.slots.length != 2 ||
+        plan.slots[0].slotNumber != '9A' ||
+        plan.slots[1].slotNumber != '9D')
+      return false;
     if (plan.needsReplacementConsent && !allowReplacement) return false;
     final actual = await inspectMacOsSetup();
     if (actual == null || !plan.sameContents(actual)) return false;
     for (final slot in actual.slots) {
-      if (slot.compatible) { onProgress(slot.slotNumber, true); continue; }
+      if (slot.compatible) {
+        onProgress(slot.slotNumber, true);
+        continue;
+      }
       onProgress(slot.slotNumber, false);
-      final options = PivSelfSignOptions(slotNumber: slot.slotNumber, pinPolicy: PinPolicy.once);
+      final options = PivSelfSignOptions(
+        slotNumber: slot.slotNumber,
+        pinPolicy: PinPolicy.once,
+      );
       if (slot.canReuseKey) options.algorithm = slot.key!.algorithm;
       options.applyMacOsLogin();
       final cert = await generateSelfSignedCertificate(
-        slot.slotNumber, options.algorithm,
+        slot.slotNumber,
+        options.algorithm,
         slot.canReuseKey ? slot.key!.pinPolicy : options.pinPolicy,
         slot.canReuseKey ? slot.key!.touchPolicy : TouchPolicy.never,
-        pin, managementKey, {'CN': 'CanoKey Mac ${slot.slotNumber}'}, const [], 365, usePinOnly,
-        keyUsage: options.keyUsage, keyUsageCritical: options.keyUsageCritical,
-        extendedKeyUsage: options.extendedKeyUsage.toList(), includeBasicConstraints: true,
-        reuseExistingKey: slot.canReuseKey, expectedState: slot, expectedSerial: plan.serial,
+        pin,
+        managementKey,
+        {'CN': 'CanoKey Mac ${slot.slotNumber}'},
+        const [],
+        365,
+        usePinOnly,
+        keyUsage: options.keyUsage,
+        keyUsageCritical: options.keyUsageCritical,
+        extendedKeyUsage: options.extendedKeyUsage.toList(),
+        includeBasicConstraints: true,
+        reuseExistingKey: slot.canReuseKey,
+        expectedState: slot,
+        expectedSerial: plan.serial,
       );
       if (cert == null) return false;
       onProgress(slot.slotNumber, true);
     }
     final verified = await inspectMacOsSetup();
-    return verified != null && verified.serial == plan.serial && verified.complete;
+    return verified != null &&
+        verified.serial == plan.serial &&
+        verified.complete;
   }
 
   Future<Uint8List?> generateSelfSignedCertificate(
@@ -567,16 +645,12 @@ class PivController extends PollingController {
   }) async {
     log.t('Call PivController.generateSelfSignedCertificate');
     final c = Completer<Uint8List?>();
-    final data = _generateAsymmetricKeyData(algorithm, pinPolicy, touchPolicy);
-    final capdu =
-        '004700$slot${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}${data}00';
-
     await SmartCard.process((String sn) async {
+      await _client.prepare();
       if (expectedSerial != null &&
-          expectedSerial != await _readMacOsSetupSerialInSession()) {
+          expectedSerial != await _client.readSerial()) {
         return;
       }
-      await _client.select();
       if (expectedState != null) {
         final actual = await _readMacOsSetupSlotInSession(slot);
         if (!expectedState.sameContents(actual)) return;
@@ -586,20 +660,36 @@ class PivController extends PollingController {
         return;
       }
       if (!await _authenticateManagementKeyOrPinOnly(
-          pin, managementKey, usePinOnly)) {
+        pin,
+        managementKey,
+        usePinOnly,
+      )) {
         c.complete(null);
         return;
       }
       PivPublicKey publicKey;
       if (reuseExistingKey) {
         final existing = await _readKeyMetadata(int.parse(slot, radix: 16));
-        if (existing == null || existing.algorithm != algorithm || existing.public.isEmpty) return;
-        publicKey = PivPublicKey.fromSlotMetadata(existing.algorithm, existing.public);
+        if (existing == null ||
+            existing.algorithm != algorithm ||
+            existing.public.isEmpty)
+          return;
+        publicKey = PivPublicKey.fromSlotMetadata(
+          existing.algorithm,
+          existing.public,
+        );
       } else {
-        final resp = await _client.transceive(capdu);
-        if (!SmartCard.isOK(resp)) return;
-        publicKey = PivPublicKey.fromGenerateResponse(
-            algorithm, hex.decode(SmartCard.dropSW(resp)));
+        try {
+          final spki = await _client.generateKey(
+            slot: int.parse(slot, radix: 16),
+            algorithm: algorithm.value,
+            pinPolicy: pinPolicy.value,
+            touchPolicy: touchPolicy.value,
+          );
+          publicKey = PivPublicKey.fromSubjectPublicKeyInfo(algorithm, spki);
+        } catch (_) {
+          return;
+        }
       }
       final now = DateTime.now().toUtc();
       final tbsCertificate = PivCertificateBuilder.buildTbsCertificate(
@@ -614,18 +704,16 @@ class PivController extends PollingController {
         extendedKeyUsage: extendedKeyUsage,
         includeBasicConstraints: includeBasicConstraints,
       );
-      final signResp = await _generalAuthenticate(
+      final signature = await _signInSession(
         slot,
         algorithm,
         tbsCertificate,
         publicKey,
       );
-      if (!SmartCard.isOK(signResp)) {
+      if (signature == null) {
         c.complete(null);
         return;
       }
-      final signature =
-          _parseAuthenticateSignature(hex.decode(SmartCard.dropSW(signResp)));
       final cert = PivCertificateBuilder.buildCertificate(
         tbsCertificate: tbsCertificate,
         algorithm: algorithm,
@@ -642,45 +730,56 @@ class PivController extends PollingController {
   }
 
   Future<bool> generateKey(
-      String slot,
-      AlgorithmType algorithm,
-      PinPolicy pinPolicy,
-      TouchPolicy touchPolicy,
-      String pin,
-      String managementKey,
-      bool usePinOnly) async {
+    String slot,
+    AlgorithmType algorithm,
+    PinPolicy pinPolicy,
+    TouchPolicy touchPolicy,
+    String pin,
+    String managementKey,
+    bool usePinOnly,
+  ) async {
     log.t('Call PivController.generateKey');
     final c = Completer<bool>();
-    final data = _generateAsymmetricKeyData(algorithm, pinPolicy, touchPolicy);
-    final capdu =
-        '004700$slot${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}${data}00';
-
-    SmartCard.process((String sn) async {
-      await _client.select();
+    await SmartCard.process((String sn) async {
+      await _client.prepare();
       if (usePinOnly && !await _verifyPinInSession(pin)) {
         c.complete(false);
         return;
       }
       if (!await _authenticateManagementKeyOrPinOnly(
-          pin, managementKey, usePinOnly)) {
+        pin,
+        managementKey,
+        usePinOnly,
+      )) {
         c.complete(false);
         return;
       }
-      final resp = await _client.transceive(capdu);
-      c.complete(SmartCard.isOK(resp));
+      final publicKey = await _client.generateKey(
+        slot: int.parse(slot, radix: 16),
+        algorithm: algorithm.value,
+        pinPolicy: pinPolicy.value,
+        touchPolicy: touchPolicy.value,
+      );
+      c.complete(publicKey.isNotEmpty);
     });
+    if (!c.isCompleted) c.complete(false);
     return c.future;
   }
 
-  Future<PivPinRetryResetResult> setPinRetries(String pin, String managementKey,
-      int pinRetries, int pukRetries, bool usePinOnly) async {
+  Future<PivPinRetryResetResult> setPinRetries(
+    String pin,
+    String managementKey,
+    int pinRetries,
+    int pukRetries,
+    bool usePinOnly,
+  ) async {
     log.t('Call PivController.setPinRetries');
     if (!supportsPinRetryConfig || pinOnlyMode || usePinOnly) {
       return PivPinRetryResetResult.failed;
     }
     final c = Completer<PivPinRetryResetResult>();
-    SmartCard.process((String sn) async {
-      await _client.select();
+    await SmartCard.process((String sn) async {
+      await _client.prepare();
       // Read the card as well: the UI state may be stale or the card changed.
       if (await _readPinOnlyModeInSession()) {
         c.complete(PivPinRetryResetResult.failed);
@@ -691,40 +790,53 @@ class PivController extends PollingController {
         return;
       }
       if (!await _authenticateManagementKeyOrPinOnly(
-          pin, managementKey, usePinOnly)) {
+        pin,
+        managementKey,
+        usePinOnly,
+      )) {
         c.complete(PivPinRetryResetResult.failed);
         return;
       }
-      c.complete(await resetPivPinRetries(
-        reset: () async => SmartCard.isOK(await SmartCard.transceive(
-            '00FA${pinRetries.toRadixString(16).padLeft(2, '0')}'
-            '${pukRetries.toRadixString(16).padLeft(2, '0')}')),
-        authenticateManagementKey: () =>
-            _authenticateManagementKey(managementKey),
-        updateMetadata: () async {
-          final adminData = await _getDataObject(_pivmanDataObject);
-          if (adminData == null) return false;
-          final flags = _pivmanFlags(adminData);
-          if (flags & _pivmanPukBlockedFlag == 0) return true;
-          return _putDataObject(
-            _pivmanDataObject,
-            _buildPivmanData(adminData, flags & ~_pivmanPukBlockedFlag),
-          );
-        },
-      ));
+      c.complete(
+        await resetPivPinRetries(
+          reset: () async {
+            try {
+              await _client.resetPinPukRetries(pinRetries, pukRetries);
+              return true;
+            } catch (_) {
+              return false;
+            }
+          },
+          authenticateManagementKey: () =>
+              _authenticateManagementKey(managementKey),
+          updateMetadata: () async {
+            final adminData = await _getDataObject(_pivmanDataObject);
+            if (adminData == null) return false;
+            final flags = _pivmanFlags(adminData);
+            if (flags & _pivmanPukBlockedFlag == 0) return true;
+            return _putDataObject(
+              _pivmanDataObject,
+              _buildPivmanData(adminData, flags & ~_pivmanPukBlockedFlag),
+            );
+          },
+        ),
+      );
     });
+    if (!c.isCompleted) c.complete(PivPinRetryResetResult.failed);
     return c.future;
   }
 
   Future<bool> enablePinOnlyMode(
-      String pin, String currentManagementKey) async {
+    String pin,
+    String currentManagementKey,
+  ) async {
     log.t('Call PivController.enablePinOnlyMode');
     if (!supportsPinOnlyMode) {
       return false;
     }
     final c = Completer<bool>();
-    SmartCard.process((String sn) async {
-      await _client.select();
+    await SmartCard.process((String sn) async {
+      await _client.prepare();
       if (!await _verifyPinInSession(pin)) {
         c.complete(false);
         return;
@@ -738,8 +850,9 @@ class PivController extends PollingController {
         return;
       }
       final random = Random.secure();
-      final newKey =
-          hex.encode(List<int>.generate(24, (_) => random.nextInt(256)));
+      final newKey = hex.encode(
+        List<int>.generate(24, (_) => random.nextInt(256)),
+      );
       if (!await _setManagementKeyInSession(
         newKey,
         touchPolicy: managementKeyTouchPolicy,
@@ -763,24 +876,32 @@ class PivController extends PollingController {
       }
       c.complete(true);
     });
+    if (!c.isCompleted) c.complete(false);
     return c.future;
   }
 
-  Future<bool> disablePinOnlyMode(String pin, String currentManagementKey,
-      String newManagementKey, bool usePinOnly) async {
+  Future<bool> disablePinOnlyMode(
+    String pin,
+    String currentManagementKey,
+    String newManagementKey,
+    bool usePinOnly,
+  ) async {
     log.t('Call PivController.disablePinOnlyMode');
     if (!supportsPinOnlyMode) {
       return false;
     }
     final c = Completer<bool>();
-    SmartCard.process((String sn) async {
-      await _client.select();
+    await SmartCard.process((String sn) async {
+      await _client.prepare();
       if (usePinOnly && !await _verifyPinInSession(pin)) {
         c.complete(false);
         return;
       }
       if (!await _authenticateManagementKeyOrPinOnly(
-          pin, currentManagementKey, usePinOnly)) {
+        pin,
+        currentManagementKey,
+        usePinOnly,
+      )) {
         c.complete(false);
         return;
       }
@@ -797,60 +918,63 @@ class PivController extends PollingController {
       }
       c.complete(await _writePinOnlyObjects(newManagementKey, enabled: false));
     });
+    if (!c.isCompleted) c.complete(false);
     return c.future;
   }
 
   Future<Uint8List?> deriveX25519Secret(
-      String slot, String pin, Uint8List peerPublicKey) async {
+    String slot,
+    String pin,
+    Uint8List peerPublicKey,
+  ) async {
     log.t('Call PivController.deriveX25519Secret');
     final c = Completer<Uint8List?>();
-    SmartCard.process((String sn) async {
-      await _client.select();
+    await SmartCard.process((String sn) async {
+      await _client.prepare();
       if (!await _verifyPinInSession(pin)) {
         c.complete(null);
         return;
       }
-      final resp = await _generalAuthenticateRaw(
-        slot,
-        AlgorithmType.x25519,
-        _buildKeyAgreementData(peerPublicKey),
-      );
-      if (!SmartCard.isOK(resp)) {
+      try {
+        c.complete(
+          await _client.derive(
+            int.parse(slot, radix: 16),
+            algorithmExtensionConfig.idFor(AlgorithmType.x25519),
+            peerPublicKey,
+          ),
+        );
+      } on ProtocolException {
         c.complete(null);
-        return;
       }
-      c.complete(_parseAuthenticateSecret(hex.decode(SmartCard.dropSW(resp))));
     });
+    if (!c.isCompleted) c.complete(null);
     return c.future;
   }
 
   Future<Uint8List?> decapsulateMlKem768(
-      String slot, String pin, Uint8List ciphertext) async {
+    String slot,
+    String pin,
+    Uint8List ciphertext,
+  ) async {
     log.t('Call PivController.decapsulateMlKem768');
     if (!supportsAlgorithm(AlgorithmType.mlkem768)) {
       return null;
     }
-    final request =
-        PivPostQuantumProtocol.buildMlKemDecapsulationData(ciphertext);
     final c = Completer<Uint8List?>();
     try {
       await SmartCard.process((String sn) async {
-        await _client.select();
+        await _client.prepare();
         if (!await _verifyPinInSession(pin)) {
           c.complete(null);
           return;
         }
-        final resp = await _generalAuthenticateRaw(
-          slot,
-          AlgorithmType.mlkem768,
-          hex.encode(request),
-        );
-        if (!SmartCard.isOK(resp)) {
+        try {
+          c.complete(
+            await _client.decapsulate(int.parse(slot, radix: 16), ciphertext),
+          );
+        } on ProtocolException {
           c.complete(null);
-          return;
         }
-        c.complete(PivPostQuantumProtocol.parseMlKemSharedSecret(
-            hex.decode(SmartCard.dropSW(resp))));
       });
     } catch (_) {
       if (!c.isCompleted) {
@@ -864,7 +988,11 @@ class PivController extends PollingController {
   }
 
   Future<Uint8List?> signData(
-      String slot, SlotInfo slotInfo, String pin, Uint8List data) async {
+    String slot,
+    SlotInfo slotInfo,
+    String pin,
+    Uint8List data,
+  ) async {
     log.t('Call PivController.signData');
     final publicKey = publicKeyForSlot(slotInfo);
     if (publicKey == null) {
@@ -874,19 +1002,17 @@ class PivController extends PollingController {
     try {
       await SmartCard.process((String sn) async {
         try {
-          await _client.select();
+          await _client.prepare();
           if (!await _verifyPinInSession(pin)) {
             c.complete(null);
             return;
           }
-          final resp = await _generalAuthenticate(
-              slot, slotInfo.algorithm, data, publicKey);
-          if (!SmartCard.isOK(resp)) {
-            c.complete(null);
-            return;
-          }
-          final signature =
-              _parseAuthenticateSignature(hex.decode(SmartCard.dropSW(resp)));
+          final signature = await _signInSession(
+            slot,
+            slotInfo.algorithm,
+            data,
+            publicKey,
+          );
           c.complete(signature);
         } catch (_) {
           if (!c.isCompleted) {
@@ -906,7 +1032,10 @@ class PivController extends PollingController {
   }
 
   Future<bool> verifySignature(
-      SlotInfo slotInfo, Uint8List data, Uint8List signature) async {
+    SlotInfo slotInfo,
+    Uint8List data,
+    Uint8List signature,
+  ) async {
     log.t('Call PivController.verifySignature');
     final publicKey = publicKeyForSlot(slotInfo);
     if (publicKey == null) {
@@ -923,27 +1052,31 @@ class PivController extends PollingController {
     }
   }
 
-  Future<bool> importPostQuantumSeed(String slotNumber, AlgorithmType algorithm,
-      Uint8List seed, PinPolicy pinPolicy, TouchPolicy touchPolicy) async {
+  Future<bool> importPostQuantumSeed(
+    String slotNumber,
+    AlgorithmType algorithm,
+    Uint8List seed,
+    PinPolicy pinPolicy,
+    TouchPolicy touchPolicy,
+  ) async {
     log.t('Call PivController.importPostQuantumSeed');
-    if (!supportsAlgorithm(algorithm)) {
-      return false;
-    }
-    try {
-      PivPostQuantumProtocol.buildImportData(
-        algorithm: algorithm,
-        seed: seed,
-        pinPolicy: pinPolicy,
-        touchPolicy: touchPolicy,
-      );
-    } on ArgumentError {
+    if (!supportsAlgorithm(algorithm) ||
+        !_isValidPostQuantumSeed(algorithm, seed)) {
       return false;
     }
     final c = Completer<bool>();
     try {
       await SmartCard.process((String sn) async {
-        c.complete(await _importPostQuantumSeedInSession(
-            slotNumber, algorithm, seed, pinPolicy, touchPolicy));
+        await _client.prepare();
+        c.complete(
+          await _importPostQuantumSeedInSession(
+            slotNumber,
+            algorithm,
+            seed,
+            pinPolicy,
+            touchPolicy,
+          ),
+        );
       });
     } catch (_) {
       if (!c.isCompleted) {
@@ -964,25 +1097,30 @@ class PivController extends PollingController {
   }) async {
     log.t('Call PivController.changeAlgorithmExtensionConfigAuthenticated');
     final c = Completer<bool>();
-    SmartCard.process((String sn) async {
-      await _client.select();
+    await SmartCard.process((String sn) async {
+      await _client.prepare();
       if (usePinOnly && !await _verifyPinInSession(pin)) {
         c.complete(false);
         return;
       }
       if (!await _authenticateManagementKeyOrPinOnly(
-          pin, managementKey, usePinOnly)) {
+        pin,
+        managementKey,
+        usePinOnly,
+      )) {
         c.complete(false);
         return;
       }
-      final data = hex.encode(config.encode());
-      final resp = await SmartCard.transceive(
-          '00EE0200${(data.length ~/ 2).toRadixString(16).padLeft(2, '0')}$data');
-      if (SmartCard.isOK(resp)) {
-        algorithmExtensionConfig = config;
+      try {
+        await _client.setAlgorithmConfig(Uint8List.fromList(config.encode()));
+      } on ProtocolException {
+        c.complete(false);
+        return;
       }
-      c.complete(SmartCard.isOK(resp));
+      algorithmExtensionConfig = config;
+      c.complete(true);
     });
+    if (!c.isCompleted) c.complete(false);
     return c.future;
   }
 
@@ -1000,56 +1138,57 @@ class PivController extends PollingController {
   }) async {
     log.t('Call PivController.importAuthenticated');
     if ((mlDsaSeed != null && !supportsAlgorithm(AlgorithmType.mldsa65)) ||
-        (mlKemSeed != null && !supportsAlgorithm(AlgorithmType.mlkem768))) {
-      return false;
-    }
-    try {
-      if (mlDsaSeed != null) {
-        PivPostQuantumProtocol.buildImportData(
-          algorithm: AlgorithmType.mldsa65,
-          seed: mlDsaSeed,
-          pinPolicy: pinPolicy,
-          touchPolicy: touchPolicy,
-        );
-      }
-      if (mlKemSeed != null) {
-        PivPostQuantumProtocol.buildImportData(
-          algorithm: AlgorithmType.mlkem768,
-          seed: mlKemSeed,
-          pinPolicy: pinPolicy,
-          touchPolicy: touchPolicy,
-        );
-      }
-    } on ArgumentError {
+        (mlKemSeed != null && !supportsAlgorithm(AlgorithmType.mlkem768)) ||
+        (mlDsaSeed != null &&
+            !_isValidPostQuantumSeed(AlgorithmType.mldsa65, mlDsaSeed)) ||
+        (mlKemSeed != null &&
+            !_isValidPostQuantumSeed(AlgorithmType.mlkem768, mlKemSeed))) {
       return false;
     }
     final c = Completer<bool>();
-    SmartCard.process((String sn) async {
-      await _client.select();
+    await SmartCard.process((String sn) async {
+      await _client.prepare();
       if (usePinOnly && !await _verifyPinInSession(pin)) {
         c.complete(false);
         return;
       }
       if (!await _authenticateManagementKeyOrPinOnly(
-          pin, managementKey, usePinOnly)) {
+        pin,
+        managementKey,
+        usePinOnly,
+      )) {
         c.complete(false);
         return;
       }
       if (privateKey != null &&
           !await _importPrivateKeyInSession(
-              slot, privateKey, pinPolicy, touchPolicy)) {
+            slot,
+            privateKey,
+            pinPolicy,
+            touchPolicy,
+          )) {
         c.complete(false);
         return;
       }
       if (mlDsaSeed != null &&
           !await _importPostQuantumSeedInSession(
-              slot, AlgorithmType.mldsa65, mlDsaSeed, pinPolicy, touchPolicy)) {
+            slot,
+            AlgorithmType.mldsa65,
+            mlDsaSeed,
+            pinPolicy,
+            touchPolicy,
+          )) {
         c.complete(false);
         return;
       }
       if (mlKemSeed != null &&
-          !await _importPostQuantumSeedInSession(slot, AlgorithmType.mlkem768,
-              mlKemSeed, pinPolicy, touchPolicy)) {
+          !await _importPostQuantumSeedInSession(
+            slot,
+            AlgorithmType.mlkem768,
+            mlKemSeed,
+            pinPolicy,
+            touchPolicy,
+          )) {
         c.complete(false);
         return;
       }
@@ -1059,118 +1198,135 @@ class PivController extends PollingController {
       }
       c.complete(true);
     });
+    if (!c.isCompleted) c.complete(false);
     return c.future;
   }
 
   Future<bool> _importPrivateKeyInSession(
-      String slotNumber,
-      PivPrivateKeyData key,
-      PinPolicy pinPolicy,
-      TouchPolicy touchPolicy) async {
+    String slotNumber,
+    PivPrivateKeyData key,
+    PinPolicy pinPolicy,
+    TouchPolicy touchPolicy,
+  ) async {
     final algorithm = AlgorithmType.fromValue(key.algorithm);
-    final data = <int>[
-      ...key.importData,
-      0xAA,
-      0x01,
-      pinPolicy.value,
-      0xAB,
-      0x01,
-      touchPolicy.value,
-    ];
-    final resp = await _sendChainedData(
-      instruction: 'FE',
-      p1p2: '${_algorithmIdHex(algorithm)}$slotNumber',
-      data: hex.encode(data),
-    );
-    return SmartCard.isOK(resp);
+    final slot = int.parse(slotNumber, radix: 16);
+    final wireId = algorithmExtensionConfig.idFor(algorithm);
+    final components = TLV.parse(key.importData);
+    final copies = <Uint8List>[];
+    Uint8List component(int tag) {
+      final value = components[tag];
+      if (value is! List<int>) {
+        throw FormatException(
+          'PIV import data lacks component ${tag.toRadixString(16)}',
+        );
+      }
+      final copy = Uint8List.fromList(value);
+      copies.add(copy);
+      return copy;
+    }
+
+    try {
+      switch (algorithm) {
+        case AlgorithmType.rsa1024 ||
+        AlgorithmType.rsa2048 ||
+        AlgorithmType.rsa3072 ||
+        AlgorithmType.rsa4096:
+          await _client.importRsaKey(
+            slot: slot,
+            algorithm: wireId,
+            p: component(0x01),
+            q: component(0x02),
+            dp: component(0x03),
+            dq: component(0x04),
+            qinv: component(0x05),
+            pinPolicy: pinPolicy.value,
+            touchPolicy: touchPolicy.value,
+          );
+        case AlgorithmType.ed25519:
+          await _client.importEd25519Key(
+            slot: slot,
+            seed: component(0x06),
+            pinPolicy: pinPolicy.value,
+            touchPolicy: touchPolicy.value,
+          );
+        default:
+          await _client.importEcKey(
+            slot: slot,
+            algorithm: wireId,
+            scalar: component(0x06),
+            pinPolicy: pinPolicy.value,
+            touchPolicy: touchPolicy.value,
+          );
+      }
+      return true;
+    } on ProtocolException {
+      return false;
+    } on FormatException {
+      return false;
+    } finally {
+      for (final copy in copies) {
+        copy.fillRange(0, copy.length, 0);
+      }
+    }
   }
 
   Future<bool> _importPostQuantumSeedInSession(
-      String slotNumber,
-      AlgorithmType algorithm,
-      Uint8List seed,
-      PinPolicy pinPolicy,
-      TouchPolicy touchPolicy) async {
-    final data = PivPostQuantumProtocol.buildImportData(
-      algorithm: algorithm,
-      seed: seed,
-      pinPolicy: pinPolicy,
-      touchPolicy: touchPolicy,
-    );
-    final resp = await _sendChainedData(
-      instruction: 'FE',
-      p1p2: '${_algorithmIdHex(algorithm)}$slotNumber',
-      data: hex.encode(data),
-    );
-    return SmartCard.isOK(resp);
+    String slotNumber,
+    AlgorithmType algorithm,
+    Uint8List seed,
+    PinPolicy pinPolicy,
+    TouchPolicy touchPolicy,
+  ) async {
+    final kind = switch (algorithm) {
+      AlgorithmType.mldsa65 => 0,
+      AlgorithmType.mlkem768 => 1,
+      _ => null,
+    };
+    if (kind == null || !_isValidPostQuantumSeed(algorithm, seed)) {
+      return false;
+    }
+    final copy = Uint8List.fromList(seed);
+    try {
+      await _client.importPqSeed(
+        slot: int.parse(slotNumber, radix: 16),
+        kind: kind,
+        seed: copy,
+        pinPolicy: pinPolicy.value,
+        touchPolicy: touchPolicy.value,
+      );
+      return true;
+    } on ProtocolException {
+      return false;
+    } finally {
+      copy.fillRange(0, copy.length, 0);
+    }
   }
 
+  /// Normalized certificate object value; libcanokey adds the outer 53
+  /// container and the PUT DATA framing/segmentation.
   Uint8List buildPivCert(Uint8List cert) {
-    // Create a builder for the cert tag (0x70)
-    var certTlv = Uint8List(2 + 2 + cert.length);
-    certTlv[0] = 0x70;
-    certTlv[1] = 0x82;
-    certTlv[2] = (cert.length >> 8) & 0xFF;
-    certTlv[3] = cert.length & 0xFF;
-    certTlv.setRange(4, 4 + cert.length, cert);
-
-    // Add the compressed tag (0x71)
-    var compressedTlv = Uint8List(3);
-    compressedTlv[0] = 0x71;
-    compressedTlv[1] = 0x01;
-    compressedTlv[2] = 0x00;
-
-    // Add the LRC tag (0xFE)
-    var lrcTlv = Uint8List(2);
-    lrcTlv[0] = 0xFE;
-    lrcTlv[1] = 0x00;
-
-    // Calculate total length
-    var totalLen = certTlv.length + compressedTlv.length + lrcTlv.length;
-
-    // Create the final buffer with compact tag (0x53)
-    var result = Uint8List(2 + 2 + totalLen);
-    result[0] = 0x53;
-    result[1] = 0x82;
-    result[2] = (totalLen >> 8) & 0xFF;
-    result[3] = totalLen & 0xFF;
-
-    // Copy all TLVs into the result
-    result.setRange(4, 4 + certTlv.length, certTlv);
-    result.setRange(4 + certTlv.length,
-        4 + certTlv.length + compressedTlv.length, compressedTlv);
-    result.setRange(
-        4 + certTlv.length + compressedTlv.length, result.length, lrcTlv);
-
-    return result;
+    return Uint8List.fromList([
+      0x70, 0x82, (cert.length >> 8) & 0xFF, cert.length & 0xFF,
+      ...cert,
+      0x71, 0x01, 0x00, // uncompressed
+      0xFE, 0x00, // empty LRC
+    ]);
   }
 
   Future<bool> _importCertInSession(String slot, Uint8List cert) async {
-    int slotInt = int.parse(slot, radix: 16);
-    if (_certDO.containsKey(slotInt)) {
-      cert =
-          cert.isEmpty ? Uint8List.fromList([0x53, 0x00]) : buildPivCert(cert);
-      String data =
-          '5C035FC1${hex.encode([_certDO[slotInt]!])}${hex.encode(cert)}';
-      const int chunkSize = 0xFF * 2;
-      int offset = 0;
-      while (offset < data.length) {
-        int chunkLength = min(chunkSize, data.length - offset);
-        String cla = '10';
-        if (offset + chunkLength == data.length) cla = '00';
-        int dataSize = chunkLength ~/ 2;
-        String lc = dataSize.toRadixString(16).padLeft(2, '0');
-        String capdu =
-            '${cla}DB3FFF$lc${data.substring(offset, offset + chunkLength)}';
-        String resp = await SmartCard.transceive(capdu);
-        if (!SmartCard.isOK(resp)) {
-          return false;
-        }
-        offset += chunkLength;
-      }
-      return true;
+    final objectId = _certDO[int.parse(slot, radix: 16)];
+    if (objectId == null) {
+      return false;
     }
-    return false;
+    try {
+      await _client.writeObject(
+        0x5FC100 + objectId,
+        cert.isEmpty ? Uint8List(0) : buildPivCert(cert),
+      );
+      return true;
+    } on ProtocolException {
+      return false;
+    }
   }
 
   Future<bool> clearSlotAuthenticated({
@@ -1184,24 +1340,29 @@ class PivController extends PollingController {
       return false;
     }
     final c = Completer<bool>();
-    SmartCard.process((String sn) async {
-      await _client.select();
+    await SmartCard.process((String sn) async {
+      await _client.prepare();
       if (usePinOnly && !await _verifyPinInSession(pin)) {
         c.complete(false);
         return;
       }
       if (!await _authenticateManagementKeyOrPinOnly(
-          pin, managementKey, usePinOnly)) {
+        pin,
+        managementKey,
+        usePinOnly,
+      )) {
         c.complete(false);
         return;
       }
-      final deleteKeyResp = await SmartCard.transceive('00F6FF$slot');
-      if (!SmartCard.isOK(deleteKeyResp)) {
+      try {
+        await _client.deleteKey(int.parse(slot, radix: 16));
+      } catch (_) {
         c.complete(false);
         return;
       }
       c.complete(await _importCertInSession(slot, Uint8List(0)));
     });
+    if (!c.isCompleted) c.complete(false);
     return c.future;
   }
 
@@ -1217,21 +1378,31 @@ class PivController extends PollingController {
       return false;
     }
     final c = Completer<bool>();
-    SmartCard.process((String sn) async {
-      await _client.select();
+    await SmartCard.process((String sn) async {
+      await _client.prepare();
       if (usePinOnly && !await _verifyPinInSession(pin)) {
         c.complete(false);
         return;
       }
       if (!await _authenticateManagementKeyOrPinOnly(
-          pin, managementKey, usePinOnly)) {
+        pin,
+        managementKey,
+        usePinOnly,
+      )) {
         c.complete(false);
         return;
       }
-      final resp = await SmartCard.transceive(
-          '00F6${targetSlot.toUpperCase()}${sourceSlot.toUpperCase()}');
-      c.complete(SmartCard.isOK(resp));
+      try {
+        await _client.moveKey(
+          int.parse(sourceSlot, radix: 16),
+          int.parse(targetSlot, radix: 16),
+        );
+        c.complete(true);
+      } catch (_) {
+        c.complete(false);
+      }
     });
+    if (!c.isCompleted) c.complete(false);
     return c.future;
   }
 
@@ -1241,15 +1412,15 @@ class PivController extends PollingController {
       return null;
     }
     final c = Completer<Uint8List?>();
-    SmartCard.process((String sn) async {
-      await _client.select();
-      final resp = await _client.transceive('00F9${slot.toUpperCase()}0000');
-      if (!SmartCard.isOK(resp)) {
+    await SmartCard.process((String sn) async {
+      await _client.prepare();
+      try {
+        c.complete(await _client.attest(int.parse(slot, radix: 16)));
+      } on ProtocolException {
         c.complete(null);
-        return;
       }
-      c.complete(Uint8List.fromList(hex.decode(SmartCard.dropSW(resp))));
     });
+    if (!c.isCompleted) c.complete(null);
     return c.future;
   }
 
@@ -1261,127 +1432,52 @@ class PivController extends PollingController {
     return BigInt.parse(hex.encode(bytes), radix: 16);
   }
 
-  String _buildAuthenticateData(
-      AlgorithmType algorithm, Uint8List data, PivPublicKey? publicKey) {
-    final input = preparePivSigningInput(
-      algorithm: algorithm.value,
-      data: data,
-      publicKey: publicKey?.rawPublicKey,
-    );
-    final inner = '820081${_hexLength(input.length)}${hex.encode(input)}';
-    return '7C${_hexLength(inner.length ~/ 2)}$inner';
-  }
-
-  Future<String> _generalAuthenticate(String slot, AlgorithmType algorithm,
-      Uint8List data, PivPublicKey? publicKey) async {
-    final signData = _buildAuthenticateData(algorithm, data, publicKey);
-    final algorithmId = PivSignatureProtocol.generalAuthenticateAlgorithmId(
-      algorithm: algorithm,
-      messageLength: data.length,
-      config: algorithmExtensionConfig,
-    );
-    return _generalAuthenticateRaw(
-      slot,
-      algorithm,
-      signData,
-      algorithmId: algorithmId,
-    );
-  }
-
-  Future<String> _generalAuthenticateRaw(
-      String slot, AlgorithmType algorithm, String data,
-      {int? algorithmId}) async {
-    final algorithmHex =
-        (algorithmId ?? algorithmExtensionConfig.idFor(algorithm))
-            .toRadixString(16)
-            .padLeft(2, '0');
-    return _sendChainedData(
-      p1p2: '$algorithmHex$slot',
-      instruction: '87',
-      data: data,
-      le: '00',
-    );
-  }
-
-  Future<String> _sendChainedData({
-    required String instruction,
-    required String p1p2,
-    required String data,
-    String le = '',
-  }) async {
-    const chunkSize = 0xFF * 2;
-    var offset = 0;
-    String resp = '';
-    while (offset < data.length) {
-      final chunkLength = min(chunkSize, data.length - offset);
-      final last = offset + chunkLength == data.length;
-      final cla = last ? '00' : '10';
-      final chunk = data.substring(offset, offset + chunkLength);
-      final lc = (chunk.length ~/ 2).toRadixString(16).padLeft(2, '0');
-      resp =
-          await _client.transceive('$cla$instruction$p1p2$lc$chunk${last ? le : ''}');
-      if (!SmartCard.isOK(resp)) {
-        return resp;
+  /// Sign through libcanokey; host-side digest/padding stays here. ML-DSA-65
+  /// messages and Ed25519 messages outside the classic input budget use the
+  /// firmware streaming modes; SM2 keeps the host-computed ZA digest.
+  Future<Uint8List?> _signInSession(
+    String slot,
+    AlgorithmType algorithm,
+    Uint8List data,
+    PivPublicKey? publicKey,
+  ) async {
+    final slotId = int.parse(slot, radix: 16);
+    try {
+      if (algorithm == AlgorithmType.mldsa65) {
+        return await _client.signStreaming(slot: slotId, mode: 0, message: data);
       }
-      offset += chunkLength;
-    }
-    return resp;
-  }
-
-  String _algorithmIdHex(AlgorithmType algorithm) {
-    return algorithmExtensionConfig
-        .idFor(algorithm)
-        .toRadixString(16)
-        .padLeft(2, '0');
-  }
-
-  String _generateAsymmetricKeyData(
-      AlgorithmType algorithm, PinPolicy pinPolicy, TouchPolicy touchPolicy) {
-    final inner = '8001${_algorithmIdHex(algorithm)}'
-        'AA01${pinPolicy.value.toRadixString(16).padLeft(2, '0')}'
-        'AB01${touchPolicy.value.toRadixString(16).padLeft(2, '0')}';
-    return 'AC${_hexLength(inner.length ~/ 2)}$inner';
-  }
-
-  Uint8List _parseAuthenticateSignature(List<int> data) {
-    final map = TLV.parse(data);
-    final dynamic inner = map[0x7C];
-    if (inner is List<int>) {
-      final innerMap = TLV.parse(inner);
-      final signature = innerMap[0x82];
-      if (signature is List<int>) {
-        return Uint8List.fromList(signature);
+      if (algorithm == AlgorithmType.ed25519 &&
+          (data.isEmpty || data.length > 512)) {
+        // Randomized Ed25519; the signature still verifies as plain Ed25519.
+        return await _client.signStreaming(slot: slotId, mode: 1, message: data);
       }
+      return await _client.sign(
+        slot: slotId,
+        algorithm: algorithmExtensionConfig.idFor(algorithm),
+        input: preparePivSigningInput(
+          algorithm: algorithm.value,
+          data: data,
+          publicKey: publicKey?.rawPublicKey,
+        ),
+        inputKind: switch (algorithm) {
+          AlgorithmType.rsa1024 ||
+          AlgorithmType.rsa2048 ||
+          AlgorithmType.rsa3072 ||
+          AlgorithmType.rsa4096 => 0,
+          AlgorithmType.ed25519 => 2,
+          _ => 1,
+        },
+      );
+    } on ProtocolException {
+      return null;
+    } on String {
+      return null;
     }
-    final signature = map[0x82];
-    if (signature is List<int>) {
-      return Uint8List.fromList(signature);
-    }
-    throw ArgumentError('Invalid signature response');
   }
 
-  Uint8List _parseAuthenticateSecret(List<int> data) {
-    final map = TLV.parse(data);
-    final dynamic inner = map[0x7C];
-    if (inner is List<int>) {
-      final innerMap = TLV.parse(inner);
-      final secret = innerMap[0x82] ?? innerMap[0x86];
-      if (secret is List<int>) {
-        return Uint8List.fromList(secret);
-      }
-    }
-    final secret = map[0x82] ?? map[0x86];
-    if (secret is List<int>) {
-      return Uint8List.fromList(secret);
-    }
-    throw ArgumentError('Invalid key agreement response');
-  }
-
-  String _buildKeyAgreementData(Uint8List peerPublicKey) {
-    final inner = '8500'
-        '81${_hexLength(peerPublicKey.length)}${hex.encode(peerPublicKey)}';
-    return '7C${_hexLength(inner.length ~/ 2)}$inner';
-  }
+  bool _isValidPostQuantumSeed(AlgorithmType algorithm, Uint8List seed) =>
+      (algorithm == AlgorithmType.mldsa65 && seed.length == 32) ||
+      (algorithm == AlgorithmType.mlkem768 && seed.length == 64);
 
   Future<bool> _verifyPinInSession(String pin) async {
     final ok = await _client.verifyPin(pin);
@@ -1392,7 +1488,10 @@ class PivController extends PollingController {
   }
 
   Future<bool> _authenticateManagementKeyOrPinOnly(
-      String pin, String managementKey, bool usePinOnly) async {
+    String pin,
+    String managementKey,
+    bool usePinOnly,
+  ) async {
     if (usePinOnly) {
       final protectedKey = await _readProtectedManagementKeyInSession();
       if (protectedKey == null) {
@@ -1413,22 +1512,7 @@ class PivController extends PollingController {
     if (key.length != 48 || !RegExp(r'^[0-9a-fA-F]+$').hasMatch(key)) {
       return false;
     }
-    final algorithm = managementKeyAlgorithm;
-    String resp = await SmartCard.transceive(
-        PivManagementKeyProtocol.authenticateRequest(algorithm));
-    SmartCard.assertOK(resp);
-    final challenge = PivManagementKeyProtocol.parseChallenge(
-      hex.decode(SmartCard.dropSW(resp)),
-      algorithm,
-    );
-    final auth = PivManagementKeyProtocol.encryptChallenge(
-      algorithm: algorithm,
-      key: hex.decode(key),
-      challenge: challenge,
-    );
-    resp = await SmartCard.transceive(
-        PivManagementKeyProtocol.authenticateResponse(algorithm, auth));
-    return SmartCard.isOK(resp);
+    return _client.authenticateManagementKey(key, managementKeyAlgorithm);
   }
 
   Future<bool> _setManagementKeyInSession(
@@ -1438,14 +1522,22 @@ class PivController extends PollingController {
     if (key.length != 48 || !RegExp(r'^[0-9a-fA-F]+$').hasMatch(key)) {
       return false;
     }
-    final resp = await SmartCard.transceive(
-      PivManagementKeyProtocol.setManagementKey(
-        algorithm: managementKeyAlgorithm,
-        key: key,
-        touchPolicy: touchPolicy,
-      ),
-    );
-    return SmartCard.isOK(resp);
+    final bytes = Uint8List.fromList(hex.decode(key));
+    try {
+      await _client.setManagementKey(
+        algorithm: managementKeyAlgorithm.value,
+        key: bytes,
+        touch: managementKeyAlgorithm == AlgorithmType.aes192 &&
+                touchPolicy == TouchPolicy.always
+            ? 1
+            : 0,
+      );
+      return true;
+    } on ProtocolException {
+      return false;
+    } finally {
+      bytes.fillRange(0, bytes.length, 0);
+    }
   }
 
   AlgorithmType get managementKeyAlgorithm =>
@@ -1486,13 +1578,15 @@ class PivController extends PollingController {
     return null;
   }
 
-  Future<bool> _writePinOnlyObjects(String managementKey,
-      {required bool enabled}) async {
+  Future<bool> _writePinOnlyObjects(
+    String managementKey, {
+    required bool enabled,
+  }) async {
     final adminData = await _getDataObject(_pivmanDataObject);
     final newFlags = enabled
         ? _pivmanFlags(adminData) |
-            _pivmanManagementKeyProtectedFlag |
-            _pivmanPukBlockedFlag
+              _pivmanManagementKeyProtectedFlag |
+              _pivmanPukBlockedFlag
         : _pivmanFlags(adminData) & ~_pivmanManagementKeyProtectedFlag;
     final adminOk = await _putDataObject(
       _pivmanDataObject,
@@ -1569,38 +1663,12 @@ class PivController extends PollingController {
     return Uint8List.fromList(hex.decode(_tlv(_pivmanDataTag, inner)));
   }
 
-  Future<List<int>?> _getDataObject(int objectId) async {
-    final resp = await _client.transceive(
-        '00CB3FFF055C03${objectId.toRadixString(16).padLeft(6, '0')}00');
-    if (!SmartCard.isOK(resp)) {
-      return null;
-    }
-    final data = hex.decode(SmartCard.dropSW(resp));
-    if (data.isEmpty) {
-      return data;
-    }
-    try {
-      final parsed = TLV.parse(data);
-      final objectData = parsed[_objectDataTag];
-      if (objectData is List<int>) {
-        return objectData;
-      }
-    } catch (_) {
-      return data;
-    }
-    return data;
-  }
+  Future<List<int>?> _getDataObject(int objectId) =>
+      _client.readObject(objectId);
 
   Future<bool> _putDataObject(int objectId, Uint8List data) async {
-    final objectIdHex = objectId.toRadixString(16).padLeft(6, '0');
-    final body = '5C03$objectIdHex'
-        '${_tlv(_objectDataTag, data)}';
-    final resp = await _sendChainedData(
-      instruction: 'DB',
-      p1p2: '3FFF',
-      data: body,
-    );
-    return SmartCard.isOK(resp);
+    await _client.writeObject(objectId, data);
+    return true;
   }
 
   String _tlv(int tag, List<int> value) {
@@ -1628,20 +1696,19 @@ class PivController extends PollingController {
   };
 
   List<int> get _keySlots => [
-        0x9A,
-        0x9C,
-        0x9D,
-        0x9E,
-        ...(extendedRetiredSlots ? _extendedRetiredSlots : _legacyRetiredSlots),
-      ];
+    0x9A,
+    0x9C,
+    0x9D,
+    0x9E,
+    ...(extendedRetiredSlots ? _extendedRetiredSlots : _legacyRetiredSlots),
+  ];
 
   final List<int> _legacyRetiredSlots = [0x82, 0x83];
 
   final List<int> _extendedRetiredSlots = [
-    for (var slot = 0x82; slot <= 0x95; slot++) slot
+    for (var slot = 0x82; slot <= 0x95; slot++) slot,
   ];
 
-  static const int _objectDataTag = 0x53;
   static const int _pivmanDataObject = 0x5FFF00;
   static const int _pivmanProtectedDataObject = 0x5FC109;
   static const int _pivmanDataTag = 0x80;

@@ -11,8 +11,8 @@ class SmartCardApduTransport implements ApduTransport {
   Future<String> transceive(String capdu) => SmartCard.transceive(capdu);
 }
 
-/// ISO 7816 GET RESPONSE chaining. OATH uses applet-specific continuation
-/// commands and deliberately keeps its own response loop.
+/// ISO 7816 GET RESPONSE chaining. OATH operations go through libcanokey,
+/// which owns its applet-specific continuation loop.
 extension ApduResponseChaining on ApduTransport {
   Future<String> transceiveChained(String command) async {
     final data = StringBuffer();
