@@ -4,6 +4,8 @@
   "settings": "設定",
   "other": "其他",
   "about": "關於",
+  "buildCommit": "提交",
+  "buildTime": "建置時間",
   "homeScreenTitle": "CanoKey Console",
   "homePress": "點選",
   "homeSelect": "選擇應用程式",

@@ -46,6 +46,7 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
   late final TapGestureRecognizer _privacyPolicyRecognizer;
   late final TapGestureRecognizer _feedbackEmailRecognizer;
   late final TapGestureRecognizer _icpFilingRecognizer;
+  late final TapGestureRecognizer _commitRecognizer;
 
   @override
   void initState() {
@@ -61,12 +62,15 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
           _launchUrl(Uri(scheme: 'mailto', path: _feedbackEmail));
     _icpFilingRecognizer = TapGestureRecognizer()
       ..onTap = () => _launchUrl(Uri.parse(icpFilingUrl));
+    _commitRecognizer = TapGestureRecognizer()
+      ..onTap = () => _launchUrl(Uri.parse(BuildInfo.commitUrl));
     _initPackageInfo();
   }
 
   @override
   void dispose() {
     _repoRecognizer.dispose();
+    _commitRecognizer.dispose();
     _privacyPolicyRecognizer.dispose();
     _feedbackEmailRecognizer.dispose();
     _icpFilingRecognizer.dispose();
@@ -164,13 +168,31 @@ class _OtherSettingsCardState extends State<OtherSettingsCard> with UIMixin {
                 if (BuildInfo.commit.isNotEmpty) ...[
                   Padding(
                     padding: Spacing.y(8),
-                    child: SelectableText(
-                      'commit ${BuildInfo.shortCommit}'
-                      '${BuildInfo.time.isEmpty ? '' : ' · ${BuildInfo.time}'}',
-                      style: CustomizedTextStyle.bodySmall(),
+                    child: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(text: '${S.of(context).buildCommit}  '),
+                          TextSpan(
+                            text: BuildInfo.shortCommit,
+                            style: TextStyle(
+                              color: contentTheme.primary,
+                              decoration: TextDecoration.underline,
+                            ),
+                            recognizer: _commitRecognizer,
+                          ),
+                        ],
+                        style: CustomizedTextStyle.bodySmall(),
+                      ),
                     ),
                   ),
                 ],
+                if (BuildInfo.localTime.isNotEmpty)
+                  Padding(
+                    padding: Spacing.y(8),
+                    child: CustomizedText.bodySmall(
+                      '${S.of(context).buildTime}  ${BuildInfo.localTime}',
+                    ),
+                  ),
                 Padding(
                   padding: Spacing.y(8),
                   child: CustomizedText.bodyMedium(

@@ -4,6 +4,8 @@
   "settings": "Settings",
   "other": "Other",
   "about": "About",
+  "buildCommit": "Commit",
+  "buildTime": "Built",
   "homeScreenTitle": "CanoKey Console",
   "homePress": "Press",
   "homeSelect": "to select an applet",
