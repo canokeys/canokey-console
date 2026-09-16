@@ -963,7 +963,7 @@ class ConsoleSmoke {
     await _passClient.withSession(() async {
       Future<List<PassSlot>> readSlots() async {
         await _passClient.prepare();
-        return _passClient.readSlots();
+        return _passClient.readSlots(pin: _defaultAdminPin);
       }
 
       Future<bool> setSlot(

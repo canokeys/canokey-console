@@ -139,7 +139,7 @@ class PassController extends PollingController with AdminApplet {
   }
 
   Future<void> _refresh() async {
-    slots = await _client.readSlots();
+    slots = await _client.readSlots(pin: adminPinForCurrentLease);
     assert(slots.length == 2);
     polled = true;
 

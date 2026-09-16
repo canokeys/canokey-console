@@ -41,7 +41,7 @@ void main() {
         expect(unknown[0].type, PassSlotType.unknown);
         expect(unknown[1].type, PassSlotType.none);
 
-        // The unprotected read SELECTs but never verifies a PIN.
+        // A PIN-less read SELECTs but never verifies.
         expect(transport.commands, [
           _select,
           '0043000000',
@@ -51,6 +51,20 @@ void main() {
       });
     },
   );
+
+  test('reads verify the supplied PIN on gated firmware', () async {
+    final transport = _Transport([
+      '9000',
+      '9000',
+      // Both slots off.
+      '00009000',
+    ]);
+    await _prepared(transport, (client) async {
+      final slots = await client.readSlots(pin: '123456');
+      expect(slots.every((slot) => slot.type == PassSlotType.none), isTrue);
+      expect(transport.commands, [_select, _verify, '0043000000']);
+    });
+  });
 
   test('malformed slot dumps fail instead of fabricating slots', () async {
     final transport = _Transport(['9000', '029000']);

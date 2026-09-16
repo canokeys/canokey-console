@@ -157,10 +157,14 @@ class PassCardClient {
     }
   }
 
-  Future<List<PassSlot>> readSlots() async {
+  /// Reads both slots. Firmware gates INS 43 behind Admin authentication, so
+  /// callers pass the lease's verified PIN; a still-valid recorded Admin
+  /// authentication takes precedence and the PIN is not sent at all.
+  Future<List<PassSlot>> readSlots({String? pin}) async {
     final result = await _execute(
       (profile, pinBytes, existing) =>
           profile.adminPassSlots(pin: pinBytes, existing: existing),
+      pin: pin,
     );
     return PassSlot.decode(result.data);
   }
