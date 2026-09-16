@@ -42,13 +42,12 @@ class OpenPgpCardClient extends ProfileCardClient {
     final pinState = _parsePinState(_bytes(discretionary[0xC4]));
     final fingerprints = _splitFixed(_bytes(discretionary[0xC5]), 20);
     final generationTimes = _splitFixed(_bytes(discretionary[0xCD]), 4);
-    final uif = _parseUif(discretionary);
     final touchCacheTime = await _readTouchCacheTime();
 
     final slots = <OpenPgpKeyType, OpenPgpKeySlotInfo>{};
     for (final type in OpenPgpKeyType.values) {
       final index = type.index;
-      final touch = uif[type] ?? (OpenPgpTouchPolicy.off, false);
+      final touch = _parseUifValue(_bytes(discretionary[type.uifTag]));
       slots[type] = OpenPgpKeySlotInfo(
         type: type,
         fingerprint: _fingerprintAt(fingerprints, index),
@@ -77,71 +76,33 @@ class OpenPgpCardClient extends ProfileCardClient {
       _changePassword(2, oldPin, newPin);
 
   /// PW1-sign (0) or PW3 (2); upstream sends old||new without a prior VERIFY.
-  Future<bool> _changePassword(
-    int reference,
-    String oldPin,
-    String newPin,
-  ) async {
-    final oldBytes = Uint8List.fromList(utf8.encode(oldPin));
-    final newBytes = Uint8List.fromList(utf8.encode(newPin));
-    try {
-      await _execute(
-        (profile) => profile.openpgpChangePassword(
+  Future<bool> _changePassword(int reference, String oldPin, String newPin) =>
+      _runWithPasswords(
+        [oldPin, newPin],
+        (profile, passwords) => profile.openpgpChangePassword(
           reference: reference,
-          old: oldBytes,
-          new_: newBytes,
+          old: passwords[0],
+          new_: passwords[1],
         ),
       );
-      return true;
-    } on ProtocolException catch (error) {
-      if (error.details.kind == 'AuthenticationFailed' ||
-          error.details.kind == 'PinBlocked') {
-        return false;
-      }
-      rethrow;
-    } finally {
-      oldBytes.fillRange(0, oldBytes.length, 0);
-      newBytes.fillRange(0, newBytes.length, 0);
-    }
-  }
 
-  Future<bool> verifyAdminPin(String adminPin) async {
-    final bytes = Uint8List.fromList(utf8.encode(adminPin));
-    try {
-      await _execute(
-        (profile) => profile.openpgpVerify(reference: 2, password: bytes),
-      );
-      return true;
-    } on ProtocolException catch (error) {
-      if (error.details.kind == 'AuthenticationFailed' ||
-          error.details.kind == 'PinBlocked' ||
-          error.details.kind == 'SecurityStatusNotSatisfied') {
-        return false;
-      }
-      rethrow;
-    } finally {
-      bytes.fillRange(0, bytes.length, 0);
-    }
-  }
+  Future<bool> verifyAdminPin(String adminPin) => _runAdminWrite(
+    adminPin,
+    (profile, password) =>
+        profile.openpgpVerify(reference: 2, password: password),
+  );
 
   /// Set (or clear with an empty string) the reset code via upstream
   /// `DataWrite::ResetCode` after its own explicit PW3 verification.
-  Future<bool> setResetCode(String adminPin, String resetCode) async {
-    final code = resetCode.isEmpty
-        ? null
-        : Uint8List.fromList(utf8.encode(resetCode));
-    try {
-      return await _runAdminWrite(
-        adminPin,
-        (profile, password) => profile.openpgpWriteResetCode(
-          resetCode: code,
-          password: password,
+  Future<bool> setResetCode(String adminPin, String resetCode) =>
+      _runWithPasswords(
+        [adminPin, resetCode],
+        (profile, passwords) => profile.openpgpWriteResetCode(
+          resetCode: resetCode.isEmpty ? null : passwords[1],
+          password: passwords[0],
         ),
+        securityRejectionIsFalse: true,
       );
-    } finally {
-      if (code != null) code.fillRange(0, code.length, 0);
-    }
-  }
 
   /// Upstream `Request::ResetRetries`, gated on the retry-reset capability.
   /// On success the card resets PW1/PW3 to firmware defaults and clears
@@ -173,42 +134,25 @@ class OpenPgpCardClient extends ProfileCardClient {
   );
 
   /// Upstream `Request::UnblockWithAdmin` after explicit PW3 verification.
-  Future<bool> unblockUserPinWithAdmin(String adminPin, String newPin) async {
-    final newPinBytes = Uint8List.fromList(utf8.encode(newPin));
-    try {
-      return await _runAdminWrite(
-        adminPin,
-        (profile, password) => profile.openpgpUnblockWithAdmin(
-          newPin: newPinBytes,
-          password: password,
+  Future<bool> unblockUserPinWithAdmin(String adminPin, String newPin) =>
+      _runWithPasswords(
+        [adminPin, newPin],
+        (profile, passwords) => profile.openpgpUnblockWithAdmin(
+          newPin: passwords[1],
+          password: passwords[0],
         ),
+        securityRejectionIsFalse: true,
       );
-    } finally {
-      newPinBytes.fillRange(0, newPinBytes.length, 0);
-    }
-  }
 
   /// Upstream `Request::UnblockWithCode`; no password verification is inserted.
-  Future<bool> unblockUserPinWithResetCode(String resetCode, String newPin) async {
-    final code = Uint8List.fromList(utf8.encode(resetCode));
-    final newPinBytes = Uint8List.fromList(utf8.encode(newPin));
-    try {
-      await _execute(
-        (profile) =>
-            profile.openpgpUnblockWithCode(code: code, newPin: newPinBytes),
+  Future<bool> unblockUserPinWithResetCode(String resetCode, String newPin) =>
+      _runWithPasswords(
+        [resetCode, newPin],
+        (profile, passwords) => profile.openpgpUnblockWithCode(
+          code: passwords[0],
+          newPin: passwords[1],
+        ),
       );
-      return true;
-    } on ProtocolException catch (error) {
-      if (error.details.kind == 'AuthenticationFailed' ||
-          error.details.kind == 'PinBlocked') {
-        return false;
-      }
-      rethrow;
-    } finally {
-      code.fillRange(0, code.length, 0);
-      newPinBytes.fillRange(0, newPinBytes.length, 0);
-    }
-  }
 
   /// Upstream `DataWrite::TouchPolicy`, emitting the standard two-byte UIF
   /// field; the UIF capability gates construction on legacy firmware.
@@ -242,22 +186,36 @@ class OpenPgpCardClient extends ProfileCardClient {
   /// protocol and transport failures propagate.
   Future<bool> _runAdminWrite(
     String adminPin,
-    ProtocolOperation Function(ProtocolProfile profile, Uint8List password)
-    create,
-  ) async {
-    final password = Uint8List.fromList(utf8.encode(adminPin));
+    ProtocolOperation Function(ProtocolProfile, Uint8List) create,
+  ) => _runWithPasswords(
+    [adminPin],
+    (profile, passwords) => create(profile, passwords.single),
+    securityRejectionIsFalse: true,
+  );
+
+  Future<bool> _runWithPasswords(
+    List<String> values,
+    ProtocolOperation Function(ProtocolProfile, List<Uint8List>) create, {
+    bool securityRejectionIsFalse = false,
+  }) async {
+    final passwords = values
+        .map((value) => Uint8List.fromList(utf8.encode(value)))
+        .toList();
     try {
-      await _execute((profile) => create(profile, password));
+      await _execute((profile) => create(profile, passwords));
       return true;
     } on ProtocolException catch (error) {
       if (error.details.kind == 'AuthenticationFailed' ||
           error.details.kind == 'PinBlocked' ||
-          error.details.kind == 'SecurityStatusNotSatisfied') {
+          (securityRejectionIsFalse &&
+              error.details.kind == 'SecurityStatusNotSatisfied')) {
         return false;
       }
       rethrow;
     } finally {
-      password.fillRange(0, password.length, 0);
+      for (final password in passwords) {
+        password.fillRange(0, password.length, 0);
+      }
     }
   }
 
@@ -274,15 +232,6 @@ class OpenPgpCardClient extends ProfileCardClient {
       if (error.details.kind == 'NotFound') return null;
       rethrow;
     }
-  }
-
-  Map<OpenPgpKeyType, (OpenPgpTouchPolicy, bool)> _parseUif(Map discretionary) {
-    final result = <OpenPgpKeyType, (OpenPgpTouchPolicy, bool)>{};
-    for (final type in OpenPgpKeyType.values) {
-      final data = _bytes(discretionary[type.uifTag]);
-      result[type] = _parseUifValue(data);
-    }
-    return result;
   }
 
   (OpenPgpTouchPolicy, bool) _parseUifValue(List<int> data) {

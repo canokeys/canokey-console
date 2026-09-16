@@ -919,44 +919,11 @@ fn encode_tlv_length(length: usize, output: &mut Vec<u8>) -> Result<(), String> 
 }
 
 fn tlv_value(data: &[u8], wanted_tag: u32) -> Result<&[u8], String> {
-    let mut offset = 0;
-    while offset < data.len() {
-        let mut tag = data[offset] as u32;
-        offset += 1;
-        if tag & 0x1F == 0x1F {
-            loop {
-                let byte = *data.get(offset).ok_or("truncated TLV tag")?;
-                offset += 1;
-                tag = (tag << 8) | byte as u32;
-                if byte & 0x80 == 0 {
-                    break;
-                }
-            }
+    let mut reader = canokey::tlv::TlvReader::new_ber(data, Default::default());
+    while let Some(field) = reader.next().map_err(|error| error.to_string())? {
+        if field.tag.value() == wanted_tag {
+            return Ok(field.value);
         }
-        let first_length = *data.get(offset).ok_or("truncated TLV length")?;
-        offset += 1;
-        let length = if first_length & 0x80 == 0 {
-            first_length as usize
-        } else {
-            let count = (first_length & 0x7F) as usize;
-            if count == 0 || count > 3 || offset + count > data.len() {
-                return Err("invalid TLV length".into());
-            }
-            let mut length = 0usize;
-            for byte in &data[offset..offset + count] {
-                length = (length << 8) | *byte as usize;
-            }
-            offset += count;
-            length
-        };
-        let end = offset.checked_add(length).ok_or("invalid TLV length")?;
-        if end > data.len() {
-            return Err("truncated TLV value".into());
-        }
-        if tag == wanted_tag {
-            return Ok(&data[offset..end]);
-        }
-        offset = end;
     }
     Err(format!("missing TLV tag {wanted_tag:X}"))
 }
@@ -1006,6 +973,22 @@ mod tests {
                 rsa::RsaPublicKey::from_public_key_der(&metadata.subject_public_key_info).unwrap();
             assert_eq!(key.n().to_bytes_be(), modulus);
             assert_eq!(key.e().to_bytes_be(), vec![1, 0, 1]);
+        }
+    }
+
+    #[test]
+    fn public_key_tlv_accepts_ber_lengths_and_rejects_malformed_fields() {
+        assert_eq!(tlv_value(&[0x86, 0x82, 0, 1, 42], 0x86).unwrap(), &[42]);
+        assert_eq!(tlv_value(&[0x81, 1, 0, 0x86, 1, 42], 0x86).unwrap(), &[42]);
+        for bytes in [
+            &[0x86][..],         // Missing length.
+            &[0x86, 0x80, 0, 0], // Indefinite length.
+            &[0x86, 0x82, 0],    // Truncated long length.
+            &[0x86, 2, 42],      // Truncated value.
+            &[0x7f, 0x81],       // Truncated multi-byte tag.
+            &[0x81, 1, 42],      // Wanted tag absent.
+        ] {
+            assert!(tlv_value(bytes, 0x86).is_err());
         }
     }
 

@@ -1,45 +1,45 @@
 use super::*;
 
 impl ProtocolProfile {
+    fn openpgp_operation(
+        &self,
+        build: impl FnOnce() -> Result<(openpgp::Request, Option<openpgp::Access>), Error>,
+    ) -> ProtocolOperation {
+        self.operation(|profile| {
+            let (request, access) = build()?;
+            openpgp::operation(profile, request, access, OperationOptions::default())
+                .map(Inner::OpenPgp)
+        })
+    }
+
     fn openpgp_admin(
         &self,
         password: Vec<u8>,
         request: impl FnOnce() -> Result<openpgp::Request, Error>,
     ) -> ProtocolOperation {
         let password = SecretBytes::new(password);
-        self.operation(|profile| {
+        self.openpgp_operation(|| {
             let request = request()?;
             let password = openpgp::Password::from_bytes(password.as_bytes())?;
-            openpgp::operation(
-                profile,
+            Ok((
                 request,
                 Some(openpgp::Access {
                     reference: openpgp::PasswordReference::Pw3,
                     password,
                 }),
-                OperationOptions::default(),
-            )
-            .map(Inner::OpenPgp)
+            ))
         })
     }
 
     #[flutter_rust_bridge::frb(sync)]
     pub fn openpgp_read_data(&self, tag: u16) -> ProtocolOperation {
-        self.operation(|profile| {
-            openpgp::operation(
-                profile,
-                openpgp::Request::ReadData(tag),
-                None,
-                OperationOptions::default(),
-            )
-            .map(Inner::OpenPgp)
-        })
+        self.openpgp_operation(|| Ok((openpgp::Request::ReadData(tag), None)))
     }
 
     #[flutter_rust_bridge::frb(sync)]
     pub fn openpgp_verify(&self, reference: u8, password: Vec<u8>) -> ProtocolOperation {
         let password = SecretBytes::new(password);
-        self.operation(|profile| {
+        self.openpgp_operation(|| {
             let reference = match reference {
                 0 => openpgp::PasswordReference::Pw1Sign,
                 1 => openpgp::PasswordReference::Pw1Other,
@@ -47,16 +47,13 @@ impl ProtocolProfile {
                 _ => return Err(Error::new(ErrorKind::InvalidArgument)),
             };
             let password = openpgp::Password::from_bytes(password.as_bytes())?;
-            openpgp::operation(
-                profile,
+            Ok((
                 openpgp::Request::Verify,
                 Some(openpgp::Access {
                     reference,
                     password,
                 }),
-                OperationOptions::default(),
-            )
-            .map(Inner::OpenPgp)
+            ))
         })
     }
 
@@ -69,7 +66,7 @@ impl ProtocolProfile {
     ) -> ProtocolOperation {
         let old = SecretBytes::new(old);
         let new = SecretBytes::new(new);
-        self.operation(|profile| {
+        self.openpgp_operation(|| {
             let reference = match reference {
                 0 => openpgp::PasswordReference::Pw1Sign,
                 2 => openpgp::PasswordReference::Pw3,
@@ -80,8 +77,7 @@ impl ProtocolProfile {
                 old: openpgp::Password::from_bytes(old.as_bytes())?,
                 new: openpgp::Password::from_bytes(new.as_bytes())?,
             };
-            openpgp::operation(profile, request, None, OperationOptions::default())
-                .map(Inner::OpenPgp)
+            Ok((request, None))
         })
     }
 
@@ -150,16 +146,13 @@ impl ProtocolProfile {
     pub fn openpgp_unblock_with_code(&self, code: Vec<u8>, new_pin: Vec<u8>) -> ProtocolOperation {
         let code = SecretBytes::new(code);
         let new_pin = SecretBytes::new(new_pin);
-        self.operation(|profile| {
+        self.openpgp_operation(|| {
             let code = openpgp::Password::from_bytes(code.as_bytes())?;
             let new_pin = openpgp::Password::from_bytes(new_pin.as_bytes())?;
-            openpgp::operation(
-                profile,
+            Ok((
                 openpgp::Request::UnblockWithCode { code, new: new_pin },
                 None,
-                OperationOptions::default(),
-            )
-            .map(Inner::OpenPgp)
+            ))
         })
     }
 

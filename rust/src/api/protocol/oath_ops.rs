@@ -1,6 +1,16 @@
 use super::*;
 
 impl ProtocolProfile {
+    fn oath_operation(
+        &self,
+        build: impl FnOnce() -> Result<(oath::Request, Option<oath::Access>), Error>,
+    ) -> ProtocolOperation {
+        self.operation(|profile| {
+            let (request, access) = build()?;
+            oath::operation(profile, request, access, OperationOptions::default()).map(Inner::Oath)
+        })
+    }
+
     /// Mark an existing HOTP credential as the touch keyboard-emulation
     /// default: slot 0 = short, 1 = long. The legacy (pre-3.0) single-slot
     /// dialect is chosen from the probed profile; a long slot or append-enter
@@ -14,7 +24,7 @@ impl ProtocolProfile {
         access_key: Option<Vec<u8>>,
         access_challenge: Option<Vec<u8>>,
     ) -> ProtocolOperation {
-        self.operation(|profile| {
+        self.oath_operation(|| {
             let slot = match slot {
                 0 => oath::DefaultSlot::Short,
                 1 => oath::DefaultSlot::Long,
@@ -25,13 +35,7 @@ impl ProtocolProfile {
                 append_enter,
                 name: oath::Name::from_bytes(name.as_bytes())?,
             };
-            oath::operation(
-                profile,
-                request,
-                oath_access(access_key, access_challenge)?,
-                OperationOptions::default(),
-            )
-            .map(Inner::Oath)
+            Ok((request, oath_access(access_key, access_challenge)?))
         })
     }
 
@@ -42,45 +46,28 @@ impl ProtocolProfile {
         access_key: Option<Vec<u8>>,
         access_challenge: Option<Vec<u8>>,
     ) -> ProtocolOperation {
-        self.operation(|profile| {
+        self.oath_operation(|| {
             let request = oath::Request::Delete(oath::Name::from_bytes(&name)?);
-            oath::operation(
-                profile,
-                request,
-                oath_access(access_key, access_challenge)?,
-                OperationOptions::default(),
-            )
-            .map(Inner::Oath)
+            Ok((request, oath_access(access_key, access_challenge)?))
         })
     }
 
     #[flutter_rust_bridge::frb(sync)]
     pub fn oath_select(&self) -> ProtocolOperation {
-        self.operation(|profile| {
-            oath::operation(
-                profile,
-                oath::Request::Select,
-                None,
-                OperationOptions::default(),
-            )
-            .map(Inner::Oath)
-        })
+        self.oath_operation(|| Ok((oath::Request::Select, None)))
     }
 
     #[flutter_rust_bridge::frb(sync)]
     pub fn oath_validate(&self, key: Vec<u8>, challenge: Vec<u8>) -> ProtocolOperation {
-        self.operation(|profile| {
+        self.oath_operation(|| {
             let key = oath::AccessKey::from_bytes(&key)?;
             let challenge: [u8; 8] = challenge
                 .try_into()
                 .map_err(|_| Error::new(ErrorKind::InvalidArgument))?;
-            oath::operation(
-                profile,
+            Ok((
                 oath::Request::Validate,
                 Some(oath::Access { key, challenge }),
-                OperationOptions::default(),
-            )
-            .map(Inner::Oath)
+            ))
         })
     }
 
@@ -90,15 +77,7 @@ impl ProtocolProfile {
         key: Option<Vec<u8>>,
         challenge: Option<Vec<u8>>,
     ) -> ProtocolOperation {
-        self.operation(|profile| {
-            oath::operation(
-                profile,
-                oath::Request::ClearCode,
-                oath_access(key, challenge)?,
-                OperationOptions::default(),
-            )
-            .map(Inner::Oath)
-        })
+        self.oath_operation(|| Ok((oath::Request::ClearCode, oath_access(key, challenge)?)))
     }
 
     /// The current key validates in the same operation only when supplied;
@@ -110,7 +89,7 @@ impl ProtocolProfile {
         new_key: Vec<u8>,
         challenge: Vec<u8>,
     ) -> ProtocolOperation {
-        self.operation(|profile| {
+        self.oath_operation(|| {
             let new_key = oath::AccessKey::from_bytes(&new_key)?;
             let challenge: [u8; 8] = challenge
                 .try_into()
@@ -121,16 +100,13 @@ impl ProtocolProfile {
                     Ok::<_, Error>(oath::Access { key, challenge })
                 })
                 .transpose()?;
-            oath::operation(
-                profile,
+            Ok((
                 oath::Request::SetCode {
                     key: new_key,
                     challenge,
                 },
                 access,
-                OperationOptions::default(),
-            )
-            .map(Inner::Oath)
+            ))
         })
     }
 
@@ -149,7 +125,7 @@ impl ProtocolProfile {
         access_key: Option<Vec<u8>>,
         access_challenge: Option<Vec<u8>>,
     ) -> ProtocolOperation {
-        self.operation(|profile| {
+        self.oath_operation(|| {
             let kind = match kind {
                 1 => oath::Kind::Hotp,
                 2 => oath::Kind::Totp,
@@ -171,13 +147,7 @@ impl ProtocolProfile {
                 increasing,
                 initial_counter,
             });
-            oath::operation(
-                profile,
-                request,
-                oath_access(access_key, access_challenge)?,
-                OperationOptions::default(),
-            )
-            .map(Inner::Oath)
+            Ok((request, oath_access(access_key, access_challenge)?))
         })
     }
 
@@ -193,7 +163,7 @@ impl ProtocolProfile {
         access_key: Option<Vec<u8>>,
         access_challenge: Option<Vec<u8>>,
     ) -> ProtocolOperation {
-        self.operation(|profile| {
+        self.oath_operation(|| {
             let kind = match kind {
                 1 => oath::Kind::Hotp,
                 2 => oath::Kind::Totp,
@@ -223,13 +193,7 @@ impl ProtocolProfile {
                 challenge,
                 format,
             };
-            oath::operation(
-                profile,
-                request,
-                oath_access(access_key, access_challenge)?,
-                OperationOptions::default(),
-            )
-            .map(Inner::Oath)
+            Ok((request, oath_access(access_key, access_challenge)?))
         })
     }
 
@@ -241,7 +205,7 @@ impl ProtocolProfile {
         access_key: Option<Vec<u8>>,
         access_challenge: Option<Vec<u8>>,
     ) -> ProtocolOperation {
-        self.operation(|profile| {
+        self.oath_operation(|| {
             let challenge: [u8; 8] = challenge
                 .try_into()
                 .map_err(|_| Error::new(ErrorKind::InvalidArgument))?;
@@ -250,13 +214,10 @@ impl ProtocolProfile {
                 1 => oath::Format::Full,
                 _ => return Err(Error::new(ErrorKind::InvalidArgument)),
             };
-            oath::operation(
-                profile,
+            Ok((
                 oath::Request::CalculateAll { challenge, format },
                 oath_access(access_key, access_challenge)?,
-                OperationOptions::default(),
-            )
-            .map(Inner::Oath)
+            ))
         })
     }
 }

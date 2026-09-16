@@ -77,12 +77,7 @@ class OathCardClient extends ProfileCardClient {
   /// non-protocol failure discards the profile evidence.
   Future<Uint8List> _execute(
     ProtocolOperation Function(ProtocolProfile) create,
-  ) => executePrepared(
-    create,
-    selectApplet: true,
-    recheckOnProtocolError: false,
-    discardOnOtherError: true,
-  );
+  ) => _executeResult(create, (step) => step.data!);
 
   (Uint8List?, Uint8List?) _accessParts(Uint8List? key) =>
       key == null ? (null, null) : (key, challengeGenerator());
