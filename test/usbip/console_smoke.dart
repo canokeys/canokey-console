@@ -97,60 +97,6 @@ class ConsoleSmoke {
     await _passApplet();
   }
 
-  Future<ApduResponse> _send(
-    String name,
-    String command, {
-    Set<String> acceptedStatusWords = const {'9000'},
-    bool allowMoreData = false,
-  }) async {
-    final raw = await card.transceive(command);
-    if (raw == null) {
-      throw StateError('$name returned no response');
-    }
-    final response = ApduResponse.parse(raw);
-    if (!acceptedStatusWords.contains(response.statusWord) &&
-        !(allowMoreData && response.statusWord.startsWith('61'))) {
-      throw StateError('$name failed with status word ${response.statusWord}');
-    }
-    checks.add({
-      'name': name,
-      'status_word': response.statusWord,
-      'response_bytes': response.data.length ~/ 2,
-    });
-    stdout.writeln('ok: $name');
-    return response;
-  }
-
-  Future<ApduResponse> _sendChained(
-    String name,
-    String command, {
-    required String commandClass,
-  }) async {
-    final data = StringBuffer();
-    var response = await _send(
-      '$name (initial)',
-      command,
-      acceptedStatusWords: const {'9000'},
-      allowMoreData: true,
-    );
-
-    while (true) {
-      data.write(response.data);
-      if (response.statusWord == '9000') {
-        return ApduResponse(data.toString(), response.statusWord);
-      }
-      if (!response.statusWord.startsWith('61')) {
-        throw StateError(
-          '$name failed with status word ${response.statusWord}',
-        );
-      }
-      final remaining = response.statusWord.substring(2);
-      final raw = await card.transceive('${commandClass}C00000$remaining');
-      if (raw == null) throw StateError('$name GET RESPONSE returned no data');
-      response = ApduResponse.parse(raw);
-    }
-  }
-
   Future<void> _adminApplet() async {
     await _adminClient.withSession(() async {
       await _adminClient.prepare();
@@ -325,54 +271,6 @@ class ConsoleSmoke {
   }
 
   Future<void> _openPgpApplet() async {
-    await _send('openpgp.select', '00A4040006D27600012401');
-    final application = await _sendChained(
-      'openpgp.application_data',
-      '00CA006E00',
-      commandClass: '00',
-    );
-    _expect(application.data.isNotEmpty, 'OpenPGP application data is empty');
-
-    final aid = await _send('openpgp.aid', '00CA004F00');
-    _expect(aid.data.length == 32, 'OpenPGP AID must contain 16 bytes');
-    _expect(
-      aid.data.toUpperCase().startsWith('D27600012401'),
-      'Unexpected OpenPGP AID',
-    );
-
-    final pinStatus = await _send('openpgp.pin_status', '00CA00C400');
-    _expect(
-      pinStatus.data.length == 14,
-      'OpenPGP PIN status must contain seven bytes',
-    );
-    final fingerprints = await _send(
-      'openpgp.fingerprints',
-      '00CA00C500',
-      acceptedStatusWords: const {'9000', '6A88'},
-    );
-    if (fingerprints.statusWord == '9000') {
-      _expect(
-        fingerprints.data.length == 120,
-        'OpenPGP fingerprints must contain 60 bytes',
-      );
-    }
-    final generationTimes = await _send(
-      'openpgp.generation_times',
-      '00CA00CD00',
-      acceptedStatusWords: const {'9000', '6A88'},
-    );
-    if (generationTimes.statusWord == '9000') {
-      _expect(
-        generationTimes.data.length == 24,
-        'OpenPGP generation times must contain 12 bytes',
-      );
-    }
-
-    if (_functionSet.index >= FunctionSetVersion.v4.index) {
-      final challenge = await _send('openpgp.challenge', '0084000008');
-      _expect(challenge.data.length == 16, 'OpenPGP challenge must be 8 bytes');
-    }
-
     await _openPgpClient.withSession(() async {
       await _openPgpClient.prepare();
       final cardInfo = await _openPgpClient.readCardInfo();
@@ -913,20 +811,6 @@ class ConsoleSmoke {
   });
 
   Future<void> _webAuthnApplet() async {
-    await _send('webauthn.select', '00A4040008A0000006472F0001');
-    final getInfo = await _sendChained(
-      'webauthn.get_info',
-      '801000000104',
-      commandClass: '80',
-    );
-    final bytes = _decodeHex(getInfo.data, 'WebAuthn getInfo');
-    _expect(bytes.isNotEmpty, 'WebAuthn getInfo response is empty');
-    _expect(
-      bytes.first == 0,
-      'WebAuthn getInfo returned CTAP status ${bytes.first}',
-    );
-    _expect(bytes.length > 1, 'WebAuthn getInfo returned no CBOR payload');
-
     await _webAuthnClient.withSession(() async {
       final info = await _webAuthnClient.getInfo();
       _expect(
@@ -1139,16 +1023,6 @@ String _requiredEnvironment(String name) {
     throw StateError('$name is required');
   }
   return value;
-}
-
-List<int> _decodeHex(String value, String name) {
-  if (value.length.isOdd || !RegExp(r'^[0-9a-fA-F]*$').hasMatch(value)) {
-    throw FormatException('Invalid hexadecimal $name');
-  }
-  return [
-    for (var offset = 0; offset < value.length; offset += 2)
-      int.parse(value.substring(offset, offset + 2), radix: 16),
-  ];
 }
 
 String _hexByte(int value) {
