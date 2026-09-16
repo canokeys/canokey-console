@@ -510,8 +510,24 @@ class PivCardClient {
     }
   }
 
-  Future<PivAlgorithmExtensionConfig?> readAlgorithmExtensions() async {
+  /// Reads the algorithm extension configuration. Firmware 3.0.x gates this
+  /// read behind management-key authentication and every SELECT resets that
+  /// status, so callers on such firmware pass [managementKey]: the client
+  /// SELECTs, prepares and authenticates in the same selection before reading.
+  Future<PivAlgorithmExtensionConfig?> readAlgorithmExtensions({
+    String? managementKey,
+    AlgorithmType managementKeyAlgorithm = AlgorithmType.tdes,
+  }) async {
     await select();
+    if (managementKey != null) {
+      await prepare();
+      if (!await authenticateManagementKey(
+        managementKey,
+        managementKeyAlgorithm,
+      )) {
+        throw StateError('PIV management key authentication failed');
+      }
+    }
     try {
       final data = await _read(PivReadOperation.algorithmConfiguration);
       return PivAlgorithmExtensionConfig.decode(data);

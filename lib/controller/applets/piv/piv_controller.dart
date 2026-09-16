@@ -159,7 +159,20 @@ class PivController extends PollingController {
   }
 
   Future<void> _refreshCapabilities() async {
-    final config = await _client.readAlgorithmExtensions();
+    PivAlgorithmExtensionConfig? config;
+    try {
+      config = await _client.readAlgorithmExtensions();
+    } on ProtocolException catch (error) {
+      // Firmware 3.0.x gates this read behind management-key authentication
+      // (6982) and Console reads capabilities before any authentication, so
+      // keep the firmware-defaults fallback for exactly that known gate;
+      // every other failure remains visible.
+      final gatedByManagementKey =
+          error.details.kind == 'SecurityStatusNotSatisfied' &&
+          firmwareVersion.compareTo(const FirmwareVersion(3, 0, 0)) >= 0 &&
+          firmwareVersion.compareTo(const FirmwareVersion(3, 1, 0)) < 0;
+      if (!gatedByManagementKey) rethrow;
+    }
     if (config != null) {
       algorithmExtensionConfig = config;
       return;

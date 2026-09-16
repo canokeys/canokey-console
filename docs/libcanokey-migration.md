@@ -70,8 +70,12 @@ The C ABI is unnecessary in Console's existing Rust library.
 - Errors retain category, phase, status word, credential reference and retry count
   as separate fields. Transport errors are propagated without conversion.
 - Only an unsupported algorithm-configuration instruction permits the existing
-  firmware defaults. Security failures, malformed responses and communication
-  errors no longer silently choose default algorithms.
+  firmware defaults, plus one firmware-scoped exception: 3.0.x gates that read
+  behind management-key authentication (every SELECT resets the status), so an
+  unauthenticated capabilities read takes the defaults fallback exactly on
+  3.0.x, and `readAlgorithmExtensions` accepts an optional management key to
+  authenticate within the same selection. Other security failures, malformed
+  responses and communication errors never silently choose default algorithms.
 
 - OpenPGP card-info reads, PW1/PW3 credential operations and all
   administrative writes (reset code set/clear, retry limits, signature PIN

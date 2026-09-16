@@ -659,6 +659,45 @@ void main() {
     },
   );
 
+  test(
+    'algorithm configuration authenticates the management key when supplied',
+    () async {
+      // 3.0.x firmware gates the read behind management-key authentication.
+      const firmware = '3.0.3';
+      final probe = [..._probeResponses];
+      probe[1] = '${hex.encode(firmware.codeUnits)}9000';
+      final transport = _QueueApduTransport([
+        '9000', // explicit SELECT
+        ...probe,
+        '7C0A8108FEDCBA98765432109000', // management challenge
+        '9000', // management authentication response
+        '01E00516E1531554E2E39000', // extension configuration
+      ]);
+      final client = PivCardClient(transport: transport);
+      await client.withSession(() async {
+        final config = await client.readAlgorithmExtensions(
+          managementKey: '0123456789abcdef23456789abcdef01456789abcdef0123',
+        );
+        expect(config, isNotNull);
+        expect(config!.enabled, isTrue);
+        // No SELECT between the authentication and the gated read.
+        expect(transport.commands, [
+          '00A4040005A00000030800',
+          '00A4040005F00000000000',
+          '0031000000',
+          '0031010000',
+          '0032000000',
+          '00A4040005A00000030800',
+          '00FD000000',
+          '00EE010000',
+          '0087039B047C02810000',
+          '0087039B0C7C0A82080737F6C53750D4A400',
+          '00EE010000',
+        ]);
+      });
+    },
+  );
+
   test('reads optional algorithm extensions and missing metadata', () async {
     final config = await PivCardClient(
       transport: _QueueApduTransport(['9000', '01E00516E1531554E2E39000']),

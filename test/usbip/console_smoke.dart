@@ -24,6 +24,8 @@ import 'package:flutter_test/flutter_test.dart';
 const _defaultAdminPin = '123456';
 const _defaultPivPin = '123456';
 const _alternatePivPin = '654321';
+const _defaultPivManagementKey =
+    '010203040506070801020304050607080102030405060708';
 const _defaultOpenPgpUserPin = '123456';
 const _alternateOpenPgpUserPin = '654321';
 const _defaultOpenPgpAdminPin = '12345678';
@@ -773,7 +775,14 @@ class ConsoleSmoke {
         }
       }
 
-      await _pivClient.readAlgorithmExtensions();
+      // Firmware 3.0.x gates the extension-config read behind management-key
+      // authentication; newer firmware allows it unauthenticated.
+      final gatesExtensionRead =
+          firmware.compareTo(const FirmwareVersion(3, 0, 0)) >= 0 &&
+          firmware.compareTo(const FirmwareVersion(3, 1, 0)) < 0;
+      await _pivClient.readAlgorithmExtensions(
+        managementKey: gatesExtensionRead ? _defaultPivManagementKey : null,
+      );
       stdout.writeln('ok: piv.client.read_change_and_restore');
     });
   }
