@@ -21,9 +21,11 @@ class NdefReadOnlyException implements Exception {
 }
 
 /// libcanokey-backed NDEF operations. These profile-free operations SELECT the
-/// NDEF applet and own CC/file selection, 240-byte chunking, continuation and
-/// the crash-safe write order (zero NLEN, message, real NLEN). A failed write
-/// is never replayed; transport errors propagate unchanged.
+/// NDEF applet and own CC/file selection (the file ID is CC-advertised),
+/// 240-byte chunking, continuation and the crash-safe write order (zero NLEN,
+/// message, real NLEN), preflighting read-only and oversized writes against
+/// the CC. A failed write is never replayed; transport errors propagate
+/// unchanged.
 class NdefCardClient extends CardClientBase {
   NdefCardClient({super.transport, super.lease});
 
@@ -64,7 +66,10 @@ class NdefCardClient extends CardClientBase {
           error.details.phase == 'Select') {
         return null;
       }
-      if (error.details.statusWord == 0x6982) {
+      // A read-only file is rejected at the CC preflight (no status word) or,
+      // on older library behavior, by the card's 6982 at UPDATE.
+      if (error.details.kind == 'SecurityStatusNotSatisfied' ||
+          error.details.statusWord == 0x6982) {
         throw const NdefReadOnlyException();
       }
       rethrow;

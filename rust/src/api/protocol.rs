@@ -4255,14 +4255,15 @@ mod tests {
         let error = op.advance(malformed_cc).error.unwrap();
         assert_eq!(error.kind, "InvalidResponse");
 
-        // Message read: NLEN then the message from offset two; NLEN zero ends.
+        // Message read: the file ID comes from the CC (0xE104), then NLEN
+        // and the message from offset two; NLEN zero ends.
         let mut op = ProtocolOperation::ndef_read_message();
         op.start();
         op.advance(vec![0x90, 0]);
         op.advance(vec![0x90, 0]);
         assert_eq!(
             op.advance(cc(0)).command.unwrap(),
-            [0, 0xa4, 0, 0x0c, 2, 0, 1]
+            [0, 0xa4, 0, 0x0c, 2, 0xe1, 0x04]
         );
         assert_eq!(
             op.advance(vec![0x90, 0]).command.unwrap(),
@@ -4277,14 +4278,45 @@ mod tests {
 
     #[test]
     fn ndef_write_is_crash_safe_three_phase_and_bounded() {
+        let cc = |write_access: u8| {
+            let mut cc = vec![
+                0x00,
+                0x0f,
+                0x20,
+                0x00,
+                0xff,
+                0x00,
+                0xff,
+                0x04,
+                0x06,
+                0xe1,
+                0x04,
+                0x04,
+                0x00,
+                0x00,
+                write_access,
+            ];
+            cc.extend([0x90, 0]);
+            cc
+        };
         let mut op = ProtocolOperation::ndef_write_message(b"hi".to_vec());
         assert_eq!(
             op.start().command.unwrap(),
             [0, 0xa4, 4, 0, 7, 0xd2, 0x76, 0, 0, 0x85, 1, 1]
         );
+        // The CC is read before any UPDATE: it advertises the file ID (0xE104)
+        // and the write access.
         assert_eq!(
             op.advance(vec![0x90, 0]).command.unwrap(),
-            [0, 0xa4, 0, 0x0c, 2, 0, 1]
+            [0, 0xa4, 0, 0x0c, 2, 0xe1, 0x03]
+        );
+        assert_eq!(
+            op.advance(vec![0x90, 0]).command.unwrap(),
+            [0, 0xb0, 0, 0, 15]
+        );
+        assert_eq!(
+            op.advance(cc(0)).command.unwrap(),
+            [0, 0xa4, 0, 0x0c, 2, 0xe1, 0x04]
         );
         // Zero NLEN first: an interrupted write leaves no stale message.
         assert_eq!(
@@ -4301,12 +4333,12 @@ mod tests {
         );
         assert_eq!(op.advance(vec![0x90, 0]).data.unwrap(), Vec::<u8>::new());
 
-        // A read-only file is the card's 6982, never a host-side guess.
+        // A read-only CC fails the write at preflight, before any UPDATE.
         let mut op = ProtocolOperation::ndef_write_message(b"hi".to_vec());
         op.start();
         op.advance(vec![0x90, 0]);
         op.advance(vec![0x90, 0]);
-        let error = op.advance(vec![0x69, 0x82]).error.unwrap();
+        let error = op.advance(cc(1)).error.unwrap();
         assert_eq!(error.kind, "SecurityStatusNotSatisfied");
 
         // Messages beyond the firmware maximum fail before any I/O.

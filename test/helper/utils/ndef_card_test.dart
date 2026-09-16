@@ -12,7 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 const _selectApplet = '00A4040007D2760000850101';
 const _selectCc = '00A4000C02E103';
-const _selectNdef = '00A4000C020001';
+const _selectNdef = '00A4000C02E104';
 const _readCc = '00B000000F';
 const _readNlen = '00B0000002';
 
@@ -71,13 +71,19 @@ void main() {
   });
 
   test('writes zero NLEN, 240-byte chunks and the real NLEN last', () async {
-    final transport = _QueueApduTransport(List.filled(6, '9000'));
+    final cc = _capabilityContainer(1024);
+    final transport = _QueueApduTransport([
+      '9000', '9000', _ok(cc), // capability preflight
+      '9000', '9000', '9000', '9000', '9000',
+    ]);
     final message = Uint8List.fromList(List.generate(241, (index) => index));
     await _withClient(transport, (client) async {
       expect(await client.write(message), isTrue);
 
       expect(transport.commands, [
         _selectApplet,
+        _selectCc,
+        _readCc,
         _selectNdef,
         '00D60000020000',
         '00D60002F0${hex.encode(message.sublist(0, 240)).toUpperCase()}',
@@ -88,11 +94,17 @@ void main() {
   });
 
   test('writes an empty message as two NLEN updates', () async {
-    final transport = _QueueApduTransport(List.filled(4, '9000'));
+    final cc = _capabilityContainer(1024);
+    final transport = _QueueApduTransport([
+      '9000', '9000', _ok(cc),
+      '9000', '9000', '9000',
+    ]);
     await _withClient(transport, (client) async {
       expect(await client.write(Uint8List(0)), isTrue);
       expect(transport.commands, [
         _selectApplet,
+        _selectCc,
+        _readCc,
         _selectNdef,
         '00D60000020000',
         '00D60000020000',
@@ -109,19 +121,16 @@ void main() {
     });
   });
 
-  test('maps a 6982 write rejection to NdefReadOnlyException', () async {
-    final transport = _QueueApduTransport(['9000', '9000', '6982']);
+  test('maps a read-only capability container to NdefReadOnlyException', () async {
+    final cc = _capabilityContainer(1024, readOnly: true);
+    final transport = _QueueApduTransport(['9000', '9000', _ok(cc)]);
     await _withClient(transport, (client) async {
       await expectLater(
         client.write(Uint8List.fromList([1])),
         throwsA(isA<NdefReadOnlyException>()),
       );
-      // The failed write stopped at the zero-NLEN update; nothing is replayed.
-      expect(transport.commands, [
-        _selectApplet,
-        _selectNdef,
-        '00D60000020000',
-      ]);
+      // The preflight stops after the CC read; no UPDATE is ever sent.
+      expect(transport.commands, [_selectApplet, _selectCc, _readCc]);
     });
   });
 
