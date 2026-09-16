@@ -6,10 +6,6 @@ import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/src/rust/api/protocol.dart';
 
-/// Uppercase four-digit hex rendering of a card status word.
-String? formatStatusWord(int? status) =>
-    status?.toRadixString(16).padLeft(4, '0').toUpperCase();
-
 /// Immutable profile evidence bound to one physical lease. The binding expires
 /// on lease replacement and on profile invalidation; with [bindSelection] it
 /// additionally expires on any later applet selection. The profile is

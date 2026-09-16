@@ -281,48 +281,13 @@ fn certificate_parse_and_card_failures_are_terminal() {
 }
 
 #[test]
-fn selected_version_continuation_and_le_correction() {
-    let mut op = ProtocolOperation::piv_read(PivReadOperation::Version);
-    assert_eq!(op.start().command.unwrap(), [0, 0xfd, 0, 0, 0]);
-    assert_eq!(
-        op.advance(vec![0x6c, 3]).command.unwrap(),
-        [0, 0xfd, 0, 0, 3]
-    );
-    assert_eq!(
-        op.advance(vec![6, 0x61, 2]).command.unwrap(),
-        [0, 0xc0, 0, 0, 2]
-    );
-    assert_eq!(op.advance(vec![0, 0, 0x90, 0]).data.unwrap(), [6, 0, 0]);
-    assert_eq!(op.start().error.unwrap().kind, "OperationStateError");
-    op.close();
-    op.close();
-    assert_eq!(
-        op.advance(vec![0x90, 0]).error.unwrap().kind,
-        "OperationStateError"
-    );
-}
-
-#[test]
-fn select_and_structured_failure() {
-    let mut op = ProtocolOperation::piv_read(PivReadOperation::Select);
-    assert_eq!(
-        op.start().command.unwrap(),
-        [0, 0xa4, 4, 0, 5, 0xa0, 0, 0, 3, 8, 0]
-    );
-    let error = op.advance(vec![0x6a, 0x82]).error.unwrap();
-    assert_eq!(error.kind, "UnsupportedDevice");
-    assert_eq!(error.phase, "Select");
-    assert_eq!(error.status_word, Some(0x6a82));
-}
-
-#[test]
 fn malformed_and_oversized_responses_are_terminal() {
-    for response in [vec![0x90], vec![0, 0x90, 0], vec![0; 259]] {
-        let mut op = ProtocolOperation::piv_read(PivReadOperation::Version);
+    for response in [vec![0x90], vec![1, 0x90, 0], vec![0; 259]] {
+        let mut op = ProtocolOperation::piv_read(PivReadOperation::PinStatus);
         op.start();
         assert!(op.advance(response).error.is_some());
         assert_eq!(
-            op.advance(vec![6, 0, 0, 0x90, 0]).error.unwrap().kind,
+            op.advance(vec![0x90, 0]).error.unwrap().kind,
             "OperationStateError"
         );
     }

@@ -6,6 +6,10 @@ import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/src/rust/api/protocol.dart';
 import 'package:convert/convert.dart';
 
+/// Uppercase four-digit hex rendering of a card status word.
+String? formatStatusWord(int? status) =>
+    status?.toRadixString(16).padLeft(4, '0').toUpperCase();
+
 /// Protocol failures retain card status/context; transport exceptions pass through.
 class ProtocolException implements Exception {
   const ProtocolException(this.details, {this.exchangeAttempted = false});
@@ -16,9 +20,11 @@ class ProtocolException implements Exception {
   final bool exchangeAttempted;
 
   @override
-  String toString() =>
-      'libcanokey: ${details.kind} during ${details.phase}'
-      '${details.statusWord == null ? '' : ' (SW=${details.statusWord!.toRadixString(16).padLeft(4, '0').toUpperCase()})'}';
+  String toString() {
+    final status = formatStatusWord(details.statusWord);
+    return 'libcanokey: ${details.kind} during ${details.phase}'
+        '${status == null ? '' : ' (SW=$status)'}';
+  }
 }
 
 /// The caller retains its selected card session for this entire future.
@@ -186,5 +192,4 @@ Future<T> executeProtocolResult<T>(
   }
 }
 
-typedef PivReadExecutor = Future<Uint8List> Function(PivReadOperation kind);
 typedef PivCertificateExecutor = Future<Uint8List> Function(int objectId);

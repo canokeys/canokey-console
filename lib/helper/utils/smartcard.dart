@@ -153,28 +153,6 @@ class SmartCard {
   static ConnectionType connectionType = ConnectionType.none;
   static String? connectionError;
 
-  /// Returns the response APDU without the SW
-  static String dropSW(String rapdu) {
-    return rapdu.substring(0, rapdu.length - 4);
-  }
-
-  /// Returns true if the SW is '9000'
-  static bool isOK(String rapdu) {
-    return sw(rapdu) == '9000';
-  }
-
-  /// Returns the status word of the response APDU in uppercase.
-  static String sw(String rapdu) {
-    return rapdu.substring(rapdu.length - 4).toUpperCase();
-  }
-
-  /// Throws an exception if the SW is not '9000'
-  static void assertOK(String rapdu) {
-    if (!isOK(rapdu)) {
-      throw Exception('SW is not ok');
-    }
-  }
-
   /// On iOS, the built-in keyboard will be hidden if an external keyboard is connected.
   /// This function shows the keyboard by sending an eject consumer report.
   static Future<void> eject() async {

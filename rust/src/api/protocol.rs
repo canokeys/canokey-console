@@ -20,8 +20,6 @@ use canokey_protocol::operation::{conversation, ResponseData};
 /// Initial PIV operations; reads require an already selected PIV application.
 #[derive(Clone, Copy)]
 pub enum PivReadOperation {
-    Select,
-    Version,
     PinStatus,
 }
 
@@ -32,7 +30,6 @@ pub enum PivCredentialOperation {
     ChangePin,
     ChangePuk,
     UnblockPin,
-    Logout,
 }
 
 /// Connection-bootstrap identity steps; raw Admin commands without a profile.
@@ -424,8 +421,8 @@ impl ProtocolOperation {
         )
     }
 
-    /// Construct without I/O. Only Select changes applet selection; reads never
-    /// probe, SELECT, authenticate, or retain a device profile implicitly.
+    /// Construct without I/O. Reads never probe, SELECT, authenticate, or
+    /// retain a device profile implicitly.
     #[flutter_rust_bridge::frb(sync)]
     pub fn piv_read(kind: PivReadOperation) -> Self {
         let options = OperationOptions::default();
@@ -433,8 +430,6 @@ impl ProtocolOperation {
             PivReadOperation::PinStatus => {
                 piv::get_pin_status_selected(options).map(Inner::PinStatus)
             }
-            PivReadOperation::Select => piv::select_application(options).map(Inner::Bytes),
-            PivReadOperation::Version => piv::read_version_selected(options).map(Inner::Bytes),
         };
         Self::from_operation(operation)
     }

@@ -115,8 +115,8 @@ abstract class ProtocolOperation implements RustOpaqueInterface {
         message: message,
       );
 
-  /// Construct without I/O. Only Select changes applet selection; reads never
-  /// probe, SELECT, authenticate, or retain a device profile implicitly.
+  /// Construct without I/O. Reads never probe, SELECT, authenticate, or
+  /// retain a device profile implicitly.
   static ProtocolOperation pivRead({required PivReadOperation kind}) =>
       RustLib.instance.api.crateApiProtocolProtocolOperationPivRead(kind: kind);
 
@@ -864,16 +864,10 @@ class PassSlotData {
 }
 
 /// Explicit actions in an already prepared lease; never SELECT or probe.
-enum PivCredentialOperation {
-  verifyPin,
-  changePin,
-  changePuk,
-  unblockPin,
-  logout,
-}
+enum PivCredentialOperation { verifyPin, changePin, changePuk, unblockPin }
 
 /// Initial PIV operations; reads require an already selected PIV application.
-enum PivReadOperation { select, version, pinStatus }
+enum PivReadOperation { pinStatus }
 
 /// Structured, payload-free protocol failure. Transport errors remain in Dart.
 /// For CTAP-level failures `status_word` carries the raw CTAP status byte

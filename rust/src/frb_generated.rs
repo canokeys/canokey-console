@@ -5176,7 +5176,6 @@ impl SseDecode for crate::api::protocol::PivCredentialOperation {
             1 => crate::api::protocol::PivCredentialOperation::ChangePin,
             2 => crate::api::protocol::PivCredentialOperation::ChangePuk,
             3 => crate::api::protocol::PivCredentialOperation::UnblockPin,
-            4 => crate::api::protocol::PivCredentialOperation::Logout,
             _ => unreachable!("Invalid variant for PivCredentialOperation: {}", inner),
         };
     }
@@ -5212,9 +5211,7 @@ impl SseDecode for crate::api::protocol::PivReadOperation {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <i32>::sse_decode(deserializer);
         return match inner {
-            0 => crate::api::protocol::PivReadOperation::Select,
-            1 => crate::api::protocol::PivReadOperation::Version,
-            2 => crate::api::protocol::PivReadOperation::PinStatus,
+            0 => crate::api::protocol::PivReadOperation::PinStatus,
             _ => unreachable!("Invalid variant for PivReadOperation: {}", inner),
         };
     }
@@ -6263,7 +6260,6 @@ impl flutter_rust_bridge::IntoDart for crate::api::protocol::PivCredentialOperat
             Self::ChangePin => 1.into_dart(),
             Self::ChangePuk => 2.into_dart(),
             Self::UnblockPin => 3.into_dart(),
-            Self::Logout => 4.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -6325,9 +6321,7 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::piv_crypto::PivPublicKeyData>
 impl flutter_rust_bridge::IntoDart for crate::api::protocol::PivReadOperation {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
-            Self::Select => 0.into_dart(),
-            Self::Version => 1.into_dart(),
-            Self::PinStatus => 2.into_dart(),
+            Self::PinStatus => 0.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -7152,7 +7146,6 @@ impl SseEncode for crate::api::protocol::PivCredentialOperation {
                 crate::api::protocol::PivCredentialOperation::ChangePin => 1,
                 crate::api::protocol::PivCredentialOperation::ChangePuk => 2,
                 crate::api::protocol::PivCredentialOperation::UnblockPin => 3,
-                crate::api::protocol::PivCredentialOperation::Logout => 4,
                 _ => {
                     unimplemented!("");
                 }
@@ -7183,9 +7176,7 @@ impl SseEncode for crate::api::protocol::PivReadOperation {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(
             match self {
-                crate::api::protocol::PivReadOperation::Select => 0,
-                crate::api::protocol::PivReadOperation::Version => 1,
-                crate::api::protocol::PivReadOperation::PinStatus => 2,
+                crate::api::protocol::PivReadOperation::PinStatus => 0,
                 _ => {
                     unimplemented!("");
                 }

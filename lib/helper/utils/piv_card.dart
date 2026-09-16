@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/card_client.dart';
 import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:canokey_console/src/rust/api/protocol.dart';
@@ -13,15 +12,12 @@ class PivCardClient extends ProfileCardClient {
   PivCardClient({
     super.transport,
     super.lease,
-    PivReadExecutor? readExecutor,
     PivCertificateExecutor? certificateExecutor,
     Future<void> Function()? prepareExecutor,
-  }) : _readExecutor = readExecutor,
-       _certificateExecutor = certificateExecutor,
+  }) : _certificateExecutor = certificateExecutor,
        _prepareExecutor = prepareExecutor,
        super(bindSelection: true);
 
-  final PivReadExecutor? _readExecutor;
   final PivCertificateExecutor? _certificateExecutor;
   final Future<void> Function()? _prepareExecutor;
 
@@ -35,42 +31,6 @@ class PivCardClient extends ProfileCardClient {
       () => ProtocolOperation.probePiv(observedSerial: lease.bootstrapSerial),
       rejectWhileExchanging: true,
     );
-  }
-
-  Future<Uint8List> _read(PivReadOperation kind) async {
-    cancellation.check();
-    final binding = kind == PivReadOperation.select ? null : currentProfile;
-    binding?.check();
-    final executor = _readExecutor;
-    if (executor != null) return executor(kind);
-    final data = await executeProtocolOperation(
-      ProtocolOperation.pivRead(kind: kind),
-      transport,
-      lease: transport is SmartCardApduTransport ? null : injectedCurrentLease,
-      cancellation: cancellation,
-    );
-    binding?.check();
-    cancellation.check();
-    return data;
-  }
-
-  Future<void> select() async {
-    final lease = transport is SmartCardApduTransport
-        ? this.lease
-        : injectedCurrentLease;
-    lease?.willSelectApplet();
-    final binding = currentProfile;
-    if (binding != null) {
-      if (binding.lease.isExchanging) {
-        throw StateError('Cannot SELECT during an active operation');
-      }
-      discardProfile(binding);
-    }
-    await _read(PivReadOperation.select);
-  }
-
-  Future<Uint8List> readVersion() async {
-    return _read(PivReadOperation.version);
   }
 
   /// Read the validated metadata directory without inserting SELECT.
@@ -300,9 +260,8 @@ class PivCardClient extends ProfileCardClient {
       );
       return true;
     } on ProtocolException catch (error) {
-      if (kind != PivCredentialOperation.logout &&
-          (error.details.kind == 'AuthenticationFailed' ||
-              error.details.kind == 'PinBlocked')) {
+      if (error.details.kind == 'AuthenticationFailed' ||
+          error.details.kind == 'PinBlocked') {
         return false;
       }
       rethrow;
@@ -322,10 +281,6 @@ class PivCardClient extends ProfileCardClient {
       if (lastStatusWord == '6983') return true;
     }
     return false;
-  }
-
-  Future<void> logout() async {
-    await _credential(PivCredentialOperation.logout, '');
   }
 
   Future<bool> authenticateManagementKey(

@@ -30,7 +30,6 @@ impl ProtocolProfile {
                     puk: piv::Puk::from_bytes(current.as_bytes())?,
                     new_pin: piv::Pin::from_bytes(replacement.as_bytes())?,
                 },
-                PivCredentialOperation::Logout => CredentialAction::Logout,
             };
             piv::credential(profile, action, false, OperationOptions::default())
                 .map(Inner::Credential)

@@ -54,9 +54,7 @@ class OathCalculatedEntry {
 class OathCardClient extends ProfileCardClient {
   OathCardClient({super.transport, super.lease}) : super(bindSelection: false);
 
-  /// Fresh host challenge for each access proof; tests may pin a fixed value.
-  Uint8List Function() challengeGenerator = _randomChallenge;
-
+  /// Fresh host challenge for each access proof.
   static Uint8List _randomChallenge() {
     final random = Random.secure();
     return Uint8List.fromList(List.generate(8, (_) => random.nextInt(256)));
@@ -80,7 +78,7 @@ class OathCardClient extends ProfileCardClient {
   ) => _executeResult(create, (step) => step.data!);
 
   (Uint8List?, Uint8List?) _accessParts(Uint8List? key) =>
-      key == null ? (null, null) : (key, challengeGenerator());
+      key == null ? (null, null) : (key, _randomChallenge());
 
   Future<T> _executeResult<T>(
     ProtocolOperation Function(ProtocolProfile) create,
@@ -110,7 +108,7 @@ class OathCardClient extends ProfileCardClient {
   /// Explicitly prove an access key. Wrong keys surface as AuthenticationFailed.
   Future<void> validate(Uint8List key) => _execute(
     (profile) =>
-        profile.oathValidate(key: key, challenge: challengeGenerator()),
+        profile.oathValidate(key: key, challenge: _randomChallenge()),
   );
 
   Future<void> put({
@@ -233,7 +231,7 @@ class OathCardClient extends ProfileCardClient {
         (profile) => profile.oathSetCode(
           oldKey: oldKey,
           newKey: newKey,
-          challenge: challengeGenerator(),
+          challenge: _randomChallenge(),
         ),
       );
 
