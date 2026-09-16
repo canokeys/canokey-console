@@ -40,10 +40,13 @@ jobs:
         channel: stable
         version: ${{ env.FLUTTER_VERSION }}
         cache: true
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
     - name: Generate bundled CJK fonts
       run: |
-        python3 -m pip install --quiet fonttools==4.63.0
-        python3 tool/subset_cjk_font.py
+        python -m pip install --quiet fonttools==4.63.0
+        python tool/subset_cjk_font.py
         git diff --exit-code -- assets/fonts/CanoKeyCJK-Bold.ttf assets/fonts/CanoKeyCJK-Regular.ttf
     - run: flutter pub get
     - name: Build Rust Library
