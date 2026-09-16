@@ -55,8 +55,52 @@ flutter:
     - family: CanoKey Mono
       fonts:
         - asset: assets/fonts/IBMPlexMono-Regular.ttf
+    - family: IBM Plex Sans
+      fonts:
+        - asset: assets/fonts/IBMPlexSans-Light.ttf
+          weight: 300
+        - asset: assets/fonts/IBMPlexSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/IBMPlexSans-Bold.ttf
+          weight: 700
+    - family: Raleway
+      fonts:
+        - asset: assets/fonts/Raleway-ExtraBold.ttf
+          weight: 800
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
+    - family: ABeeZee
+      fonts:
+        - asset: assets/fonts/ABeeZee-Regular.ttf
+          weight: 400
+    - family: Abel
+      fonts:
+        - asset: assets/fonts/Abel-Regular.ttf
+          weight: 400
+    - family: CanoKey CJK
+      fonts:
+        - asset: assets/fonts/CanoKeyCJK-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/CanoKeyCJK-Bold.ttf
+          weight: 700
   assets:
     - assets/fonts/IBMPlexMono-OFL.txt
+    - assets/fonts/GoogleFonts-OFL.txt
+    - assets/fonts/NotoSansSC-OFL.txt
     - assets/images/logo/
     - assets/images/oath/
     - rust/THIRD_PARTY_LICENSES.json
