@@ -204,7 +204,9 @@ class SmartCard {
           readIso15693: false,
           androidPlatformSound: false,
         );
-        if (connectionType != ConnectionType.ccid) _sessions.invalidate();
+        // A re-poll of the tag held in the field is the in-flight operation's
+        // own event (the process* states complete its completer below), so
+        // evidence is only invalidated when a new use case binds its lease.
         log.t('[nfcHandler] NFC tag polled: ${tag.id}');
         switch (nfcState) {
           case NfcState.mute:

@@ -211,6 +211,22 @@ class AdminCardClient extends AdminSessionCardClient {
             (throw StateError('Device did not report its serial')),
       )
       .toUpperCase();
+
+  /// A real serial read over the wire, unlike [readSerial] which returns the
+  /// probe (possibly bootstrap-fed) observation. Authentication re-confirms
+  /// the physical device with this before submitting a PIN.
+  Future<String> readSerialFromCard() async {
+    final binding = preparedBinding;
+    final data = await executeProtocolOperation(
+      ProtocolOperation.bootstrapIdentity(step: BootstrapIdentityStep.serial),
+      transport,
+      lease: binding.lease,
+      cancellation: cancellation,
+    );
+    binding.check();
+    cancellation.check();
+    return hex.encode(data).toUpperCase();
+  }
   Future<String> readChipId() async =>
       hex.encode((await _read(AdminReadOperation.chipId)).data).toUpperCase();
 

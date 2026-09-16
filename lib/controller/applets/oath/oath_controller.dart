@@ -62,11 +62,15 @@ class OathController extends PollingController {
     log.t('Call OathController.doRefreshData');
     await SmartCard.process((String sn) async {
       final (authenticated, key) = await _authenticate(sn);
-      if (!authenticated) {
-        return;
-      }
+      try {
+        if (!authenticated) {
+          return;
+        }
 
-      await _refresh(key);
+        await _refresh(key);
+      } finally {
+        key?.fillRange(0, key.length, 0);
+      }
     });
   }
 
@@ -75,43 +79,47 @@ class OathController extends PollingController {
     log.t('Call OathController.addAccount');
     await SmartCard.process((String sn) async {
       final (authenticated, key) = await _authenticate(sn);
-      if (!authenticated) {
-        return;
-      }
-
       try {
-        await _client.put(
-          name: name,
-          secretHex: secretHex,
-          type: type,
-          algorithm: algo,
-          digits: digits,
-          requireTouch: requireTouch,
-          initialValue: initValue,
-          key: key,
-        );
-      } on ProtocolException catch (e) {
-        if (e.details.statusWord == 0x6985) {
-          Prompts.showPrompt(
-              S.of(Get.context!).oathDuplicated, ContentThemeColor.danger);
+        if (!authenticated) {
           return;
         }
-        final sw = _client.lastStatusWord;
-        if (sw != null && Prompts.isStorageFull(sw)) {
-          Prompts.showPrompt(
-              S.of(Get.context!).storageFull, ContentThemeColor.danger);
-          return;
+
+        try {
+          await _client.put(
+            name: name,
+            secretHex: secretHex,
+            type: type,
+            algorithm: algo,
+            digits: digits,
+            requireTouch: requireTouch,
+            initialValue: initValue,
+            key: key,
+          );
+        } on ProtocolException catch (e) {
+          if (e.details.statusWord == 0x6985) {
+            Prompts.showPrompt(
+                S.of(Get.context!).oathDuplicated, ContentThemeColor.danger);
+            return;
+          }
+          final sw = _client.lastStatusWord;
+          if (sw != null && Prompts.isStorageFull(sw)) {
+            Prompts.showPrompt(
+                S.of(Get.context!).storageFull, ContentThemeColor.danger);
+            return;
+          }
+          rethrow;
         }
-        rethrow;
+        log.i('Successfully added $name');
+
+        Navigator.pop(Get.context!);
+        Prompts.showPrompt(
+            S.of(Get.context!).oathAdded, ContentThemeColor.success,
+            forceSnackBar: true);
+
+        await _refresh(key);
+      } finally {
+        key?.fillRange(0, key.length, 0);
       }
-      log.i('Successfully added $name');
-
-      Navigator.pop(Get.context!);
-      Prompts.showPrompt(
-          S.of(Get.context!).oathAdded, ContentThemeColor.success,
-          forceSnackBar: true);
-
-      await _refresh(key);
     });
   }
 
@@ -168,27 +176,31 @@ class OathController extends PollingController {
     late String code;
     await SmartCard.process((String sn) async {
       final (authenticated, key) = await _authenticate(sn);
-      if (!authenticated) {
-        return;
-      }
+      try {
+        if (!authenticated) {
+          return;
+        }
 
-      String? challengeHex;
-      if (type == OathType.totp) {
-        int challenge = DateTime.now().millisecondsSinceEpoch ~/ 30000;
-        challengeHex = challenge.toRadixString(16).padLeft(16, '0');
-      }
-      final (digits, rawCode) = await _client.calculate(
-        name: name,
-        type: type,
-        challengeHex: challengeHex,
-        key: key,
-      );
-      code = formatOathCode(
-          rawCode: rawCode, digits: digits, format: oathMap[name]!.format);
-      oathMap[name]!.code = code;
+        String? challengeHex;
+        if (type == OathType.totp) {
+          int challenge = DateTime.now().millisecondsSinceEpoch ~/ 30000;
+          challengeHex = challenge.toRadixString(16).padLeft(16, '0');
+        }
+        final (digits, rawCode) = await _client.calculate(
+          name: name,
+          type: type,
+          challengeHex: challengeHex,
+          key: key,
+        );
+        code = formatOathCode(
+            rawCode: rawCode, digits: digits, format: oathMap[name]!.format);
+        oathMap[name]!.code = code;
 
-      _startTimer();
-      update();
+        _startTimer();
+        update();
+      } finally {
+        key?.fillRange(0, key.length, 0);
+      }
     });
     return code;
   }
@@ -197,17 +209,22 @@ class OathController extends PollingController {
     log.t('Call OathController.delete');
     await SmartCard.process((String sn) async {
       final (authenticated, key) = await _authenticate(sn);
-      if (!authenticated) {
-        return;
+      try {
+        if (!authenticated) {
+          return;
+        }
+
+        await _client.delete(name, key: key);
+        log.i('Successfully deleted $name');
+
+        Navigator.pop(Get.context!);
+        Prompts.showPrompt(
+            S.of(Get.context!).deleted, ContentThemeColor.success,
+            forceSnackBar: true);
+        await _refresh(key);
+      } finally {
+        key?.fillRange(0, key.length, 0);
       }
-
-      await _client.delete(name, key: key);
-      log.i('Successfully deleted $name');
-
-      Navigator.pop(Get.context!);
-      Prompts.showPrompt(S.of(Get.context!).deleted, ContentThemeColor.success,
-          forceSnackBar: true);
-      await _refresh(key);
     });
   }
 
@@ -215,40 +232,44 @@ class OathController extends PollingController {
     log.t('Call OathController.setDefault');
     await SmartCard.process((String sn) async {
       final (authenticated, key) = await _authenticate(sn);
-      if (!authenticated) {
-        return;
-      }
-
       try {
-        // The dialog numbers slots from 1; the protocol numbers from 0.
-        await _client.setDefault(
-          name: name,
-          slot: slot - 1,
-          appendEnter: withEnter,
-          key: key,
-        );
-      } on ProtocolException catch (e) {
-        // Legacy single-slot firmware rejects a long slot or an appended
-        // Enter before any I/O; the nameless 6984 reply maps to NotFound.
-        if (e.details.kind == 'InvalidArgument' &&
-            e.details.phase == 'Construction') {
-          Prompts.showPrompt(
-              S.of(Get.context!).notSupported, ContentThemeColor.warning);
+        if (!authenticated) {
           return;
         }
-        if (e.details.kind == 'NotFound') {
-          Prompts.showPrompt(
-              S.of(Get.context!).operationFailed, ContentThemeColor.danger);
-          return;
-        }
-        rethrow;
-      }
-      log.i('Successfully changed default');
 
-      Navigator.pop(Get.context!);
-      Prompts.showPrompt(
-          S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
-          forceSnackBar: true);
+        try {
+          // The dialog numbers slots from 1; the protocol numbers from 0.
+          await _client.setDefault(
+            name: name,
+            slot: slot - 1,
+            appendEnter: withEnter,
+            key: key,
+          );
+        } on ProtocolException catch (e) {
+          // Legacy single-slot firmware rejects a long slot or an appended
+          // Enter before any I/O; the nameless 6984 reply maps to NotFound.
+          if (e.details.kind == 'InvalidArgument' &&
+              e.details.phase == 'Construction') {
+            Prompts.showPrompt(
+                S.of(Get.context!).notSupported, ContentThemeColor.warning);
+            return;
+          }
+          if (e.details.kind == 'NotFound') {
+            Prompts.showPrompt(
+                S.of(Get.context!).operationFailed, ContentThemeColor.danger);
+            return;
+          }
+          rethrow;
+        }
+        log.i('Successfully changed default');
+
+        Navigator.pop(Get.context!);
+        Prompts.showPrompt(
+            S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
+            forceSnackBar: true);
+      } finally {
+        key?.fillRange(0, key.length, 0);
+      }
     });
   }
 

@@ -173,7 +173,10 @@ mixin AdminApplet on GetxController {
     _forgetLeasePin();
     final lease = SmartCard.currentLease;
     await adminCardClient.prepare();
-    if (await adminCardClient.readSerial() != expectedSerial.toUpperCase()) {
+    // A real serial read, not the bootstrap-fed observation: this is the only
+    // point that can detect the card being swapped before authentication.
+    if (await adminCardClient.readSerialFromCard() !=
+        expectedSerial.toUpperCase()) {
       throw StateError('Admin device changed before authentication');
     }
     if (await adminCardClient.verifyPin(pin)) {

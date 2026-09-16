@@ -1,6 +1,7 @@
 import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:canokey_console/controller/base/admin.dart';
 import 'package:canokey_console/controller/base/polling_controller.dart';
@@ -413,15 +414,9 @@ class SettingsController extends PollingController with AdminApplet {
   }
 
   Future<KeyboardKeymapState> _readKeyboardKeymap(String pin) async {
+    final int? layoutId;
     try {
-      final layoutId = await _client.readKeyboardLayout(pin: pin);
-      final entries = await _client.readKeyboardKeymap(pin: pin);
-      return KeyboardKeymapState(
-        layoutId: layoutId,
-        entries: entries,
-        preset: KeyboardKeymapPresets.findMatching(layoutId, entries),
-        isDefault: false,
-      );
+      layoutId = await _client.readKeyboardLayout(pin: pin);
     } on ProtocolException catch (error) {
       if (error.details.kind == 'NotFound') {
         return const KeyboardKeymapState(
@@ -431,8 +426,34 @@ class SettingsController extends PollingController with AdminApplet {
           isDefault: true,
         );
       }
-      rethrow;
+      // A one-off read failure degrades the keymap UI instead of failing the
+      // whole settings refresh.
+      log.w('Failed to read keyboard layout id', error: error);
+      return const KeyboardKeymapState(
+        layoutId: null,
+        entries: null,
+        preset: null,
+        isDefault: false,
+      );
     }
+    final Uint8List entries;
+    try {
+      entries = await _client.readKeyboardKeymap(pin: pin);
+    } on ProtocolException catch (error) {
+      log.w('Failed to read keyboard keymap', error: error);
+      return KeyboardKeymapState(
+        layoutId: layoutId,
+        entries: null,
+        preset: KeyboardKeymapPresets.findById(layoutId),
+        isDefault: false,
+      );
+    }
+    return KeyboardKeymapState(
+      layoutId: layoutId,
+      entries: entries,
+      preset: KeyboardKeymapPresets.findMatching(layoutId, entries),
+      isDefault: false,
+    );
   }
 
   static const int _appletUsageRecordLengthBytes = 6;

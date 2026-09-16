@@ -646,9 +646,9 @@ void main() {
   );
 
   test(
-    'algorithm configuration propagates security and malformed replies',
+    'algorithm configuration propagates malformed replies and survives the gate',
     () async {
-      for (final response in ['6982', '6F00', '019000']) {
+      for (final response in ['6F00', '019000']) {
         final transport = _QueueApduTransport([response]);
         await _withPreparedClient(transport, (client) async {
           await expectLater(
@@ -658,6 +658,15 @@ void main() {
           expect(transport.commands, ['00EE010000']);
         });
       }
+
+      // The 3.0.x management-key gate (6982) falls back to defaults and keeps
+      // the profile evidence: dependent reads continue without re-discovery.
+      final transport = _QueueApduTransport(['6982', '9000']);
+      await _withPreparedClient(transport, (client) async {
+        expect(await client.readAlgorithmExtensions(), isNull);
+        expect(await client.readPinRetries(), '9000');
+        expect(transport.commands, ['00EE010000', '0020008000']);
+      });
     },
   );
 
@@ -858,7 +867,7 @@ void main() {
   });
 
   test(
-    'metadata algorithms use this device profile instead of cached UI IDs',
+    'metadata algorithms resolve through this device profile',
     () async {
       final responses = [..._probeResponses.take(6)];
       responses[1] = '322E302E309000';
@@ -869,10 +878,7 @@ void main() {
       final client = PivCardClient(transport: transport);
       await client.withSession(() async {
         await client.prepare();
-        final metadata = await client.readMetadata(
-          0x9a,
-          algorithmExtensionConfig: PivAlgorithmExtensionConfig.defaults,
-        );
+        final metadata = await client.readMetadata(0x9a);
         expect(metadata, isNotNull);
         expect(metadata!.algorithm, AlgorithmType.ed25519);
       });

@@ -130,14 +130,27 @@ class WebAuthnPinSession {
 
   int get protocolVersion => _session.protocolVersion();
 
-  Future<void> setPin(String newPin) async =>
-      _client._execute(_session.setPin(newPin: utf8.encode(newPin)));
+  Future<void> setPin(String newPin) async {
+    final newPinBytes = utf8.encode(newPin);
+    try {
+      await _client._execute(_session.setPin(newPin: newPinBytes));
+    } finally {
+      newPinBytes.fillRange(0, newPinBytes.length, 0);
+    }
+  }
 
-  Future<void> changePin(String oldPin, String newPin) async =>
-      _client._execute(
-        _session.changePin(
-            oldPin: utf8.encode(oldPin), newPin: utf8.encode(newPin)),
+  Future<void> changePin(String oldPin, String newPin) async {
+    final oldPinBytes = utf8.encode(oldPin);
+    final newPinBytes = utf8.encode(newPin);
+    try {
+      await _client._execute(
+        _session.changePin(oldPin: oldPinBytes, newPin: newPinBytes),
       );
+    } finally {
+      oldPinBytes.fillRange(0, oldPinBytes.length, 0);
+      newPinBytes.fillRange(0, newPinBytes.length, 0);
+    }
+  }
 
   /// Mint a pinUvAuthToken (credentialManagement permission 0x04). The token
   /// outlives this session; close the session once the token exists.
@@ -146,14 +159,19 @@ class WebAuthnPinSession {
     int permissions = WebAuthnCardClient.permissionCredentialManagement,
     String? rpId,
   }) async {
-    final token = await _client._executeToken(
-      _session.getPinTokenWithPermissions(
-        pin: utf8.encode(pin),
-        permissions: permissions,
-        rpId: rpId,
-      ),
-    );
-    return WebAuthnPinToken._(_client, token);
+    final pinBytes = utf8.encode(pin);
+    try {
+      final token = await _client._executeToken(
+        _session.getPinTokenWithPermissions(
+          pin: pinBytes,
+          permissions: permissions,
+          rpId: rpId,
+        ),
+      );
+      return WebAuthnPinToken._(_client, token);
+    } finally {
+      pinBytes.fillRange(0, pinBytes.length, 0);
+    }
   }
 
   void close() {

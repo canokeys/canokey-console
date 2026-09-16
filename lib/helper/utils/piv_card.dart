@@ -438,22 +438,39 @@ class PivCardClient extends ProfileCardClient {
     String? managementKey,
     AlgorithmType managementKeyAlgorithm = AlgorithmType.tdes,
   }) async {
+    // The keyed operation SELECTs PIV and authenticates management within one
+    // operation. A fresh prepared binding already implies PIV is the selected
+    // applet (the binding is selection-bound), so the internal re-SELECT does
+    // not disturb anyone else's evidence.
     await prepareIfStale();
     final keyBytes = managementKey == null
         ? null
         : Uint8List.fromList(hex.decode(managementKey));
     try {
-      final data = await _executePrepared(
+      final data = await executePrepared(
         (profile) => profile.pivReadAlgorithmConfig(
           managementKey: keyBytes,
           managementKeyAlgorithm: managementKeyAlgorithm.value,
         ),
+        verifyProfileIdentity: true,
+        discardOnOtherError: true,
+        discardOnProtocolError: (error) =>
+            // The 3.0.x management-key gate rejects an unauthenticated read
+            // with 6982 without touching card state; the profile stays valid.
+            error.exchangeAttempted &&
+            error.details.kind != 'AuthenticationFailed' &&
+            error.details.kind != 'PinBlocked' &&
+            error.details.kind != 'SecurityStatusNotSatisfied',
       );
       return PivAlgorithmExtensionConfig.decode(data);
     } on ProtocolException catch (error) {
-      // Only an unavailable instruction permits the existing firmware fallback.
-      // Security, malformed-data and unexpected card failures remain errors.
-      if (error.details.kind == 'UnsupportedFeature') return null;
+      // An unavailable instruction (or the 3.0.x authentication gate on an
+      // unauthenticated read) permits the existing firmware defaults. Other
+      // security, malformed-data and unexpected card failures remain errors.
+      if (error.details.kind == 'UnsupportedFeature' ||
+          error.details.kind == 'SecurityStatusNotSatisfied') {
+        return null;
+      }
       rethrow;
     } finally {
       keyBytes?.fillRange(0, keyBytes.length, 0);
@@ -461,11 +478,8 @@ class PivCardClient extends ProfileCardClient {
   }
 
   /// Requires prepare() in this same lease. Algorithm interpretation comes from
-  /// its observed profile, never the caller's cached algorithmExtensionConfig.
-  Future<SlotInfo?> readMetadata(
-    int slot, {
-    PivAlgorithmExtensionConfig? algorithmExtensionConfig,
-  }) async {
+  /// its observed profile, never caller-side cached UI configuration.
+  Future<SlotInfo?> readMetadata(int slot) async {
     RangeError.checkValueInInterval(slot, 0, 0xff, 'slot');
     final binding = preparedBinding;
     Uint8List data;

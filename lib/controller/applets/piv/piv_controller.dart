@@ -159,17 +159,10 @@ class PivController extends PollingController {
   }
 
   Future<void> _refreshCapabilities() async {
-    PivAlgorithmExtensionConfig? config;
-    try {
-      config = await _client.readAlgorithmExtensions();
-    } on ProtocolException catch (error) {
-      // Console reads capabilities before any authentication; on 3.0.x the
-      // read sits behind management-key authentication (upstream capability
-      // PivProtectedAlgorithmConfigRead), so the card rejects it with 6982.
-      // That security rejection alone permits the firmware-defaults fallback;
-      // every other failure remains visible.
-      if (error.details.kind != 'SecurityStatusNotSatisfied') rethrow;
-    }
+    // The client maps an unavailable instruction and the 3.0.x management-key
+    // gate (6982, card state untouched) to null; every other failure remains
+    // visible.
+    final config = await _client.readAlgorithmExtensions();
     if (config != null) {
       algorithmExtensionConfig = config;
       return;
@@ -260,10 +253,7 @@ class PivController extends PollingController {
   }
 
   Future<SlotInfo?> _readKeyMetadata(int slot) async {
-    return _client.readMetadata(
-      slot,
-      algorithmExtensionConfig: algorithmExtensionConfig,
-    );
+    return _client.readMetadata(slot);
   }
 
   Future<void> _readSlotCertificate(int slot, SlotInfo? slotInfo) async {
@@ -820,14 +810,18 @@ class PivController extends PollingController {
           authenticateManagementKey: () =>
               _authenticateManagementKey(managementKey),
           updateMetadata: () async {
-            final adminData = await _getDataObject(_pivmanDataObject);
-            if (adminData == null) return false;
-            final flags = _pivmanFlags(adminData);
-            if (flags & _pivmanPukBlockedFlag == 0) return true;
-            return _putDataObject(
-              _pivmanDataObject,
-              _buildPivmanData(adminData, flags & ~_pivmanPukBlockedFlag),
-            );
+            try {
+              final adminData = await _getDataObject(_pivmanDataObject);
+              if (adminData == null) return false;
+              final flags = _pivmanFlags(adminData);
+              if (flags & _pivmanPukBlockedFlag == 0) return true;
+              return await _putDataObject(
+                _pivmanDataObject,
+                _buildPivmanData(adminData, flags & ~_pivmanPukBlockedFlag),
+              );
+            } catch (_) {
+              return false;
+            }
           },
         ),
       );
