@@ -115,11 +115,29 @@ pub struct PassSlotData {
     pub append_enter: bool,
 }
 
+pub struct AdminStorageUsage {
+    pub used_ki_b: u8,
+    pub total_ki_b: u8,
+}
+
+pub struct AdminAppletUsage {
+    pub applet_id: u8,
+    pub flags: u8,
+    pub logical_bytes: u32,
+}
+
+pub struct NdefCapabilityData {
+    pub max_message_length: u16,
+    pub read_only: bool,
+}
+
 pub struct AdminResult {
     pub kind: AdminValueKind,
     pub data: Vec<u8>,
     pub progress: AdminProgress,
     pub pass_slots: Option<Vec<PassSlotData>>,
+    pub flash_usage: Option<AdminStorageUsage>,
+    pub applet_usage: Option<Vec<AdminAppletUsage>>,
 }
 
 /// Structured, payload-free protocol failure. Transport errors remain in Dart.
@@ -163,9 +181,9 @@ pub struct ProtocolStep {
     pub pin_session: Option<CtapPinSession>,
     pub pin_token: Option<CtapPinToken>,
     pub oath_selection: Option<OathSelectionData>,
-    pub oath_entries: Option<Vec<OathEntry>>,
     pub oath_calculations: Option<Vec<OathCalculation>>,
     pub ctap_info: Option<CtapInfo>,
+    pub ndef_capability: Option<NdefCapabilityData>,
     pub ctap_rps: Option<Vec<CtapRp>>,
     pub ctap_credentials: Option<Vec<CtapCredential>>,
 }
@@ -189,7 +207,6 @@ enum Inner {
     Directory(Operation<piv::MetadataDirectory>),
     PublicKey(Operation<piv::PublicKey>),
     Signature(Operation<piv::Signature>),
-    Sm2Agreement(Operation<piv::Sm2Agreement>),
     Oath(Operation<oath::Outcome>),
     OpenPgp(Operation<openpgp::Outcome>),
     Credential(Operation<piv::MutationResult>),
@@ -199,7 +216,6 @@ enum Inner {
     BootstrapSerial(Operation<ResponseData>),
     NdefCapability(Operation<ndef::NdefCapability>),
     NdefMessage(Operation<ndef::NdefMessage>),
-    Ctap(Operation<ctap::CtapResponse>),
     CtapGetInfo(Operation<ctap::AuthenticatorInfo>),
     CtapPinSession(Operation<ctap::PinSession>),
     CtapPinToken(Operation<ctap::PinToken>, ctap::PinUvAuthProtocol),
@@ -253,21 +269,12 @@ impl ProtocolProfile {
     }
 }
 
-/// CTAP getInfo fields Dart needs, parsed in Rust so Dart never touches CBOR:
-/// `credMgmt | clientPin | forcePinChange` as tri-state bytes (0 = absent,
-/// 1 = false, 2 = true), then a minPinLength flag byte (0 = absent; 1 =
-/// present, followed by a big-endian u64), then `count | protocol bytes`
-/// with the raw advertised pinUvAuthProtocol versions.
+/// OATH selection evidence, including legacy serial observations.
 pub struct OathSelectionData {
     pub version: Option<Vec<u8>>,
     pub salt: Option<Vec<u8>>,
     pub challenge: Option<Vec<u8>>,
     pub serial: Option<Vec<u8>>,
-}
-
-pub struct OathEntry {
-    pub algorithm_type: u8,
-    pub name: Vec<u8>,
 }
 
 pub enum OathCode {
@@ -434,8 +441,7 @@ impl ProtocolOperation {
     }
 
     /// Profile-free NDEF capability-container read. Selects the NDEF applet.
-    /// Data encodes `max_message_length` (big-endian u16, excluding the two
-    /// NLEN bytes) followed by the read-only flag byte.
+    /// Returns the maximum message length (excluding NLEN) and write protection.
     #[flutter_rust_bridge::frb(sync)]
     pub fn ndef_read_capability() -> Self {
         Self::from_operation(
@@ -458,32 +464,6 @@ impl ProtocolOperation {
     pub fn ndef_write_message(message: Vec<u8>) -> Self {
         Self::from_operation(
             ndef::write_message(&message, OperationOptions::default()).map(Inner::Management),
-        )
-    }
-
-    /// Select the FIDO2 applet only; the caller owns the selected context.
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn ctap_select_application() -> Self {
-        Self::from_operation(
-            ctap::select_application(OperationOptions::default()).map(Inner::Management),
-        )
-    }
-
-    /// One CTAP message to the caller's already selected FIDO2 applet.
-    /// Data is the CTAP status byte followed by the payload; a non-success
-    /// status is not a protocol error and stays visible to Dart.
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn ctap_transceive_selected(message: Vec<u8>) -> Self {
-        Self::from_operation(
-            ctap::transceive_selected(&message, OperationOptions::default()).map(Inner::Ctap),
-        )
-    }
-
-    /// Select the FIDO2 applet and send one CTAP message within that selection.
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn ctap_transceive(message: Vec<u8>) -> Self {
-        Self::from_operation(
-            ctap::transceive(&message, OperationOptions::default()).map(Inner::Ctap),
         )
     }
 
@@ -616,9 +596,6 @@ impl ProtocolOperation {
             Some(Inner::Signature(op)) => {
                 drive(op, response, |data| bytes(data.as_bytes().to_vec()))
             }
-            Some(Inner::Sm2Agreement(op)) => {
-                drive(op, response, |data| bytes(data.key.as_bytes().to_vec()))
-            }
             Some(Inner::Oath(op)) => drive(op, response, oath_result),
             Some(Inner::OpenPgp(op)) => drive(op, response, |outcome| match outcome {
                 openpgp::Outcome::Bytes(value) => bytes(value.as_bytes().to_vec()),
@@ -636,21 +613,17 @@ impl ProtocolOperation {
                 }),
                 ..Default::default()
             }),
-            Some(Inner::NdefCapability(op)) => drive(op, response, |capability| {
-                let max = capability.max_message_length.min(usize::from(u16::MAX)) as u16;
-                let mut data = max.to_be_bytes().to_vec();
-                data.push(u8::from(capability.read_only));
-                bytes(data)
+            Some(Inner::NdefCapability(op)) => drive(op, response, |capability| ProtocolStep {
+                ndef_capability: Some(NdefCapabilityData {
+                    max_message_length: capability.max_message_length.min(usize::from(u16::MAX))
+                        as u16,
+                    read_only: capability.read_only,
+                }),
+                ..Default::default()
             }),
             Some(Inner::NdefMessage(op)) => {
                 drive(op, response, |message| bytes(message.as_bytes().to_vec()))
             }
-            Some(Inner::Ctap(op)) => drive(op, response, |result| {
-                let mut data = Vec::with_capacity(result.payload().len() + 1);
-                data.push(result.status().raw());
-                data.extend_from_slice(result.payload());
-                bytes(data)
-            }),
             Some(Inner::CtapGetInfo(op)) => drive(op, response, ctap_info),
             Some(Inner::CtapPinSession(op)) => drive(op, response, |session| ProtocolStep {
                 pin_session: Some(CtapPinSession::new(session)),

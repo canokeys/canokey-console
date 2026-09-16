@@ -2752,10 +2752,24 @@ class _PivPageState extends State<PivPage>
       }
     }
 
+    var importDialogClosed = false;
+
+    void releasePrivateKey() {
+      final key = privateKey;
+      privateKey = null;
+      if (key != null) {
+        try {
+          key.close();
+        } finally {
+          key.dispose();
+        }
+      }
+    }
+
     void resetImportState() {
+      releasePrivateKey();
       hasCert.value = false;
       hasKey.value = false;
-      privateKey = null;
       cert = null;
       certBytes = null;
       parseMessage.value = '';
@@ -2774,6 +2788,8 @@ class _PivPageState extends State<PivPage>
         hasCert.value = cert != null;
       } catch (error) {
         parseMessage.value = error.toString();
+      } finally {
+        bytes.fillRange(0, bytes.length, 0);
       }
       if (!hasCert.value && !hasKey.value && parseMessage.value.isEmpty) {
         parseMessage.value = S.of(context).pivUnsupportedImportFile;
@@ -2850,8 +2866,13 @@ class _PivPageState extends State<PivPage>
                     final result = await FilePicker.pickFiles();
                     final file = result.firstOrNull;
                     if (file != null) {
+                      final bytes = await file.xFile.readAsBytes();
+                      if (importDialogClosed) {
+                        bytes.fillRange(0, bytes.length, 0);
+                        return;
+                      }
                       selected.value = true;
-                      parseImportFile(await file.xFile.readAsBytes());
+                      parseImportFile(bytes);
                       if (hasKey.value && hasCert.value) {
                         nextStep();
                       }
@@ -3012,7 +3033,10 @@ class _PivPageState extends State<PivPage>
           ),
         ),
       ),
-    ));
+    )).whenComplete(() {
+      importDialogClosed = true;
+      releasePrivateKey();
+    });
   }
 
   void _showGenerateDialog(String slotNumber, {required bool selfSigned}) {

@@ -1,8 +1,5 @@
-use aes::cipher::{Block as AesBlock, BlockCipherEncrypt, KeyInit as AesKeyInit};
-use aes::Aes192;
 use der::asn1::UintRef;
 use der::{Decode, Sequence};
-use des::cipher::Block;
 use ed25519_dalek::{Signature as Ed25519Signature, VerifyingKey as Ed25519VerifyingKey};
 use hex_literal::hex;
 use p256::ecdsa::signature::Verifier as EcdsaVerifier;
@@ -13,14 +10,12 @@ use rsa::pkcs8::DecodePublicKey;
 use rsa::signature::Verifier as LegacyVerifier;
 use rsa::RsaPublicKey;
 use sha1::Sha1;
-use sha2::{Digest, Sha256, Sha384, Sha512};
+use sha2::{Digest, Sha256};
 use sha2_legacy::Sha256 as RsaSha256;
 use sm2::dsa::{Signature as Sm2Signature, VerifyingKey as Sm2VerifyingKey};
 use sm3::Sm3;
 use x509_info::CertificateInfo;
 
-const PIV_TDES: u8 = 0x03;
-const PIV_AES192: u8 = 0x0A;
 const PIV_RSA1024: u8 = 0x06;
 const PIV_RSA2048: u8 = 0x07;
 const PIV_RSA3072: u8 = 0x05;
@@ -56,56 +51,11 @@ pub struct X509CertData {
     pub raw_public_key: Vec<u8>,
 }
 
-pub fn tdes_ede3_enc(key: Vec<u8>, data: Vec<u8>) -> Vec<u8> {
-    assert_eq!(key.len(), 24, "des-ede3 key length must be 24 bytes");
-    assert_eq!(data.len(), 8, "des-ede3 encrypts exactly one 8-byte block");
-    let mut enc_data = vec![0u8; data.len()];
-    let tdes = des::TdesEde3::new_from_slice(key.as_slice()).unwrap();
-    let input = <&Block<des::TdesEde3>>::try_from(data.as_slice()).unwrap();
-    let output = <&mut Block<des::TdesEde3>>::try_from(enc_data.as_mut_slice()).unwrap();
-    tdes.encrypt_block_b2b(input, output);
-    enc_data
-}
-
-pub fn encrypt_piv_management_key_challenge(
-    algorithm: u8,
-    key: Vec<u8>,
-    challenge: Vec<u8>,
-) -> Result<Vec<u8>, String> {
-    if key.len() != 24 {
-        return Err("management key must be 24 bytes".into());
-    }
-
-    match algorithm {
-        PIV_TDES if challenge.len() == 8 => Ok(tdes_ede3_enc(key, challenge)),
-        PIV_AES192 if challenge.len() == 16 => {
-            let cipher = Aes192::new_from_slice(&key).map_err(|_| "invalid AES-192 key")?;
-            let input = AesBlock::<Aes192>::from(
-                <[u8; 16]>::try_from(challenge.as_slice()).expect("validated challenge length"),
-            );
-            let mut encrypted = AesBlock::<Aes192>::default();
-            cipher.encrypt_block_b2b(&input, &mut encrypted);
-            Ok(encrypted.to_vec())
-        }
-        PIV_TDES => Err("3DES challenge must be 8 bytes".into()),
-        PIV_AES192 => Err("AES-192 challenge must be 16 bytes".into()),
-        _ => Err("unsupported PIV management key algorithm".into()),
-    }
-}
-
 pub fn sha256_digest(data: Vec<u8>) -> Vec<u8> {
     Sha256::digest(data).to_vec()
 }
 
-pub fn sha384_digest(data: Vec<u8>) -> Vec<u8> {
-    Sha384::digest(data).to_vec()
-}
-
-pub fn sha512_digest(data: Vec<u8>) -> Vec<u8> {
-    Sha512::digest(data).to_vec()
-}
-
-pub fn sm2_message_digest(data: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, String> {
+pub(crate) fn sm2_message_digest(data: Vec<u8>, public_key: Vec<u8>) -> Result<Vec<u8>, String> {
     if public_key.len() != 65 || public_key[0] != 0x04 {
         return Err("SM2 public key must be an uncompressed 65-byte point".into());
     }
@@ -286,7 +236,7 @@ fn certificate_data(cert: CertificateInfo) -> X509CertData {
     }
 }
 
-pub fn parse_x509_cert_from_pem(pem: String) -> Result<X509CertData, String> {
+pub(crate) fn parse_x509_cert_from_pem(pem: String) -> Result<X509CertData, String> {
     x509_info::parse_pem(pem.as_bytes(), Default::default())
         .map(certificate_data)
         .map_err(|error| error.to_string())
@@ -383,34 +333,12 @@ mod tests {
             hex!("BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD")
         );
         assert_eq!(
-            sha384_digest(b"abc".to_vec()),
+            sha2::Sha384::digest(b"abc").as_slice(),
             hex!("CB00753F45A35E8BB5A03D699AC65007272C32AB0EDED1631A8B605A43FF5BED8086072BA1E7CC2358BAECA134C825A7")
         );
         assert_eq!(
-            sha512_digest(b"abc".to_vec()),
+            sha2::Sha512::digest(b"abc").as_slice(),
             hex!("DDAF35A193617ABACC417349AE20413112E6FA4E89A97EA20A9EEEE64B55D39A2192992A274FC1A836BA3C23A3FEEBBD454D4423643CE80E2A9AC94FA54CA49F")
-        );
-    }
-
-    #[test]
-    fn encrypts_management_key_known_vectors() {
-        assert_eq!(
-            encrypt_piv_management_key_challenge(
-                PIV_AES192,
-                hex!("000102030405060708090A0B0C0D0E0F1011121314151617").to_vec(),
-                hex!("00112233445566778899AABBCCDDEEFF").to_vec(),
-            )
-            .unwrap(),
-            hex!("DDA97CA4864CDFE06EAF70A0EC0D7191")
-        );
-        assert_eq!(
-            encrypt_piv_management_key_challenge(
-                PIV_TDES,
-                hex!("0123456789ABCDEF23456789ABCDEF01456789ABCDEF0123").to_vec(),
-                hex!("0000000000000000").to_vec(),
-            )
-            .unwrap(),
-            hex!("4EBA739C998BCB60")
         );
     }
 

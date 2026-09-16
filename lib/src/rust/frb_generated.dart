@@ -69,7 +69,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => -175027924;
+  int get rustContentHash => -476924793;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -124,6 +124,18 @@ abstract class RustLibApi extends BaseApi {
 
   int crateApiProtocolCtapPinTokenProtocolVersion({required CtapPinToken that});
 
+  int crateApiPivCryptoPivPrivateKeyDataAlgorithm({
+    required PivPrivateKeyData that,
+  });
+
+  void crateApiPivCryptoPivPrivateKeyDataClose({
+    required PivPrivateKeyData that,
+  });
+
+  Uint8List crateApiPivCryptoPivPrivateKeyDataSubjectPublicKeyInfo({
+    required PivPrivateKeyData that,
+  });
+
   AdminProgress? crateApiProtocolProtocolOperationAdminProgress({
     required ProtocolOperation that,
   });
@@ -146,16 +158,6 @@ abstract class RustLibApi extends BaseApi {
   });
 
   ProtocolOperation crateApiProtocolProtocolOperationCtapGetInfo();
-
-  ProtocolOperation crateApiProtocolProtocolOperationCtapSelectApplication();
-
-  ProtocolOperation crateApiProtocolProtocolOperationCtapTransceive({
-    required List<int> message,
-  });
-
-  ProtocolOperation crateApiProtocolProtocolOperationCtapTransceiveSelected({
-    required List<int> message,
-  });
 
   ProtocolOperation crateApiProtocolProtocolOperationNdefReadCapability();
 
@@ -261,12 +263,6 @@ abstract class RustLibApi extends BaseApi {
     Uint8List? accessChallenge,
   });
 
-  ProtocolOperation crateApiProtocolProtocolProfileOathList({
-    required ProtocolProfile that,
-    Uint8List? accessKey,
-    Uint8List? accessChallenge,
-  });
-
   ProtocolOperation crateApiProtocolProtocolProfileOathPut({
     required ProtocolProfile that,
     required List<int> name,
@@ -277,14 +273,6 @@ abstract class RustLibApi extends BaseApi {
     required bool requireTouch,
     required bool increasing,
     required int initialCounter,
-    Uint8List? accessKey,
-    Uint8List? accessChallenge,
-  });
-
-  ProtocolOperation crateApiProtocolProtocolProfileOathRename({
-    required ProtocolProfile that,
-    required List<int> old,
-    required List<int> new_,
     Uint8List? accessKey,
     Uint8List? accessChallenge,
   });
@@ -315,37 +303,11 @@ abstract class RustLibApi extends BaseApi {
     required List<int> challenge,
   });
 
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpActivate({
-    required ProtocolProfile that,
-    required List<int> password,
-  });
-
   ProtocolOperation crateApiProtocolProtocolProfileOpenpgpChangePassword({
     required ProtocolProfile that,
     required int reference,
     required List<int> old,
     required List<int> new_,
-  });
-
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpGenerateKey({
-    required ProtocolProfile that,
-    required int slot,
-    required List<int> password,
-  });
-
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpLogout({
-    required ProtocolProfile that,
-    required int reference,
-  });
-
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpPinStatus({
-    required ProtocolProfile that,
-    required int reference,
-  });
-
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpReadCertificate({
-    required ProtocolProfile that,
-    required int slot,
   });
 
   ProtocolOperation crateApiProtocolProtocolProfileOpenpgpReadData({
@@ -356,11 +318,6 @@ abstract class RustLibApi extends BaseApi {
   ProtocolOperation crateApiProtocolProtocolProfileOpenpgpResetRetries({
     required ProtocolProfile that,
     required List<int> retries,
-    required List<int> password,
-  });
-
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpTerminate({
-    required ProtocolProfile that,
     required List<int> password,
   });
 
@@ -382,40 +339,9 @@ abstract class RustLibApi extends BaseApi {
     required List<int> password,
   });
 
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpWriteCertificate({
-    required ProtocolProfile that,
-    required int slot,
-    required List<int> certificate,
-    required List<int> password,
-  });
-
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpWriteLanguage({
-    required ProtocolProfile that,
-    required List<int> language,
-    required List<int> password,
-  });
-
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpWriteLogin({
-    required ProtocolProfile that,
-    required List<int> login,
-    required List<int> password,
-  });
-
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpWriteName({
-    required ProtocolProfile that,
-    required List<int> name,
-    required List<int> password,
-  });
-
   ProtocolOperation crateApiProtocolProtocolProfileOpenpgpWriteResetCode({
     required ProtocolProfile that,
     Uint8List? resetCode,
-    required List<int> password,
-  });
-
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpWriteSex({
-    required ProtocolProfile that,
-    required int sex,
     required List<int> password,
   });
 
@@ -436,12 +362,6 @@ abstract class RustLibApi extends BaseApi {
     required ProtocolProfile that,
     required int slot,
     required int policy,
-    required List<int> password,
-  });
-
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpWriteUrl({
-    required ProtocolProfile that,
-    required List<int> url,
     required List<int> password,
   });
 
@@ -479,13 +399,6 @@ abstract class RustLibApi extends BaseApi {
     required List<int> ciphertext,
   });
 
-  ProtocolOperation crateApiProtocolProtocolProfilePivDecrypt({
-    required ProtocolProfile that,
-    required int slot,
-    required int algorithm,
-    required List<int> ciphertext,
-  });
-
   ProtocolOperation crateApiProtocolProtocolProfilePivDeleteCertificate({
     required ProtocolProfile that,
     required int objectId,
@@ -511,23 +424,6 @@ abstract class RustLibApi extends BaseApi {
     required int touchPolicy,
   });
 
-  ProtocolOperation crateApiProtocolProtocolProfilePivImportEcKey({
-    required ProtocolProfile that,
-    required int slot,
-    required int algorithm,
-    required List<int> scalar,
-    required int pinPolicy,
-    required int touchPolicy,
-  });
-
-  ProtocolOperation crateApiProtocolProtocolProfilePivImportEd25519Key({
-    required ProtocolProfile that,
-    required int slot,
-    required List<int> seed,
-    required int pinPolicy,
-    required int touchPolicy,
-  });
-
   ProtocolOperation crateApiProtocolProtocolProfilePivImportPqSeed({
     required ProtocolProfile that,
     required int slot,
@@ -537,15 +433,11 @@ abstract class RustLibApi extends BaseApi {
     required int touchPolicy,
   });
 
-  ProtocolOperation crateApiProtocolProtocolProfilePivImportRsaKey({
+  ProtocolOperation crateApiProtocolProtocolProfilePivImportPrivateKey({
     required ProtocolProfile that,
     required int slot,
     required int algorithm,
-    required List<int> p,
-    required List<int> q,
-    required List<int> dp,
-    required List<int> dq,
-    required List<int> qinv,
+    required PivPrivateKeyData key,
     required int pinPolicy,
     required int touchPolicy,
   });
@@ -617,17 +509,6 @@ abstract class RustLibApi extends BaseApi {
     Uint8List? userId,
   });
 
-  ProtocolOperation crateApiProtocolProtocolProfilePivSm2Agreement({
-    required ProtocolProfile that,
-    required int slot,
-    required int role,
-    required List<int> peerStatic,
-    required List<int> peerEphemeral,
-    Uint8List? userId,
-    Uint8List? peerId,
-    required int keyLen,
-  });
-
   ProtocolOperation crateApiProtocolProtocolProfilePivWriteObject({
     required ProtocolProfile that,
     required List<int> objectId,
@@ -645,12 +526,6 @@ abstract class RustLibApi extends BaseApi {
   });
 
   String crateApiDecodeDecodePngQrcode({required List<int> pngFile});
-
-  Uint8List crateApiCryptoEncryptPivManagementKeyChallenge({
-    required int algorithm,
-    required List<int> key,
-    required List<int> challenge,
-  });
 
   String crateApiPivCryptoFinishPivCsr({
     required List<int> certificationRequestInfo,
@@ -681,8 +556,6 @@ abstract class RustLibApi extends BaseApi {
   });
 
   X509CertData crateApiCryptoParseX509CertFromDer({required List<int> der});
-
-  X509CertData crateApiCryptoParseX509CertFromPem({required String pem});
 
   Uint8List crateApiCryptoPbkdf2HmacSha1({
     required String password,
@@ -721,20 +594,6 @@ abstract class RustLibApi extends BaseApi {
 
   Uint8List crateApiCryptoSha256Digest({required List<int> data});
 
-  Uint8List crateApiCryptoSha384Digest({required List<int> data});
-
-  Uint8List crateApiCryptoSha512Digest({required List<int> data});
-
-  Uint8List crateApiCryptoSm2MessageDigest({
-    required List<int> data,
-    required List<int> publicKey,
-  });
-
-  Uint8List crateApiCryptoTdesEde3Enc({
-    required List<int> key,
-    required List<int> data,
-  });
-
   bool crateApiCryptoVerifyPivSignature({
     required int algorithm,
     required List<int> publicKey,
@@ -758,6 +617,15 @@ abstract class RustLibApi extends BaseApi {
   get rust_arc_decrement_strong_count_CtapPinToken;
 
   CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_CtapPinTokenPtr;
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_PivPrivateKeyData;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_PivPrivateKeyData;
+
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_PivPrivateKeyDataPtr;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_ProtocolOperation;
@@ -1117,6 +985,101 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  int crateApiPivCryptoPivPrivateKeyDataAlgorithm({
+    required PivPrivateKeyData that,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+            that,
+            serializer,
+          );
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_u_8,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiPivCryptoPivPrivateKeyDataAlgorithmConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiPivCryptoPivPrivateKeyDataAlgorithmConstMeta =>
+      const TaskConstMeta(
+        debugName: "PivPrivateKeyData_algorithm",
+        argNames: ["that"],
+      );
+
+  @override
+  void crateApiPivCryptoPivPrivateKeyDataClose({
+    required PivPrivateKeyData that,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+            that,
+            serializer,
+          );
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiPivCryptoPivPrivateKeyDataCloseConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiPivCryptoPivPrivateKeyDataCloseConstMeta =>
+      const TaskConstMeta(
+        debugName: "PivPrivateKeyData_close",
+        argNames: ["that"],
+      );
+
+  @override
+  Uint8List crateApiPivCryptoPivPrivateKeyDataSubjectPublicKeyInfo({
+    required PivPrivateKeyData that,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+            that,
+            serializer,
+          );
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: null,
+        ),
+        constMeta:
+            kCrateApiPivCryptoPivPrivateKeyDataSubjectPublicKeyInfoConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta
+  get kCrateApiPivCryptoPivPrivateKeyDataSubjectPublicKeyInfoConstMeta =>
+      const TaskConstMeta(
+        debugName: "PivPrivateKeyData_subject_public_key_info",
+        argNames: ["that"],
+      );
+
+  @override
   AdminProgress? crateApiProtocolProtocolOperationAdminProgress({
     required ProtocolOperation that,
   }) {
@@ -1128,7 +1091,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_opt_box_autoadd_admin_progress,
@@ -1161,7 +1124,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             serializer,
           );
           sse_encode_list_prim_u_8_loose(response, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_protocol_step,
@@ -1189,7 +1152,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_bootstrap_identity_step(step, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -1222,7 +1185,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -1250,7 +1213,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_u_8(protocol, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -1278,7 +1241,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -1296,94 +1259,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(
         debugName: "ProtocolOperation_ctap_get_info",
         argNames: [],
-      );
-
-  @override
-  ProtocolOperation crateApiProtocolProtocolOperationCtapSelectApplication() {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApiProtocolProtocolOperationCtapSelectApplicationConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApiProtocolProtocolOperationCtapSelectApplicationConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolOperation_ctap_select_application",
-        argNames: [],
-      );
-
-  @override
-  ProtocolOperation crateApiProtocolProtocolOperationCtapTransceive({
-    required List<int> message,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_list_prim_u_8_loose(message, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolOperationCtapTransceiveConstMeta,
-        argValues: [message],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiProtocolProtocolOperationCtapTransceiveConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolOperation_ctap_transceive",
-        argNames: ["message"],
-      );
-
-  @override
-  ProtocolOperation crateApiProtocolProtocolOperationCtapTransceiveSelected({
-    required List<int> message,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_list_prim_u_8_loose(message, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApiProtocolProtocolOperationCtapTransceiveSelectedConstMeta,
-        argValues: [message],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApiProtocolProtocolOperationCtapTransceiveSelectedConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolOperation_ctap_transceive_selected",
-        argNames: ["message"],
       );
 
   @override
@@ -2073,42 +1948,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  ProtocolOperation crateApiProtocolProtocolProfileOathList({
-    required ProtocolProfile that,
-    Uint8List? accessKey,
-    Uint8List? accessChallenge,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_opt_list_prim_u_8_strict(accessKey, serializer);
-          sse_encode_opt_list_prim_u_8_strict(accessChallenge, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 39)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolProfileOathListConstMeta,
-        argValues: [that, accessKey, accessChallenge],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiProtocolProtocolProfileOathListConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_oath_list",
-        argNames: ["that", "accessKey", "accessChallenge"],
-      );
-
-  @override
   ProtocolOperation crateApiProtocolProtocolProfileOathPut({
     required ProtocolProfile that,
     required List<int> name,
@@ -2140,7 +1979,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_u_32(initialCounter, serializer);
           sse_encode_opt_list_prim_u_8_strict(accessKey, serializer);
           sse_encode_opt_list_prim_u_8_strict(accessChallenge, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 40)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 39)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -2185,46 +2024,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  ProtocolOperation crateApiProtocolProtocolProfileOathRename({
-    required ProtocolProfile that,
-    required List<int> old,
-    required List<int> new_,
-    Uint8List? accessKey,
-    Uint8List? accessChallenge,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_list_prim_u_8_loose(old, serializer);
-          sse_encode_list_prim_u_8_loose(new_, serializer);
-          sse_encode_opt_list_prim_u_8_strict(accessKey, serializer);
-          sse_encode_opt_list_prim_u_8_strict(accessChallenge, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 41)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolProfileOathRenameConstMeta,
-        argValues: [that, old, new_, accessKey, accessChallenge],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiProtocolProtocolProfileOathRenameConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_oath_rename",
-        argNames: ["that", "old", "new_", "accessKey", "accessChallenge"],
-      );
-
-  @override
   ProtocolOperation crateApiProtocolProtocolProfileOathSelect({
     required ProtocolProfile that,
   }) {
@@ -2236,7 +2035,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 42)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 40)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -2274,7 +2073,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_opt_list_prim_u_8_strict(oldKey, serializer);
           sse_encode_list_prim_u_8_loose(newKey, serializer);
           sse_encode_list_prim_u_8_loose(challenge, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 43)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 41)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -2316,7 +2115,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_String(name, serializer);
           sse_encode_opt_list_prim_u_8_strict(accessKey, serializer);
           sse_encode_opt_list_prim_u_8_strict(accessChallenge, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 44)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 42)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -2359,7 +2158,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_list_prim_u_8_loose(key, serializer);
           sse_encode_list_prim_u_8_loose(challenge, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 45)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 43)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -2380,40 +2179,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpActivate({
-    required ProtocolProfile that,
-    required List<int> password,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 46)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolProfileOpenpgpActivateConstMeta,
-        argValues: [that, password],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiProtocolProtocolProfileOpenpgpActivateConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_openpgp_activate",
-        argNames: ["that", "password"],
-      );
-
-  @override
   ProtocolOperation crateApiProtocolProtocolProfileOpenpgpChangePassword({
     required ProtocolProfile that,
     required int reference,
@@ -2431,7 +2196,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_u_8(reference, serializer);
           sse_encode_list_prim_u_8_loose(old, serializer);
           sse_encode_list_prim_u_8_loose(new_, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 47)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 44)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -2454,147 +2219,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpGenerateKey({
-    required ProtocolProfile that,
-    required int slot,
-    required List<int> password,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_u_8(slot, serializer);
-          sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 48)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolProfileOpenpgpGenerateKeyConstMeta,
-        argValues: [that, slot, password],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApiProtocolProtocolProfileOpenpgpGenerateKeyConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_openpgp_generate_key",
-        argNames: ["that", "slot", "password"],
-      );
-
-  @override
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpLogout({
-    required ProtocolProfile that,
-    required int reference,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_u_8(reference, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 49)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolProfileOpenpgpLogoutConstMeta,
-        argValues: [that, reference],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiProtocolProtocolProfileOpenpgpLogoutConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_openpgp_logout",
-        argNames: ["that", "reference"],
-      );
-
-  @override
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpPinStatus({
-    required ProtocolProfile that,
-    required int reference,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_u_8(reference, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 50)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolProfileOpenpgpPinStatusConstMeta,
-        argValues: [that, reference],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiProtocolProtocolProfileOpenpgpPinStatusConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_openpgp_pin_status",
-        argNames: ["that", "reference"],
-      );
-
-  @override
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpReadCertificate({
-    required ProtocolProfile that,
-    required int slot,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_u_8(slot, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 51)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApiProtocolProtocolProfileOpenpgpReadCertificateConstMeta,
-        argValues: [that, slot],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApiProtocolProtocolProfileOpenpgpReadCertificateConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_openpgp_read_certificate",
-        argNames: ["that", "slot"],
-      );
-
-  @override
   ProtocolOperation crateApiProtocolProtocolProfileOpenpgpReadData({
     required ProtocolProfile that,
     required int tag,
@@ -2608,7 +2232,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             serializer,
           );
           sse_encode_u_16(tag, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 52)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 45)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -2644,7 +2268,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_list_prim_u_8_loose(retries, serializer);
           sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 53)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 46)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -2666,40 +2290,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpTerminate({
-    required ProtocolProfile that,
-    required List<int> password,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 54)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolProfileOpenpgpTerminateConstMeta,
-        argValues: [that, password],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiProtocolProtocolProfileOpenpgpTerminateConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_openpgp_terminate",
-        argNames: ["that", "password"],
-      );
-
-  @override
   ProtocolOperation crateApiProtocolProtocolProfileOpenpgpUnblockWithAdmin({
     required ProtocolProfile that,
     required List<int> newPin,
@@ -2715,7 +2305,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_list_prim_u_8_loose(newPin, serializer);
           sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 55)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 47)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -2753,7 +2343,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_list_prim_u_8_loose(code, serializer);
           sse_encode_list_prim_u_8_loose(newPin, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 56)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 48)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -2791,7 +2381,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_u_8(reference, serializer);
           sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 57)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 49)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -2812,157 +2402,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpWriteCertificate({
-    required ProtocolProfile that,
-    required int slot,
-    required List<int> certificate,
-    required List<int> password,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_u_8(slot, serializer);
-          sse_encode_list_prim_u_8_loose(certificate, serializer);
-          sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 58)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApiProtocolProtocolProfileOpenpgpWriteCertificateConstMeta,
-        argValues: [that, slot, certificate, password],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApiProtocolProtocolProfileOpenpgpWriteCertificateConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_openpgp_write_certificate",
-        argNames: ["that", "slot", "certificate", "password"],
-      );
-
-  @override
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpWriteLanguage({
-    required ProtocolProfile that,
-    required List<int> language,
-    required List<int> password,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_list_prim_u_8_loose(language, serializer);
-          sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 59)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApiProtocolProtocolProfileOpenpgpWriteLanguageConstMeta,
-        argValues: [that, language, password],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApiProtocolProtocolProfileOpenpgpWriteLanguageConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_openpgp_write_language",
-        argNames: ["that", "language", "password"],
-      );
-
-  @override
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpWriteLogin({
-    required ProtocolProfile that,
-    required List<int> login,
-    required List<int> password,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_list_prim_u_8_loose(login, serializer);
-          sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 60)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolProfileOpenpgpWriteLoginConstMeta,
-        argValues: [that, login, password],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApiProtocolProtocolProfileOpenpgpWriteLoginConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_openpgp_write_login",
-        argNames: ["that", "login", "password"],
-      );
-
-  @override
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpWriteName({
-    required ProtocolProfile that,
-    required List<int> name,
-    required List<int> password,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_list_prim_u_8_loose(name, serializer);
-          sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 61)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolProfileOpenpgpWriteNameConstMeta,
-        argValues: [that, name, password],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiProtocolProtocolProfileOpenpgpWriteNameConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_openpgp_write_name",
-        argNames: ["that", "name", "password"],
-      );
-
-  @override
   ProtocolOperation crateApiProtocolProtocolProfileOpenpgpWriteResetCode({
     required ProtocolProfile that,
     Uint8List? resetCode,
@@ -2978,7 +2417,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_opt_list_prim_u_8_strict(resetCode, serializer);
           sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 62)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 50)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3001,42 +2440,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpWriteSex({
-    required ProtocolProfile that,
-    required int sex,
-    required List<int> password,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_u_8(sex, serializer);
-          sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 63)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolProfileOpenpgpWriteSexConstMeta,
-        argValues: [that, sex, password],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiProtocolProtocolProfileOpenpgpWriteSexConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_openpgp_write_sex",
-        argNames: ["that", "sex", "password"],
-      );
-
-  @override
   ProtocolOperation
   crateApiProtocolProtocolProfileOpenpgpWriteSignaturePinPolicy({
     required ProtocolProfile that,
@@ -3053,7 +2456,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_bool(reuse, serializer);
           sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 64)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 51)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3091,7 +2494,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_u_8(seconds, serializer);
           sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 65)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 52)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3131,7 +2534,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_u_8(slot, serializer);
           sse_encode_u_8(policy, serializer);
           sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 66)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 53)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3154,42 +2557,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  ProtocolOperation crateApiProtocolProtocolProfileOpenpgpWriteUrl({
-    required ProtocolProfile that,
-    required List<int> url,
-    required List<int> password,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_list_prim_u_8_loose(url, serializer);
-          sse_encode_list_prim_u_8_loose(password, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 67)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolProfileOpenpgpWriteUrlConstMeta,
-        argValues: [that, url, password],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiProtocolProtocolProfileOpenpgpWriteUrlConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_openpgp_write_url",
-        argNames: ["that", "url", "password"],
-      );
-
-  @override
   int? crateApiProtocolProtocolProfilePivAlgorithmDisplayId({
     required ProtocolProfile that,
     required int wireId,
@@ -3203,7 +2570,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             serializer,
           );
           sse_encode_u_8(wireId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 68)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 54)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_opt_box_autoadd_u_8,
@@ -3238,7 +2605,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             serializer,
           );
           sse_encode_u_8(slot, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 69)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 55)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3274,7 +2641,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_u_8(algorithm, serializer);
           sse_encode_list_prim_u_8_loose(key, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 70)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 56)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3310,7 +2677,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             serializer,
           );
           sse_encode_u_8(objectId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 71)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 57)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3348,7 +2715,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_piv_credential_operation(kind, serializer);
           sse_encode_list_prim_u_8_loose(current, serializer);
           sse_encode_list_prim_u_8_loose(replacement, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 72)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 58)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3384,7 +2751,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_u_8(slot, serializer);
           sse_encode_list_prim_u_8_loose(ciphertext, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 73)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 59)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3405,44 +2772,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  ProtocolOperation crateApiProtocolProtocolProfilePivDecrypt({
-    required ProtocolProfile that,
-    required int slot,
-    required int algorithm,
-    required List<int> ciphertext,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_u_8(slot, serializer);
-          sse_encode_u_8(algorithm, serializer);
-          sse_encode_list_prim_u_8_loose(ciphertext, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 74)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolProfilePivDecryptConstMeta,
-        argValues: [that, slot, algorithm, ciphertext],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiProtocolProtocolProfilePivDecryptConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_piv_decrypt",
-        argNames: ["that", "slot", "algorithm", "ciphertext"],
-      );
-
-  @override
   ProtocolOperation crateApiProtocolProtocolProfilePivDeleteCertificate({
     required ProtocolProfile that,
     required int objectId,
@@ -3456,7 +2785,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             serializer,
           );
           sse_encode_u_8(objectId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 75)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 60)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3492,7 +2821,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             serializer,
           );
           sse_encode_u_8(slot, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 76)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 61)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3530,7 +2859,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_u_8(slot, serializer);
           sse_encode_u_8(algorithm, serializer);
           sse_encode_list_prim_u_8_loose(peer, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 77)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 62)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3570,7 +2899,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_u_8(algorithm, serializer);
           sse_encode_u_8(pinPolicy, serializer);
           sse_encode_u_8(touchPolicy, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 78)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 63)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3588,96 +2917,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(
         debugName: "ProtocolProfile_piv_generate_key",
         argNames: ["that", "slot", "algorithm", "pinPolicy", "touchPolicy"],
-      );
-
-  @override
-  ProtocolOperation crateApiProtocolProtocolProfilePivImportEcKey({
-    required ProtocolProfile that,
-    required int slot,
-    required int algorithm,
-    required List<int> scalar,
-    required int pinPolicy,
-    required int touchPolicy,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_u_8(slot, serializer);
-          sse_encode_u_8(algorithm, serializer);
-          sse_encode_list_prim_u_8_loose(scalar, serializer);
-          sse_encode_u_8(pinPolicy, serializer);
-          sse_encode_u_8(touchPolicy, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 79)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolProfilePivImportEcKeyConstMeta,
-        argValues: [that, slot, algorithm, scalar, pinPolicy, touchPolicy],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiProtocolProtocolProfilePivImportEcKeyConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_piv_import_ec_key",
-        argNames: [
-          "that",
-          "slot",
-          "algorithm",
-          "scalar",
-          "pinPolicy",
-          "touchPolicy",
-        ],
-      );
-
-  @override
-  ProtocolOperation crateApiProtocolProtocolProfilePivImportEd25519Key({
-    required ProtocolProfile that,
-    required int slot,
-    required List<int> seed,
-    required int pinPolicy,
-    required int touchPolicy,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_u_8(slot, serializer);
-          sse_encode_list_prim_u_8_loose(seed, serializer);
-          sse_encode_u_8(pinPolicy, serializer);
-          sse_encode_u_8(touchPolicy, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 80)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolProfilePivImportEd25519KeyConstMeta,
-        argValues: [that, slot, seed, pinPolicy, touchPolicy],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApiProtocolProtocolProfilePivImportEd25519KeyConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_piv_import_ed25519_key",
-        argNames: ["that", "slot", "seed", "pinPolicy", "touchPolicy"],
       );
 
   @override
@@ -3702,7 +2941,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_list_prim_u_8_loose(seed, serializer);
           sse_encode_u_8(pinPolicy, serializer);
           sse_encode_u_8(touchPolicy, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 81)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 64)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3723,15 +2962,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  ProtocolOperation crateApiProtocolProtocolProfilePivImportRsaKey({
+  ProtocolOperation crateApiProtocolProtocolProfilePivImportPrivateKey({
     required ProtocolProfile that,
     required int slot,
     required int algorithm,
-    required List<int> p,
-    required List<int> q,
-    required List<int> dp,
-    required List<int> dq,
-    required List<int> qinv,
+    required PivPrivateKeyData key,
     required int pinPolicy,
     required int touchPolicy,
   }) {
@@ -3745,50 +2980,35 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_u_8(slot, serializer);
           sse_encode_u_8(algorithm, serializer);
-          sse_encode_list_prim_u_8_loose(p, serializer);
-          sse_encode_list_prim_u_8_loose(q, serializer);
-          sse_encode_list_prim_u_8_loose(dp, serializer);
-          sse_encode_list_prim_u_8_loose(dq, serializer);
-          sse_encode_list_prim_u_8_loose(qinv, serializer);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+            key,
+            serializer,
+          );
           sse_encode_u_8(pinPolicy, serializer);
           sse_encode_u_8(touchPolicy, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 82)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 65)!;
         },
         codec: SseCodec(
           decodeSuccessData:
               sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
           decodeErrorData: null,
         ),
-        constMeta: kCrateApiProtocolProtocolProfilePivImportRsaKeyConstMeta,
-        argValues: [
-          that,
-          slot,
-          algorithm,
-          p,
-          q,
-          dp,
-          dq,
-          qinv,
-          pinPolicy,
-          touchPolicy,
-        ],
+        constMeta: kCrateApiProtocolProtocolProfilePivImportPrivateKeyConstMeta,
+        argValues: [that, slot, algorithm, key, pinPolicy, touchPolicy],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiProtocolProtocolProfilePivImportRsaKeyConstMeta =>
+  TaskConstMeta
+  get kCrateApiProtocolProtocolProfilePivImportPrivateKeyConstMeta =>
       const TaskConstMeta(
-        debugName: "ProtocolProfile_piv_import_rsa_key",
+        debugName: "ProtocolProfile_piv_import_private_key",
         argNames: [
           "that",
           "slot",
           "algorithm",
-          "p",
-          "q",
-          "dp",
-          "dq",
-          "qinv",
+          "key",
           "pinPolicy",
           "touchPolicy",
         ],
@@ -3808,7 +3028,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             serializer,
           );
           sse_encode_u_8(reference, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 83)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 66)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3840,7 +3060,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 84)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 67)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3878,7 +3098,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_u_8(source, serializer);
           sse_encode_u_8(target, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 85)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 68)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3914,7 +3134,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_opt_list_prim_u_8_strict(managementKey, serializer);
           sse_encode_u_8(managementKeyAlgorithm, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 86)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 69)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3950,7 +3170,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             serializer,
           );
           sse_encode_list_prim_u_8_loose(objectId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 87)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 70)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3986,7 +3206,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_u_8(pinRetries, serializer);
           sse_encode_u_8(pukRetries, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 88)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 71)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -4022,7 +3242,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             serializer,
           );
           sse_encode_list_prim_u_8_loose(raw, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 89)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 72)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -4060,7 +3280,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_u_8(slot, serializer);
           sse_encode_String(name, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 90)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 73)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -4101,7 +3321,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_list_prim_u_8_loose(key, serializer);
           sse_encode_u_8(touch, serializer);
           sse_encode_bool(updateProtected, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 91)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 74)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -4142,7 +3362,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_u_8(algorithm, serializer);
           sse_encode_list_prim_u_8_loose(input, serializer);
           sse_encode_u_8(inputKind, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 92)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 75)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -4182,7 +3402,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_u_8(mode, serializer);
           sse_encode_list_prim_u_8_loose(message, serializer);
           sse_encode_opt_list_prim_u_8_strict(userId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 93)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 76)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -4203,70 +3423,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  ProtocolOperation crateApiProtocolProtocolProfilePivSm2Agreement({
-    required ProtocolProfile that,
-    required int slot,
-    required int role,
-    required List<int> peerStatic,
-    required List<int> peerEphemeral,
-    Uint8List? userId,
-    Uint8List? peerId,
-    required int keyLen,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
-            that,
-            serializer,
-          );
-          sse_encode_u_8(slot, serializer);
-          sse_encode_u_8(role, serializer);
-          sse_encode_list_prim_u_8_loose(peerStatic, serializer);
-          sse_encode_list_prim_u_8_loose(peerEphemeral, serializer);
-          sse_encode_opt_list_prim_u_8_strict(userId, serializer);
-          sse_encode_opt_list_prim_u_8_strict(peerId, serializer);
-          sse_encode_u_16(keyLen, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 94)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiProtocolProtocolProfilePivSm2AgreementConstMeta,
-        argValues: [
-          that,
-          slot,
-          role,
-          peerStatic,
-          peerEphemeral,
-          userId,
-          peerId,
-          keyLen,
-        ],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiProtocolProtocolProfilePivSm2AgreementConstMeta =>
-      const TaskConstMeta(
-        debugName: "ProtocolProfile_piv_sm2_agreement",
-        argNames: [
-          "that",
-          "slot",
-          "role",
-          "peerStatic",
-          "peerEphemeral",
-          "userId",
-          "peerId",
-          "keyLen",
-        ],
-      );
-
-  @override
   ProtocolOperation crateApiProtocolProtocolProfilePivWriteObject({
     required ProtocolProfile that,
     required List<int> objectId,
@@ -4282,7 +3438,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_list_prim_u_8_loose(objectId, serializer);
           sse_encode_list_prim_u_8_loose(data, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 95)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 77)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -4314,7 +3470,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 96)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 78)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_opt_list_prim_u_8_strict,
@@ -4346,7 +3502,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_u_8(algorithm, serializer);
           sse_encode_list_prim_u_8_loose(cardData, serializer);
           sse_encode_bool(generatedResponse, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 97)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 79)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_piv_public_key_data,
@@ -4372,7 +3528,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_list_prim_u_8_loose(pngFile, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 98)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 80)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -4392,38 +3548,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Uint8List crateApiCryptoEncryptPivManagementKeyChallenge({
-    required int algorithm,
-    required List<int> key,
-    required List<int> challenge,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_u_8(algorithm, serializer);
-          sse_encode_list_prim_u_8_loose(key, serializer);
-          sse_encode_list_prim_u_8_loose(challenge, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 99)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_prim_u_8_strict,
-          decodeErrorData: sse_decode_String,
-        ),
-        constMeta: kCrateApiCryptoEncryptPivManagementKeyChallengeConstMeta,
-        argValues: [algorithm, key, challenge],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiCryptoEncryptPivManagementKeyChallengeConstMeta =>
-      const TaskConstMeta(
-        debugName: "encrypt_piv_management_key_challenge",
-        argNames: ["algorithm", "key", "challenge"],
-      );
-
-  @override
   String crateApiPivCryptoFinishPivCsr({
     required List<int> certificationRequestInfo,
     required int algorithm,
@@ -4436,11 +3560,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_list_prim_u_8_loose(certificationRequestInfo, serializer);
           sse_encode_u_8(algorithm, serializer);
           sse_encode_list_prim_u_8_loose(signature, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 100,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 81)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -4472,11 +3592,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_list_prim_u_8_loose(tbsCertificate, serializer);
           sse_encode_u_8(algorithm, serializer);
           sse_encode_list_prim_u_8_loose(signature, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 101,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 82)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
@@ -4506,11 +3622,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_list_prim_u_8_loose(key, serializer);
           sse_encode_list_prim_u_8_loose(data, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 102,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 83)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
@@ -4532,11 +3644,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 103,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 84)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -4561,11 +3669,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_list_prim_u_8_loose(bytes, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 104,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 85)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_piv_import_file_data,
@@ -4595,11 +3699,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_u_8(algorithm, serializer);
           sse_encode_list_prim_u_8_loose(subjectPublicKeyInfo, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 105,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 86)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_piv_public_key_data,
@@ -4625,11 +3725,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_list_prim_u_8_loose(der, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 106,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 87)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_x_509_cert_data,
@@ -4649,36 +3745,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  X509CertData crateApiCryptoParseX509CertFromPem({required String pem}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(pem, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 107,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_x_509_cert_data,
-          decodeErrorData: sse_decode_String,
-        ),
-        constMeta: kCrateApiCryptoParseX509CertFromPemConstMeta,
-        argValues: [pem],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiCryptoParseX509CertFromPemConstMeta =>
-      const TaskConstMeta(
-        debugName: "parse_x509_cert_from_pem",
-        argNames: ["pem"],
-      );
-
-  @override
   Uint8List crateApiCryptoPbkdf2HmacSha1({
     required String password,
     required List<int> salt,
@@ -4693,11 +3759,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_list_prim_u_8_loose(salt, serializer);
           sse_encode_u_32(iterations, serializer);
           sse_encode_u_32(keyLen, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 108,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 88)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
@@ -4731,11 +3793,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_list_prim_u_8_loose(expectedPublicKey, serializer);
           sse_encode_u_8(slot, serializer);
           sse_encode_i_64(nowUnix, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 109,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 89)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_bool,
@@ -4773,11 +3831,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_opt_String(country, serializer);
           sse_encode_list_prim_u_8_loose(subjectPublicKeyInfo, serializer);
           sse_encode_list_String(subjectAlternativeNames, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 110,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 90)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
@@ -4823,11 +3877,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_u_8(algorithm, serializer);
           sse_encode_list_prim_u_8_loose(data, serializer);
           sse_encode_opt_list_prim_u_8_strict(publicKey, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 111,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 91)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
@@ -4858,11 +3908,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             params,
             serializer,
           );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 112,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 92)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
@@ -4887,11 +3933,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 113,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 93)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_protocol_step,
@@ -4914,11 +3956,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_list_prim_u_8_loose(data, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 114,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 94)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
@@ -4935,127 +3973,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "sha256_digest", argNames: ["data"]);
 
   @override
-  Uint8List crateApiCryptoSha384Digest({required List<int> data}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_list_prim_u_8_loose(data, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 115,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_prim_u_8_strict,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiCryptoSha384DigestConstMeta,
-        argValues: [data],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiCryptoSha384DigestConstMeta =>
-      const TaskConstMeta(debugName: "sha384_digest", argNames: ["data"]);
-
-  @override
-  Uint8List crateApiCryptoSha512Digest({required List<int> data}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_list_prim_u_8_loose(data, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 116,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_prim_u_8_strict,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiCryptoSha512DigestConstMeta,
-        argValues: [data],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiCryptoSha512DigestConstMeta =>
-      const TaskConstMeta(debugName: "sha512_digest", argNames: ["data"]);
-
-  @override
-  Uint8List crateApiCryptoSm2MessageDigest({
-    required List<int> data,
-    required List<int> publicKey,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_list_prim_u_8_loose(data, serializer);
-          sse_encode_list_prim_u_8_loose(publicKey, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 117,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_prim_u_8_strict,
-          decodeErrorData: sse_decode_String,
-        ),
-        constMeta: kCrateApiCryptoSm2MessageDigestConstMeta,
-        argValues: [data, publicKey],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiCryptoSm2MessageDigestConstMeta =>
-      const TaskConstMeta(
-        debugName: "sm2_message_digest",
-        argNames: ["data", "publicKey"],
-      );
-
-  @override
-  Uint8List crateApiCryptoTdesEde3Enc({
-    required List<int> key,
-    required List<int> data,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_list_prim_u_8_loose(key, serializer);
-          sse_encode_list_prim_u_8_loose(data, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 118,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_prim_u_8_strict,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiCryptoTdesEde3EncConstMeta,
-        argValues: [key, data],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiCryptoTdesEde3EncConstMeta => const TaskConstMeta(
-    debugName: "tdes_ede3_enc",
-    argNames: ["key", "data"],
-  );
-
-  @override
   bool crateApiCryptoVerifyPivSignature({
     required int algorithm,
     required List<int> publicKey,
@@ -5070,11 +3987,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_list_prim_u_8_loose(publicKey, serializer);
           sse_encode_list_prim_u_8_loose(data, serializer);
           sse_encode_list_prim_u_8_loose(signature, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 119,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 95)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_bool,
@@ -5110,6 +4023,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCtapPinToken;
 
   RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_PivPrivateKeyData => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_PivPrivateKeyData => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData;
+
+  RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_ProtocolOperation => wire
       .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation;
 
@@ -5141,6 +4062,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return CtapPinTokenImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  PivPrivateKeyData
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return PivPrivateKeyDataImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -5180,6 +4110,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PivPrivateKeyData
+  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return PivPrivateKeyDataImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
   ProtocolOperation
   dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
     dynamic raw,
@@ -5216,6 +4155,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PivPrivateKeyData
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return PivPrivateKeyDataImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
   ProtocolProfile
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     dynamic raw,
@@ -5240,6 +4188,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return CtapPinTokenImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  PivPrivateKeyData
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return PivPrivateKeyDataImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -5270,6 +4227,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   AdminAction dco_decode_admin_action(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return AdminAction.values[raw as int];
+  }
+
+  @protected
+  AdminAppletUsage dco_decode_admin_applet_usage(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return AdminAppletUsage(
+      appletId: dco_decode_u_8(arr[0]),
+      flags: dco_decode_u_8(arr[1]),
+      logicalBytes: dco_decode_u_32(arr[2]),
+    );
   }
 
   @protected
@@ -5310,13 +4280,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   AdminResult dco_decode_admin_result(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 4)
-      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
     return AdminResult(
       kind: dco_decode_admin_value_kind(arr[0]),
       data: dco_decode_list_prim_u_8_strict(arr[1]),
       progress: dco_decode_admin_progress(arr[2]),
       passSlots: dco_decode_opt_list_pass_slot_data(arr[3]),
+      flashUsage: dco_decode_opt_box_autoadd_admin_storage_usage(arr[4]),
+      appletUsage: dco_decode_opt_list_admin_applet_usage(arr[5]),
+    );
+  }
+
+  @protected
+  AdminStorageUsage dco_decode_admin_storage_usage(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return AdminStorageUsage(
+      usedKiB: dco_decode_u_8(arr[0]),
+      totalKiB: dco_decode_u_8(arr[1]),
     );
   }
 
@@ -5361,6 +4345,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PivPrivateKeyData
+  dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+      raw,
+    );
+  }
+
+  @protected
   ProtocolProfile
   dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     dynamic raw,
@@ -5392,6 +4387,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  AdminStorageUsage dco_decode_box_autoadd_admin_storage_usage(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_admin_storage_usage(raw);
+  }
+
+  @protected
   bool dco_decode_box_autoadd_bool(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as bool;
@@ -5410,15 +4411,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  OathSelectionData dco_decode_box_autoadd_oath_selection_data(dynamic raw) {
+  NdefCapabilityData dco_decode_box_autoadd_ndef_capability_data(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_oath_selection_data(raw);
+    return dco_decode_ndef_capability_data(raw);
   }
 
   @protected
-  PivPrivateKeyData dco_decode_box_autoadd_piv_private_key_data(dynamic raw) {
+  OathSelectionData dco_decode_box_autoadd_oath_selection_data(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_piv_private_key_data(raw);
+    return dco_decode_oath_selection_data(raw);
   }
 
   @protected
@@ -5528,6 +4529,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<AdminAppletUsage> dco_decode_list_admin_applet_usage(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_admin_applet_usage).toList();
+  }
+
+  @protected
   List<CtapCredential> dco_decode_list_ctap_credential(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_ctap_credential).toList();
@@ -5543,12 +4550,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   List<OathCalculation> dco_decode_list_oath_calculation(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_oath_calculation).toList();
-  }
-
-  @protected
-  List<OathEntry> dco_decode_list_oath_entry(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_oath_entry).toList();
   }
 
   @protected
@@ -5570,6 +4571,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  NdefCapabilityData dco_decode_ndef_capability_data(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return NdefCapabilityData(
+      maxMessageLength: dco_decode_u_16(arr[0]),
+      readOnly: dco_decode_bool(arr[1]),
+    );
+  }
+
+  @protected
   OathCalculation dco_decode_oath_calculation(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -5588,18 +4601,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   OathCode dco_decode_oath_code(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return OathCode.values[raw as int];
-  }
-
-  @protected
-  OathEntry dco_decode_oath_entry(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return OathEntry(
-      algorithmType: dco_decode_u_8(arr[0]),
-      name: dco_decode_list_prim_u_8_strict(arr[1]),
-    );
   }
 
   @protected
@@ -5649,6 +4650,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PivPrivateKeyData?
+  dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+            raw,
+          );
+  }
+
+  @protected
   ProtocolProfile?
   dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     dynamic raw,
@@ -5674,6 +4688,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  AdminStorageUsage? dco_decode_opt_box_autoadd_admin_storage_usage(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_admin_storage_usage(raw);
+  }
+
+  @protected
   bool? dco_decode_opt_box_autoadd_bool(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_bool(raw);
@@ -5692,21 +4714,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  OathSelectionData? dco_decode_opt_box_autoadd_oath_selection_data(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_box_autoadd_oath_selection_data(raw);
-  }
-
-  @protected
-  PivPrivateKeyData? dco_decode_opt_box_autoadd_piv_private_key_data(
+  NdefCapabilityData? dco_decode_opt_box_autoadd_ndef_capability_data(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null
         ? null
-        : dco_decode_box_autoadd_piv_private_key_data(raw);
+        : dco_decode_box_autoadd_ndef_capability_data(raw);
+  }
+
+  @protected
+  OathSelectionData? dco_decode_opt_box_autoadd_oath_selection_data(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_oath_selection_data(raw);
   }
 
   @protected
@@ -5746,6 +4768,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<AdminAppletUsage>? dco_decode_opt_list_admin_applet_usage(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_admin_applet_usage(raw);
+  }
+
+  @protected
   List<CtapCredential>? dco_decode_opt_list_ctap_credential(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_list_ctap_credential(raw);
@@ -5761,12 +4789,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   List<OathCalculation>? dco_decode_opt_list_oath_calculation(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_list_oath_calculation(raw);
-  }
-
-  @protected
-  List<OathEntry>? dco_decode_opt_list_oath_entry(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_list_oath_entry(raw);
   }
 
   @protected
@@ -5807,21 +4829,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     if (arr.length != 2)
       throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
     return PivImportFileData(
-      privateKey: dco_decode_opt_box_autoadd_piv_private_key_data(arr[0]),
+      privateKey:
+          dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+            arr[0],
+          ),
       certificate: dco_decode_opt_box_autoadd_x_509_cert_data(arr[1]),
-    );
-  }
-
-  @protected
-  PivPrivateKeyData dco_decode_piv_private_key_data(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-    return PivPrivateKeyData(
-      algorithm: dco_decode_u_8(arr[0]),
-      importData: dco_decode_list_prim_u_8_strict(arr[1]),
-      subjectPublicKeyInfo: dco_decode_list_prim_u_8_strict(arr[2]),
     );
   }
 
@@ -5882,9 +4894,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             arr[6],
           ),
       oathSelection: dco_decode_opt_box_autoadd_oath_selection_data(arr[7]),
-      oathEntries: dco_decode_opt_list_oath_entry(arr[8]),
-      oathCalculations: dco_decode_opt_list_oath_calculation(arr[9]),
-      ctapInfo: dco_decode_opt_box_autoadd_ctap_info(arr[10]),
+      oathCalculations: dco_decode_opt_list_oath_calculation(arr[8]),
+      ctapInfo: dco_decode_opt_box_autoadd_ctap_info(arr[9]),
+      ndefCapability: dco_decode_opt_box_autoadd_ndef_capability_data(arr[10]),
       ctapRps: dco_decode_opt_list_ctap_rp(arr[11]),
       ctapCredentials: dco_decode_opt_list_ctap_credential(arr[12]),
     );
@@ -6000,6 +5012,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PivPrivateKeyData
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return PivPrivateKeyDataImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
   ProtocolOperation
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
     SseDeserializer deserializer,
@@ -6042,6 +5066,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return CtapPinTokenImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  PivPrivateKeyData
+  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return PivPrivateKeyDataImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -6096,6 +5132,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PivPrivateKeyData
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return PivPrivateKeyDataImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
   ProtocolProfile
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     SseDeserializer deserializer,
@@ -6126,6 +5174,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return CtapPinTokenImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  PivPrivateKeyData
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return PivPrivateKeyDataImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -6167,6 +5227,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
     return AdminAction.values[inner];
+  }
+
+  @protected
+  AdminAppletUsage sse_decode_admin_applet_usage(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_appletId = sse_decode_u_8(deserializer);
+    var var_flags = sse_decode_u_8(deserializer);
+    var var_logicalBytes = sse_decode_u_32(deserializer);
+    return AdminAppletUsage(
+      appletId: var_appletId,
+      flags: var_flags,
+      logicalBytes: var_logicalBytes,
+    );
   }
 
   @protected
@@ -6217,12 +5290,28 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_data = sse_decode_list_prim_u_8_strict(deserializer);
     var var_progress = sse_decode_admin_progress(deserializer);
     var var_passSlots = sse_decode_opt_list_pass_slot_data(deserializer);
+    var var_flashUsage = sse_decode_opt_box_autoadd_admin_storage_usage(
+      deserializer,
+    );
+    var var_appletUsage = sse_decode_opt_list_admin_applet_usage(deserializer);
     return AdminResult(
       kind: var_kind,
       data: var_data,
       progress: var_progress,
       passSlots: var_passSlots,
+      flashUsage: var_flashUsage,
+      appletUsage: var_appletUsage,
     );
+  }
+
+  @protected
+  AdminStorageUsage sse_decode_admin_storage_usage(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_usedKiB = sse_decode_u_8(deserializer);
+    var var_totalKiB = sse_decode_u_8(deserializer);
+    return AdminStorageUsage(usedKiB: var_usedKiB, totalKiB: var_totalKiB);
   }
 
   @protected
@@ -6270,6 +5359,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PivPrivateKeyData
+  sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+      deserializer,
+    ));
+  }
+
+  @protected
   ProtocolProfile
   sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     SseDeserializer deserializer,
@@ -6305,6 +5405,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  AdminStorageUsage sse_decode_box_autoadd_admin_storage_usage(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_admin_storage_usage(deserializer));
+  }
+
+  @protected
   bool sse_decode_box_autoadd_bool(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_bool(deserializer));
@@ -6323,19 +5431,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  NdefCapabilityData sse_decode_box_autoadd_ndef_capability_data(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_ndef_capability_data(deserializer));
+  }
+
+  @protected
   OathSelectionData sse_decode_box_autoadd_oath_selection_data(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_oath_selection_data(deserializer));
-  }
-
-  @protected
-  PivPrivateKeyData sse_decode_box_autoadd_piv_private_key_data(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_piv_private_key_data(deserializer));
   }
 
   @protected
@@ -6459,6 +5567,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<AdminAppletUsage> sse_decode_list_admin_applet_usage(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <AdminAppletUsage>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_admin_applet_usage(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<CtapCredential> sse_decode_list_ctap_credential(
     SseDeserializer deserializer,
   ) {
@@ -6499,18 +5621,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  List<OathEntry> sse_decode_list_oath_entry(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <OathEntry>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_oath_entry(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
   List<PassSlotData> sse_decode_list_pass_slot_data(
     SseDeserializer deserializer,
   ) {
@@ -6539,6 +5649,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  NdefCapabilityData sse_decode_ndef_capability_data(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_maxMessageLength = sse_decode_u_16(deserializer);
+    var var_readOnly = sse_decode_bool(deserializer);
+    return NdefCapabilityData(
+      maxMessageLength: var_maxMessageLength,
+      readOnly: var_readOnly,
+    );
+  }
+
+  @protected
   OathCalculation sse_decode_oath_calculation(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_name = sse_decode_opt_list_prim_u_8_strict(deserializer);
@@ -6560,14 +5683,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
     return OathCode.values[inner];
-  }
-
-  @protected
-  OathEntry sse_decode_oath_entry(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_algorithmType = sse_decode_u_8(deserializer);
-    var var_name = sse_decode_list_prim_u_8_strict(deserializer);
-    return OathEntry(algorithmType: var_algorithmType, name: var_name);
   }
 
   @protected
@@ -6631,6 +5746,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PivPrivateKeyData?
+  sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+        deserializer,
+      ));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   ProtocolProfile?
   sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     SseDeserializer deserializer,
@@ -6673,6 +5804,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  AdminStorageUsage? sse_decode_opt_box_autoadd_admin_storage_usage(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_admin_storage_usage(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -6706,6 +5850,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  NdefCapabilityData? sse_decode_opt_box_autoadd_ndef_capability_data(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_ndef_capability_data(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   OathSelectionData? sse_decode_opt_box_autoadd_oath_selection_data(
     SseDeserializer deserializer,
   ) {
@@ -6713,19 +5870,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_oath_selection_data(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  PivPrivateKeyData? sse_decode_opt_box_autoadd_piv_private_key_data(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_piv_private_key_data(deserializer));
     } else {
       return null;
     }
@@ -6802,6 +5946,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<AdminAppletUsage>? sse_decode_opt_list_admin_applet_usage(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_admin_applet_usage(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   List<CtapCredential>? sse_decode_opt_list_ctap_credential(
     SseDeserializer deserializer,
   ) {
@@ -6833,19 +5990,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_list_oath_calculation(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
-  List<OathEntry>? sse_decode_opt_list_oath_entry(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_list_oath_entry(deserializer));
     } else {
       return null;
     }
@@ -6902,32 +6046,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_privateKey = sse_decode_opt_box_autoadd_piv_private_key_data(
-      deserializer,
-    );
+    var var_privateKey =
+        sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+          deserializer,
+        );
     var var_certificate = sse_decode_opt_box_autoadd_x_509_cert_data(
       deserializer,
     );
     return PivImportFileData(
       privateKey: var_privateKey,
       certificate: var_certificate,
-    );
-  }
-
-  @protected
-  PivPrivateKeyData sse_decode_piv_private_key_data(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_algorithm = sse_decode_u_8(deserializer);
-    var var_importData = sse_decode_list_prim_u_8_strict(deserializer);
-    var var_subjectPublicKeyInfo = sse_decode_list_prim_u_8_strict(
-      deserializer,
-    );
-    return PivPrivateKeyData(
-      algorithm: var_algorithm,
-      importData: var_importData,
-      subjectPublicKeyInfo: var_subjectPublicKeyInfo,
     );
   }
 
@@ -6992,11 +6120,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_oathSelection = sse_decode_opt_box_autoadd_oath_selection_data(
       deserializer,
     );
-    var var_oathEntries = sse_decode_opt_list_oath_entry(deserializer);
     var var_oathCalculations = sse_decode_opt_list_oath_calculation(
       deserializer,
     );
     var var_ctapInfo = sse_decode_opt_box_autoadd_ctap_info(deserializer);
+    var var_ndefCapability = sse_decode_opt_box_autoadd_ndef_capability_data(
+      deserializer,
+    );
     var var_ctapRps = sse_decode_opt_list_ctap_rp(deserializer);
     var var_ctapCredentials = sse_decode_opt_list_ctap_credential(deserializer);
     return ProtocolStep(
@@ -7008,9 +6138,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       pinSession: var_pinSession,
       pinToken: var_pinToken,
       oathSelection: var_oathSelection,
-      oathEntries: var_oathEntries,
       oathCalculations: var_oathCalculations,
       ctapInfo: var_ctapInfo,
+      ndefCapability: var_ndefCapability,
       ctapRps: var_ctapRps,
       ctapCredentials: var_ctapCredentials,
     );
@@ -7153,6 +6283,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    PivPrivateKeyData self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as PivPrivateKeyDataImpl).frbInternalSseEncode(move: true),
+      serializer,
+    );
+  }
+
+  @protected
+  void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
     ProtocolOperation self,
     SseSerializer serializer,
@@ -7199,6 +6342,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as CtapPinTokenImpl).frbInternalSseEncode(move: false),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    PivPrivateKeyData self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as PivPrivateKeyDataImpl).frbInternalSseEncode(move: false),
       serializer,
     );
   }
@@ -7257,6 +6413,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    PivPrivateKeyData self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as PivPrivateKeyDataImpl).frbInternalSseEncode(move: false),
+      serializer,
+    );
+  }
+
+  @protected
+  void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     ProtocolProfile self,
     SseSerializer serializer,
@@ -7290,6 +6459,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as CtapPinTokenImpl).frbInternalSseEncode(move: null),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    PivPrivateKeyData self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as PivPrivateKeyDataImpl).frbInternalSseEncode(move: null),
       serializer,
     );
   }
@@ -7333,6 +6515,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_admin_applet_usage(
+    AdminAppletUsage self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_8(self.appletId, serializer);
+    sse_encode_u_8(self.flags, serializer);
+    sse_encode_u_32(self.logicalBytes, serializer);
+  }
+
+  @protected
   void sse_encode_admin_configuration_patch(
     AdminConfigurationPatch self,
     SseSerializer serializer,
@@ -7369,6 +6562,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_prim_u_8_strict(self.data, serializer);
     sse_encode_admin_progress(self.progress, serializer);
     sse_encode_opt_list_pass_slot_data(self.passSlots, serializer);
+    sse_encode_opt_box_autoadd_admin_storage_usage(self.flashUsage, serializer);
+    sse_encode_opt_list_admin_applet_usage(self.appletUsage, serializer);
+  }
+
+  @protected
+  void sse_encode_admin_storage_usage(
+    AdminStorageUsage self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_8(self.usedKiB, serializer);
+    sse_encode_u_8(self.totalKiB, serializer);
   }
 
   @protected
@@ -7423,6 +6628,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+  sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    PivPrivateKeyData self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+      self,
+      serializer,
+    );
+  }
+
+  @protected
+  void
   sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     ProtocolProfile self,
     SseSerializer serializer,
@@ -7462,6 +6680,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_admin_storage_usage(
+    AdminStorageUsage self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_admin_storage_usage(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_bool(self, serializer);
@@ -7486,21 +6713,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_ndef_capability_data(
+    NdefCapabilityData self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_ndef_capability_data(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_oath_selection_data(
     OathSelectionData self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_oath_selection_data(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_piv_private_key_data(
-    PivPrivateKeyData self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_piv_private_key_data(self, serializer);
   }
 
   @protected
@@ -7609,6 +6836,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_admin_applet_usage(
+    List<AdminAppletUsage> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_admin_applet_usage(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_ctap_credential(
     List<CtapCredential> self,
     SseSerializer serializer,
@@ -7638,18 +6877,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_oath_calculation(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_oath_entry(
-    List<OathEntry> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_oath_entry(item, serializer);
     }
   }
 
@@ -7688,6 +6915,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_ndef_capability_data(
+    NdefCapabilityData self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_16(self.maxMessageLength, serializer);
+    sse_encode_bool(self.readOnly, serializer);
+  }
+
+  @protected
   void sse_encode_oath_calculation(
     OathCalculation self,
     SseSerializer serializer,
@@ -7704,13 +6941,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_oath_code(OathCode self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
-  }
-
-  @protected
-  void sse_encode_oath_entry(OathEntry self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_u_8(self.algorithmType, serializer);
-    sse_encode_list_prim_u_8_strict(self.name, serializer);
   }
 
   @protected
@@ -7771,6 +7001,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+  sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    PivPrivateKeyData? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+        self,
+        serializer,
+      );
+    }
+  }
+
+  @protected
+  void
   sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     ProtocolProfile? self,
     SseSerializer serializer,
@@ -7813,6 +7060,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_admin_storage_usage(
+    AdminStorageUsage? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_admin_storage_usage(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -7849,6 +7109,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_ndef_capability_data(
+    NdefCapabilityData? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_ndef_capability_data(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_oath_selection_data(
     OathSelectionData? self,
     SseSerializer serializer,
@@ -7858,19 +7131,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_box_autoadd_oath_selection_data(self, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_opt_box_autoadd_piv_private_key_data(
-    PivPrivateKeyData? self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_piv_private_key_data(self, serializer);
     }
   }
 
@@ -7941,6 +7201,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_list_admin_applet_usage(
+    List<AdminAppletUsage>? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_admin_applet_usage(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_list_ctap_credential(
     List<CtapCredential>? self,
     SseSerializer serializer,
@@ -7976,19 +7249,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_list_oath_calculation(self, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_opt_list_oath_entry(
-    List<OathEntry>? self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_list_oath_entry(self, serializer);
     }
   }
 
@@ -8041,22 +7301,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_opt_box_autoadd_piv_private_key_data(
+    sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
       self.privateKey,
       serializer,
     );
     sse_encode_opt_box_autoadd_x_509_cert_data(self.certificate, serializer);
-  }
-
-  @protected
-  void sse_encode_piv_private_key_data(
-    PivPrivateKeyData self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_u_8(self.algorithm, serializer);
-    sse_encode_list_prim_u_8_strict(self.importData, serializer);
-    sse_encode_list_prim_u_8_strict(self.subjectPublicKeyInfo, serializer);
   }
 
   @protected
@@ -8111,9 +7360,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       self.oathSelection,
       serializer,
     );
-    sse_encode_opt_list_oath_entry(self.oathEntries, serializer);
     sse_encode_opt_list_oath_calculation(self.oathCalculations, serializer);
     sse_encode_opt_box_autoadd_ctap_info(self.ctapInfo, serializer);
+    sse_encode_opt_box_autoadd_ndef_capability_data(
+      self.ndefCapability,
+      serializer,
+    );
     sse_encode_opt_list_ctap_rp(self.ctapRps, serializer);
     sse_encode_opt_list_ctap_credential(self.ctapCredentials, serializer);
   }
@@ -8309,6 +7561,40 @@ class CtapPinTokenImpl extends RustOpaque implements CtapPinToken {
   /// this token; credmgmt operations authenticate with it.
   int protocolVersion() => RustLib.instance.api
       .crateApiProtocolCtapPinTokenProtocolVersion(that: this);
+}
+
+@sealed
+class PivPrivateKeyDataImpl extends RustOpaque implements PivPrivateKeyData {
+  // Not to be used by end users
+  PivPrivateKeyDataImpl.frbInternalDcoDecode(List<dynamic> wire)
+    : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  PivPrivateKeyDataImpl.frbInternalSseDecode(
+    BigInt ptr,
+    int externalSizeOnNative,
+  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        RustLib.instance.api.rust_arc_increment_strong_count_PivPrivateKeyData,
+    rustArcDecrementStrongCount:
+        RustLib.instance.api.rust_arc_decrement_strong_count_PivPrivateKeyData,
+    rustArcDecrementStrongCountPtr: RustLib
+        .instance
+        .api
+        .rust_arc_decrement_strong_count_PivPrivateKeyDataPtr,
+  );
+
+  int get algorithm => RustLib.instance.api
+      .crateApiPivCryptoPivPrivateKeyDataAlgorithm(that: this);
+
+  /// Wipe the import components. Idempotent; previously constructed operations own their copy.
+  void close() =>
+      RustLib.instance.api.crateApiPivCryptoPivPrivateKeyDataClose(that: this);
+
+  Uint8List get subjectPublicKeyInfo => RustLib.instance.api
+      .crateApiPivCryptoPivPrivateKeyDataSubjectPublicKeyInfo(that: this);
 }
 
 @sealed
@@ -8508,15 +7794,6 @@ class ProtocolProfileImpl extends RustOpaque implements ProtocolProfile {
     accessChallenge: accessChallenge,
   );
 
-  ProtocolOperation oathList({
-    Uint8List? accessKey,
-    Uint8List? accessChallenge,
-  }) => RustLib.instance.api.crateApiProtocolProtocolProfileOathList(
-    that: this,
-    accessKey: accessKey,
-    accessChallenge: accessChallenge,
-  );
-
   ProtocolOperation oathPut({
     required List<int> name,
     required int kind,
@@ -8538,19 +7815,6 @@ class ProtocolProfileImpl extends RustOpaque implements ProtocolProfile {
     requireTouch: requireTouch,
     increasing: increasing,
     initialCounter: initialCounter,
-    accessKey: accessKey,
-    accessChallenge: accessChallenge,
-  );
-
-  ProtocolOperation oathRename({
-    required List<int> old,
-    required List<int> new_,
-    Uint8List? accessKey,
-    Uint8List? accessChallenge,
-  }) => RustLib.instance.api.crateApiProtocolProtocolProfileOathRename(
-    that: this,
-    old: old,
-    new_: new_,
     accessKey: accessKey,
     accessChallenge: accessChallenge,
   );
@@ -8599,12 +7863,6 @@ class ProtocolProfileImpl extends RustOpaque implements ProtocolProfile {
     challenge: challenge,
   );
 
-  ProtocolOperation openpgpActivate({required List<int> password}) =>
-      RustLib.instance.api.crateApiProtocolProtocolProfileOpenpgpActivate(
-        that: this,
-        password: password,
-      );
-
   ProtocolOperation openpgpChangePassword({
     required int reference,
     required List<int> old,
@@ -8615,35 +7873,6 @@ class ProtocolProfileImpl extends RustOpaque implements ProtocolProfile {
         reference: reference,
         old: old,
         new_: new_,
-      );
-
-  ProtocolOperation openpgpGenerateKey({
-    required int slot,
-    required List<int> password,
-  }) => RustLib.instance.api.crateApiProtocolProtocolProfileOpenpgpGenerateKey(
-    that: this,
-    slot: slot,
-    password: password,
-  );
-
-  ProtocolOperation openpgpLogout({required int reference}) =>
-      RustLib.instance.api.crateApiProtocolProtocolProfileOpenpgpLogout(
-        that: this,
-        reference: reference,
-      );
-
-  ProtocolOperation openpgpPinStatus({required int reference}) =>
-      RustLib.instance.api.crateApiProtocolProtocolProfileOpenpgpPinStatus(
-        that: this,
-        reference: reference,
-      );
-
-  ProtocolOperation openpgpReadCertificate({required int slot}) => RustLib
-      .instance
-      .api
-      .crateApiProtocolProtocolProfileOpenpgpReadCertificate(
-        that: this,
-        slot: slot,
       );
 
   ProtocolOperation openpgpReadData({required int tag}) => RustLib.instance.api
@@ -8660,12 +7889,6 @@ class ProtocolProfileImpl extends RustOpaque implements ProtocolProfile {
     retries: retries,
     password: password,
   );
-
-  ProtocolOperation openpgpTerminate({required List<int> password}) =>
-      RustLib.instance.api.crateApiProtocolProtocolProfileOpenpgpTerminate(
-        that: this,
-        password: password,
-      );
 
   /// Reset PW1 after explicit PW3 verification; does not change PW3.
   ProtocolOperation openpgpUnblockWithAdmin({
@@ -8698,46 +7921,6 @@ class ProtocolProfileImpl extends RustOpaque implements ProtocolProfile {
     password: password,
   );
 
-  ProtocolOperation openpgpWriteCertificate({
-    required int slot,
-    required List<int> certificate,
-    required List<int> password,
-  }) => RustLib.instance.api
-      .crateApiProtocolProtocolProfileOpenpgpWriteCertificate(
-        that: this,
-        slot: slot,
-        certificate: certificate,
-        password: password,
-      );
-
-  ProtocolOperation openpgpWriteLanguage({
-    required List<int> language,
-    required List<int> password,
-  }) =>
-      RustLib.instance.api.crateApiProtocolProtocolProfileOpenpgpWriteLanguage(
-        that: this,
-        language: language,
-        password: password,
-      );
-
-  ProtocolOperation openpgpWriteLogin({
-    required List<int> login,
-    required List<int> password,
-  }) => RustLib.instance.api.crateApiProtocolProtocolProfileOpenpgpWriteLogin(
-    that: this,
-    login: login,
-    password: password,
-  );
-
-  ProtocolOperation openpgpWriteName({
-    required List<int> name,
-    required List<int> password,
-  }) => RustLib.instance.api.crateApiProtocolProtocolProfileOpenpgpWriteName(
-    that: this,
-    name: name,
-    password: password,
-  );
-
   /// Set (Some) or clear (None) the reset code after explicit PW3 verification.
   ProtocolOperation openpgpWriteResetCode({
     Uint8List? resetCode,
@@ -8748,15 +7931,6 @@ class ProtocolProfileImpl extends RustOpaque implements ProtocolProfile {
         resetCode: resetCode,
         password: password,
       );
-
-  ProtocolOperation openpgpWriteSex({
-    required int sex,
-    required List<int> password,
-  }) => RustLib.instance.api.crateApiProtocolProtocolProfileOpenpgpWriteSex(
-    that: this,
-    sex: sex,
-    password: password,
-  );
 
   /// Whether one explicit PW1-sign verification may authorize multiple
   /// signatures (PW status bytes policy). Written after PW3 verification.
@@ -8794,15 +7968,6 @@ class ProtocolProfileImpl extends RustOpaque implements ProtocolProfile {
         policy: policy,
         password: password,
       );
-
-  ProtocolOperation openpgpWriteUrl({
-    required List<int> url,
-    required List<int> password,
-  }) => RustLib.instance.api.crateApiProtocolProtocolProfileOpenpgpWriteUrl(
-    that: this,
-    url: url,
-    password: password,
-  );
 
   /// Resolve an observed key algorithm to Console's fixed display enum IDs.
   /// These are NOT device wire IDs and never authorize a key operation.
@@ -8859,17 +8024,6 @@ class ProtocolProfileImpl extends RustOpaque implements ProtocolProfile {
     ciphertext: ciphertext,
   );
 
-  ProtocolOperation pivDecrypt({
-    required int slot,
-    required int algorithm,
-    required List<int> ciphertext,
-  }) => RustLib.instance.api.crateApiProtocolProtocolProfilePivDecrypt(
-    that: this,
-    slot: slot,
-    algorithm: algorithm,
-    ciphertext: ciphertext,
-  );
-
   ProtocolOperation pivDeleteCertificate({required int objectId}) =>
       RustLib.instance.api.crateApiProtocolProtocolProfilePivDeleteCertificate(
         that: this,
@@ -8903,34 +8057,6 @@ class ProtocolProfileImpl extends RustOpaque implements ProtocolProfile {
     touchPolicy: touchPolicy,
   );
 
-  ProtocolOperation pivImportEcKey({
-    required int slot,
-    required int algorithm,
-    required List<int> scalar,
-    required int pinPolicy,
-    required int touchPolicy,
-  }) => RustLib.instance.api.crateApiProtocolProtocolProfilePivImportEcKey(
-    that: this,
-    slot: slot,
-    algorithm: algorithm,
-    scalar: scalar,
-    pinPolicy: pinPolicy,
-    touchPolicy: touchPolicy,
-  );
-
-  ProtocolOperation pivImportEd25519Key({
-    required int slot,
-    required List<int> seed,
-    required int pinPolicy,
-    required int touchPolicy,
-  }) => RustLib.instance.api.crateApiProtocolProtocolProfilePivImportEd25519Key(
-    that: this,
-    slot: slot,
-    seed: seed,
-    pinPolicy: pinPolicy,
-    touchPolicy: touchPolicy,
-  );
-
   /// Import a post-quantum seed (INS FE): kind 0 = ML-DSA-65 (32-byte seed),
   /// 1 = ML-KEM-768 (64-byte d||z seed). Semantics match the EC/RSA/Ed25519
   /// imports: Access::Existing inside the caller's reserved transaction.
@@ -8949,25 +8075,18 @@ class ProtocolProfileImpl extends RustOpaque implements ProtocolProfile {
     touchPolicy: touchPolicy,
   );
 
-  ProtocolOperation pivImportRsaKey({
+  /// Import validated file material without round-tripping private components through Dart.
+  ProtocolOperation pivImportPrivateKey({
     required int slot,
     required int algorithm,
-    required List<int> p,
-    required List<int> q,
-    required List<int> dp,
-    required List<int> dq,
-    required List<int> qinv,
+    required PivPrivateKeyData key,
     required int pinPolicy,
     required int touchPolicy,
-  }) => RustLib.instance.api.crateApiProtocolProtocolProfilePivImportRsaKey(
+  }) => RustLib.instance.api.crateApiProtocolProtocolProfilePivImportPrivateKey(
     that: this,
     slot: slot,
     algorithm: algorithm,
-    p: p,
-    q: q,
-    dp: dp,
-    dq: dq,
-    qinv: qinv,
+    key: key,
     pinPolicy: pinPolicy,
     touchPolicy: touchPolicy,
   );
@@ -9082,25 +8201,6 @@ class ProtocolProfileImpl extends RustOpaque implements ProtocolProfile {
     mode: mode,
     message: message,
     userId: userId,
-  );
-
-  ProtocolOperation pivSm2Agreement({
-    required int slot,
-    required int role,
-    required List<int> peerStatic,
-    required List<int> peerEphemeral,
-    Uint8List? userId,
-    Uint8List? peerId,
-    required int keyLen,
-  }) => RustLib.instance.api.crateApiProtocolProtocolProfilePivSm2Agreement(
-    that: this,
-    slot: slot,
-    role: role,
-    peerStatic: peerStatic,
-    peerEphemeral: peerEphemeral,
-    userId: userId,
-    peerId: peerId,
-    keyLen: keyLen,
   );
 
   /// Writes may be partially applied before failure; never retry or roll back.

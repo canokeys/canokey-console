@@ -1,3 +1,4 @@
+import 'package:canokey_console/src/rust/api/protocol.dart';
 import 'package:canokey_console/helper/utils/applet_switches.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'dart:async';
@@ -16,7 +17,6 @@ import 'package:canokey_console/helper/utils/screenshot_mode.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/keyboard_keymap.dart';
-import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
@@ -377,23 +377,17 @@ class SettingsController extends PollingController with AdminApplet {
   Future<List<AppletStorageUsage>> _tryReadAppletStorageUsage(
     Set<Func> functionSet,
   ) async {
-    String data;
+    List<AdminAppletUsage> data;
     try {
-      data = hex.encode(await _client.readAppletStorageUsage());
+      data = await _client.readAppletStorageUsage();
     } on ProtocolException catch (error) {
       if (error.details.kind == 'UnsupportedFeature') return [];
       rethrow;
     }
 
     final usages = <AppletStorageUsage>[];
-    final recordCount = data.length ~/ _appletUsageRecordLengthHex;
-    for (var i = 0; i < recordCount; i++) {
-      final offset = i * _appletUsageRecordLengthHex;
-      final id = int.parse(data.substring(offset, offset + 2), radix: 16);
-      final flags = int.parse(
-        data.substring(offset + 2, offset + 4),
-        radix: 16,
-      );
+    for (final entry in data) {
+      final id = entry.appletId;
       final name = _appletUsageNames[id];
       if (name == null || !_hasAppletStorageUsage(id, functionSet)) {
         continue;
@@ -402,11 +396,8 @@ class SettingsController extends PollingController with AdminApplet {
         AppletStorageUsage(
           id: id,
           name: name,
-          logicalBytes: int.parse(
-            data.substring(offset + 4, offset + 12),
-            radix: 16,
-          ),
-          hasMissingSources: flags & 0x01 != 0,
+          logicalBytes: entry.logicalBytes,
+          hasMissingSources: entry.flags & 0x01 != 0,
         ),
       );
     }
@@ -456,9 +447,6 @@ class SettingsController extends PollingController with AdminApplet {
     );
   }
 
-  static const int _appletUsageRecordLengthBytes = 6;
-  static const int _appletUsageRecordLengthHex =
-      _appletUsageRecordLengthBytes * 2;
   static const Map<int, String> _appletUsageNames = {
     0x00: 'System',
     0x01: 'Admin',

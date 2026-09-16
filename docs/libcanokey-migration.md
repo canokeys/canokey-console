@@ -16,11 +16,15 @@ building, UI flows, credential prompting) stays in Console.
   imports remain stable; applet implementations live in `protocol/*_ops.rs`
   and transcript tests in `protocol/tests.rs`. Profile checks, PIV policy
   conversion and OpenPGP administrator requests share construction helpers.
-- CTAP information/RPs/credentials, OATH selections/entries/calculations and
+- CTAP information/RPs/credentials, OATH selections/calculations, Admin usage, NDEF capabilities and
   Pass slot states cross FRB as typed fields. There is no intermediate Console
   byte format for these results. `executeProtocolResult` and
   `executePreparedResult` share the existing lease, cancellation and cleanup
   path with byte-returning operations.
+- PIV import keys are opaque Rust handles holding zeroizing components. Dart
+  receives only algorithm/public-key metadata; import operations copy the material
+  into libcanokey owners directly. Closing the dialog wipes and disposes the handle.
+  Unused Console exports are omitted from the generated bridge.
 - Certificate inspection uses `x509-info` for DER/PEM, names, algorithms,
   key sizes and extensions. Console maps owned results to its display DTO and
   retains macOS role policy, certificate/CSR construction and signature
@@ -88,8 +92,8 @@ building, UI flows, credential prompting) stays in Console.
 - **OATH** — full coverage; password-protected applets pass
   `accessKey`/`accessChallenge` per operation. Set-default legacy dialects
   are split by the upstream capability (`OathSetDefaultSlots`).
-- **OpenPGP** — full coverage (data reads, PIN/reset-code/unblock, touch
-  policy/cache, retries, generate, terminate/activate). Optional data
+- **OpenPGP** — Console operations (data reads, PIN/reset-code/unblock, touch
+  policy/cache and retries). Optional data
   objects map only `NotFound` to null.
 - **NDEF** — profile-free read capability/message and crash-safe write.
   The CC advertises the file ID; read-only and oversized writes fail at the

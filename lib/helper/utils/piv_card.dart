@@ -5,6 +5,7 @@ import 'package:canokey_console/helper/utils/apdu_transport.dart';
 import 'package:canokey_console/helper/utils/card_client.dart';
 import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:canokey_console/src/rust/api/protocol.dart';
+import 'package:canokey_console/src/rust/api/piv_crypto.dart';
 import 'package:canokey_console/models/piv.dart';
 import 'package:convert/convert.dart';
 
@@ -45,9 +46,7 @@ class PivCardClient extends ProfileCardClient {
     final data = await executeProtocolOperation(
       ProtocolOperation.pivRead(kind: kind),
       transport,
-      lease: transport is SmartCardApduTransport
-          ? null
-          : injectedCurrentLease,
+      lease: transport is SmartCardApduTransport ? null : injectedCurrentLease,
       cancellation: cancellation,
     );
     binding?.check();
@@ -85,16 +84,20 @@ class PivCardClient extends ProfileCardClient {
     required int pinPolicy,
     required int touchPolicy,
   }) async {
-    return _executePrepared((profile) => profile.pivGenerateKey(
-          slot: slot,
-          algorithm: algorithm,
-          pinPolicy: pinPolicy,
-          touchPolicy: touchPolicy,
-        ));
+    return _executePrepared(
+      (profile) => profile.pivGenerateKey(
+        slot: slot,
+        algorithm: algorithm,
+        pinPolicy: pinPolicy,
+        touchPolicy: touchPolicy,
+      ),
+    );
   }
 
   Future<void> deleteCertificate(int slot) async {
-    await _executePrepared((profile) => profile.pivDeleteCertificate(objectId: slot));
+    await _executePrepared(
+      (profile) => profile.pivDeleteCertificate(objectId: slot),
+    );
   }
 
   Future<void> deleteKey(int slot) async {
@@ -102,7 +105,9 @@ class PivCardClient extends ProfileCardClient {
   }
 
   Future<void> moveKey(int source, int target) async {
-    await _executePrepared((profile) => profile.pivMoveKey(source: source, target: target));
+    await _executePrepared(
+      (profile) => profile.pivMoveKey(source: source, target: target),
+    );
   }
 
   Future<void> setManagementKey({
@@ -111,31 +116,39 @@ class PivCardClient extends ProfileCardClient {
     int touch = 0,
     bool updateProtected = false,
   }) async {
-    await _executePrepared((profile) => profile.pivSetManagementKey(
-          algorithm: algorithm,
-          key: key,
-          touch: touch,
-          updateProtected: updateProtected,
-        ));
+    await _executePrepared(
+      (profile) => profile.pivSetManagementKey(
+        algorithm: algorithm,
+        key: key,
+        touch: touch,
+        updateProtected: updateProtected,
+      ),
+    );
   }
 
   /// A successful write replaces the observed algorithm IDs; upstream marks it
   /// ReprobeRequired, so the prepared profile is always discarded afterwards.
   Future<void> setAlgorithmConfig(Uint8List raw) async {
     final binding = preparedBinding;
-    await _executePrepared((profile) => profile.pivSetAlgorithmConfig(raw: raw));
+    await _executePrepared(
+      (profile) => profile.pivSetAlgorithmConfig(raw: raw),
+    );
     discardProfile(binding);
   }
 
   Future<void> setContainerName(int slot, String name) async {
-    await _executePrepared((profile) => profile.pivSetContainerName(slot: slot, name: name));
+    await _executePrepared(
+      (profile) => profile.pivSetContainerName(slot: slot, name: name),
+    );
   }
 
   Future<void> resetPinPukRetries(int pinRetries, int pukRetries) async {
-    await _executePrepared((profile) => profile.pivResetPinPukRetries(
-          pinRetries: pinRetries,
-          pukRetries: pukRetries,
-        ));
+    await _executePrepared(
+      (profile) => profile.pivResetPinPukRetries(
+        pinRetries: pinRetries,
+        pukRetries: pukRetries,
+      ),
+    );
   }
 
   Future<Uint8List> sign({
@@ -144,12 +157,14 @@ class PivCardClient extends ProfileCardClient {
     required Uint8List input,
     int inputKind = 1,
   }) async {
-    return _executePrepared((profile) => profile.pivSign(
-          slot: slot,
-          algorithm: algorithm,
-          input: input,
-          inputKind: inputKind,
-        ));
+    return _executePrepared(
+      (profile) => profile.pivSign(
+        slot: slot,
+        algorithm: algorithm,
+        input: input,
+        inputKind: inputKind,
+      ),
+    );
   }
 
   /// Firmware streaming modes: 0 = ML-DSA-65 (empty context), 1 = randomized
@@ -160,109 +175,47 @@ class PivCardClient extends ProfileCardClient {
     required Uint8List message,
     Uint8List? userId,
   }) async {
-    return _executePrepared((profile) => profile.pivSignStreaming(
-          slot: slot,
-          mode: mode,
-          message: message,
-          userId: userId,
-        ));
+    return _executePrepared(
+      (profile) => profile.pivSignStreaming(
+        slot: slot,
+        mode: mode,
+        message: message,
+        userId: userId,
+      ),
+    );
   }
 
   /// INS F9 attestation certificate for a generated slot.
   Future<Uint8List> attest(int slot) async =>
       _executePrepared((profile) => profile.pivAttest(slot: slot));
 
-  Future<Uint8List> decrypt(int slot, int algorithm, Uint8List ciphertext) async =>
-      _executePrepared((profile) => profile.pivDecrypt(
-            slot: slot,
-            algorithm: algorithm,
-            ciphertext: ciphertext,
-          ));
-
   Future<Uint8List> derive(int slot, int algorithm, Uint8List peer) async =>
-      _executePrepared((profile) => profile.pivDerive(
-            slot: slot,
-            algorithm: algorithm,
-            peer: peer,
-          ));
+      _executePrepared(
+        (profile) =>
+            profile.pivDerive(slot: slot, algorithm: algorithm, peer: peer),
+      );
 
   Future<Uint8List> decapsulate(int slot, Uint8List ciphertext) async =>
-      _executePrepared((profile) => profile.pivDecapsulate(
-            slot: slot,
-            ciphertext: ciphertext,
-          ));
+      _executePrepared(
+        (profile) => profile.pivDecapsulate(slot: slot, ciphertext: ciphertext),
+      );
 
-  Future<Uint8List> sm2Agreement({
-    required int slot,
-    required int role,
-    required Uint8List peerStatic,
-    required Uint8List peerEphemeral,
-    Uint8List? userId,
-    Uint8List? peerId,
-    int keyLen = 32,
-  }) async =>
-      _executePrepared((profile) => profile.pivSm2Agreement(
-            slot: slot,
-            role: role,
-            peerStatic: peerStatic,
-            peerEphemeral: peerEphemeral,
-            userId: userId,
-            peerId: peerId,
-            keyLen: keyLen,
-          ));
-
-  Future<void> importEcKey({
+  Future<void> importPrivateKey({
     required int slot,
     required int algorithm,
-    required Uint8List scalar,
+    required PivPrivateKeyData key,
     int pinPolicy = 0,
     int touchPolicy = 0,
   }) async {
-    await _executePrepared((profile) => profile.pivImportEcKey(
-          slot: slot,
-          algorithm: algorithm,
-          scalar: scalar,
-          pinPolicy: pinPolicy,
-          touchPolicy: touchPolicy,
-        ));
-  }
-
-  Future<void> importRsaKey({
-    required int slot,
-    required int algorithm,
-    required Uint8List p,
-    required Uint8List q,
-    required Uint8List dp,
-    required Uint8List dq,
-    required Uint8List qinv,
-    int pinPolicy = 0,
-    int touchPolicy = 0,
-  }) async {
-    await _executePrepared((profile) => profile.pivImportRsaKey(
-          slot: slot,
-          algorithm: algorithm,
-          p: p,
-          q: q,
-          dp: dp,
-          dq: dq,
-          qinv: qinv,
-          pinPolicy: pinPolicy,
-          touchPolicy: touchPolicy,
-        ));
-  }
-
-  Future<void> importEd25519Key({
-    required int slot,
-    required Uint8List seed,
-    int pinPolicy = 0,
-    int touchPolicy = 0,
-  }) async {
-    await _executePrepared((profile) => profile.pivImportEd25519Key(
-          slot: slot,
-          seed: seed,
-          pinPolicy: pinPolicy,
-          touchPolicy: touchPolicy,
-        ));
+    await _executePrepared(
+      (profile) => profile.pivImportPrivateKey(
+        slot: slot,
+        algorithm: algorithm,
+        key: key,
+        pinPolicy: pinPolicy,
+        touchPolicy: touchPolicy,
+      ),
+    );
   }
 
   /// Import a post-quantum seed (INS FE): kind 0 = ML-DSA-65 (32-byte seed),
@@ -274,13 +227,15 @@ class PivCardClient extends ProfileCardClient {
     int pinPolicy = 0,
     int touchPolicy = 0,
   }) async {
-    await _executePrepared((profile) => profile.pivImportPqSeed(
-          slot: slot,
-          kind: kind,
-          seed: seed,
-          pinPolicy: pinPolicy,
-          touchPolicy: touchPolicy,
-        ));
+    await _executePrepared(
+      (profile) => profile.pivImportPqSeed(
+        slot: slot,
+        kind: kind,
+        seed: seed,
+        pinPolicy: pinPolicy,
+        touchPolicy: touchPolicy,
+      ),
+    );
   }
 
   /// Use the serial observed before authentication; never switch applets here.

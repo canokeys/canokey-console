@@ -12,8 +12,7 @@ impl ProtocolProfile {
     ) -> ProtocolOperation {
         let current = SecretBytes::new(current);
         let replacement = SecretBytes::new(replacement);
-        let operation = (|| {
-            let profile = self.profile()?;
+        self.operation(|profile| {
             use piv::CredentialAction;
             let action = match kind {
                 PivCredentialOperation::VerifyPin => {
@@ -35,8 +34,7 @@ impl ProtocolProfile {
             };
             piv::credential(profile, action, false, OperationOptions::default())
                 .map(Inner::Credential)
-        })();
-        ProtocolOperation::from_operation(operation)
+        })
     }
 
     /// Preserve Console's explicit external authentication mode. libcanokey owns
@@ -44,8 +42,7 @@ impl ProtocolProfile {
     #[flutter_rust_bridge::frb(sync)]
     pub fn piv_authenticate_management(&self, algorithm: u8, key: Vec<u8>) -> ProtocolOperation {
         let key = SecretBytes::new(key);
-        let operation = (|| {
-            let profile = self.profile()?;
+        self.operation(|profile| {
             let algorithm = match algorithm {
                 0x03 => piv::ManagementKeyAlgorithm::Tdes,
                 0x0a => piv::ManagementKeyAlgorithm::Aes192,
@@ -59,8 +56,7 @@ impl ProtocolProfile {
                 OperationOptions::default(),
             )
             .map(Inner::Management)
-        })();
-        ProtocolOperation::from_operation(operation)
+        })
     }
 
     /// Read the PIV algorithm extension configuration (INS EE). Without a
@@ -99,8 +95,7 @@ impl ProtocolProfile {
     /// SELECT or authentication is inserted, including after VERIFY.
     #[flutter_rust_bridge::frb(sync)]
     pub fn piv_metadata(&self, reference: u8) -> ProtocolOperation {
-        let operation = (|| {
-            let profile = self.profile()?;
+        self.operation(|profile| {
             let reference = match reference {
                 0x80 => piv::MetadataReference::Pin,
                 0x81 => piv::MetadataReference::Puk,
@@ -114,8 +109,7 @@ impl ProtocolProfile {
                 OperationOptions::default(),
             )
             .map(Inner::Metadata)
-        })();
-        ProtocolOperation::from_operation(operation)
+        })
     }
 
     /// Read the PIV metadata directory in the caller's selected transaction.
@@ -329,25 +323,6 @@ impl ProtocolProfile {
     }
 
     #[flutter_rust_bridge::frb(sync)]
-    pub fn piv_decrypt(&self, slot: u8, algorithm: u8, ciphertext: Vec<u8>) -> ProtocolOperation {
-        let ciphertext = SecretBytes::new(ciphertext);
-        self.operation(|profile| {
-            let algorithm = profile
-                .algorithm_from_wire_id(algorithm)
-                .ok_or_else(|| Error::new(ErrorKind::UnsupportedAlgorithm))?;
-            piv::decrypt(
-                profile,
-                piv_slot(slot)?,
-                algorithm,
-                ciphertext,
-                piv::Access::Existing,
-                OperationOptions::default(),
-            )
-            .map(Inner::Bytes)
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
     pub fn piv_derive(&self, slot: u8, algorithm: u8, peer: Vec<u8>) -> ProtocolOperation {
         self.operation(|profile| {
             let algorithm = profile
@@ -377,43 +352,6 @@ impl ProtocolProfile {
                 OperationOptions::default(),
             )
             .map(Inner::Bytes)
-        })
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn piv_sm2_agreement(
-        &self,
-        slot: u8,
-        role: u8,
-        peer_static: Vec<u8>,
-        peer_ephemeral: Vec<u8>,
-        user_id: Option<Vec<u8>>,
-        peer_id: Option<Vec<u8>>,
-        key_len: u16,
-    ) -> ProtocolOperation {
-        self.operation(|profile| {
-            let role = match role {
-                0 => piv::Sm2Role::Initiator,
-                1 => piv::Sm2Role::Responder,
-                _ => return Err(Error::new(ErrorKind::InvalidArgument)),
-            };
-            let input = piv::Sm2AgreementInput {
-                role,
-                peer_static,
-                peer_ephemeral,
-                user_id,
-                peer_id,
-                key_len,
-            };
-            piv::agree_sm2(
-                profile,
-                piv_slot(slot)?,
-                input,
-                piv::Access::Existing,
-                OperationOptions::default(),
-            )
-            .map(Inner::Sm2Agreement)
         })
     }
 
@@ -457,17 +395,20 @@ impl ProtocolProfile {
         })
     }
 
+    /// Import validated file material without round-tripping private components through Dart.
     #[flutter_rust_bridge::frb(sync)]
-    pub fn piv_import_ec_key(
+    pub fn piv_import_private_key(
         &self,
         slot: u8,
         algorithm: u8,
-        scalar: Vec<u8>,
+        key: &super::super::piv_crypto::PivPrivateKeyData,
         pin_policy: u8,
         touch_policy: u8,
     ) -> ProtocolOperation {
-        let scalar = SecretBytes::new(scalar);
         self.operation(|profile| {
+            if self.piv_algorithm_display_id(algorithm) != Some(key.algorithm()) {
+                return Err(Error::new(ErrorKind::UnsupportedAlgorithm));
+            }
             let algorithm = profile
                 .algorithm_from_wire_id(algorithm)
                 .ok_or_else(|| Error::new(ErrorKind::UnsupportedAlgorithm))?;
@@ -477,76 +418,10 @@ impl ProtocolProfile {
                 pin_policy: parse_pin_policy(pin_policy)?,
                 touch_policy: parse_touch_policy(touch_policy)?,
             };
-            let material = piv::PrivateKeyMaterial::ec_scalar(algorithm, scalar.as_bytes())?;
             piv::import_key(
                 profile,
                 parameters,
-                material,
-                piv::Access::Existing,
-                OperationOptions::default(),
-            )
-            .map(Inner::Credential)
-        })
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn piv_import_rsa_key(
-        &self,
-        slot: u8,
-        algorithm: u8,
-        p: Vec<u8>,
-        q: Vec<u8>,
-        dp: Vec<u8>,
-        dq: Vec<u8>,
-        qinv: Vec<u8>,
-        pin_policy: u8,
-        touch_policy: u8,
-    ) -> ProtocolOperation {
-        self.operation(|profile| {
-            let algorithm = profile
-                .algorithm_from_wire_id(algorithm)
-                .ok_or_else(|| Error::new(ErrorKind::UnsupportedAlgorithm))?;
-            let parameters = piv::KeyParameters {
-                slot: piv_slot(slot)?,
-                algorithm,
-                pin_policy: parse_pin_policy(pin_policy)?,
-                touch_policy: parse_touch_policy(touch_policy)?,
-            };
-            let material = piv::PrivateKeyMaterial::rsa_crt(algorithm, [&p, &q, &dp, &dq, &qinv])?;
-            piv::import_key(
-                profile,
-                parameters,
-                material,
-                piv::Access::Existing,
-                OperationOptions::default(),
-            )
-            .map(Inner::Credential)
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn piv_import_ed25519_key(
-        &self,
-        slot: u8,
-        seed: Vec<u8>,
-        pin_policy: u8,
-        touch_policy: u8,
-    ) -> ProtocolOperation {
-        let seed = SecretBytes::new(seed);
-        self.operation(|profile| {
-            let algorithm = piv::Algorithm::Ed25519;
-            let parameters = piv::KeyParameters {
-                slot: piv_slot(slot)?,
-                algorithm,
-                pin_policy: parse_pin_policy(pin_policy)?,
-                touch_policy: parse_touch_policy(touch_policy)?,
-            };
-            let material = piv::PrivateKeyMaterial::ed25519_seed(seed.as_bytes())?;
-            piv::import_key(
-                profile,
-                parameters,
-                material,
+                key.material(algorithm)?,
                 piv::Access::Existing,
                 OperationOptions::default(),
             )

@@ -5,6 +5,7 @@
 
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'piv_crypto.dart';
 
 // These functions are ignored because they are not marked as `pub`: `bytes`, `drive`, `drive`, `failure`, `from_operation`, `operation`, `profile`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `Inner`
@@ -105,29 +106,8 @@ abstract class ProtocolOperation implements RustOpaqueInterface {
   static ProtocolOperation ctapGetInfo() =>
       RustLib.instance.api.crateApiProtocolProtocolOperationCtapGetInfo();
 
-  /// Select the FIDO2 applet only; the caller owns the selected context.
-  static ProtocolOperation ctapSelectApplication() => RustLib.instance.api
-      .crateApiProtocolProtocolOperationCtapSelectApplication();
-
-  /// Select the FIDO2 applet and send one CTAP message within that selection.
-  static ProtocolOperation ctapTransceive({required List<int> message}) =>
-      RustLib.instance.api.crateApiProtocolProtocolOperationCtapTransceive(
-        message: message,
-      );
-
-  /// One CTAP message to the caller's already selected FIDO2 applet.
-  /// Data is the CTAP status byte followed by the payload; a non-success
-  /// status is not a protocol error and stays visible to Dart.
-  static ProtocolOperation ctapTransceiveSelected({
-    required List<int> message,
-  }) => RustLib.instance.api
-      .crateApiProtocolProtocolOperationCtapTransceiveSelected(
-        message: message,
-      );
-
   /// Profile-free NDEF capability-container read. Selects the NDEF applet.
-  /// Data encodes `max_message_length` (big-endian u16, excluding the two
-  /// NLEN bytes) followed by the read-only flag byte.
+  /// Returns the maximum message length (excluding NLEN) and write protection.
   static ProtocolOperation ndefReadCapability() => RustLib.instance.api
       .crateApiProtocolProtocolOperationNdefReadCapability();
 
@@ -248,11 +228,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     Uint8List? accessChallenge,
   });
 
-  ProtocolOperation oathList({
-    Uint8List? accessKey,
-    Uint8List? accessChallenge,
-  });
-
   ProtocolOperation oathPut({
     required List<int> name,
     required int kind,
@@ -262,13 +237,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     required bool requireTouch,
     required bool increasing,
     required int initialCounter,
-    Uint8List? accessKey,
-    Uint8List? accessChallenge,
-  });
-
-  ProtocolOperation oathRename({
-    required List<int> old,
-    required List<int> new_,
     Uint8List? accessKey,
     Uint8List? accessChallenge,
   });
@@ -300,24 +268,11 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     required List<int> challenge,
   });
 
-  ProtocolOperation openpgpActivate({required List<int> password});
-
   ProtocolOperation openpgpChangePassword({
     required int reference,
     required List<int> old,
     required List<int> new_,
   });
-
-  ProtocolOperation openpgpGenerateKey({
-    required int slot,
-    required List<int> password,
-  });
-
-  ProtocolOperation openpgpLogout({required int reference});
-
-  ProtocolOperation openpgpPinStatus({required int reference});
-
-  ProtocolOperation openpgpReadCertificate({required int slot});
 
   ProtocolOperation openpgpReadData({required int tag});
 
@@ -328,8 +283,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     required List<int> retries,
     required List<int> password,
   });
-
-  ProtocolOperation openpgpTerminate({required List<int> password});
 
   /// Reset PW1 after explicit PW3 verification; does not change PW3.
   ProtocolOperation openpgpUnblockWithAdmin({
@@ -348,35 +301,9 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     required List<int> password,
   });
 
-  ProtocolOperation openpgpWriteCertificate({
-    required int slot,
-    required List<int> certificate,
-    required List<int> password,
-  });
-
-  ProtocolOperation openpgpWriteLanguage({
-    required List<int> language,
-    required List<int> password,
-  });
-
-  ProtocolOperation openpgpWriteLogin({
-    required List<int> login,
-    required List<int> password,
-  });
-
-  ProtocolOperation openpgpWriteName({
-    required List<int> name,
-    required List<int> password,
-  });
-
   /// Set (Some) or clear (None) the reset code after explicit PW3 verification.
   ProtocolOperation openpgpWriteResetCode({
     Uint8List? resetCode,
-    required List<int> password,
-  });
-
-  ProtocolOperation openpgpWriteSex({
-    required int sex,
     required List<int> password,
   });
 
@@ -398,11 +325,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
   ProtocolOperation openpgpWriteTouchPolicy({
     required int slot,
     required int policy,
-    required List<int> password,
-  });
-
-  ProtocolOperation openpgpWriteUrl({
-    required List<int> url,
     required List<int> password,
   });
 
@@ -438,12 +360,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     required List<int> ciphertext,
   });
 
-  ProtocolOperation pivDecrypt({
-    required int slot,
-    required int algorithm,
-    required List<int> ciphertext,
-  });
-
   ProtocolOperation pivDeleteCertificate({required int objectId});
 
   ProtocolOperation pivDeleteKey({required int slot});
@@ -461,21 +377,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     required int touchPolicy,
   });
 
-  ProtocolOperation pivImportEcKey({
-    required int slot,
-    required int algorithm,
-    required List<int> scalar,
-    required int pinPolicy,
-    required int touchPolicy,
-  });
-
-  ProtocolOperation pivImportEd25519Key({
-    required int slot,
-    required List<int> seed,
-    required int pinPolicy,
-    required int touchPolicy,
-  });
-
   /// Import a post-quantum seed (INS FE): kind 0 = ML-DSA-65 (32-byte seed),
   /// 1 = ML-KEM-768 (64-byte d||z seed). Semantics match the EC/RSA/Ed25519
   /// imports: Access::Existing inside the caller's reserved transaction.
@@ -487,14 +388,11 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     required int touchPolicy,
   });
 
-  ProtocolOperation pivImportRsaKey({
+  /// Import validated file material without round-tripping private components through Dart.
+  ProtocolOperation pivImportPrivateKey({
     required int slot,
     required int algorithm,
-    required List<int> p,
-    required List<int> q,
-    required List<int> dp,
-    required List<int> dq,
-    required List<int> qinv,
+    required PivPrivateKeyData key,
     required int pinPolicy,
     required int touchPolicy,
   });
@@ -561,16 +459,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     Uint8List? userId,
   });
 
-  ProtocolOperation pivSm2Agreement({
-    required int slot,
-    required int role,
-    required List<int> peerStatic,
-    required List<int> peerEphemeral,
-    Uint8List? userId,
-    Uint8List? peerId,
-    required int keyLen,
-  });
-
   /// Writes may be partially applied before failure; never retry or roll back.
   /// Existing delegates authorization to the card in the caller-owned lease.
   ProtocolOperation pivWriteObject({
@@ -600,6 +488,31 @@ enum AdminAction {
   resetCtap,
   resetPass,
   factoryReset,
+}
+
+class AdminAppletUsage {
+  final int appletId;
+  final int flags;
+  final int logicalBytes;
+
+  const AdminAppletUsage({
+    required this.appletId,
+    required this.flags,
+    required this.logicalBytes,
+  });
+
+  @override
+  int get hashCode =>
+      appletId.hashCode ^ flags.hashCode ^ logicalBytes.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AdminAppletUsage &&
+          runtimeType == other.runtimeType &&
+          appletId == other.appletId &&
+          flags == other.flags &&
+          logicalBytes == other.logicalBytes;
 }
 
 class AdminConfigurationPatch {
@@ -684,17 +597,26 @@ class AdminResult {
   final Uint8List data;
   final AdminProgress progress;
   final List<PassSlotData>? passSlots;
+  final AdminStorageUsage? flashUsage;
+  final List<AdminAppletUsage>? appletUsage;
 
   const AdminResult({
     required this.kind,
     required this.data,
     required this.progress,
     this.passSlots,
+    this.flashUsage,
+    this.appletUsage,
   });
 
   @override
   int get hashCode =>
-      kind.hashCode ^ data.hashCode ^ progress.hashCode ^ passSlots.hashCode;
+      kind.hashCode ^
+      data.hashCode ^
+      progress.hashCode ^
+      passSlots.hashCode ^
+      flashUsage.hashCode ^
+      appletUsage.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -704,7 +626,27 @@ class AdminResult {
           kind == other.kind &&
           data == other.data &&
           progress == other.progress &&
-          passSlots == other.passSlots;
+          passSlots == other.passSlots &&
+          flashUsage == other.flashUsage &&
+          appletUsage == other.appletUsage;
+}
+
+class AdminStorageUsage {
+  final int usedKiB;
+  final int totalKiB;
+
+  const AdminStorageUsage({required this.usedKiB, required this.totalKiB});
+
+  @override
+  int get hashCode => usedKiB.hashCode ^ totalKiB.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AdminStorageUsage &&
+          runtimeType == other.runtimeType &&
+          usedKiB == other.usedKiB &&
+          totalKiB == other.totalKiB;
 }
 
 enum AdminValueKind {
@@ -826,6 +768,27 @@ class CtapRp {
           idHash == other.idHash;
 }
 
+class NdefCapabilityData {
+  final int maxMessageLength;
+  final bool readOnly;
+
+  const NdefCapabilityData({
+    required this.maxMessageLength,
+    required this.readOnly,
+  });
+
+  @override
+  int get hashCode => maxMessageLength.hashCode ^ readOnly.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NdefCapabilityData &&
+          runtimeType == other.runtimeType &&
+          maxMessageLength == other.maxMessageLength &&
+          readOnly == other.readOnly;
+}
+
 class OathCalculation {
   final Uint8List? name;
   final int digits;
@@ -863,29 +826,7 @@ class OathCalculation {
 
 enum OathCode { truncated, full, hotp, touchRequired }
 
-class OathEntry {
-  final int algorithmType;
-  final Uint8List name;
-
-  const OathEntry({required this.algorithmType, required this.name});
-
-  @override
-  int get hashCode => algorithmType.hashCode ^ name.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is OathEntry &&
-          runtimeType == other.runtimeType &&
-          algorithmType == other.algorithmType &&
-          name == other.name;
-}
-
-/// CTAP getInfo fields Dart needs, parsed in Rust so Dart never touches CBOR:
-/// `credMgmt | clientPin | forcePinChange` as tri-state bytes (0 = absent,
-/// 1 = false, 2 = true), then a minPinLength flag byte (0 = absent; 1 =
-/// present, followed by a big-endian u64), then `count | protocol bytes`
-/// with the raw advertised pinUvAuthProtocol versions.
+/// OATH selection evidence, including legacy serial observations.
 class OathSelectionData {
   final Uint8List? version;
   final Uint8List? salt;
@@ -1002,9 +943,9 @@ class ProtocolStep {
   final CtapPinSession? pinSession;
   final CtapPinToken? pinToken;
   final OathSelectionData? oathSelection;
-  final List<OathEntry>? oathEntries;
   final List<OathCalculation>? oathCalculations;
   final CtapInfo? ctapInfo;
+  final NdefCapabilityData? ndefCapability;
   final List<CtapRp>? ctapRps;
   final List<CtapCredential>? ctapCredentials;
 
@@ -1017,9 +958,9 @@ class ProtocolStep {
     this.pinSession,
     this.pinToken,
     this.oathSelection,
-    this.oathEntries,
     this.oathCalculations,
     this.ctapInfo,
+    this.ndefCapability,
     this.ctapRps,
     this.ctapCredentials,
   });
@@ -1037,9 +978,9 @@ class ProtocolStep {
       pinSession.hashCode ^
       pinToken.hashCode ^
       oathSelection.hashCode ^
-      oathEntries.hashCode ^
       oathCalculations.hashCode ^
       ctapInfo.hashCode ^
+      ndefCapability.hashCode ^
       ctapRps.hashCode ^
       ctapCredentials.hashCode;
 
@@ -1056,9 +997,9 @@ class ProtocolStep {
           pinSession == other.pinSession &&
           pinToken == other.pinToken &&
           oathSelection == other.oathSelection &&
-          oathEntries == other.oathEntries &&
           oathCalculations == other.oathCalculations &&
           ctapInfo == other.ctapInfo &&
+          ndefCapability == other.ndefCapability &&
           ctapRps == other.ctapRps &&
           ctapCredentials == other.ctapCredentials;
 }

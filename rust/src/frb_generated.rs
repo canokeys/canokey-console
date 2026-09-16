@@ -27,6 +27,7 @@
 
 // Section: imports
 
+use crate::api::piv_crypto::*;
 use crate::api::protocol::*;
 use flutter_rust_bridge::for_generated::byteorder::{NativeEndian, ReadBytesExt, WriteBytesExt};
 use flutter_rust_bridge::for_generated::{transform_result_dco, Lifetimeable, Lockable};
@@ -40,7 +41,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -175027924;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -476924793;
 
 // Section: executor
 
@@ -550,6 +551,152 @@ fn wire__crate__api__protocol__CtapPinToken_protocol_version_impl(
         },
     )
 }
+fn wire__crate__api__piv_crypto__PivPrivateKeyData_algorithm_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "PivPrivateKeyData_algorithm",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PivPrivateKeyData>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, false,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                        _ => unreachable!(),
+                    }
+                }
+                let api_that_guard = api_that_guard.unwrap();
+                let output_ok = Ok::<_, ()>(crate::api::piv_crypto::PivPrivateKeyData::algorithm(
+                    &*api_that_guard,
+                ))?;
+                std::result::Result::Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__piv_crypto__PivPrivateKeyData_close_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "PivPrivateKeyData_close",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PivPrivateKeyData>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, true,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
+                        _ => unreachable!(),
+                    }
+                }
+                let mut api_that_guard = api_that_guard.unwrap();
+                let output_ok = Ok::<_, ()>({
+                    crate::api::piv_crypto::PivPrivateKeyData::close(&mut *api_that_guard);
+                })?;
+                std::result::Result::Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__piv_crypto__PivPrivateKeyData_subject_public_key_info_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "PivPrivateKeyData_subject_public_key_info",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PivPrivateKeyData>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let mut api_that_guard = None;
+                let decode_indices_ =
+                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_that, 0, false,
+                        ),
+                    ]);
+                for i in decode_indices_ {
+                    match i {
+                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                        _ => unreachable!(),
+                    }
+                }
+                let api_that_guard = api_that_guard.unwrap();
+                let output_ok = Ok::<_, ()>(
+                    crate::api::piv_crypto::PivPrivateKeyData::subject_public_key_info(
+                        &*api_that_guard,
+                    ),
+                )?;
+                std::result::Result::Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__protocol__ProtocolOperation_admin_progress_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -786,101 +933,6 @@ fn wire__crate__api__protocol__ProtocolOperation_ctap_get_info_impl(
             transform_result_sse::<_, ()>((move || {
                 let output_ok =
                     Ok::<_, ()>(crate::api::protocol::ProtocolOperation::ctap_get_info())?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__ProtocolOperation_ctap_select_application_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolOperation_ctap_select_application",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let output_ok = Ok::<_, ()>(
-                    crate::api::protocol::ProtocolOperation::ctap_select_application(),
-                )?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__ProtocolOperation_ctap_transceive_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolOperation_ctap_transceive",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_message = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let output_ok = Ok::<_, ()>(
-                    crate::api::protocol::ProtocolOperation::ctap_transceive(api_message),
-                )?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__ProtocolOperation_ctap_transceive_selected_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolOperation_ctap_transceive_selected",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_message = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let output_ok = Ok::<_, ()>(
-                    crate::api::protocol::ProtocolOperation::ctap_transceive_selected(api_message),
-                )?;
                 std::result::Result::Ok(output_ok)
             })())
         },
@@ -1777,58 +1829,6 @@ fn wire__crate__api__protocol__ProtocolProfile_oath_delete_impl(
         },
     )
 }
-fn wire__crate__api__protocol__ProtocolProfile_oath_list_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_oath_list",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_access_key = <Option<Vec<u8>>>::sse_decode(&mut deserializer);
-            let api_access_challenge = <Option<Vec<u8>>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok = Ok::<_, ()>(crate::api::protocol::ProtocolProfile::oath_list(
-                    &*api_that_guard,
-                    api_access_key,
-                    api_access_challenge,
-                ))?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
 fn wire__crate__api__protocol__ProtocolProfile_oath_put_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -1889,62 +1889,6 @@ fn wire__crate__api__protocol__ProtocolProfile_oath_put_impl(
                     api_require_touch,
                     api_increasing,
                     api_initial_counter,
-                    api_access_key,
-                    api_access_challenge,
-                ))?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__ProtocolProfile_oath_rename_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_oath_rename",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_old = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_new = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_access_key = <Option<Vec<u8>>>::sse_decode(&mut deserializer);
-            let api_access_challenge = <Option<Vec<u8>>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok = Ok::<_, ()>(crate::api::protocol::ProtocolProfile::oath_rename(
-                    &*api_that_guard,
-                    api_old,
-                    api_new,
                     api_access_key,
                     api_access_challenge,
                 ))?;
@@ -2166,57 +2110,6 @@ fn wire__crate__api__protocol__ProtocolProfile_oath_validate_impl(
         },
     )
 }
-fn wire__crate__api__protocol__ProtocolProfile_openpgp_activate_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_openpgp_activate",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_password = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok =
-                    Ok::<_, ()>(crate::api::protocol::ProtocolProfile::openpgp_activate(
-                        &*api_that_guard,
-                        api_password,
-                    ))?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
 fn wire__crate__api__protocol__ProtocolProfile_openpgp_change_password_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -2266,213 +2159,6 @@ fn wire__crate__api__protocol__ProtocolProfile_openpgp_change_password_impl(
                         api_reference,
                         api_old,
                         api_new,
-                    ),
-                )?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__ProtocolProfile_openpgp_generate_key_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_openpgp_generate_key",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_slot = <u8>::sse_decode(&mut deserializer);
-            let api_password = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok =
-                    Ok::<_, ()>(crate::api::protocol::ProtocolProfile::openpgp_generate_key(
-                        &*api_that_guard,
-                        api_slot,
-                        api_password,
-                    ))?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__ProtocolProfile_openpgp_logout_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_openpgp_logout",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_reference = <u8>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok =
-                    Ok::<_, ()>(crate::api::protocol::ProtocolProfile::openpgp_logout(
-                        &*api_that_guard,
-                        api_reference,
-                    ))?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__ProtocolProfile_openpgp_pin_status_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_openpgp_pin_status",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_reference = <u8>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok =
-                    Ok::<_, ()>(crate::api::protocol::ProtocolProfile::openpgp_pin_status(
-                        &*api_that_guard,
-                        api_reference,
-                    ))?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__ProtocolProfile_openpgp_read_certificate_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_openpgp_read_certificate",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_slot = <u8>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok = Ok::<_, ()>(
-                    crate::api::protocol::ProtocolProfile::openpgp_read_certificate(
-                        &*api_that_guard,
-                        api_slot,
                     ),
                 )?;
                 std::result::Result::Ok(output_ok)
@@ -2580,57 +2266,6 @@ fn wire__crate__api__protocol__ProtocolProfile_openpgp_reset_retries_impl(
                         api_password,
                     ),
                 )?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__ProtocolProfile_openpgp_terminate_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_openpgp_terminate",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_password = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok =
-                    Ok::<_, ()>(crate::api::protocol::ProtocolProfile::openpgp_terminate(
-                        &*api_that_guard,
-                        api_password,
-                    ))?;
                 std::result::Result::Ok(output_ok)
             })())
         },
@@ -2797,222 +2432,6 @@ fn wire__crate__api__protocol__ProtocolProfile_openpgp_verify_impl(
         },
     )
 }
-fn wire__crate__api__protocol__ProtocolProfile_openpgp_write_certificate_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_openpgp_write_certificate",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_slot = <u8>::sse_decode(&mut deserializer);
-            let api_certificate = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_password = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok = Ok::<_, ()>(
-                    crate::api::protocol::ProtocolProfile::openpgp_write_certificate(
-                        &*api_that_guard,
-                        api_slot,
-                        api_certificate,
-                        api_password,
-                    ),
-                )?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__ProtocolProfile_openpgp_write_language_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_openpgp_write_language",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_language = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_password = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok = Ok::<_, ()>(
-                    crate::api::protocol::ProtocolProfile::openpgp_write_language(
-                        &*api_that_guard,
-                        api_language,
-                        api_password,
-                    ),
-                )?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__ProtocolProfile_openpgp_write_login_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_openpgp_write_login",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_login = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_password = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok =
-                    Ok::<_, ()>(crate::api::protocol::ProtocolProfile::openpgp_write_login(
-                        &*api_that_guard,
-                        api_login,
-                        api_password,
-                    ))?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__ProtocolProfile_openpgp_write_name_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_openpgp_write_name",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_name = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_password = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok =
-                    Ok::<_, ()>(crate::api::protocol::ProtocolProfile::openpgp_write_name(
-                        &*api_that_guard,
-                        api_name,
-                        api_password,
-                    ))?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
 fn wire__crate__api__protocol__ProtocolProfile_openpgp_write_reset_code_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -3062,59 +2481,6 @@ fn wire__crate__api__protocol__ProtocolProfile_openpgp_write_reset_code_impl(
                         api_password,
                     ),
                 )?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__ProtocolProfile_openpgp_write_sex_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_openpgp_write_sex",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_sex = <u8>::sse_decode(&mut deserializer);
-            let api_password = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok =
-                    Ok::<_, ()>(crate::api::protocol::ProtocolProfile::openpgp_write_sex(
-                        &*api_that_guard,
-                        api_sex,
-                        api_password,
-                    ))?;
                 std::result::Result::Ok(output_ok)
             })())
         },
@@ -3279,59 +2645,6 @@ fn wire__crate__api__protocol__ProtocolProfile_openpgp_write_touch_policy_impl(
                         api_password,
                     ),
                 )?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__ProtocolProfile_openpgp_write_url_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_openpgp_write_url",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_url = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_password = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok =
-                    Ok::<_, ()>(crate::api::protocol::ProtocolProfile::openpgp_write_url(
-                        &*api_that_guard,
-                        api_url,
-                        api_password,
-                    ))?;
                 std::result::Result::Ok(output_ok)
             })())
         },
@@ -3653,60 +2966,6 @@ fn wire__crate__api__protocol__ProtocolProfile_piv_decapsulate_impl(
         },
     )
 }
-fn wire__crate__api__protocol__ProtocolProfile_piv_decrypt_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_piv_decrypt",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_slot = <u8>::sse_decode(&mut deserializer);
-            let api_algorithm = <u8>::sse_decode(&mut deserializer);
-            let api_ciphertext = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok = Ok::<_, ()>(crate::api::protocol::ProtocolProfile::piv_decrypt(
-                    &*api_that_guard,
-                    api_slot,
-                    api_algorithm,
-                    api_ciphertext,
-                ))?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
 fn wire__crate__api__protocol__ProtocolProfile_piv_delete_certificate_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -3921,123 +3180,6 @@ fn wire__crate__api__protocol__ProtocolProfile_piv_generate_key_impl(
         },
     )
 }
-fn wire__crate__api__protocol__ProtocolProfile_piv_import_ec_key_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_piv_import_ec_key",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_slot = <u8>::sse_decode(&mut deserializer);
-            let api_algorithm = <u8>::sse_decode(&mut deserializer);
-            let api_scalar = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_pin_policy = <u8>::sse_decode(&mut deserializer);
-            let api_touch_policy = <u8>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok =
-                    Ok::<_, ()>(crate::api::protocol::ProtocolProfile::piv_import_ec_key(
-                        &*api_that_guard,
-                        api_slot,
-                        api_algorithm,
-                        api_scalar,
-                        api_pin_policy,
-                        api_touch_policy,
-                    ))?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__protocol__ProtocolProfile_piv_import_ed25519_key_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_piv_import_ed25519_key",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_slot = <u8>::sse_decode(&mut deserializer);
-            let api_seed = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_pin_policy = <u8>::sse_decode(&mut deserializer);
-            let api_touch_policy = <u8>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok = Ok::<_, ()>(
-                    crate::api::protocol::ProtocolProfile::piv_import_ed25519_key(
-                        &*api_that_guard,
-                        api_slot,
-                        api_seed,
-                        api_pin_policy,
-                        api_touch_policy,
-                    ),
-                )?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
 fn wire__crate__api__protocol__ProtocolProfile_piv_import_pq_seed_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -4097,14 +3239,14 @@ fn wire__crate__api__protocol__ProtocolProfile_piv_import_pq_seed_impl(
         },
     )
 }
-fn wire__crate__api__protocol__ProtocolProfile_piv_import_rsa_key_impl(
+fn wire__crate__api__protocol__ProtocolProfile_piv_import_private_key_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_piv_import_rsa_key",
+            debug_name: "ProtocolProfile_piv_import_private_key",
             port: None,
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
         },
@@ -4123,42 +3265,43 @@ fn wire__crate__api__protocol__ProtocolProfile_piv_import_rsa_key_impl(
             >>::sse_decode(&mut deserializer);
             let api_slot = <u8>::sse_decode(&mut deserializer);
             let api_algorithm = <u8>::sse_decode(&mut deserializer);
-            let api_p = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_q = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_dp = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_dq = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_qinv = <Vec<u8>>::sse_decode(&mut deserializer);
+            let api_key = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PivPrivateKeyData>,
+            >>::sse_decode(&mut deserializer);
             let api_pin_policy = <u8>::sse_decode(&mut deserializer);
             let api_touch_policy = <u8>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse::<_, ()>((move || {
                 let mut api_that_guard = None;
+                let mut api_key_guard = None;
                 let decode_indices_ =
                     flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
                         flutter_rust_bridge::for_generated::LockableOrderInfo::new(
                             &api_that, 0, false,
                         ),
+                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                            &api_key, 1, false,
+                        ),
                     ]);
                 for i in decode_indices_ {
                     match i {
                         0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                        1 => api_key_guard = Some(api_key.lockable_decode_sync_ref()),
                         _ => unreachable!(),
                     }
                 }
                 let api_that_guard = api_that_guard.unwrap();
-                let output_ok =
-                    Ok::<_, ()>(crate::api::protocol::ProtocolProfile::piv_import_rsa_key(
+                let api_key_guard = api_key_guard.unwrap();
+                let output_ok = Ok::<_, ()>(
+                    crate::api::protocol::ProtocolProfile::piv_import_private_key(
                         &*api_that_guard,
                         api_slot,
                         api_algorithm,
-                        api_p,
-                        api_q,
-                        api_dp,
-                        api_dq,
-                        api_qinv,
+                        &*api_key_guard,
                         api_pin_policy,
                         api_touch_policy,
-                    ))?;
+                    ),
+                )?;
                 std::result::Result::Ok(output_ok)
             })())
         },
@@ -4750,69 +3893,6 @@ fn wire__crate__api__protocol__ProtocolProfile_piv_sign_streaming_impl(
         },
     )
 }
-fn wire__crate__api__protocol__ProtocolProfile_piv_sm2_agreement_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ProtocolProfile_piv_sm2_agreement",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <RustOpaqueMoi<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolProfile>,
-            >>::sse_decode(&mut deserializer);
-            let api_slot = <u8>::sse_decode(&mut deserializer);
-            let api_role = <u8>::sse_decode(&mut deserializer);
-            let api_peer_static = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_peer_ephemeral = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_user_id = <Option<Vec<u8>>>::sse_decode(&mut deserializer);
-            let api_peer_id = <Option<Vec<u8>>>::sse_decode(&mut deserializer);
-            let api_key_len = <u16>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
-                    }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok =
-                    Ok::<_, ()>(crate::api::protocol::ProtocolProfile::piv_sm2_agreement(
-                        &*api_that_guard,
-                        api_slot,
-                        api_role,
-                        api_peer_static,
-                        api_peer_ephemeral,
-                        api_user_id,
-                        api_peer_id,
-                        api_key_len,
-                    ))?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
 fn wire__crate__api__protocol__ProtocolProfile_piv_write_object_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -4975,42 +4055,6 @@ fn wire__crate__api__decode__decode_png_qrcode_impl(
             deserializer.end();
             transform_result_sse::<_, String>((move || {
                 let output_ok = crate::api::decode::decode_png_qrcode(api_png_file)?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__crypto__encrypt_piv_management_key_challenge_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "encrypt_piv_management_key_challenge",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_algorithm = <u8>::sse_decode(&mut deserializer);
-            let api_key = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_challenge = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, String>((move || {
-                let output_ok = crate::api::crypto::encrypt_piv_management_key_challenge(
-                    api_algorithm,
-                    api_key,
-                    api_challenge,
-                )?;
                 std::result::Result::Ok(output_ok)
             })())
         },
@@ -5239,36 +4283,6 @@ fn wire__crate__api__crypto__parse_x509_cert_from_der_impl(
             deserializer.end();
             transform_result_sse::<_, String>((move || {
                 let output_ok = crate::api::crypto::parse_x509_cert_from_der(api_der)?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__crypto__parse_x509_cert_from_pem_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "parse_x509_cert_from_pem",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_pem = <String>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, String>((move || {
-                let output_ok = crate::api::crypto::parse_x509_cert_from_pem(api_pem)?;
                 std::result::Result::Ok(output_ok)
             })())
         },
@@ -5521,128 +4535,6 @@ fn wire__crate__api__crypto__sha256_digest_impl(
         },
     )
 }
-fn wire__crate__api__crypto__sha384_digest_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "sha384_digest",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_data = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let output_ok = Ok::<_, ()>(crate::api::crypto::sha384_digest(api_data))?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__crypto__sha512_digest_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "sha512_digest",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_data = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let output_ok = Ok::<_, ()>(crate::api::crypto::sha512_digest(api_data))?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__crypto__sm2_message_digest_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "sm2_message_digest",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_data = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_public_key = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, String>((move || {
-                let output_ok = crate::api::crypto::sm2_message_digest(api_data, api_public_key)?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
-fn wire__crate__api__crypto__tdes_ede3_enc_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "tdes_ede3_enc",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_key = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_data = <Vec<u8>>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let output_ok = Ok::<_, ()>(crate::api::crypto::tdes_ede3_enc(api_key, api_data))?;
-                std::result::Result::Ok(output_ok)
-            })())
-        },
-    )
-}
 fn wire__crate__api__crypto__verify_piv_signature_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -5691,6 +4583,9 @@ flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CtapPinToken>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
+    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PivPrivateKeyData>
+);
+flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolOperation>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
@@ -5714,6 +4609,16 @@ impl SseDecode for CtapPinToken {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <RustOpaqueMoi<
             flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CtapPinToken>,
+        >>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
+    }
+}
+
+impl SseDecode for PivPrivateKeyData {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <RustOpaqueMoi<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PivPrivateKeyData>,
         >>::sse_decode(deserializer);
         return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
     }
@@ -5751,6 +4656,16 @@ impl SseDecode
 
 impl SseDecode
     for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CtapPinToken>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <usize>::sse_decode(deserializer);
+        return decode_rust_opaque_moi(inner);
+    }
+}
+
+impl SseDecode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PivPrivateKeyData>>
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5810,6 +4725,20 @@ impl SseDecode for crate::api::protocol::AdminAction {
             15 => crate::api::protocol::AdminAction::ResetPass,
             16 => crate::api::protocol::AdminAction::FactoryReset,
             _ => unreachable!("Invalid variant for AdminAction: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::protocol::AdminAppletUsage {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_appletId = <u8>::sse_decode(deserializer);
+        let mut var_flags = <u8>::sse_decode(deserializer);
+        let mut var_logicalBytes = <u32>::sse_decode(deserializer);
+        return crate::api::protocol::AdminAppletUsage {
+            applet_id: var_appletId,
+            flags: var_flags,
+            logical_bytes: var_logicalBytes,
         };
     }
 }
@@ -5876,11 +4805,29 @@ impl SseDecode for crate::api::protocol::AdminResult {
         let mut var_progress = <crate::api::protocol::AdminProgress>::sse_decode(deserializer);
         let mut var_passSlots =
             <Option<Vec<crate::api::protocol::PassSlotData>>>::sse_decode(deserializer);
+        let mut var_flashUsage =
+            <Option<crate::api::protocol::AdminStorageUsage>>::sse_decode(deserializer);
+        let mut var_appletUsage =
+            <Option<Vec<crate::api::protocol::AdminAppletUsage>>>::sse_decode(deserializer);
         return crate::api::protocol::AdminResult {
             kind: var_kind,
             data: var_data,
             progress: var_progress,
             pass_slots: var_passSlots,
+            flash_usage: var_flashUsage,
+            applet_usage: var_appletUsage,
+        };
+    }
+}
+
+impl SseDecode for crate::api::protocol::AdminStorageUsage {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_usedKiB = <u8>::sse_decode(deserializer);
+        let mut var_totalKiB = <u8>::sse_decode(deserializer);
+        return crate::api::protocol::AdminStorageUsage {
+            used_ki_b: var_usedKiB,
+            total_ki_b: var_totalKiB,
         };
     }
 }
@@ -6007,6 +4954,20 @@ impl SseDecode for Vec<String> {
     }
 }
 
+impl SseDecode for Vec<crate::api::protocol::AdminAppletUsage> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::protocol::AdminAppletUsage>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::protocol::CtapCredential> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -6047,18 +5008,6 @@ impl SseDecode for Vec<crate::api::protocol::OathCalculation> {
     }
 }
 
-impl SseDecode for Vec<crate::api::protocol::OathEntry> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut len_ = <i32>::sse_decode(deserializer);
-        let mut ans_ = Vec::with_capacity(len_ as usize);
-        for idx_ in 0..len_ {
-            ans_.push(<crate::api::protocol::OathEntry>::sse_decode(deserializer));
-        }
-        return ans_;
-    }
-}
-
 impl SseDecode for Vec<crate::api::protocol::PassSlotData> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -6082,6 +5031,18 @@ impl SseDecode for Vec<u8> {
             ans_.push(<u8>::sse_decode(deserializer));
         }
         return ans_;
+    }
+}
+
+impl SseDecode for crate::api::protocol::NdefCapabilityData {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_maxMessageLength = <u16>::sse_decode(deserializer);
+        let mut var_readOnly = <bool>::sse_decode(deserializer);
+        return crate::api::protocol::NdefCapabilityData {
+            max_message_length: var_maxMessageLength,
+            read_only: var_readOnly,
+        };
     }
 }
 
@@ -6113,18 +5074,6 @@ impl SseDecode for crate::api::protocol::OathCode {
             2 => crate::api::protocol::OathCode::Hotp,
             3 => crate::api::protocol::OathCode::TouchRequired,
             _ => unreachable!("Invalid variant for OathCode: {}", inner),
-        };
-    }
-}
-
-impl SseDecode for crate::api::protocol::OathEntry {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_algorithmType = <u8>::sse_decode(deserializer);
-        let mut var_name = <Vec<u8>>::sse_decode(deserializer);
-        return crate::api::protocol::OathEntry {
-            algorithm_type: var_algorithmType,
-            name: var_name,
         };
     }
 }
@@ -6178,6 +5127,17 @@ impl SseDecode for Option<CtapPinToken> {
     }
 }
 
+impl SseDecode for Option<PivPrivateKeyData> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<PivPrivateKeyData>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<ProtocolProfile> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -6207,6 +5167,19 @@ impl SseDecode for Option<crate::api::protocol::AdminResult> {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<crate::api::protocol::AdminResult>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::protocol::AdminStorageUsage> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::protocol::AdminStorageUsage>::sse_decode(
                 deserializer,
             ));
         } else {
@@ -6248,11 +5221,11 @@ impl SseDecode for Option<i64> {
     }
 }
 
-impl SseDecode for Option<crate::api::protocol::OathSelectionData> {
+impl SseDecode for Option<crate::api::protocol::NdefCapabilityData> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
-            return Some(<crate::api::protocol::OathSelectionData>::sse_decode(
+            return Some(<crate::api::protocol::NdefCapabilityData>::sse_decode(
                 deserializer,
             ));
         } else {
@@ -6261,11 +5234,11 @@ impl SseDecode for Option<crate::api::protocol::OathSelectionData> {
     }
 }
 
-impl SseDecode for Option<crate::api::piv_crypto::PivPrivateKeyData> {
+impl SseDecode for Option<crate::api::protocol::OathSelectionData> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
-            return Some(<crate::api::piv_crypto::PivPrivateKeyData>::sse_decode(
+            return Some(<crate::api::protocol::OathSelectionData>::sse_decode(
                 deserializer,
             ));
         } else {
@@ -6342,6 +5315,19 @@ impl SseDecode for Option<crate::api::crypto::X509CertData> {
     }
 }
 
+impl SseDecode for Option<Vec<crate::api::protocol::AdminAppletUsage>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<Vec<crate::api::protocol::AdminAppletUsage>>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<Vec<crate::api::protocol::CtapCredential>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -6373,19 +5359,6 @@ impl SseDecode for Option<Vec<crate::api::protocol::OathCalculation>> {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<Vec<crate::api::protocol::OathCalculation>>::sse_decode(
-                deserializer,
-            ));
-        } else {
-            return None;
-        }
-    }
-}
-
-impl SseDecode for Option<Vec<crate::api::protocol::OathEntry>> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        if (<bool>::sse_decode(deserializer)) {
-            return Some(<Vec<crate::api::protocol::OathEntry>>::sse_decode(
                 deserializer,
             ));
         } else {
@@ -6450,27 +5423,12 @@ impl SseDecode for crate::api::protocol::PivCredentialOperation {
 impl SseDecode for crate::api::piv_crypto::PivImportFileData {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_privateKey =
-            <Option<crate::api::piv_crypto::PivPrivateKeyData>>::sse_decode(deserializer);
+        let mut var_privateKey = <Option<PivPrivateKeyData>>::sse_decode(deserializer);
         let mut var_certificate =
             <Option<crate::api::crypto::X509CertData>>::sse_decode(deserializer);
         return crate::api::piv_crypto::PivImportFileData {
             private_key: var_privateKey,
             certificate: var_certificate,
-        };
-    }
-}
-
-impl SseDecode for crate::api::piv_crypto::PivPrivateKeyData {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_algorithm = <u8>::sse_decode(deserializer);
-        let mut var_importData = <Vec<u8>>::sse_decode(deserializer);
-        let mut var_subjectPublicKeyInfo = <Vec<u8>>::sse_decode(deserializer);
-        return crate::api::piv_crypto::PivPrivateKeyData {
-            algorithm: var_algorithm,
-            import_data: var_importData,
-            subject_public_key_info: var_subjectPublicKeyInfo,
         };
     }
 }
@@ -6530,11 +5488,11 @@ impl SseDecode for crate::api::protocol::ProtocolStep {
         let mut var_pinToken = <Option<CtapPinToken>>::sse_decode(deserializer);
         let mut var_oathSelection =
             <Option<crate::api::protocol::OathSelectionData>>::sse_decode(deserializer);
-        let mut var_oathEntries =
-            <Option<Vec<crate::api::protocol::OathEntry>>>::sse_decode(deserializer);
         let mut var_oathCalculations =
             <Option<Vec<crate::api::protocol::OathCalculation>>>::sse_decode(deserializer);
         let mut var_ctapInfo = <Option<crate::api::protocol::CtapInfo>>::sse_decode(deserializer);
+        let mut var_ndefCapability =
+            <Option<crate::api::protocol::NdefCapabilityData>>::sse_decode(deserializer);
         let mut var_ctapRps = <Option<Vec<crate::api::protocol::CtapRp>>>::sse_decode(deserializer);
         let mut var_ctapCredentials =
             <Option<Vec<crate::api::protocol::CtapCredential>>>::sse_decode(deserializer);
@@ -6547,9 +5505,9 @@ impl SseDecode for crate::api::protocol::ProtocolStep {
             pin_session: var_pinSession,
             pin_token: var_pinToken,
             oath_selection: var_oathSelection,
-            oath_entries: var_oathEntries,
             oath_calculations: var_oathCalculations,
             ctap_info: var_ctapInfo,
+            ndef_capability: var_ndefCapability,
             ctap_rps: var_ctapRps,
             ctap_credentials: var_ctapCredentials,
         };
@@ -6721,41 +5679,39 @@ fn pde_ffi_dispatcher_sync_impl(
             rust_vec_len,
             data_len,
         ),
-        11 => wire__crate__api__protocol__ProtocolOperation_admin_progress_impl(
+        11 => wire__crate__api__piv_crypto__PivPrivateKeyData_algorithm_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
         12 => {
+            wire__crate__api__piv_crypto__PivPrivateKeyData_close_impl(ptr, rust_vec_len, data_len)
+        }
+        13 => wire__crate__api__piv_crypto__PivPrivateKeyData_subject_public_key_info_impl(
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        14 => wire__crate__api__protocol__ProtocolOperation_admin_progress_impl(
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        15 => {
             wire__crate__api__protocol__ProtocolOperation_advance_impl(ptr, rust_vec_len, data_len)
         }
-        13 => wire__crate__api__protocol__ProtocolOperation_bootstrap_identity_impl(
+        16 => wire__crate__api__protocol__ProtocolOperation_bootstrap_identity_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        14 => wire__crate__api__protocol__ProtocolOperation_close_impl(ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__protocol__ProtocolOperation_ctap_begin_pin_session_impl(
+        17 => wire__crate__api__protocol__ProtocolOperation_close_impl(ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__protocol__ProtocolOperation_ctap_begin_pin_session_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        16 => wire__crate__api__protocol__ProtocolOperation_ctap_get_info_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        17 => wire__crate__api__protocol__ProtocolOperation_ctap_select_application_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        18 => wire__crate__api__protocol__ProtocolOperation_ctap_transceive_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        19 => wire__crate__api__protocol__ProtocolOperation_ctap_transceive_selected_impl(
+        19 => wire__crate__api__protocol__ProtocolOperation_ctap_get_info_impl(
             ptr,
             rust_vec_len,
             data_len,
@@ -6838,330 +5794,230 @@ fn pde_ffi_dispatcher_sync_impl(
             data_len,
         ),
         39 => {
-            wire__crate__api__protocol__ProtocolProfile_oath_list_impl(ptr, rust_vec_len, data_len)
-        }
-        40 => {
             wire__crate__api__protocol__ProtocolProfile_oath_put_impl(ptr, rust_vec_len, data_len)
         }
-        41 => wire__crate__api__protocol__ProtocolProfile_oath_rename_impl(
+        40 => wire__crate__api__protocol__ProtocolProfile_oath_select_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        42 => wire__crate__api__protocol__ProtocolProfile_oath_select_impl(
+        41 => wire__crate__api__protocol__ProtocolProfile_oath_set_code_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        43 => wire__crate__api__protocol__ProtocolProfile_oath_set_code_impl(
+        42 => wire__crate__api__protocol__ProtocolProfile_oath_set_default_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        44 => wire__crate__api__protocol__ProtocolProfile_oath_set_default_impl(
+        43 => wire__crate__api__protocol__ProtocolProfile_oath_validate_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        45 => wire__crate__api__protocol__ProtocolProfile_oath_validate_impl(
+        44 => wire__crate__api__protocol__ProtocolProfile_openpgp_change_password_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        46 => wire__crate__api__protocol__ProtocolProfile_openpgp_activate_impl(
+        45 => wire__crate__api__protocol__ProtocolProfile_openpgp_read_data_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        47 => wire__crate__api__protocol__ProtocolProfile_openpgp_change_password_impl(
+        46 => wire__crate__api__protocol__ProtocolProfile_openpgp_reset_retries_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        48 => wire__crate__api__protocol__ProtocolProfile_openpgp_generate_key_impl(
+        47 => wire__crate__api__protocol__ProtocolProfile_openpgp_unblock_with_admin_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        49 => wire__crate__api__protocol__ProtocolProfile_openpgp_logout_impl(
+        48 => wire__crate__api__protocol__ProtocolProfile_openpgp_unblock_with_code_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        50 => wire__crate__api__protocol__ProtocolProfile_openpgp_pin_status_impl(
+        49 => wire__crate__api__protocol__ProtocolProfile_openpgp_verify_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        51 => wire__crate__api__protocol__ProtocolProfile_openpgp_read_certificate_impl(
+        50 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_reset_code_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        52 => wire__crate__api__protocol__ProtocolProfile_openpgp_read_data_impl(
+        51 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_signature_pin_policy_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        53 => wire__crate__api__protocol__ProtocolProfile_openpgp_reset_retries_impl(
+        52 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_touch_cache_time_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        54 => wire__crate__api__protocol__ProtocolProfile_openpgp_terminate_impl(
+        53 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_touch_policy_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        55 => wire__crate__api__protocol__ProtocolProfile_openpgp_unblock_with_admin_impl(
+        54 => wire__crate__api__protocol__ProtocolProfile_piv_algorithm_display_id_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        56 => wire__crate__api__protocol__ProtocolProfile_openpgp_unblock_with_code_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        57 => wire__crate__api__protocol__ProtocolProfile_openpgp_verify_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        58 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_certificate_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        59 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_language_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        60 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_login_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        61 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_name_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        62 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_reset_code_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        63 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_sex_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        64 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_signature_pin_policy_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        65 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_touch_cache_time_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        66 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_touch_policy_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        67 => wire__crate__api__protocol__ProtocolProfile_openpgp_write_url_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        68 => wire__crate__api__protocol__ProtocolProfile_piv_algorithm_display_id_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        69 => {
+        55 => {
             wire__crate__api__protocol__ProtocolProfile_piv_attest_impl(ptr, rust_vec_len, data_len)
         }
-        70 => wire__crate__api__protocol__ProtocolProfile_piv_authenticate_management_impl(
+        56 => wire__crate__api__protocol__ProtocolProfile_piv_authenticate_management_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        71 => wire__crate__api__protocol__ProtocolProfile_piv_certificate_impl(
+        57 => wire__crate__api__protocol__ProtocolProfile_piv_certificate_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        72 => wire__crate__api__protocol__ProtocolProfile_piv_credential_impl(
+        58 => wire__crate__api__protocol__ProtocolProfile_piv_credential_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        73 => wire__crate__api__protocol__ProtocolProfile_piv_decapsulate_impl(
+        59 => wire__crate__api__protocol__ProtocolProfile_piv_decapsulate_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        74 => wire__crate__api__protocol__ProtocolProfile_piv_decrypt_impl(
+        60 => wire__crate__api__protocol__ProtocolProfile_piv_delete_certificate_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        75 => wire__crate__api__protocol__ProtocolProfile_piv_delete_certificate_impl(
+        61 => wire__crate__api__protocol__ProtocolProfile_piv_delete_key_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        76 => wire__crate__api__protocol__ProtocolProfile_piv_delete_key_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        77 => {
+        62 => {
             wire__crate__api__protocol__ProtocolProfile_piv_derive_impl(ptr, rust_vec_len, data_len)
         }
-        78 => wire__crate__api__protocol__ProtocolProfile_piv_generate_key_impl(
+        63 => wire__crate__api__protocol__ProtocolProfile_piv_generate_key_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        79 => wire__crate__api__protocol__ProtocolProfile_piv_import_ec_key_impl(
+        64 => wire__crate__api__protocol__ProtocolProfile_piv_import_pq_seed_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        80 => wire__crate__api__protocol__ProtocolProfile_piv_import_ed25519_key_impl(
+        65 => wire__crate__api__protocol__ProtocolProfile_piv_import_private_key_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        81 => wire__crate__api__protocol__ProtocolProfile_piv_import_pq_seed_impl(
+        66 => wire__crate__api__protocol__ProtocolProfile_piv_metadata_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        82 => wire__crate__api__protocol__ProtocolProfile_piv_import_rsa_key_impl(
+        67 => wire__crate__api__protocol__ProtocolProfile_piv_metadata_directory_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        83 => wire__crate__api__protocol__ProtocolProfile_piv_metadata_impl(
+        68 => wire__crate__api__protocol__ProtocolProfile_piv_move_key_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        84 => wire__crate__api__protocol__ProtocolProfile_piv_metadata_directory_impl(
+        69 => wire__crate__api__protocol__ProtocolProfile_piv_read_algorithm_config_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        85 => wire__crate__api__protocol__ProtocolProfile_piv_move_key_impl(
+        70 => wire__crate__api__protocol__ProtocolProfile_piv_read_object_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        86 => wire__crate__api__protocol__ProtocolProfile_piv_read_algorithm_config_impl(
+        71 => wire__crate__api__protocol__ProtocolProfile_piv_reset_pin_puk_retries_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        87 => wire__crate__api__protocol__ProtocolProfile_piv_read_object_impl(
+        72 => wire__crate__api__protocol__ProtocolProfile_piv_set_algorithm_config_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        88 => wire__crate__api__protocol__ProtocolProfile_piv_reset_pin_puk_retries_impl(
+        73 => wire__crate__api__protocol__ProtocolProfile_piv_set_container_name_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        89 => wire__crate__api__protocol__ProtocolProfile_piv_set_algorithm_config_impl(
+        74 => wire__crate__api__protocol__ProtocolProfile_piv_set_management_key_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        90 => wire__crate__api__protocol__ProtocolProfile_piv_set_container_name_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        91 => wire__crate__api__protocol__ProtocolProfile_piv_set_management_key_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        92 => {
+        75 => {
             wire__crate__api__protocol__ProtocolProfile_piv_sign_impl(ptr, rust_vec_len, data_len)
         }
-        93 => wire__crate__api__protocol__ProtocolProfile_piv_sign_streaming_impl(
+        76 => wire__crate__api__protocol__ProtocolProfile_piv_sign_streaming_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        94 => wire__crate__api__protocol__ProtocolProfile_piv_sm2_agreement_impl(
+        77 => wire__crate__api__protocol__ProtocolProfile_piv_write_object_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        95 => wire__crate__api__protocol__ProtocolProfile_piv_write_object_impl(
+        78 => wire__crate__api__protocol__ProtocolProfile_serial_impl(ptr, rust_vec_len, data_len),
+        79 => wire__crate__api__piv_crypto__build_piv_public_key_impl(ptr, rust_vec_len, data_len),
+        80 => wire__crate__api__decode__decode_png_qrcode_impl(ptr, rust_vec_len, data_len),
+        81 => wire__crate__api__piv_crypto__finish_piv_csr_impl(ptr, rust_vec_len, data_len),
+        82 => wire__crate__api__piv_crypto__finish_self_signed_certificate_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        96 => wire__crate__api__protocol__ProtocolProfile_serial_impl(ptr, rust_vec_len, data_len),
-        97 => wire__crate__api__piv_crypto__build_piv_public_key_impl(ptr, rust_vec_len, data_len),
-        98 => wire__crate__api__decode__decode_png_qrcode_impl(ptr, rust_vec_len, data_len),
-        99 => wire__crate__api__crypto__encrypt_piv_management_key_challenge_impl(
+        83 => wire__crate__api__crypto__hmac_sha1_impl(ptr, rust_vec_len, data_len),
+        84 => wire__crate__api__init_app_impl(ptr, rust_vec_len, data_len),
+        85 => wire__crate__api__piv_crypto__parse_piv_import_file_impl(ptr, rust_vec_len, data_len),
+        86 => wire__crate__api__piv_crypto__parse_piv_public_key_info_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        100 => wire__crate__api__piv_crypto__finish_piv_csr_impl(ptr, rust_vec_len, data_len),
-        101 => wire__crate__api__piv_crypto__finish_self_signed_certificate_impl(
+        87 => wire__crate__api__crypto__parse_x509_cert_from_der_impl(ptr, rust_vec_len, data_len),
+        88 => wire__crate__api__crypto__pbkdf2_hmac_sha1_impl(ptr, rust_vec_len, data_len),
+        89 => wire__crate__api__piv_crypto__piv_certificate_supports_macos_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        102 => wire__crate__api__crypto__hmac_sha1_impl(ptr, rust_vec_len, data_len),
-        103 => wire__crate__api__init_app_impl(ptr, rust_vec_len, data_len),
-        104 => {
-            wire__crate__api__piv_crypto__parse_piv_import_file_impl(ptr, rust_vec_len, data_len)
-        }
-        105 => wire__crate__api__piv_crypto__parse_piv_public_key_info_impl(
+        90 => wire__crate__api__piv_crypto__prepare_piv_csr_impl(ptr, rust_vec_len, data_len),
+        91 => wire__crate__api__piv_crypto__prepare_piv_signing_input_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        106 => wire__crate__api__crypto__parse_x509_cert_from_der_impl(ptr, rust_vec_len, data_len),
-        107 => wire__crate__api__crypto__parse_x509_cert_from_pem_impl(ptr, rust_vec_len, data_len),
-        108 => wire__crate__api__crypto__pbkdf2_hmac_sha1_impl(ptr, rust_vec_len, data_len),
-        109 => wire__crate__api__piv_crypto__piv_certificate_supports_macos_impl(
+        92 => wire__crate__api__piv_crypto__prepare_self_signed_certificate_impl(
             ptr,
             rust_vec_len,
             data_len,
         ),
-        110 => wire__crate__api__piv_crypto__prepare_piv_csr_impl(ptr, rust_vec_len, data_len),
-        111 => wire__crate__api__piv_crypto__prepare_piv_signing_input_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        112 => wire__crate__api__piv_crypto__prepare_self_signed_certificate_impl(
-            ptr,
-            rust_vec_len,
-            data_len,
-        ),
-        113 => wire__crate__api__protocol__protocol_step_default_impl(ptr, rust_vec_len, data_len),
-        114 => wire__crate__api__crypto__sha256_digest_impl(ptr, rust_vec_len, data_len),
-        115 => wire__crate__api__crypto__sha384_digest_impl(ptr, rust_vec_len, data_len),
-        116 => wire__crate__api__crypto__sha512_digest_impl(ptr, rust_vec_len, data_len),
-        117 => wire__crate__api__crypto__sm2_message_digest_impl(ptr, rust_vec_len, data_len),
-        118 => wire__crate__api__crypto__tdes_ede3_enc_impl(ptr, rust_vec_len, data_len),
-        119 => wire__crate__api__crypto__verify_piv_signature_impl(ptr, rust_vec_len, data_len),
+        93 => wire__crate__api__protocol__protocol_step_default_impl(ptr, rust_vec_len, data_len),
+        94 => wire__crate__api__crypto__sha256_digest_impl(ptr, rust_vec_len, data_len),
+        95 => wire__crate__api__crypto__verify_piv_signature_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -7194,6 +6050,21 @@ impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<
 
 impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<CtapPinToken>> for CtapPinToken {
     fn into_into_dart(self) -> FrbWrapper<CtapPinToken> {
+        self.into()
+    }
+}
+
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<PivPrivateKeyData> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
+            .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<PivPrivateKeyData> {}
+
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<PivPrivateKeyData>> for PivPrivateKeyData {
+    fn into_into_dart(self) -> FrbWrapper<PivPrivateKeyData> {
         self.into()
     }
 }
@@ -7261,6 +6132,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::AdminAction>
     for crate::api::protocol::AdminAction
 {
     fn into_into_dart(self) -> crate::api::protocol::AdminAction {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::protocol::AdminAppletUsage {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.applet_id.into_into_dart().into_dart(),
+            self.flags.into_into_dart().into_dart(),
+            self.logical_bytes.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::protocol::AdminAppletUsage
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::AdminAppletUsage>
+    for crate::api::protocol::AdminAppletUsage
+{
+    fn into_into_dart(self) -> crate::api::protocol::AdminAppletUsage {
         self
     }
 }
@@ -7349,6 +6242,8 @@ impl flutter_rust_bridge::IntoDart for crate::api::protocol::AdminResult {
             self.data.into_into_dart().into_dart(),
             self.progress.into_into_dart().into_dart(),
             self.pass_slots.into_into_dart().into_dart(),
+            self.flash_usage.into_into_dart().into_dart(),
+            self.applet_usage.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -7361,6 +6256,27 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::AdminResult>
     for crate::api::protocol::AdminResult
 {
     fn into_into_dart(self) -> crate::api::protocol::AdminResult {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::protocol::AdminStorageUsage {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.used_ki_b.into_into_dart().into_dart(),
+            self.total_ki_b.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::protocol::AdminStorageUsage
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::AdminStorageUsage>
+    for crate::api::protocol::AdminStorageUsage
+{
+    fn into_into_dart(self) -> crate::api::protocol::AdminStorageUsage {
         self
     }
 }
@@ -7487,6 +6403,27 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::CtapRp>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::protocol::NdefCapabilityData {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.max_message_length.into_into_dart().into_dart(),
+            self.read_only.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::protocol::NdefCapabilityData
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::NdefCapabilityData>
+    for crate::api::protocol::NdefCapabilityData
+{
+    fn into_into_dart(self) -> crate::api::protocol::NdefCapabilityData {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::protocol::OathCalculation {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -7530,27 +6467,6 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::OathCode>
     for crate::api::protocol::OathCode
 {
     fn into_into_dart(self) -> crate::api::protocol::OathCode {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::protocol::OathEntry {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.algorithm_type.into_into_dart().into_dart(),
-            self.name.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::protocol::OathEntry
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::api::protocol::OathEntry>
-    for crate::api::protocol::OathEntry
-{
-    fn into_into_dart(self) -> crate::api::protocol::OathEntry {
         self
     }
 }
@@ -7645,28 +6561,6 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::piv_crypto::PivImportFileData
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::piv_crypto::PivPrivateKeyData {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.algorithm.into_into_dart().into_dart(),
-            self.import_data.into_into_dart().into_dart(),
-            self.subject_public_key_info.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::piv_crypto::PivPrivateKeyData
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::api::piv_crypto::PivPrivateKeyData>
-    for crate::api::piv_crypto::PivPrivateKeyData
-{
-    fn into_into_dart(self) -> crate::api::piv_crypto::PivPrivateKeyData {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::piv_crypto::PivPublicKeyData {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -7745,9 +6639,9 @@ impl flutter_rust_bridge::IntoDart for crate::api::protocol::ProtocolStep {
             self.pin_session.into_into_dart().into_dart(),
             self.pin_token.into_into_dart().into_dart(),
             self.oath_selection.into_into_dart().into_dart(),
-            self.oath_entries.into_into_dart().into_dart(),
             self.oath_calculations.into_into_dart().into_dart(),
             self.ctap_info.into_into_dart().into_dart(),
+            self.ndef_capability.into_into_dart().into_dart(),
             self.ctap_rps.into_into_dart().into_dart(),
             self.ctap_credentials.into_into_dart().into_dart(),
         ]
@@ -7845,6 +6739,13 @@ impl SseEncode for CtapPinToken {
     }
 }
 
+impl SseEncode for PivPrivateKeyData {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PivPrivateKeyData>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
+    }
+}
+
 impl SseEncode for ProtocolOperation {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7872,6 +6773,17 @@ impl SseEncode
 
 impl SseEncode
     for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CtapPinToken>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        let (ptr, size) = self.sse_encode_raw();
+        <usize>::sse_encode(ptr, serializer);
+        <i32>::sse_encode(size, serializer);
+    }
+}
+
+impl SseEncode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PivPrivateKeyData>>
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7941,6 +6853,15 @@ impl SseEncode for crate::api::protocol::AdminAction {
     }
 }
 
+impl SseEncode for crate::api::protocol::AdminAppletUsage {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u8>::sse_encode(self.applet_id, serializer);
+        <u8>::sse_encode(self.flags, serializer);
+        <u32>::sse_encode(self.logical_bytes, serializer);
+    }
+}
+
 impl SseEncode for crate::api::protocol::AdminConfigurationPatch {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7994,6 +6915,19 @@ impl SseEncode for crate::api::protocol::AdminResult {
         <Vec<u8>>::sse_encode(self.data, serializer);
         <crate::api::protocol::AdminProgress>::sse_encode(self.progress, serializer);
         <Option<Vec<crate::api::protocol::PassSlotData>>>::sse_encode(self.pass_slots, serializer);
+        <Option<crate::api::protocol::AdminStorageUsage>>::sse_encode(self.flash_usage, serializer);
+        <Option<Vec<crate::api::protocol::AdminAppletUsage>>>::sse_encode(
+            self.applet_usage,
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::protocol::AdminStorageUsage {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u8>::sse_encode(self.used_ki_b, serializer);
+        <u8>::sse_encode(self.total_ki_b, serializer);
     }
 }
 
@@ -8104,6 +7038,16 @@ impl SseEncode for Vec<String> {
     }
 }
 
+impl SseEncode for Vec<crate::api::protocol::AdminAppletUsage> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::protocol::AdminAppletUsage>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::protocol::CtapCredential> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -8134,16 +7078,6 @@ impl SseEncode for Vec<crate::api::protocol::OathCalculation> {
     }
 }
 
-impl SseEncode for Vec<crate::api::protocol::OathEntry> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <i32>::sse_encode(self.len() as _, serializer);
-        for item in self {
-            <crate::api::protocol::OathEntry>::sse_encode(item, serializer);
-        }
-    }
-}
-
 impl SseEncode for Vec<crate::api::protocol::PassSlotData> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -8161,6 +7095,14 @@ impl SseEncode for Vec<u8> {
         for item in self {
             <u8>::sse_encode(item, serializer);
         }
+    }
+}
+
+impl SseEncode for crate::api::protocol::NdefCapabilityData {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u16>::sse_encode(self.max_message_length, serializer);
+        <bool>::sse_encode(self.read_only, serializer);
     }
 }
 
@@ -8190,14 +7132,6 @@ impl SseEncode for crate::api::protocol::OathCode {
             },
             serializer,
         );
-    }
-}
-
-impl SseEncode for crate::api::protocol::OathEntry {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <u8>::sse_encode(self.algorithm_type, serializer);
-        <Vec<u8>>::sse_encode(self.name, serializer);
     }
 }
 
@@ -8241,6 +7175,16 @@ impl SseEncode for Option<CtapPinToken> {
     }
 }
 
+impl SseEncode for Option<PivPrivateKeyData> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <PivPrivateKeyData>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<ProtocolProfile> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -8267,6 +7211,16 @@ impl SseEncode for Option<crate::api::protocol::AdminResult> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::api::protocol::AdminResult>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::protocol::AdminStorageUsage> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::protocol::AdminStorageUsage>::sse_encode(value, serializer);
         }
     }
 }
@@ -8301,22 +7255,22 @@ impl SseEncode for Option<i64> {
     }
 }
 
+impl SseEncode for Option<crate::api::protocol::NdefCapabilityData> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::protocol::NdefCapabilityData>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<crate::api::protocol::OathSelectionData> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::api::protocol::OathSelectionData>::sse_encode(value, serializer);
-        }
-    }
-}
-
-impl SseEncode for Option<crate::api::piv_crypto::PivPrivateKeyData> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <bool>::sse_encode(self.is_some(), serializer);
-        if let Some(value) = self {
-            <crate::api::piv_crypto::PivPrivateKeyData>::sse_encode(value, serializer);
         }
     }
 }
@@ -8381,6 +7335,16 @@ impl SseEncode for Option<crate::api::crypto::X509CertData> {
     }
 }
 
+impl SseEncode for Option<Vec<crate::api::protocol::AdminAppletUsage>> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <Vec<crate::api::protocol::AdminAppletUsage>>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<Vec<crate::api::protocol::CtapCredential>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -8407,16 +7371,6 @@ impl SseEncode for Option<Vec<crate::api::protocol::OathCalculation>> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <Vec<crate::api::protocol::OathCalculation>>::sse_encode(value, serializer);
-        }
-    }
-}
-
-impl SseEncode for Option<Vec<crate::api::protocol::OathEntry>> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <bool>::sse_encode(self.is_some(), serializer);
-        if let Some(value) = self {
-            <Vec<crate::api::protocol::OathEntry>>::sse_encode(value, serializer);
         }
     }
 }
@@ -8472,20 +7426,8 @@ impl SseEncode for crate::api::protocol::PivCredentialOperation {
 impl SseEncode for crate::api::piv_crypto::PivImportFileData {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <Option<crate::api::piv_crypto::PivPrivateKeyData>>::sse_encode(
-            self.private_key,
-            serializer,
-        );
+        <Option<PivPrivateKeyData>>::sse_encode(self.private_key, serializer);
         <Option<crate::api::crypto::X509CertData>>::sse_encode(self.certificate, serializer);
-    }
-}
-
-impl SseEncode for crate::api::piv_crypto::PivPrivateKeyData {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <u8>::sse_encode(self.algorithm, serializer);
-        <Vec<u8>>::sse_encode(self.import_data, serializer);
-        <Vec<u8>>::sse_encode(self.subject_public_key_info, serializer);
     }
 }
 
@@ -8539,12 +7481,15 @@ impl SseEncode for crate::api::protocol::ProtocolStep {
             self.oath_selection,
             serializer,
         );
-        <Option<Vec<crate::api::protocol::OathEntry>>>::sse_encode(self.oath_entries, serializer);
         <Option<Vec<crate::api::protocol::OathCalculation>>>::sse_encode(
             self.oath_calculations,
             serializer,
         );
         <Option<crate::api::protocol::CtapInfo>>::sse_encode(self.ctap_info, serializer);
+        <Option<crate::api::protocol::NdefCapabilityData>>::sse_encode(
+            self.ndef_capability,
+            serializer,
+        );
         <Option<Vec<crate::api::protocol::CtapRp>>>::sse_encode(self.ctap_rps, serializer);
         <Option<Vec<crate::api::protocol::CtapCredential>>>::sse_encode(
             self.ctap_credentials,
@@ -8643,6 +7588,7 @@ mod io {
     // Section: imports
 
     use super::*;
+    use crate::api::piv_crypto::*;
     use crate::api::protocol::*;
     use flutter_rust_bridge::for_generated::byteorder::{
         NativeEndian, ReadBytesExt, WriteBytesExt,
@@ -8680,6 +7626,20 @@ mod io {
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CtapPinToken>>::decrement_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_canokey_console_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PivPrivateKeyData>>::increment_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_canokey_console_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PivPrivateKeyData>>::decrement_strong_count(ptr as _);
     }
 
     #[unsafe(no_mangle)]
@@ -8722,6 +7682,7 @@ mod web {
     // Section: imports
 
     use super::*;
+    use crate::api::piv_crypto::*;
     use crate::api::protocol::*;
     use flutter_rust_bridge::for_generated::byteorder::{
         NativeEndian, ReadBytesExt, WriteBytesExt,
@@ -8761,6 +7722,20 @@ mod web {
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CtapPinToken>>::decrement_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PivPrivateKeyData>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PivPrivateKeyData>>::decrement_strong_count(ptr as _);
     }
 
     #[wasm_bindgen]

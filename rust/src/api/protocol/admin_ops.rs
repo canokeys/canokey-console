@@ -204,24 +204,34 @@ pub(super) fn admin_progress(outcome: &admin::Outcome) -> AdminProgress {
 pub(super) fn admin_result(outcome: admin::Outcome) -> AdminResult {
     let progress = admin_progress(&outcome);
     let mut pass_slots = None;
+    let mut flash_usage = None;
+    let mut applet_usage = None;
     use admin::Value;
     let (kind, data) = match outcome.value {
         Value::None => (AdminValueKind::None, vec![]),
         Value::Bytes(data) => (AdminValueKind::Bytes, data),
         Value::Configuration(c) => (AdminValueKind::Configuration, c.raw().to_vec()),
         Value::LegacyConfiguration(c) => (AdminValueKind::LegacyConfiguration, c.raw().to_vec()),
-        Value::FlashUsage(v) => (AdminValueKind::FlashUsage, vec![v.used_kib, v.total_kib]),
-        Value::AppletUsage(values) => (
-            AdminValueKind::AppletUsage,
-            values
-                .into_iter()
-                .flat_map(|v| {
-                    let mut data = vec![v.applet_id, v.flags];
-                    data.extend(v.logical_bytes.to_be_bytes());
-                    data
-                })
-                .collect(),
-        ),
+        Value::FlashUsage(v) => {
+            flash_usage = Some(AdminStorageUsage {
+                used_ki_b: v.used_kib,
+                total_ki_b: v.total_kib,
+            });
+            (AdminValueKind::FlashUsage, vec![])
+        }
+        Value::AppletUsage(values) => {
+            applet_usage = Some(
+                values
+                    .into_iter()
+                    .map(|v| AdminAppletUsage {
+                        applet_id: v.applet_id,
+                        flags: v.flags,
+                        logical_bytes: v.logical_bytes,
+                    })
+                    .collect(),
+            );
+            (AdminValueKind::AppletUsage, vec![])
+        }
         Value::NfcStatus(on) => (AdminValueKind::NfcStatus, vec![u8::from(on)]),
         Value::Sm2Configuration(c) => (AdminValueKind::Sm2Configuration, c.to_bytes().to_vec()),
         Value::LegacySm2Configuration(c) => {
@@ -247,6 +257,8 @@ pub(super) fn admin_result(outcome: admin::Outcome) -> AdminResult {
         data,
         progress,
         pass_slots,
+        flash_usage,
+        applet_usage,
     }
 }
 

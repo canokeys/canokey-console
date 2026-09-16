@@ -1213,12 +1213,16 @@ fn ndef_capability_and_message_reads_own_wire_bytes() {
         [0, 0xb0, 0, 0, 15]
     );
     // Max file size 0x0400 clamps to the 1022-byte message maximum.
-    assert_eq!(op.advance(cc(0)).data.unwrap(), [0x03, 0xfe, 0]);
+    let capability = op.advance(cc(0)).ndef_capability.unwrap();
+    assert_eq!(capability.max_message_length, 0x03fe);
+    assert!(!capability.read_only);
     let mut op = ProtocolOperation::ndef_read_capability();
     op.start();
     op.advance(vec![0x90, 0]);
     op.advance(vec![0x90, 0]);
-    assert_eq!(op.advance(cc(1)).data.unwrap(), [0x03, 0xfe, 1]);
+    let capability = op.advance(cc(1)).ndef_capability.unwrap();
+    assert_eq!(capability.max_message_length, 0x03fe);
+    assert!(capability.read_only);
 
     // 6A82 during selection is an absent/disabled applet; a malformed CC
     // is a parsing failure, never invented limits.
@@ -1324,51 +1328,6 @@ fn ndef_write_is_crash_safe_three_phase_and_bounded() {
 
     // Messages beyond the firmware maximum fail before any I/O.
     let mut op = ProtocolOperation::ndef_write_message(vec![0; 1023]);
-    assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
-}
-
-#[test]
-fn ctap_transceive_selects_continues_and_preserves_status() {
-    let mut op = ProtocolOperation::ctap_transceive(vec![4]);
-    assert_eq!(
-        op.start().command.unwrap(),
-        [0, 0xa4, 4, 0, 8, 0xa0, 0, 0, 6, 0x47, 0x2f, 0, 1]
-    );
-    assert_eq!(
-        op.advance(vec![0x90, 0]).command.unwrap(),
-        [0x80, 0x10, 0, 0, 1, 4]
-    );
-    // ISO7816 continuation uses GET RESPONSE with the CTAP class byte.
-    assert_eq!(
-        op.advance(vec![0x61, 2]).command.unwrap(),
-        [0x80, 0xc0, 0, 0, 2]
-    );
-    // A non-success CTAP status byte is data, not a protocol error.
-    assert_eq!(op.advance(vec![0x2e, 1, 0x90, 0]).data.unwrap(), [0x2e, 1]);
-    assert_eq!(op.start().error.unwrap().kind, "OperationStateError");
-
-    // transceive_selected sends no SELECT of its own; an empty success
-    // reply without a CTAP status byte is malformed.
-    let mut op = ProtocolOperation::ctap_transceive_selected(vec![4]);
-    assert_eq!(op.start().command.unwrap(), [0x80, 0x10, 0, 0, 1, 4]);
-    let error = op.advance(vec![0x90, 0]).error.unwrap();
-    assert_eq!(error.kind, "InvalidResponse");
-
-    // select_application emits only SELECT; 6A82 is an absent FIDO2 applet.
-    let mut op = ProtocolOperation::ctap_select_application();
-    assert_eq!(
-        op.start().command.unwrap(),
-        [0, 0xa4, 4, 0, 8, 0xa0, 0, 0, 6, 0x47, 0x2f, 0, 1]
-    );
-    assert_eq!(op.advance(vec![0x90, 0]).data.unwrap(), Vec::<u8>::new());
-    let mut op = ProtocolOperation::ctap_select_application();
-    op.start();
-    let error = op.advance(vec![0x6a, 0x82]).error.unwrap();
-    assert_eq!(error.kind, "UnsupportedDevice");
-    assert_eq!(error.phase, "Select");
-
-    // An empty CTAP message fails before any I/O.
-    let mut op = ProtocolOperation::ctap_transceive(vec![]);
     assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
 }
 
@@ -1808,4 +1767,33 @@ fn ctap_delete_credential_golden_and_handle_lifecycle() {
     token.close();
     let mut op = token.enumerate_rps();
     assert_eq!(op.start().error.unwrap().kind, "OperationStateError");
+}
+
+#[test]
+fn private_key_import_owns_material_and_rejects_closed_or_mismatched_keys() {
+    use p256::pkcs8::EncodePrivateKey;
+    let secret = p256::SecretKey::from_slice(&[3; 32]).unwrap();
+    let der = secret.to_pkcs8_der().unwrap();
+    let mut key = super::super::piv_crypto::parse_piv_import_file(der.as_bytes().to_vec())
+        .unwrap()
+        .private_key
+        .unwrap();
+    let profile = metadata_profile();
+    let mut mismatch = profile.piv_import_private_key(0x9a, 0x07, &key, 0, 0);
+    assert_eq!(mismatch.start().error.unwrap().kind, "UnsupportedAlgorithm");
+    let mut first = profile.piv_import_private_key(0x9a, 0x11, &key, 2, 1);
+    let mut retry = profile.piv_import_private_key(0x9a, 0x11, &key, 2, 1);
+    key.close();
+    key.close();
+    let mut closed = profile.piv_import_private_key(0x9a, 0x11, &key, 2, 1);
+    assert_eq!(closed.start().error.unwrap().kind, "OperationStateError");
+    let command = first.start().command.unwrap();
+    assert_eq!(retry.start().command.unwrap(), command);
+    let mut expected = vec![0, 0xfe, 0x11, 0x9a, 40, 6, 32];
+    expected.extend_from_slice(&[3; 32]);
+    expected.extend_from_slice(&[0xaa, 1, 2, 0xab, 1, 1]);
+    assert_eq!(command, expected);
+    assert!(first.advance(vec![0x90, 0]).data.is_some());
+    assert!(retry.advance(vec![0x69, 0x82]).error.is_some());
+    assert!(retry.start().command.is_none());
 }

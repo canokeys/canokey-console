@@ -55,46 +55,6 @@ impl ProtocolProfile {
     }
 
     #[flutter_rust_bridge::frb(sync)]
-    pub fn oath_rename(
-        &self,
-        old: Vec<u8>,
-        new: Vec<u8>,
-        access_key: Option<Vec<u8>>,
-        access_challenge: Option<Vec<u8>>,
-    ) -> ProtocolOperation {
-        self.operation(|profile| {
-            let request = oath::Request::Rename {
-                old: oath::Name::from_bytes(&old)?,
-                new: oath::Name::from_bytes(&new)?,
-            };
-            oath::operation(
-                profile,
-                request,
-                oath_access(access_key, access_challenge)?,
-                OperationOptions::default(),
-            )
-            .map(Inner::Oath)
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn oath_list(
-        &self,
-        access_key: Option<Vec<u8>>,
-        access_challenge: Option<Vec<u8>>,
-    ) -> ProtocolOperation {
-        self.operation(|profile| {
-            oath::operation(
-                profile,
-                oath::Request::List,
-                oath_access(access_key, access_challenge)?,
-                OperationOptions::default(),
-            )
-            .map(Inner::Oath)
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
     pub fn oath_select(&self) -> ProtocolOperation {
         self.operation(|profile| {
             oath::operation(
@@ -304,18 +264,6 @@ impl ProtocolProfile {
 pub(super) fn oath_result(outcome: oath::Outcome) -> ProtocolStep {
     match outcome {
         oath::Outcome::Unit => bytes(Vec::new()),
-        oath::Outcome::Entries(entries) => ProtocolStep {
-            oath_entries: Some(
-                entries
-                    .into_iter()
-                    .map(|entry| OathEntry {
-                        algorithm_type: entry.algorithm_type,
-                        name: entry.name.as_bytes().to_vec(),
-                    })
-                    .collect(),
-            ),
-            ..Default::default()
-        },
         oath::Outcome::Selection(selection) => ProtocolStep {
             oath_selection: Some(OathSelectionData {
                 version: Some(selection.version.to_vec()),
@@ -368,7 +316,9 @@ pub(super) fn oath_result(outcome: oath::Outcome) -> ProtocolStep {
             ..Default::default()
         },
         // These requests are not exposed by Console.
-        oath::Outcome::Serial(_) | oath::Outcome::ChallengeResponse(_) => {
+        oath::Outcome::Entries(_)
+        | oath::Outcome::Serial(_)
+        | oath::Outcome::ChallengeResponse(_) => {
             ProtocolStep::failure(Error::new(ErrorKind::InvalidResponse))
         }
     }

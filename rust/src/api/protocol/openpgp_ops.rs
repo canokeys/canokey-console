@@ -24,25 +24,6 @@ impl ProtocolProfile {
     }
 
     #[flutter_rust_bridge::frb(sync)]
-    pub fn openpgp_logout(&self, reference: u8) -> ProtocolOperation {
-        self.operation(|profile| {
-            let reference = match reference {
-                0 => openpgp::PasswordReference::Pw1Sign,
-                1 => openpgp::PasswordReference::Pw1Other,
-                2 => openpgp::PasswordReference::Pw3,
-                _ => return Err(Error::new(ErrorKind::InvalidArgument)),
-            };
-            openpgp::operation(
-                profile,
-                openpgp::Request::Logout(reference),
-                None,
-                OperationOptions::default(),
-            )
-            .map(Inner::OpenPgp)
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
     pub fn openpgp_read_data(&self, tag: u16) -> ProtocolOperation {
         self.operation(|profile| {
             openpgp::operation(
@@ -80,55 +61,6 @@ impl ProtocolProfile {
     }
 
     #[flutter_rust_bridge::frb(sync)]
-    pub fn openpgp_read_certificate(&self, slot: u8) -> ProtocolOperation {
-        self.operation(|profile| {
-            let slot = match slot {
-                0 => openpgp::Slot::Signature,
-                1 => openpgp::Slot::Decryption,
-                2 => openpgp::Slot::Authentication,
-                _ => return Err(Error::new(ErrorKind::InvalidArgument)),
-            };
-            openpgp::operation(
-                profile,
-                openpgp::Request::ReadCertificate(slot),
-                None,
-                OperationOptions::default(),
-            )
-            .map(Inner::OpenPgp)
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn openpgp_write_certificate(
-        &self,
-        slot: u8,
-        certificate: Vec<u8>,
-        password: Vec<u8>,
-    ) -> ProtocolOperation {
-        let certificate = SecretBytes::new(certificate);
-        let password = SecretBytes::new(password);
-        self.operation(|profile| {
-            let slot = match slot {
-                0 => openpgp::Slot::Signature,
-                1 => openpgp::Slot::Decryption,
-                2 => openpgp::Slot::Authentication,
-                _ => return Err(Error::new(ErrorKind::InvalidArgument)),
-            };
-            let password = openpgp::Password::from_bytes(password.as_bytes())?;
-            openpgp::operation(
-                profile,
-                openpgp::Request::WriteCertificate(slot, certificate),
-                Some(openpgp::Access {
-                    reference: openpgp::PasswordReference::Pw3,
-                    password,
-                }),
-                OperationOptions::default(),
-            )
-            .map(Inner::OpenPgp)
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
     pub fn openpgp_change_password(
         &self,
         reference: u8,
@@ -151,92 +83,6 @@ impl ProtocolProfile {
             openpgp::operation(profile, request, None, OperationOptions::default())
                 .map(Inner::OpenPgp)
         })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn openpgp_pin_status(&self, reference: u8) -> ProtocolOperation {
-        self.operation(|profile| {
-            let reference = match reference {
-                0 => openpgp::PasswordReference::Pw1Sign,
-                1 => openpgp::PasswordReference::Pw1Other,
-                2 => openpgp::PasswordReference::Pw3,
-                _ => return Err(Error::new(ErrorKind::InvalidArgument)),
-            };
-            openpgp::operation(
-                profile,
-                openpgp::Request::PinStatus(reference),
-                None,
-                OperationOptions::default(),
-            )
-            .map(Inner::OpenPgp)
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn openpgp_write_name(&self, name: Vec<u8>, password: Vec<u8>) -> ProtocolOperation {
-        self.openpgp_admin(password, || {
-            Ok(openpgp::Request::WriteData(openpgp::DataWrite::Name(name)))
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn openpgp_write_login(&self, login: Vec<u8>, password: Vec<u8>) -> ProtocolOperation {
-        let login = SecretBytes::new(login);
-        self.openpgp_admin(password, || {
-            Ok(openpgp::Request::WriteData(openpgp::DataWrite::Login(
-                login,
-            )))
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn openpgp_write_language(
-        &self,
-        language: Vec<u8>,
-        password: Vec<u8>,
-    ) -> ProtocolOperation {
-        self.openpgp_admin(password, || {
-            Ok(openpgp::Request::WriteData(openpgp::DataWrite::Language(
-                language,
-            )))
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn openpgp_write_sex(&self, sex: u8, password: Vec<u8>) -> ProtocolOperation {
-        self.openpgp_admin(password, || {
-            Ok(openpgp::Request::WriteData(openpgp::DataWrite::Sex(sex)))
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn openpgp_write_url(&self, url: Vec<u8>, password: Vec<u8>) -> ProtocolOperation {
-        self.openpgp_admin(password, || {
-            Ok(openpgp::Request::WriteData(openpgp::DataWrite::Url(url)))
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn openpgp_generate_key(&self, slot: u8, password: Vec<u8>) -> ProtocolOperation {
-        self.openpgp_admin(password, || {
-            let slot = match slot {
-                0 => openpgp::Slot::Signature,
-                1 => openpgp::Slot::Decryption,
-                2 => openpgp::Slot::Authentication,
-                _ => return Err(Error::new(ErrorKind::InvalidArgument)),
-            };
-            Ok(openpgp::Request::GenerateKey(slot))
-        })
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn openpgp_terminate(&self, password: Vec<u8>) -> ProtocolOperation {
-        self.openpgp_admin(password, || Ok(openpgp::Request::Terminate))
-    }
-
-    #[flutter_rust_bridge::frb(sync)]
-    pub fn openpgp_activate(&self, password: Vec<u8>) -> ProtocolOperation {
-        self.openpgp_admin(password, || Ok(openpgp::Request::Activate))
     }
 
     /// Set (Some) or clear (None) the reset code after explicit PW3 verification.

@@ -1215,62 +1215,14 @@ class PivController extends PollingController {
     final algorithm = AlgorithmType.fromValue(key.algorithm);
     final slot = int.parse(slotNumber, radix: 16);
     final wireId = algorithmExtensionConfig.idFor(algorithm);
-    final components = TLV.parse(key.importData);
-    final copies = <Uint8List>[];
-    Uint8List component(int tag) {
-      final value = components[tag];
-      if (value is! List<int>) {
-        throw FormatException(
-          'PIV import data lacks component ${tag.toRadixString(16)}',
-        );
-      }
-      final copy = Uint8List.fromList(value);
-      copies.add(copy);
-      return copy;
-    }
-
     try {
-      switch (algorithm) {
-        case AlgorithmType.rsa1024 ||
-        AlgorithmType.rsa2048 ||
-        AlgorithmType.rsa3072 ||
-        AlgorithmType.rsa4096:
-          await _client.importRsaKey(
-            slot: slot,
-            algorithm: wireId,
-            p: component(0x01),
-            q: component(0x02),
-            dp: component(0x03),
-            dq: component(0x04),
-            qinv: component(0x05),
-            pinPolicy: pinPolicy.value,
-            touchPolicy: touchPolicy.value,
-          );
-        case AlgorithmType.ed25519:
-          await _client.importEd25519Key(
-            slot: slot,
-            seed: component(0x06),
-            pinPolicy: pinPolicy.value,
-            touchPolicy: touchPolicy.value,
-          );
-        default:
-          await _client.importEcKey(
-            slot: slot,
-            algorithm: wireId,
-            scalar: component(0x06),
-            pinPolicy: pinPolicy.value,
-            touchPolicy: touchPolicy.value,
-          );
-      }
+      await _client.importPrivateKey(
+        slot: slot, algorithm: wireId, key: key,
+        pinPolicy: pinPolicy.value, touchPolicy: touchPolicy.value,
+      );
       return true;
     } on ProtocolException {
       return false;
-    } on FormatException {
-      return false;
-    } finally {
-      for (final copy in copies) {
-        copy.fillRange(0, copy.length, 0);
-      }
     }
   }
 

@@ -103,9 +103,9 @@ Future<T> executeProtocolResult<T>(
           step.pinSession != null ||
           step.pinToken != null ||
           step.oathSelection != null ||
-          step.oathEntries != null ||
           step.oathCalculations != null ||
           step.ctapInfo != null ||
+          step.ndefCapability != null ||
           step.ctapRps != null ||
           step.ctapCredentials != null) {
         try {

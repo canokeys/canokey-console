@@ -30,12 +30,6 @@
     "license": "MIT OR Apache-2.0"
   },
   {
-    "package_name": "aes",
-    "package_version": "0.9.3",
-    "repository": "https://github.com/RustCrypto/block-ciphers",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
     "package_name": "aho-corasick",
     "package_version": "1.1.5",
     "repository": "https://github.com/BurntSushi/aho-corasick",
@@ -336,12 +330,6 @@
     "license": "MIT OR Apache-2.0"
   },
   {
-    "package_name": "cipher",
-    "package_version": "0.5.2",
-    "repository": "https://github.com/RustCrypto/traits",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
     "package_name": "cmov",
     "package_version": "0.5.4",
     "repository": "https://github.com/RustCrypto/utils",
@@ -542,12 +530,6 @@
   {
     "package_name": "des",
     "package_version": "0.8.1",
-    "repository": "https://github.com/RustCrypto/block-ciphers",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "des",
-    "package_version": "0.9.0",
     "repository": "https://github.com/RustCrypto/block-ciphers",
     "license": "MIT OR Apache-2.0"
   },
@@ -920,12 +902,6 @@
   {
     "package_name": "inout",
     "package_version": "0.1.4",
-    "repository": "https://github.com/RustCrypto/utils",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "inout",
-    "package_version": "0.2.2",
     "repository": "https://github.com/RustCrypto/utils",
     "license": "MIT OR Apache-2.0"
   },

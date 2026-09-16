@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:canokey_console/src/rust/frb_generated.dart';
+import 'package:canokey_console/src/rust/api/piv_crypto.dart';
 import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:convert/convert.dart';
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
@@ -15,6 +16,50 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   setUpAll(() => RustLib.init());
   tearDownAll(RustLib.dispose);
+  test('opaque private key supports retries and explicit cleanup', () async {
+    final key = parsePivImportFile(
+      bytes: Uint8List.fromList(
+        hex.decode(
+          '3041020100301306072a8648ce3d020106082a8648ce3d030107042730250201010420'
+          '${List.filled(32, '03').join()}',
+        ),
+      ),
+    ).privateKey!;
+    final transport = _QueueApduTransport(['9000', '9000']);
+    try {
+      expect(key.algorithm, 0x11);
+      expect(key.subjectPublicKeyInfo, isNotEmpty);
+      await _withPreparedClient(transport, (client) async {
+        for (var attempt = 0; attempt < 2; attempt++) {
+          await client.importPrivateKey(
+            slot: 0x9a,
+            algorithm: 0x11,
+            key: key,
+            pinPolicy: 2,
+            touchPolicy: 1,
+          );
+        }
+        expect(
+          transport.commands,
+          List.filled(
+            2,
+            '00FE119A280620${List.filled(32, '03').join()}AA0102AB0101',
+          ),
+        );
+        key.close();
+        key.close();
+        await expectLater(
+          client.importPrivateKey(slot: 0x9a, algorithm: 0x11, key: key),
+          throwsA(isA<ProtocolException>()),
+        );
+        expect(transport.commands, hasLength(2));
+      });
+    } finally {
+      key.close();
+      key.dispose();
+    }
+  });
+
   test('object reads and writes retain the authenticated selection', () async {
     final transport = _QueueApduTransport([
       '9000',
@@ -866,24 +911,21 @@ void main() {
     });
   });
 
-  test(
-    'metadata algorithms resolve through this device profile',
-    () async {
-      final responses = [..._probeResponses.take(6)];
-      responses[1] = '322E302E309000';
-      final transport = _QueueApduTransport([
-        ...responses,
-        '010122020200000301019000',
-      ]);
-      final client = PivCardClient(transport: transport);
-      await client.withSession(() async {
-        await client.prepare();
-        final metadata = await client.readMetadata(0x9a);
-        expect(metadata, isNotNull);
-        expect(metadata!.algorithm, AlgorithmType.ed25519);
-      });
-    },
-  );
+  test('metadata algorithms resolve through this device profile', () async {
+    final responses = [..._probeResponses.take(6)];
+    responses[1] = '322E302E309000';
+    final transport = _QueueApduTransport([
+      ...responses,
+      '010122020200000301019000',
+    ]);
+    final client = PivCardClient(transport: transport);
+    await client.withSession(() async {
+      await client.prepare();
+      final metadata = await client.readMetadata(0x9a);
+      expect(metadata, isNotNull);
+      expect(metadata!.algorithm, AlgorithmType.ed25519);
+    });
+  });
 
   test('post-quantum seed import owns INS FE framing and policies', () async {
     final transport = _QueueApduTransport(['9000', '9000']);

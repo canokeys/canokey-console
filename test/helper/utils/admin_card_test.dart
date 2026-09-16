@@ -80,7 +80,10 @@ void main() {
         expect(await client.readConfig(), [1, 0, 0, 1, 1, 63]);
         final flash = await client.readStorageUsage();
         expect((flash.usedKiB, flash.totalKiB), (2, 8));
-        expect(await client.readAppletStorageUsage(), usage);
+        final entries = await client.readAppletStorageUsage();
+        expect(entries, hasLength(8));
+        expect((entries.first.appletId, entries.first.flags, entries.first.logicalBytes), (7, 0x81, 42));
+        expect(entries.skip(1).every((entry) => entry.appletId == 0 && entry.flags == 0 && entry.logicalBytes == 0), isTrue);
         expect(await client.readChipId(), 'AABB');
         // The probe left Admin selected, so each read skips its own SELECT.
         expect(transport.commands, [

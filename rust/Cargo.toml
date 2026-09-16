@@ -9,10 +9,8 @@ crate-type = ["cdylib", "staticlib"]
 [dependencies]
 canokey = { git = "https://github.com/canokeys/libcanokey", rev = "f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e", features = ["clientpin"] }
 canokey-protocol = { git = "https://github.com/canokeys/libcanokey", rev = "f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e" }
-aes = "^0.9.3"
 const-oid = "^0.10.1"
 der = { version = "^0.8.1", features = ["derive", "pem"] }
-des = "^0.9.0"
 ed25519-dalek = { version = "^3.0.0", default-features = false, features = ["fast", "pem", "pkcs8"] }
 flutter_rust_bridge = "=2.13.0"
 hex-literal = "^1.1.0"
