@@ -27,6 +27,11 @@ jobs:
           channel: stable
           version: ${{ env.FLUTTER_VERSION }}
           cache: true
+      - name: Generate bundled CJK fonts
+        run: |
+          python3 -m pip install --quiet fonttools==4.63.0
+          python3 tool/subset_cjk_font.py
+          git diff --exit-code -- assets/fonts/CanoKeyCJK-Bold.ttf assets/fonts/CanoKeyCJK-Regular.ttf
       - run: flutter pub get
       - name: Test UI and firmware compatibility
         run: >-
@@ -144,6 +149,12 @@ jobs:
       run: ${{ matrix.pre-build-script }}
 
     # basic format & linting check
+    - name: Generate bundled CJK fonts
+      run: |
+        PYTHON="$(command -v python3 || command -v python)"
+        "$PYTHON" -m pip install --quiet fonttools==4.63.0
+        "$PYTHON" tool/subset_cjk_font.py
+        git diff --exit-code -- assets/fonts/CanoKeyCJK-Bold.ttf assets/fonts/CanoKeyCJK-Regular.ttf
     - run: flutter pub get
     # - run: dart format --output=none --set-exit-if-changed lib/
     - run: dart analyze

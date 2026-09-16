@@ -9,6 +9,9 @@ in `pubspec.yaml` if necessary.
 ## Prerequisites
 
 - Flutter 3.47.1 and Rust 1.98.1.
+- Python 3 with fonttools (`python3 -m pip install fonttools==4.63.0`; the
+  version is pinned so the generated font files are byte-for-byte
+  reproducible) for generating the bundled CJK font subsets.
 - Ruby dependencies installed with `bundle install`.
 - Android release keystore configured in `android/key.properties`.
 - An Apple Distribution certificate and App Store provisioning profile, or an
@@ -21,6 +24,7 @@ in `pubspec.yaml` if necessary.
 From the repository root:
 
 ```sh
+python3 tool/subset_cjk_font.py  # regenerates assets/fonts/CanoKeyCJK-*.ttf when stale
 RUSTUP_TOOLCHAIN=1.98.1 flutter_rust_bridge_codegen generate
 rustup run 1.98.1 cargo test --manifest-path rust/Cargo.toml
 flutter test

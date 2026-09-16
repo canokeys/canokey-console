@@ -8,3 +8,5 @@ dist/
 app-store-screenshots/
 android/fastlane/report.xml
 ios/fastlane/report.xml
+
+__pycache__/
