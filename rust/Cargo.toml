@@ -37,11 +37,11 @@ x509-parser = "^0.18.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "^0.4.3", features = ["wasm_js"] }
-# Keep the wasm-bindgen family pinned for reproducible FRB web builds.
-wasm-bindgen = "=0.2.100"
-js-sys = "=0.3.77"
-web-sys = "=0.3.77"
-wasm-bindgen-futures = "=0.4.50"
+# wasm-bindgen family tracks the wasm-bindgen-cli used by the FRB web build.
+wasm-bindgen = "=0.2.128"
+js-sys = "=0.3.105"
+web-sys = "=0.3.105"
+wasm-bindgen-futures = "=0.4.78"
 
 [dev-dependencies]
 

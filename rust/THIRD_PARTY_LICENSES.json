@@ -181,7 +181,7 @@
   },
   {
     "package_name": "bitflags",
-    "package_version": "2.13.1",
+    "package_version": "2.13.2",
     "repository": "https://github.com/bitflags/bitflags",
     "license": "MIT OR Apache-2.0"
   },
@@ -384,6 +384,12 @@
     "license": "MIT OR Apache-2.0"
   },
   {
+    "package_name": "core_detect",
+    "package_version": "1.0.0",
+    "repository": "https://github.com/thomcc/core_detect",
+    "license": "MIT/Apache-2.0"
+  },
+  {
     "package_name": "cpubits",
     "package_version": "0.1.1",
     "repository": "https://github.com/RustCrypto/utils",
@@ -403,25 +409,25 @@
   },
   {
     "package_name": "crc32fast",
-    "package_version": "1.5.1",
+    "package_version": "1.5.2",
     "repository": "https://github.com/srijs/rust-crc32fast",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "crossbeam-deque",
-    "package_version": "0.8.7",
+    "package_version": "0.8.8",
     "repository": "https://github.com/crossbeam-rs/crossbeam",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "crossbeam-epoch",
-    "package_version": "0.9.20",
+    "package_version": "0.9.21",
     "repository": "https://github.com/crossbeam-rs/crossbeam",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "crossbeam-utils",
-    "package_version": "0.8.22",
+    "package_version": "0.8.23",
     "repository": "https://github.com/crossbeam-rs/crossbeam",
     "license": "MIT OR Apache-2.0"
   },
@@ -445,7 +451,7 @@
   },
   {
     "package_name": "crypto-common",
-    "package_version": "0.1.6",
+    "package_version": "0.1.7",
     "repository": "https://github.com/RustCrypto/traits",
     "license": "MIT OR Apache-2.0"
   },
@@ -505,7 +511,7 @@
   },
   {
     "package_name": "der",
-    "package_version": "0.8.1",
+    "package_version": "0.8.2",
     "repository": "https://github.com/RustCrypto/formats",
     "license": "Apache-2.0 OR MIT"
   },
@@ -607,7 +613,7 @@
   },
   {
     "package_name": "encoding_rs",
-    "package_version": "0.8.35",
+    "package_version": "0.8.41",
     "repository": "https://github.com/hsivonen/encoding_rs",
     "license": "(Apache-2.0 OR MIT) AND BSD-3-Clause"
   },
@@ -763,7 +769,7 @@
   },
   {
     "package_name": "generic-array",
-    "package_version": "0.14.9",
+    "package_version": "0.14.7",
     "repository": "https://github.com/fizyk20/generic-array.git",
     "license": "MIT"
   },
@@ -865,7 +871,7 @@
   },
   {
     "package_name": "hybrid-array",
-    "package_version": "0.4.14",
+    "package_version": "0.4.15",
     "repository": "https://github.com/RustCrypto/hybrid-array",
     "license": "MIT OR Apache-2.0"
   },
@@ -937,8 +943,8 @@
   },
   {
     "package_name": "js-sys",
-    "package_version": "0.3.77",
-    "repository": "https://github.com/rustwasm/wasm-bindgen/tree/master/crates/js-sys",
+    "package_version": "0.3.105",
+    "repository": "https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/js-sys",
     "license": "MIT OR Apache-2.0"
   },
   {
@@ -1048,6 +1054,24 @@
     "package_version": "0.7.11",
     "repository": "https://github.com/awxkee/moxcms.git",
     "license": "BSD-3-Clause OR Apache-2.0"
+  },
+  {
+    "package_name": "multiversion",
+    "package_version": "0.9.0",
+    "repository": "https://github.com/calebzulawski/multiversion",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "package_name": "multiversion-macros",
+    "package_version": "0.9.0",
+    "repository": "https://github.com/calebzulawski/multiversion",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
+    "package_name": "multiversion_no_op",
+    "package_version": "1.0.0",
+    "repository": "https://github.com/hsivonen/multiversion_no_op",
+    "license": "Apache-2.0 OR MIT"
   },
   {
     "package_name": "nalgebra",
@@ -1650,6 +1674,12 @@
     "license": "MIT"
   },
   {
+    "package_name": "simdutf8",
+    "package_version": "0.1.5",
+    "repository": "https://github.com/rusticstuff/simdutf8",
+    "license": "MIT OR Apache-2.0"
+  },
+  {
     "package_name": "siphasher",
     "package_version": "1.0.3",
     "repository": "https://github.com/jedisct1/rust-siphash",
@@ -1681,7 +1711,7 @@
   },
   {
     "package_name": "smallvec",
-    "package_version": "1.16.0",
+    "package_version": "1.16.1",
     "repository": "https://github.com/servo/rust-smallvec",
     "license": "MIT OR Apache-2.0"
   },
@@ -1885,44 +1915,38 @@
   },
   {
     "package_name": "wasm-bindgen",
-    "package_version": "0.2.100",
-    "repository": "https://github.com/rustwasm/wasm-bindgen",
-    "license": "MIT OR Apache-2.0"
-  },
-  {
-    "package_name": "wasm-bindgen-backend",
-    "package_version": "0.2.100",
-    "repository": "https://github.com/rustwasm/wasm-bindgen/tree/master/crates/backend",
+    "package_version": "0.2.128",
+    "repository": "https://github.com/wasm-bindgen/wasm-bindgen",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "wasm-bindgen-futures",
-    "package_version": "0.4.50",
-    "repository": "https://github.com/rustwasm/wasm-bindgen/tree/master/crates/futures",
+    "package_version": "0.4.78",
+    "repository": "https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/futures",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "wasm-bindgen-macro",
-    "package_version": "0.2.100",
-    "repository": "https://github.com/rustwasm/wasm-bindgen/tree/master/crates/macro",
+    "package_version": "0.2.128",
+    "repository": "https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/macro",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "wasm-bindgen-macro-support",
-    "package_version": "0.2.100",
-    "repository": "https://github.com/rustwasm/wasm-bindgen/tree/master/crates/macro-support",
+    "package_version": "0.2.128",
+    "repository": "https://github.com/wasm-bindgen/wasm-bindgen/tree/main/crates/macro-support",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "wasm-bindgen-shared",
-    "package_version": "0.2.100",
-    "repository": "https://github.com/rustwasm/wasm-bindgen/tree/master/crates/shared",
+    "package_version": "0.2.128",
+    "repository": "https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/shared",
     "license": "MIT OR Apache-2.0"
   },
   {
     "package_name": "web-sys",
-    "package_version": "0.3.77",
-    "repository": "https://github.com/rustwasm/wasm-bindgen/tree/master/crates/web-sys",
+    "package_version": "0.3.105",
+    "repository": "https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/web-sys",
     "license": "MIT OR Apache-2.0"
   },
   {
@@ -1999,13 +2023,13 @@
   },
   {
     "package_name": "zerocopy",
-    "package_version": "0.8.56",
+    "package_version": "0.8.57",
     "repository": "https://github.com/google/zerocopy",
     "license": "BSD-2-Clause OR Apache-2.0 OR MIT"
   },
   {
     "package_name": "zerocopy-derive",
-    "package_version": "0.8.56",
+    "package_version": "0.8.57",
     "repository": "https://github.com/google/zerocopy",
     "license": "BSD-2-Clause OR Apache-2.0 OR MIT"
   },
@@ -2023,7 +2047,7 @@
   },
   {
     "package_name": "zlib-rs",
-    "package_version": "0.6.7",
+    "package_version": "0.6.8",
     "repository": "https://github.com/trifectatechfoundation/zlib-rs",
     "license": "Zlib"
   },

@@ -57,9 +57,11 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 For Chrome development, run `flutter run -d chrome --cross-origin-isolation`
 to enable the headers required for shared WASM memory.
 
-If `wasm-pack` cannot download its helper and fails while compiling
+The `wasm-bindgen` crate family is pinned in `rust/Cargo.toml` and the
+`wasm-bindgen-cli` used by `wasm-pack` must match it (currently 0.2.128).
+If `wasm-pack` cannot reuse an installed helper and fails while compiling
 `wasm-bindgen-cli` with WASM linker flags on the host, install the matching
-helper separately with `cargo +stable install wasm-bindgen-cli --version 0.2.100 --locked`
+helper separately, e.g. `cargo +stable install wasm-bindgen-cli --version 0.2.128 --locked`,
 and ensure its `bin` directory is on `PATH` before rebuilding.
 
 After changing Rust code or regenerating Flutter Rust Bridge bindings, rebuild
