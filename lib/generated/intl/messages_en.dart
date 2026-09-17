@@ -1435,6 +1435,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Show WebUSB prompt when connected",
     ),
     "sm2AlgorithmId": MessageLookupByLibrary.simpleMessage("Algorithm ID"),
+    "sm2ConfigWarning": MessageLookupByLibrary.simpleMessage(
+      "Change SM2 settings with caution. Incorrect settings may affect WebAuthn authentication.",
+    ),
     "sm2CurveId": MessageLookupByLibrary.simpleMessage("Curve ID"),
     "sm2ReservedId": MessageLookupByLibrary.simpleMessage(
       "This ID is reserved for another algorithm or curve. Choose a different value.",
@@ -1487,6 +1490,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "webauthnAlwaysUvTogglePrompt": MessageLookupByLibrary.simpleMessage(
       "Toggle Always UV? The change is persistent and applies to all credentials on this CanoKey.",
+    ),
+    "webauthnUserVerification": MessageLookupByLibrary.simpleMessage(
+      "User verification",
+    ),
+    "webauthnPinPolicy": MessageLookupByLibrary.simpleMessage("PIN policy"),
+    "webauthnConfigRefreshFailed": MessageLookupByLibrary.simpleMessage(
+      "Settings were saved, but their status could not be refreshed. Read the CanoKey again.",
     ),
     "webauthnAuthenticatorSettings": MessageLookupByLibrary.simpleMessage(
       "Authenticator Settings",

@@ -146,7 +146,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
         const Divider(height: 0, thickness: 1),
         Flexible(
           child: SingleChildScrollView(
-            padding: Spacing.all(16),
+            padding: Spacing.all(24),
             child: Form(
               key: _formKey,
               child: Column(
@@ -193,7 +193,7 @@ class _NdefRecordDialogState extends BaseDialogState<NdefRecordDialog>
               destructive: false,
             ),
             AppDialogAction(
-              label: S.of(context).confirm,
+              label: S.of(context).save,
               onPressed: _submit,
               secondary: false,
               destructive: false,

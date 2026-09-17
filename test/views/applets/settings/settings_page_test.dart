@@ -161,7 +161,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(controller.sm2Reads, 1);
     expect(find.byType(Sm2ConfigDialog), findsOneWidget);
-    await tester.tap(find.text(S.current.close));
+    await tester.tap(find.text(S.current.cancel));
     await tester.pumpAndSettle();
     expect(find.byType(Sm2ConfigDialog), findsNothing);
     expect(tester.takeException(), isNull);

@@ -37,7 +37,7 @@ class SetDefaultDialog extends BaseDialog with UIMixin {
 
 class _SetDefaultDialogState extends BaseDialogState<SetDefaultDialog>
     with UIMixin {
-  static const double _contentPadding = 16;
+  static const double _contentPadding = 24;
   static const double _slotLabelWidth = 80;
   static const double _iconSize = 22;
 
@@ -96,75 +96,65 @@ class _SetDefaultDialogState extends BaseDialogState<SetDefaultDialog>
   }
 
   Widget _buildEnterCheckbox() {
-    return Row(
-      children: [
-        Checkbox(
-          onChanged: (value) => withEnter.value = value!,
-          value: withEnter.value,
-          activeColor: contentTheme.primary,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          visualDensity: getCompactDensity,
-        ),
-        Spacing.width(_contentPadding),
-        CustomizedText.bodyMedium(S.of(context).passSlotWithEnter),
-      ],
+    return AppDialogCheckbox(
+      value: withEnter.value,
+      onChanged: (value) => withEnter.value = value!,
+      title: CustomizedText.bodyMedium(S.of(context).passSlotWithEnter),
     );
   }
 
   @override
   Widget buildDialogContent() {
-    return SingleChildScrollView(
-      child: Obx(
-        () => Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppDialogHeader(title: S.of(context).oathSetDefault),
-            const Divider(height: 0, thickness: 1),
-            Padding(
-              padding: const EdgeInsets.all(_contentPadding),
-              child: Column(
-                children: [
-                  CustomizedText.labelLarge(
-                    S.of(context).oathSetDefaultPrompt(widget.name),
-                  ),
-                  Spacing.height(_contentPadding),
-                  _buildSlotSelector(),
-                  Spacing.height(_contentPadding),
-                  _buildEnterCheckbox(),
-                ],
-              ),
-            ),
-            if (errorMessage.value.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.all(_contentPadding),
-                child: CustomizedText.bodyMedium(
-                  errorMessage.value,
-                  color: errorLevel.value == 'E'
-                      ? ContentThemeColor.danger.color
-                      : ContentThemeColor.warning.color,
-                ),
-              ),
-            const Divider(height: 0, thickness: 1),
-            AppDialogActions(
+    return Obx(
+      () => AppDialogColumn(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppDialogHeader(title: S.of(context).oathSetDefault),
+          const Divider(height: 0, thickness: 1),
+          Padding(
+            padding: const EdgeInsets.all(_contentPadding),
+            child: Column(
               children: [
-                AppDialogAction(
-                  label: S.of(context).cancel,
-                  onPressed: () => Navigator.pop(context),
-                  secondary: true,
-                  destructive: false,
+                CustomizedText.labelLarge(
+                  S.of(context).oathSetDefaultPrompt(widget.name),
                 ),
-                AppDialogAction(
-                  label: S.of(context).save,
-                  onPressed: () =>
-                      widget.onSetDefault(slot.value, withEnter.value),
-                  secondary: false,
-                  destructive: false,
-                ),
+                Spacing.height(_contentPadding),
+                _buildSlotSelector(),
+                Spacing.height(_contentPadding),
+                _buildEnterCheckbox(),
               ],
             ),
-          ],
-        ),
+          ),
+          if (errorMessage.value.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(_contentPadding),
+              child: CustomizedText.bodyMedium(
+                errorMessage.value,
+                color: errorLevel.value == 'E'
+                    ? ContentThemeColor.danger.color
+                    : ContentThemeColor.warning.color,
+              ),
+            ),
+          const Divider(height: 0, thickness: 1),
+          AppDialogActions(
+            children: [
+              AppDialogAction(
+                label: S.of(context).cancel,
+                onPressed: () => Navigator.pop(context),
+                secondary: true,
+                destructive: false,
+              ),
+              AppDialogAction(
+                label: S.of(context).save,
+                onPressed: () =>
+                    widget.onSetDefault(slot.value, withEnter.value),
+                secondary: false,
+                destructive: false,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -39,6 +39,9 @@ class Sm2ConfigDialog extends BaseDialog with UIMixin {
   }
 
   @override
+  bool get managesOwnScrolling => true;
+
+  @override
   State<Sm2ConfigDialog> createState() => _Sm2ConfigDialogState();
 }
 
@@ -72,9 +75,9 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
     validator.getController('algoId')!.text = widget.config.algoId.toString();
   }
 
-  void _onSubmit() {
+  Future<void> _onSubmit() async {
     if (validator.formKey.currentState!.validate()) {
-      widget.onConfirm(
+      await widget.onConfirm(
         enabled.value,
         int.parse(validator.getController('curveId')!.text),
         int.parse(validator.getController('algoId')!.text),
@@ -85,32 +88,54 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
   @override
   Widget buildDialogContent() {
     return Obx(
-      () => Column(
+      () => AppDialogColumn(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AppDialogHeader(title: S.of(context).settingsWebAuthnSm2Support),
           Divider(height: 0, thickness: 1),
           Padding(
-            padding: Spacing.all(16),
+            padding: Spacing.all(24),
             child: Form(
               key: validator.formKey,
               child: Column(
                 children: [
-                  if (widget.canChangeEnabled) ...[
-                    Row(
-                      children: [
-                        Checkbox(
-                          onChanged: (value) => enabled.value = value!,
-                          value: enabled.value,
-                          activeColor: contentTheme.primary,
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          visualDensity: getCompactDensity,
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: ContentThemeColor.warning.color.withValues(
+                        alpha: .1,
+                      ),
+                      border: Border.all(
+                        color: ContentThemeColor.warning.color.withValues(
+                          alpha: .25,
                         ),
-                        Spacing.width(16),
-                        CustomizedText.bodyMedium(S.of(context).enabled),
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          size: 22,
+                          color: ContentThemeColor.warning.color,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: CustomizedText.bodyMedium(
+                            S.of(context).sm2ConfigWarning,
+                          ),
+                        ),
                       ],
+                    ),
+                  ),
+                  Spacing.height(16),
+                  if (widget.canChangeEnabled) ...[
+                    AppDialogCheckbox(
+                      value: enabled.value,
+                      onChanged: (value) => enabled.value = value!,
+                      title: CustomizedText.bodyMedium(S.of(context).enabled),
                     ),
                     Spacing.height(16),
                   ],
@@ -142,7 +167,7 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
           ),
           if (errorMessage.value.isNotEmpty)
             Padding(
-              padding: Spacing.all(16),
+              padding: Spacing.all(24),
               child: CustomizedText.bodyMedium(
                 errorMessage.value,
                 color: errorLevel.value == 'E'
@@ -154,7 +179,7 @@ class _Sm2ConfigDialogState extends BaseDialogState<Sm2ConfigDialog>
           AppDialogActions(
             children: [
               AppDialogAction(
-                label: S.of(context).close,
+                label: S.of(context).cancel,
                 onPressed: () => Navigator.pop(context),
                 secondary: true,
                 destructive: false,

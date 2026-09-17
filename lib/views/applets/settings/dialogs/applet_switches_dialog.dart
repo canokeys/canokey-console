@@ -4,7 +4,6 @@ import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
-import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -36,6 +35,9 @@ class AppletSwitchesDialog extends BaseDialog {
       ),
     );
   }
+
+  @override
+  bool get managesOwnScrolling => true;
 
   @override
   State<AppletSwitchesDialog> createState() => _AppletSwitchesDialogState();
@@ -75,7 +77,7 @@ class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog>
     final supportsNfc = widget.functionSet.contains(Func.nfcSwitch);
 
     return Obx(
-      () => Column(
+      () => AppDialogColumn(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -143,7 +145,7 @@ class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog>
                 destructive: false,
               ),
               AppDialogAction(
-                label: S.of(context).confirm,
+                label: S.of(context).save,
                 onPressed: _submit,
                 secondary: false,
                 destructive: false,
@@ -188,9 +190,9 @@ class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog>
               Expanded(child: CustomizedText.bodyMedium(title)),
             ],
           );
-          final controls = Wrap(
-            spacing: 16,
-            runSpacing: 8,
+          final controls = Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               for (final entry in availableSwitches)
                 _switchControl(entry.key, entry.value),
@@ -215,22 +217,10 @@ class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog>
   }
 
   Widget _switchControl(Func func, String label) {
-    return InkWell(
-      onTap: () => _values[func]!.toggle(),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Checkbox(
-            value: _values[func]!.value,
-            onChanged: (value) => _values[func]!.value = value ?? false,
-            activeColor: contentTheme.primary,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            visualDensity: getCompactDensity,
-          ),
-          Spacing.width(4),
-          CustomizedText.bodySmall(label),
-        ],
-      ),
+    return AppDialogCheckbox(
+      value: _values[func]!.value,
+      onChanged: (value) => _values[func]!.value = value ?? false,
+      title: CustomizedText.bodySmall(label),
     );
   }
 
@@ -245,14 +235,14 @@ class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog>
     return true;
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final changed = <Func, bool>{};
     for (final entry in _values.entries) {
       if (_initialValues[entry.key] != entry.value.value) {
         changed[entry.key] = entry.value.value;
       }
     }
-    widget.onConfirm(changed);
+    await widget.onConfirm(changed);
   }
 
   static const Set<Func> _featureSwitches = {

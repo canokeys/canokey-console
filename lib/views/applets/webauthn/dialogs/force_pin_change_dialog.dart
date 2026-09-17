@@ -48,6 +48,9 @@ class ForcePinChangeDialog extends BaseDialog {
   }
 
   @override
+  bool get managesOwnScrolling => true;
+
+  @override
   State<ForcePinChangeDialog> createState() => _ForcePinChangeDialogState();
 }
 
@@ -93,40 +96,40 @@ class _ForcePinChangeDialogState extends BaseDialogState<ForcePinChangeDialog> {
       _submitting = true;
       errorMessage.value = '';
     });
-    final changed = await widget.onSubmit(
-      _currentPin.text,
-      _newPin.text,
-      _savePin,
-    );
-    if (!mounted) {
-      return;
+    try {
+      final changed = await widget.onSubmit(
+        _currentPin.text,
+        _newPin.text,
+        _savePin,
+      );
+      if (mounted && changed) Navigator.pop(context);
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
-    if (changed) {
-      Navigator.pop(context);
-      return;
-    }
-    setState(() => _submitting = false);
   }
 
   @override
+  Widget build(BuildContext context) => PopScope(
+    canPop: !_submitting,
+    onPopInvokedWithResult: (didPop, result) {
+      if (didPop && !_submitting) widget.onCancel();
+    },
+    child: super.build(context),
+  );
+
+  @override
   Widget buildDialogContent() {
-    return Column(
+    return AppDialogColumn(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppDialogHeader(
           title: S.of(context).changePin,
           closeEnabled: !_submitting,
-          onClose: _submitting
-              ? null
-              : () {
-                  Navigator.pop(context);
-                  widget.onCancel();
-                },
         ),
         Divider(height: 0, thickness: 1),
         Padding(
-          padding: Spacing.all(16),
+          padding: Spacing.all(24),
           child: Form(
             key: _formKey,
             child: Column(
@@ -154,11 +157,12 @@ class _ForcePinChangeDialogState extends BaseDialogState<ForcePinChangeDialog> {
                   label: S.of(context).confirmNewPin,
                   minLength: widget.minPinLength,
                   obscureText: !_showNewPin,
-                  onFieldSubmitted: (_) => _submit(),
+                  onFieldSubmitted: (_) =>
+                      AppDialogSurface.run(context, _submit),
                   onToggleVisibility: () =>
                       setState(() => _showNewPin = !_showNewPin),
                 ),
-                CheckboxListTile(
+                AppDialogCheckbox(
                   value: _savePin,
                   onChanged: _submitting
                       ? null
@@ -166,8 +170,6 @@ class _ForcePinChangeDialogState extends BaseDialogState<ForcePinChangeDialog> {
                   title: CustomizedText.bodyMedium(
                     S.of(context).savePinOnDevice,
                   ),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  contentPadding: EdgeInsets.zero,
                 ),
                 if (errorMessage.value.isNotEmpty)
                   Align(
@@ -186,17 +188,12 @@ class _ForcePinChangeDialogState extends BaseDialogState<ForcePinChangeDialog> {
           children: [
             AppDialogAction(
               label: S.of(context).cancel,
-              onPressed: _submitting
-                  ? null
-                  : () {
-                      Navigator.pop(context);
-                      widget.onCancel();
-                    },
+              onPressed: _submitting ? null : () => Navigator.pop(context),
               secondary: true,
               destructive: false,
             ),
             AppDialogAction(
-              label: S.of(context).confirm,
+              label: S.of(context).save,
               onPressed: _submitting ? null : _submit,
               secondary: false,
               destructive: false,

@@ -5914,6 +5914,36 @@ class S {
     );
   }
 
+  /// `User verification`
+  String get webauthnUserVerification {
+    return Intl.message(
+      'User verification',
+      name: 'webauthnUserVerification',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `PIN policy`
+  String get webauthnPinPolicy {
+    return Intl.message(
+      'PIN policy',
+      name: 'webauthnPinPolicy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Settings were saved, but their status could not be refreshed. Read the CanoKey again.`
+  String get webauthnConfigRefreshFailed {
+    return Intl.message(
+      'Settings were saved, but their status could not be refreshed. Read the CanoKey again.',
+      name: 'webauthnConfigRefreshFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Authenticator Settings`
   String get webauthnAuthenticatorSettings {
     return Intl.message(
@@ -6029,6 +6059,16 @@ class S {
     return Intl.message(
       'Reset failed. Check the device connection and try again.',
       name: 'settingsResetFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Change SM2 settings with caution. Incorrect settings may affect WebAuthn authentication.`
+  String get sm2ConfigWarning {
+    return Intl.message(
+      'Change SM2 settings with caution. Incorrect settings may affect WebAuthn authentication.',
+      name: 'sm2ConfigWarning',
       desc: '',
       args: [],
     );

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/theme/admin_theme.dart';
@@ -9,16 +11,19 @@ import 'package:flutter/material.dart';
 
 class DeleteDialog extends BaseDialog with UIMixin {
   final String name;
-  final VoidCallback onDelete;
+  final FutureOr<void> Function() onDelete;
 
   const DeleteDialog({super.key, required this.name, required this.onDelete});
 
   static Future<void> show({
     required String name,
-    required VoidCallback onDelete,
+    required FutureOr<void> Function() onDelete,
   }) {
     return AppDialog.show(DeleteDialog(name: name, onDelete: onDelete));
   }
+
+  @override
+  bool get managesOwnScrolling => true;
 
   @override
   State<DeleteDialog> createState() => _DeleteDialogState();
@@ -27,7 +32,7 @@ class DeleteDialog extends BaseDialog with UIMixin {
 class _DeleteDialogState extends BaseDialogState<DeleteDialog> with UIMixin {
   @override
   Widget buildDialogContent() {
-    return Column(
+    return AppDialogColumn(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -41,7 +46,7 @@ class _DeleteDialogState extends BaseDialogState<DeleteDialog> with UIMixin {
         ),
         if (errorMessage.value.isNotEmpty)
           Padding(
-            padding: Spacing.all(16),
+            padding: Spacing.all(24),
             child: CustomizedText.bodyMedium(
               errorMessage.value,
               color: errorLevel.value == 'E'

@@ -1,3 +1,8 @@
+import 'dart:async';
+
+import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:flutter/material.dart';
@@ -73,23 +78,180 @@ class _AppDialogNfcScopeState extends State<_AppDialogNfcScope> {
   Widget build(BuildContext context) => widget.child;
 }
 
-class AppDialogSurface extends StatelessWidget {
+/// Shared operation scope for every dialog, including non-BaseDialog forms.
+class AppDialogSurface extends StatefulWidget {
   final Widget child;
-
   const AppDialogSurface({super.key, required this.child});
 
+  static Future<void> run(
+    BuildContext context,
+    FutureOr<void> Function() action,
+  ) async {
+    final scope = context.findAncestorStateOfType<_AppDialogSurfaceState>();
+    if (scope == null) {
+      await action();
+    } else {
+      await scope.run(action);
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
-    return Dialog(
+  State<AppDialogSurface> createState() => _AppDialogSurfaceState();
+}
+
+class _AppDialogSurfaceState extends State<AppDialogSurface> {
+  bool busy = false;
+
+  Future<void> run(FutureOr<void> Function() action) async {
+    if (busy) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => busy = true);
+    try {
+      await action();
+    } on UserCanceledError {
+      // Cancellation is not a failure.
+    } catch (error, stack) {
+      Logging.logger(
+        'Dialog',
+      ).e('Dialog operation failed', error: error, stackTrace: stack);
+      Prompts.showPrompt(S.current.operationFailed, ContentThemeColor.danger);
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => PopScope(
+    canPop: !busy,
+    child: Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       clipBehavior: Clip.antiAlias,
-      // The platform already animates viewInsets with the keyboard. A second
-      // tween here restarts on every metrics update and makes large dialogs
-      // visibly lag behind the native keyboard animation.
       insetAnimationDuration: Duration.zero,
-      child: child,
+      child: _DialogOperationScope(
+        busy: busy,
+        child: Stack(
+          children: [
+            AbsorbPointer(absorbing: busy, child: widget.child),
+            if (busy && (ModalRoute.of(context)?.isCurrent ?? true))
+              const Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: LinearProgressIndicator(minHeight: 3),
+              ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _DialogOperationScope extends InheritedWidget {
+  final bool busy;
+  const _DialogOperationScope({required this.busy, required super.child});
+  static bool isBusy(BuildContext context) =>
+      context
+          .dependOnInheritedWidgetOfExactType<_DialogOperationScope>()
+          ?.busy ??
+      false;
+  @override
+  bool updateShouldNotify(_DialogOperationScope oldWidget) =>
+      busy != oldWidget.busy;
+}
+
+/// Fixed header and actions, with only the body scrolling on small screens.
+class AppDialogLayout extends StatelessWidget {
+  final Widget header;
+  final Widget body;
+  final List<Widget> actions;
+  const AppDialogLayout({
+    super.key,
+    required this.header,
+    required this.body,
+    required this.actions,
+  });
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      header,
+      const Divider(height: 1),
+      Flexible(
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: body,
+        ),
+      ),
+      const Divider(height: 1),
+      AppDialogActions(children: actions),
+    ],
+  );
+}
+
+/// Declarative variant used by existing forms that provide chrome as children.
+class AppDialogColumn extends StatelessWidget {
+  final List<Widget> children;
+  final MainAxisSize mainAxisSize;
+  final CrossAxisAlignment crossAxisAlignment;
+  const AppDialogColumn({
+    super.key,
+    required this.children,
+    this.mainAxisSize = MainAxisSize.min,
+    this.crossAxisAlignment = CrossAxisAlignment.start,
+  });
+  @override
+  Widget build(BuildContext context) {
+    final header = children.first;
+    final footer = children.last;
+    assert(header is AppDialogHeader && footer is AppDialogActions);
+    final body = children.sublist(1, children.length - 1);
+    if (body.firstOrNull is Divider) body.removeAt(0);
+    if (body.lastOrNull is Divider) body.removeLast();
+    return AppDialogLayout(
+      header: header,
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: crossAxisAlignment,
+        children: body,
+      ),
+      actions: (footer as AppDialogActions).children,
     );
   }
+}
+
+class AppConfirmationDialog extends StatelessWidget {
+  final String title, message, confirmLabel;
+  final bool destructive;
+  const AppConfirmationDialog({
+    super.key,
+    required this.title,
+    required this.message,
+    required this.confirmLabel,
+    this.destructive = false,
+  });
+  @override
+  Widget build(BuildContext context) => AppDialogSurface(
+    child: SizedBox(
+      width: AppDialogWidth.compact,
+      child: AppDialogLayout(
+        header: AppDialogHeader(title: title),
+        body: Padding(padding: const EdgeInsets.all(24), child: Text(message)),
+        actions: [
+          AppDialogAction(
+            label: S.of(context).cancel,
+            secondary: true,
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          AppDialogAction(
+            label: confirmLabel,
+            destructive: destructive,
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 abstract final class AppDialogWidth {
@@ -154,7 +316,8 @@ class AppDialogHeader extends StatelessWidget {
             if (showClose)
               IconButton(
                 tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                onPressed: closeEnabled
+                onPressed:
+                    closeEnabled && !_DialogOperationScope.isBusy(context)
                     ? (onClose ?? () => Navigator.of(context).pop())
                     : null,
                 icon: const Icon(Icons.close, size: 22),
@@ -204,14 +367,16 @@ class AppDialogAction extends StatelessWidget {
     this.destructive = false,
   });
   final String label;
-  final VoidCallback? onPressed;
+  final FutureOr<void> Function()? onPressed;
   final bool secondary, destructive;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return FilledButton(
-      onPressed: onPressed,
+      onPressed: onPressed == null || _DialogOperationScope.isBusy(context)
+          ? null
+          : () => AppDialogSurface.run(context, onPressed!),
       style: FilledButton.styleFrom(
         backgroundColor: secondary
             ? (Theme.of(context).brightness == Brightness.dark
@@ -238,9 +403,11 @@ class AppDialogChoice extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.subtitle,
+    this.horizontalPadding = 24,
   });
   final String title;
   final String? subtitle;
+  final double horizontalPadding;
   final bool selected;
   final VoidCallback onTap;
 
@@ -249,7 +416,7 @@ class AppDialogChoice extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     const accent = Color(0xff009b83);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 4),
       child: Semantics(
         checked: selected,
         inMutuallyExclusiveGroup: true,
@@ -312,4 +479,77 @@ class AppDialogChoice extends StatelessWidget {
       ),
     );
   }
+}
+
+/// One interaction target for the checkbox, its label and the row's whitespace.
+class AppDialogCheckbox extends StatelessWidget {
+  const AppDialogCheckbox({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    required this.title,
+    this.subtitle,
+  });
+  final bool value;
+  final ValueChanged<bool?>? onChanged;
+  final Widget title;
+  final Widget? subtitle;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    type: MaterialType.transparency,
+    borderRadius: BorderRadius.circular(8),
+    clipBehavior: Clip.antiAlias,
+    child: ListTileTheme(
+      data: const ListTileThemeData(minTileHeight: 48, horizontalTitleGap: 12),
+      child: CheckboxListTile(
+        value: value,
+        onChanged: _DialogOperationScope.isBusy(context) ? null : onChanged,
+        title: title,
+        subtitle: subtitle,
+        controlAffinity: ListTileControlAffinity.leading,
+        contentPadding: EdgeInsets.zero,
+        visualDensity: VisualDensity.standard,
+        materialTapTargetSize: MaterialTapTargetSize.padded,
+        dense: false,
+        activeColor: const Color(0xff009b83),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    ),
+  );
+}
+
+/// Immediate settings use switches; the full row shares the switch's action.
+class AppDialogSwitch extends StatelessWidget {
+  const AppDialogSwitch({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    required this.title,
+    this.subtitle,
+  });
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+  final Widget title;
+  final Widget? subtitle;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    type: MaterialType.transparency,
+    borderRadius: BorderRadius.circular(8),
+    clipBehavior: Clip.antiAlias,
+    child: SwitchListTile(
+      value: value,
+      onChanged: _DialogOperationScope.isBusy(context) ? null : onChanged,
+      title: title,
+      subtitle: subtitle,
+      contentPadding: EdgeInsets.zero,
+      controlAffinity: ListTileControlAffinity.trailing,
+      activeThumbColor: Colors.white,
+      activeTrackColor: const Color(0xff009b83),
+      materialTapTargetSize: MaterialTapTargetSize.padded,
+      dense: false,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    ),
+  );
 }

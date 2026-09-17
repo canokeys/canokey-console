@@ -89,7 +89,7 @@ class AddAccountDialog extends BaseDialog with UIMixin {
 
 class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
     with UIMixin {
-  static const _kPadding = 16.0;
+  static const _kPadding = 24.0;
   static const _kValidDigits = [6, 7, 8];
   static const _kLabelWidth = 90.0;
 
@@ -109,7 +109,7 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
     );
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
     if (!formData.validator.validateForm(clear: true)) {
       return;
     }
@@ -136,7 +136,7 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
       return;
     }
 
-    widget.onAddAccount(
+    await widget.onAddAccount(
       name,
       secretHex,
       formData.oathType.value,
@@ -195,20 +195,12 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
   Widget _buildTouchRequirement() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: _kPadding),
-      child: Row(
-        children: [
-          Obx(
-            () => Checkbox(
-              onChanged: (value) => formData.requireTouch.value = value!,
-              value: formData.requireTouch.value,
-              activeColor: contentTheme.primary,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              visualDensity: getCompactDensity,
-            ),
-          ),
-          Spacing.width(_kPadding),
-          CustomizedText.bodyMedium(S.of(context).oathRequireTouch),
-        ],
+      child: Obx(
+        () => AppDialogCheckbox(
+          value: formData.requireTouch.value,
+          onChanged: (value) => formData.requireTouch.value = value!,
+          title: CustomizedText.bodyMedium(S.of(context).oathRequireTouch),
+        ),
       ),
     );
   }
@@ -286,10 +278,8 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
           spacing: _kPadding,
           children: _kValidDigits
               .map(
-                (digits) => _buildRadioOption(
-                  value: digits,
-                  label: digits.toString(),
-                ),
+                (digits) =>
+                    _buildRadioOption(value: digits, label: digits.toString()),
               )
               .toList(),
         ),
@@ -306,10 +296,7 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
     );
   }
 
-  Widget _buildRadioOption<T>({
-    required T value,
-    required String label,
-  }) {
+  Widget _buildRadioOption<T>({required T value, required String label}) {
     return InkWell(
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -339,61 +326,56 @@ class _AddAccountDialogState extends BaseDialogState<AddAccountDialog>
 
   @override
   Widget buildDialogContent() {
-    return SingleChildScrollView(
-      child: Obx(
-        () => Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(_kPadding),
-              child: CustomizedText.labelLarge(S.of(context).oathAddAccount),
-            ),
-            const Divider(height: 0, thickness: 1),
-            Padding(
-              padding: const EdgeInsets.all(_kPadding),
-              child: Form(
-                key: formData.validator.formKey,
-                child: Column(
-                  children: [
-                    _buildBasicFields(),
-                    _buildTouchRequirement(),
-                    _buildAdvancedSettings(),
-                    if (formData.oathType.value == OathType.hotp)
-                      _buildHotpCounter(),
-                  ],
-                ),
+    return Obx(
+      () => AppDialogColumn(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppDialogHeader(title: S.of(context).oathAddAccount),
+          const Divider(height: 0, thickness: 1),
+          Padding(
+            padding: const EdgeInsets.all(_kPadding),
+            child: Form(
+              key: formData.validator.formKey,
+              child: Column(
+                children: [
+                  _buildBasicFields(),
+                  _buildTouchRequirement(),
+                  _buildAdvancedSettings(),
+                  if (formData.oathType.value == OathType.hotp)
+                    _buildHotpCounter(),
+                ],
               ),
             ),
-            if (errorMessage.value.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.all(_kPadding),
-                child: CustomizedText.bodyMedium(
-                  errorMessage.value,
-                  color: errorLevel.value == 'E'
-                      ? ContentThemeColor.danger.color
-                      : ContentThemeColor.warning.color,
-                ),
+          ),
+          if (errorMessage.value.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(_kPadding),
+              child: CustomizedText.bodyMedium(
+                errorMessage.value,
+                color: errorLevel.value == 'E'
+                    ? ContentThemeColor.danger.color
+                    : ContentThemeColor.warning.color,
               ),
-            const Divider(height: 0, thickness: 1),
-            AppDialogActions(
-              children: [
-                AppDialogAction(
-                  label: S.of(context).close,
-                  onPressed: () => Navigator.pop(context),
-                  secondary: true,
-                  destructive: false,
-                ),
-                AppDialogAction(
-                  label: S.of(context).save,
-                  onPressed: _handleSave,
-                  secondary: false,
-                  destructive: false,
-                ),
-              ],
             ),
-          ],
-        ),
+          const Divider(height: 0, thickness: 1),
+          AppDialogActions(
+            children: [
+              AppDialogAction(
+                label: S.of(context).cancel,
+                onPressed: () => Navigator.pop(context),
+                secondary: true,
+                destructive: false,
+              ),
+              AppDialogAction(
+                label: S.of(context).save,
+                onPressed: _handleSave,
+                secondary: false,
+                destructive: false,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

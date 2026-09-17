@@ -58,6 +58,9 @@ class SlotConfigDialog extends BaseDialog with UIMixin {
   }
 
   @override
+  bool get managesOwnScrolling => true;
+
+  @override
   State<SlotConfigDialog> createState() => _SlotConfigDialogState();
 }
 
@@ -89,7 +92,7 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
     );
   }
 
-  void _onSubmit() {
+  Future<void> _onSubmit() async {
     if (slotType.value == PassSlotType.static && !validator.validateForm()) {
       return;
     }
@@ -99,7 +102,7 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
         validator.formKey.currentState?.validate();
         return;
       }
-      widget.onSetSlot(
+      await widget.onSetSlot(
         widget.index,
         slotType.value,
         hmacKey.toLowerCase(),
@@ -107,7 +110,7 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
       );
       return;
     }
-    widget.onSetSlot(
+    await widget.onSetSlot(
       widget.index,
       slotType.value,
       validator.getController('password')!.text,
@@ -159,14 +162,14 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
     return Material(
       color: dark ? const Color(0xff202b34) : Colors.white,
       child: Obx(
-        () => Column(
+        () => AppDialogColumn(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AppDialogHeader(title: S.of(context).passSlotConfigTitle),
             Divider(height: 1, thickness: 1, color: border),
             Padding(
-              padding: const EdgeInsets.all(22),
+              padding: const EdgeInsets.all(24),
               child: Form(
                 key: validator.formKey,
                 child: Column(
@@ -282,14 +285,11 @@ class _SlotConfigDialogState extends BaseDialogState<SlotConfigDialog>
                     if (slotType.value != PassSlotType.none &&
                         slotType.value != PassSlotType.hmacSha1) ...[
                       const SizedBox(height: 12),
-                      CheckboxListTile(
-                        contentPadding: EdgeInsets.zero,
-                        controlAffinity: ListTileControlAffinity.leading,
+                      AppDialogCheckbox(
                         value: withEnter.value,
                         onChanged: (value) {
                           if (value != null) withEnter.value = value;
                         },
-                        activeColor: _accent,
                         title: CustomizedText.bodyMedium(
                           S.of(context).passSlotWithEnter,
                           color: colors.onSurface,

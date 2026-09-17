@@ -22,7 +22,10 @@ import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
 class WebAuthnController extends PollingController {
-  final WebAuthnCardClient _client = WebAuthnCardClient();
+  WebAuthnController({WebAuthnCardClient? client})
+      : _client = client ?? WebAuthnCardClient();
+
+  final WebAuthnCardClient _client;
   final _localPinCache = CredentialCache('webauthn');
   final List<WebAuthnItem> webAuthnItems = [];
   FirmwareVersion firmwareVersion = const FirmwareVersion(0, 0, 0);
@@ -146,7 +149,7 @@ class WebAuthnController extends PollingController {
       log.i('Successfully deleted credential');
 
       Navigator.pop(Get.context!);
-      Prompts.showPrompt(S.of(Get.context!).delete, ContentThemeColor.success,
+      Prompts.showPrompt(S.of(Get.context!).deleted, ContentThemeColor.success,
           forceSnackBar: true);
       webAuthnItems.removeWhere(
           (element) => listEquals(element.credentialId, credentialId));
@@ -202,12 +205,26 @@ class WebAuthnController extends PollingController {
       }
       succeeded = true;
       log.i('Successfully changed authenticator config');
+      // Re-read getInfo on this lease. refreshData starts a new card use case
+      // and must not be nested inside the configuration operation.
+      try {
+        await _refreshInfo();
+      } catch (error, stack) {
+        // The write already succeeded: never report it as a failed toggle,
+        // which would invite a retry that reverses the device's new state.
+        _info = null;
+        update();
+        log.w('Config saved, but getInfo failed', error: error, stackTrace: stack);
+        Prompts.showPrompt(S.current.webauthnConfigRefreshFailed,
+            ContentThemeColor.warning);
+        return;
+      }
+      update();
       Prompts.showPrompt(
         S.of(Get.context!).successfullyChanged,
         ContentThemeColor.success,
         forceSnackBar: true,
       );
-      await refreshData();
     });
     return succeeded;
   }

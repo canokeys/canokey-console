@@ -74,96 +74,111 @@ class _ChangePinDialogState extends State<ChangePinDialog> {
     );
   }
 
+  Future<void> _submit() async {
+    if (!_validator.validateForm()) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    await widget.onSubmit(
+      _validator.getController('old')!.text,
+      _validator.getController('new')!.text,
+    );
+  }
+
+  @override
+  void dispose() {
+    _validator.getController('old')?.dispose();
+    _validator.getController('new')?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return KeyboardSafeDialog(
+      managesOwnScrolling: true,
       child: SizedBox(
         width: AppDialogWidth.compact,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppDialogHeader(title: widget.title),
-            Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: CustomizedText.bodyMedium(widget.prompt),
-            ),
-            Divider(height: 0, thickness: 1),
-            Padding(
-              padding: Spacing.all(16),
-              child: Form(
-                key: _validator.formKey,
-                child: Obx(
-                  () => Column(
-                    children: [
-                      TextFormField(
-                        autofocus: true,
-                        onTap: SmartCard.eject,
-                        obscureText: !showOldPin.value,
-                        controller: _validator.getController('old'),
-                        validator: _validator.getValidator('old'),
-                        decoration: InputDecoration(
-                          labelText: widget.oldValueLabel,
-                          border: _outlineInputBorder,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              showOldPin.value
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
+        child: Builder(
+          builder: (context) => AppDialogColumn(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppDialogHeader(title: widget.title),
+              Divider(height: 0, thickness: 1),
+              Padding(
+                padding: Spacing.all(24),
+                child: CustomizedText.bodyMedium(widget.prompt),
+              ),
+              Divider(height: 0, thickness: 1),
+              Padding(
+                padding: Spacing.all(24),
+                child: Form(
+                  key: _validator.formKey,
+                  child: Obx(
+                    () => Column(
+                      children: [
+                        TextFormField(
+                          autofocus: true,
+                          onTap: SmartCard.eject,
+                          obscureText: !showOldPin.value,
+                          controller: _validator.getController('old'),
+                          validator: _validator.getValidator('old'),
+                          decoration: InputDecoration(
+                            labelText: widget.oldValueLabel,
+                            border: _outlineInputBorder,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                showOldPin.value
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: () => showOldPin.toggle(),
                             ),
-                            onPressed: () => showOldPin.toggle(),
                           ),
                         ),
-                      ),
-                      Spacing.height(16),
-                      TextFormField(
-                        onTap: SmartCard.eject,
-                        obscureText: !showNewPin.value,
-                        controller: _validator.getController('new'),
-                        validator: _validator.getValidator('new'),
-                        decoration: InputDecoration(
-                          labelText: widget.newValueLabel,
-                          border: _outlineInputBorder,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              showNewPin.value
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
+                        Spacing.height(16),
+                        TextFormField(
+                          onTap: SmartCard.eject,
+                          obscureText: !showNewPin.value,
+                          controller: _validator.getController('new'),
+                          onFieldSubmitted: (_) =>
+                              AppDialogSurface.run(context, _submit),
+                          validator: _validator.getValidator('new'),
+                          decoration: InputDecoration(
+                            labelText: widget.newValueLabel,
+                            border: _outlineInputBorder,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                showNewPin.value
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: () => showNewPin.toggle(),
                             ),
-                            onPressed: () => showNewPin.toggle(),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            Divider(height: 0, thickness: 1),
-            AppDialogActions(
-              children: [
-                AppDialogAction(
-                  label: S.of(Get.context!).cancel,
-                  onPressed: () => Navigator.pop(Get.context!),
-                  secondary: true,
-                  destructive: false,
-                ),
-                AppDialogAction(
-                  label: S.of(Get.context!).confirm,
-                  onPressed: () {
-                    if (_validator.validateForm()) {
-                      final o = _validator.getController('old')!.text;
-                      final n = _validator.getController('new')!.text;
-                      widget.onSubmit(o, n);
-                    }
-                  },
-                  secondary: false,
-                  destructive: false,
-                ),
-              ],
-            ),
-          ],
+              Divider(height: 0, thickness: 1),
+              AppDialogActions(
+                children: [
+                  AppDialogAction(
+                    label: S.of(Get.context!).cancel,
+                    onPressed: () => Navigator.pop(Get.context!),
+                    secondary: true,
+                    destructive: false,
+                  ),
+                  AppDialogAction(
+                    label: S.of(Get.context!).save,
+                    onPressed: _submit,
+                    secondary: false,
+                    destructive: false,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

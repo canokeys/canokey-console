@@ -64,7 +64,7 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
           Divider(height: 0, thickness: 1),
           Flexible(
             child: SingleChildScrollView(
-              padding: Spacing.all(16),
+              padding: Spacing.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -124,7 +124,7 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
                 destructive: false,
               ),
               AppDialogAction(
-                label: S.of(context).confirm,
+                label: S.of(context).save,
                 onPressed: selectedId.value == null ? null : _confirm,
                 secondary: false,
                 destructive: false,
@@ -139,6 +139,7 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
   Widget _buildPresetTile(KeyboardKeymapPreset preset) {
     final selectionValue = preset.id ?? _defaultSelection;
     return AppDialogChoice(
+      horizontalPadding: 0,
       title: preset.name,
       selected: selectedId.value == selectionValue,
       onTap: () => selectedId.value = selectionValue,
@@ -146,7 +147,7 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
     );
   }
 
-  void _confirm() {
+  Future<void> _confirm() async {
     final selected = selectedId.value;
     final preset = selected == _defaultSelection
         ? KeyboardKeymapPresets.defaultPreset
@@ -154,6 +155,6 @@ class _KeymapDialogState extends BaseDialogState<KeymapDialog> with UIMixin {
             (preset) => preset.id == selected,
             orElse: () => KeyboardKeymapPresets.defaultPreset,
           );
-    widget.onConfirm(preset);
+    await widget.onConfirm(preset);
   }
 }

@@ -44,6 +44,9 @@ class OpenPgpPinRetriesDialog extends BaseDialog {
   }
 
   @override
+  bool get managesOwnScrolling => true;
+
+  @override
   State<OpenPgpPinRetriesDialog> createState() =>
       _OpenPgpPinRetriesDialogState();
 }
@@ -146,11 +149,11 @@ class _OpenPgpPinRetriesDialogState
     );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_validator.validateForm()) {
       return;
     }
-    widget.onSubmit(
+    await widget.onSubmit(
       _validator.getController('admin')!.text,
       int.parse(_validator.getController('user')!.text),
       int.parse(_validator.getController('reset')!.text),

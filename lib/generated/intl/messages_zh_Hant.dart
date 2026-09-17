@@ -1087,6 +1087,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsWebUSB": MessageLookupByLibrary.simpleMessage("插入時顯示 WebUSB 提示"),
     "sm2AlgorithmId": MessageLookupByLibrary.simpleMessage("演算法 ID"),
+    "sm2ConfigWarning": MessageLookupByLibrary.simpleMessage(
+      "請謹慎修改 SM2 設定，不正確的設定可能影響 WebAuthn 驗證。",
+    ),
     "sm2CurveId": MessageLookupByLibrary.simpleMessage("曲線 ID"),
     "sm2ReservedId": MessageLookupByLibrary.simpleMessage(
       "此 ID 已被其他演算法或曲線使用，請換一個值。",
@@ -1126,6 +1129,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "webauthnAlwaysUvTogglePrompt": MessageLookupByLibrary.simpleMessage(
       "切換「一律要求使用者驗證」？此變更會持久生效，並套用於 CanoKey 上的所有憑證。",
+    ),
+    "webauthnUserVerification": MessageLookupByLibrary.simpleMessage("使用者驗證"),
+    "webauthnPinPolicy": MessageLookupByLibrary.simpleMessage("PIN 原則"),
+    "webauthnConfigRefreshFailed": MessageLookupByLibrary.simpleMessage(
+      "設定已儲存，但無法重新整理狀態。請重新讀取 CanoKey。",
     ),
     "webauthnAuthenticatorSettings": MessageLookupByLibrary.simpleMessage(
       "驗證器設定",

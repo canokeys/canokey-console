@@ -41,6 +41,9 @@ class OpenPgpTouchPolicyDialog extends BaseDialog {
   }
 
   @override
+  bool get managesOwnScrolling => true;
+
+  @override
   State<OpenPgpTouchPolicyDialog> createState() =>
       _OpenPgpTouchPolicyDialogState();
 }
@@ -92,12 +95,9 @@ class _OpenPgpTouchPolicyDialogState
             ),
           ),
           if (_policy.value == OpenPgpTouchPolicy.permanent)
-            CheckboxListTile(
-              dense: true,
+            AppDialogCheckbox(
               value: _permanentConfirmed.value,
               onChanged: (value) => _permanentConfirmed.value = value ?? false,
-              controlAffinity: ListTileControlAffinity.leading,
-              contentPadding: EdgeInsets.zero,
               title: CustomizedText.bodyMedium(
                 S.of(context).openpgpPermanentTouchConfirmation,
                 color: ContentThemeColor.warning.color,
@@ -133,11 +133,11 @@ class _OpenPgpTouchPolicyDialogState
       _policy.value != OpenPgpTouchPolicy.permanent ||
       _permanentConfirmed.value;
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_validator.validateForm()) {
       return;
     }
-    widget.onSubmit(
+    await widget.onSubmit(
       widget.slot.type,
       _policy.value,
       _validator.getController('admin')!.text,

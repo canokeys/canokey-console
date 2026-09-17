@@ -65,6 +65,9 @@ class InputPinDialog extends BaseDialog {
   }
 
   @override
+  bool get managesOwnScrolling => true;
+
+  @override
   State<InputPinDialog> createState() => _InputPinDialogState();
 
   static Future<void> _defaultOnSubmit(String pin, bool savePin) async {}
@@ -90,10 +93,10 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
 
   bool _submitting = false;
 
-  void _onSubmit() async {
+  Future<void> _onSubmit() async {
     if (_submitting) return;
     if (_validator.validateForm()) {
-      _submitting = true;
+      setState(() => _submitting = true);
       try {
         FocusManager.instance.primaryFocus?.unfocus();
         await widget.onSubmit(
@@ -101,80 +104,89 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
           _savePin.value,
         );
       } finally {
-        _submitting = false;
+        if (mounted) setState(() => _submitting = false);
       }
     }
   }
 
   @override
+  void dispose() {
+    _validator.getController('pin')?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => PopScope(
+    canPop: !_submitting,
+    onPopInvokedWithResult: (didPop, result) {
+      if (didPop && !_submitting) widget.onCancel();
+    },
+    child: super.build(context),
+  );
+
+  @override
   Widget buildDialogContent() {
     return Obx(
-      () => Column(
+      () => AppDialogColumn(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppDialogHeader(
-            title: widget.title,
-            onClose: () async {
-              if (_submitting) return;
-              Navigator.pop(Get.context!);
-              await widget.onCancel();
-            },
-          ),
+          AppDialogHeader(title: widget.title, closeEnabled: !_submitting),
           Divider(height: 0, thickness: 1),
           Padding(
-            padding: Spacing.all(16),
+            padding: Spacing.all(24),
             child: CustomizedText.bodyMedium(widget.prompt),
           ),
           Divider(height: 0, thickness: 1),
           Padding(
-            padding: Spacing.all(16),
+            padding: Spacing.all(24),
             child: Column(
               children: [
                 Form(
                   key: _validator.formKey,
-                  child: TextFormField(
-                    autofocus: true,
-                    onTapOutside: (_) =>
-                        FocusManager.instance.primaryFocus?.unfocus(),
-                    onTap: widget.onFocus,
-                    obscureText: !_showPin.value,
-                    controller: _validator.getController('pin'),
-                    validator: _validator.getValidator('pin'),
-                    onFieldSubmitted: (_) => _onSubmit(),
-                    decoration: InputDecoration(
-                      labelText: widget.label,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                        borderSide: BorderSide(
-                          width: 1,
-                          strokeAlign: 0,
-                          color: AppTheme.theme.colorScheme.onSurface.withAlpha(
-                            80,
+                  child: Builder(
+                    builder: (fieldContext) => TextFormField(
+                      enabled: !_submitting,
+                      autofocus: true,
+                      onTapOutside: (_) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
+                      onTap: widget.onFocus,
+                      obscureText: !_showPin.value,
+                      controller: _validator.getController('pin'),
+                      validator: _validator.getValidator('pin'),
+                      onFieldSubmitted: (_) =>
+                          AppDialogSurface.run(fieldContext, _onSubmit),
+                      decoration: InputDecoration(
+                        labelText: widget.label,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderSide: BorderSide(
+                            width: 1,
+                            strokeAlign: 0,
+                            color: AppTheme.theme.colorScheme.onSurface
+                                .withAlpha(80),
                           ),
                         ),
-                      ),
-                      floatingLabelBehavior: FloatingLabelBehavior.auto,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _showPin.value
-                              ? Icons.visibility
-                              : Icons.visibility_off,
+                        floatingLabelBehavior: FloatingLabelBehavior.auto,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _showPin.value
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                          onPressed: () => _showPin.toggle(),
                         ),
-                        onPressed: () => _showPin.toggle(),
                       ),
                     ),
                   ),
                 ),
                 if (widget.showSaveOption)
-                  CheckboxListTile(
+                  AppDialogCheckbox(
                     value: _savePin.value,
                     onChanged: (value) => _savePin.value = value!,
                     title: CustomizedText.bodyMedium(
                       S.of(context).savePinOnDevice,
                     ),
-                    controlAffinity: ListTileControlAffinity.leading,
-                    contentPadding: EdgeInsets.zero,
                   ),
                 if (errorMessage.value.isNotEmpty)
                   CustomizedText.bodyMedium(
@@ -191,17 +203,13 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
             children: [
               AppDialogAction(
                 label: S.of(Get.context!).cancel,
-                onPressed: () async {
-                  if (_submitting) return;
-                  Navigator.pop(Get.context!);
-                  await widget.onCancel();
-                },
+                onPressed: _submitting ? null : () => Navigator.pop(context),
                 secondary: true,
                 destructive: false,
               ),
               AppDialogAction(
                 label: S.of(Get.context!).confirm,
-                onPressed: _onSubmit,
+                onPressed: _submitting ? null : _onSubmit,
                 secondary: false,
                 destructive: false,
               ),

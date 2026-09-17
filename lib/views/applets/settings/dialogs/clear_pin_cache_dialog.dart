@@ -1,3 +1,5 @@
+import 'package:canokey_console/helper/utils/prompts.dart';
+import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
@@ -18,14 +20,14 @@ class ClearPinCacheDialog extends StatelessWidget {
     return AppDialogSurface(
       child: SizedBox(
         width: AppDialogWidth.compact,
-        child: Column(
+        child: AppDialogColumn(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AppDialogHeader(title: S.of(context).settingsClearPinCache),
             Divider(height: 0, thickness: 1),
             Padding(
-              padding: Spacing.all(16),
+              padding: Spacing.all(24),
               child: CustomizedText.bodyMedium(
                 S.of(context).settingsClearPinCachePrompt,
               ),
@@ -40,9 +42,13 @@ class ClearPinCacheDialog extends StatelessWidget {
                   destructive: false,
                 ),
                 AppDialogAction(
-                  label: S.of(context).confirm,
+                  label: S.of(context).settingsClearPinCache,
                   onPressed: () async {
                     await LocalStorage.clearPinCache();
+                    Prompts.showPrompt(
+                      S.current.successfullyChanged,
+                      ContentThemeColor.success,
+                    );
                     Navigator.pop(Get.context!);
                   },
                   secondary: false,

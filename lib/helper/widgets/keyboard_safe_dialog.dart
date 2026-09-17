@@ -6,20 +6,24 @@ import 'package:flutter/material.dart';
 class KeyboardSafeDialog extends StatelessWidget {
   final Widget child;
   final bool useCompositedKeyboardMotion;
+  final bool managesOwnScrolling;
 
   const KeyboardSafeDialog({
     super.key,
     required this.child,
     this.useCompositedKeyboardMotion = false,
+    this.managesOwnScrolling = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final dialog = AppDialogSurface(
-      child: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        child: child,
-      ),
+      child: managesOwnScrolling
+          ? child
+          : SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              child: child,
+            ),
     );
     if (!useCompositedKeyboardMotion) {
       return dialog;
