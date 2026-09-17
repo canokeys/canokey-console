@@ -54,9 +54,7 @@ class OathCalculatedEntry {
 class OathCardClient extends ProfileCardClient {
   OathCardClient({super.transport, super.lease}) : super(bindSelection: false);
 
-  /// Fresh host challenge for each access proof; tests may pin a fixed value.
-  Uint8List Function() challengeGenerator = _randomChallenge;
-
+  /// Fresh host challenge for each access proof.
   static Uint8List _randomChallenge() {
     final random = Random.secure();
     return Uint8List.fromList(List.generate(8, (_) => random.nextInt(256)));
@@ -77,46 +75,41 @@ class OathCardClient extends ProfileCardClient {
   /// non-protocol failure discards the profile evidence.
   Future<Uint8List> _execute(
     ProtocolOperation Function(ProtocolProfile) create,
-  ) => executePrepared(
+  ) => _executeResult(create, (step) => step.data!);
+
+  (Uint8List?, Uint8List?) _accessParts(Uint8List? key) =>
+      key == null ? (null, null) : (key, _randomChallenge());
+
+  Future<T> _executeResult<T>(
+    ProtocolOperation Function(ProtocolProfile) create,
+    T Function(ProtocolStep) result,
+  ) => executePreparedResult(
     create,
+    result: result,
     selectApplet: true,
     recheckOnProtocolError: false,
     discardOnOtherError: true,
   );
 
-  (Uint8List?, Uint8List?) _accessParts(Uint8List? key) =>
-      key == null ? (null, null) : (key, challengeGenerator());
-
-  Future<OathSelection> select() async {
-    final data = await _execute((profile) => profile.oathSelect());
-    // A legacy selection carries no fields, only the optional Admin serial.
-    if (data.length <= 4) {
-      return const OathSelection(
-        version: OathVersion.legacy,
-        requiresCode: false,
-      );
-    }
-    if (data.length != 11 && data.length != 19) {
-      throw FormatException('Unexpected OATH selection of ${data.length} bytes');
-    }
-    final version = switch (hex.encode(data.sublist(0, 3))) {
-      '050505' => OathVersion.v1,
-      '060000' => OathVersion.v2,
-      _ => OathVersion.v1,
-    };
-    return OathSelection(
-      version: version,
-      salt: Uint8List.fromList(data.sublist(3, 11)),
-      requiresCode: data.length == 19,
-    );
-  }
+  Future<OathSelection> select() =>
+      _executeResult((profile) => profile.oathSelect(), (step) {
+        final selection = step.oathSelection!;
+        return OathSelection(
+          version: selection.version == null
+              ? OathVersion.legacy
+              : hex.encode(selection.version!) == '060000'
+              ? OathVersion.v2
+              : OathVersion.v1,
+          salt: selection.salt,
+          requiresCode: selection.challenge != null,
+        );
+      });
 
   /// Explicitly prove an access key. Wrong keys surface as AuthenticationFailed.
-  Future<void> validate(Uint8List key) =>
-      _execute((profile) => profile.oathValidate(
-            key: key,
-            challenge: challengeGenerator(),
-          ));
+  Future<void> validate(Uint8List key) => _execute(
+    (profile) =>
+        profile.oathValidate(key: key, challenge: _randomChallenge()),
+  );
 
   Future<void> put({
     required String name,
@@ -133,27 +126,31 @@ class OathCardClient extends ProfileCardClient {
     }
     final secret = Uint8List.fromList(hex.decode(secretHex));
     final (accessKey, accessChallenge) = _accessParts(key);
-    return _execute((profile) => profile.oathPut(
-          name: utf8.encode(name),
-          kind: type == OathType.hotp ? 1 : 2,
-          algorithm: algorithm.value,
-          digits: digits,
-          secret: secret,
-          requireTouch: requireTouch,
-          increasing: false,
-          initialCounter: initialValue,
-          accessKey: accessKey,
-          accessChallenge: accessChallenge,
-        )).whenComplete(() => secret.fillRange(0, secret.length, 0));
+    return _execute(
+      (profile) => profile.oathPut(
+        name: utf8.encode(name),
+        kind: type == OathType.hotp ? 1 : 2,
+        algorithm: algorithm.value,
+        digits: digits,
+        secret: secret,
+        requireTouch: requireTouch,
+        increasing: false,
+        initialCounter: initialValue,
+        accessKey: accessKey,
+        accessChallenge: accessChallenge,
+      ),
+    ).whenComplete(() => secret.fillRange(0, secret.length, 0));
   }
 
   Future<void> delete(String name, {Uint8List? key}) {
     final (accessKey, accessChallenge) = _accessParts(key);
-    return _execute((profile) => profile.oathDelete(
-          name: utf8.encode(name),
-          accessKey: accessKey,
-          accessChallenge: accessChallenge,
-        ));
+    return _execute(
+      (profile) => profile.oathDelete(
+        name: utf8.encode(name),
+        accessKey: accessKey,
+        accessChallenge: accessChallenge,
+      ),
+    );
   }
 
   /// Calculate one credential. The truncated code is returned unformatted;
@@ -176,22 +173,25 @@ class OathCardClient extends ProfileCardClient {
       challenge = Uint8List.fromList(hex.decode(challengeHex));
     }
     final (accessKey, accessChallenge) = _accessParts(key);
-    return _execute((profile) => profile.oathCalculate(
-          name: utf8.encode(name),
-          kind: type == OathType.hotp ? 1 : 2,
-          // Only full-format validation reads the expected algorithm.
-          algorithm: OathAlgorithm.sha1.value,
-          challenge: challenge,
-          format: 0,
-          accessKey: accessKey,
-          accessChallenge: accessChallenge,
-        )).then((data) {
-      final entry = _decodeCalculations(data).single;
-      if (entry.name != null || entry.rawCode == null) {
-        throw const FormatException('Unexpected OATH calculation result');
-      }
-      return (entry.digits, entry.rawCode!);
-    });
+    return _executeResult(
+      (profile) => profile.oathCalculate(
+        name: utf8.encode(name),
+        kind: type == OathType.hotp ? 1 : 2,
+        // Only full-format validation reads the expected algorithm.
+        algorithm: OathAlgorithm.sha1.value,
+        challenge: challenge,
+        format: 0,
+        accessKey: accessKey,
+        accessChallenge: accessChallenge,
+      ),
+      (step) {
+        final entry = _calculation(step.oathCalculations!.single);
+        if (entry.name != null || entry.rawCode == null) {
+          throw const FormatException('Unexpected OATH calculation result');
+        }
+        return (entry.digits, entry.rawCode!);
+      },
+    );
   }
 
   Future<List<OathCalculatedEntry>> calculateAll(
@@ -206,33 +206,41 @@ class OathCardClient extends ProfileCardClient {
       );
     }
     final (accessKey, accessChallenge) = _accessParts(key);
-    return _execute((profile) => profile.oathCalculateAll(
-          challenge: Uint8List.fromList(hex.decode(challengeHex)),
-          format: 0,
-          accessKey: accessKey,
-          accessChallenge: accessChallenge,
-        )).then((data) => _decodeCalculations(data)
-        .map((entry) => entry.name != null
-            ? entry
-            : throw const FormatException('Nameless OATH list entry'))
-        .toList());
+    return _executeResult(
+      (profile) => profile.oathCalculateAll(
+        challenge: Uint8List.fromList(hex.decode(challengeHex)),
+        format: 0,
+        accessKey: accessKey,
+        accessChallenge: accessChallenge,
+      ),
+      (step) => step.oathCalculations!
+          .map(_calculation)
+          .map(
+            (entry) => entry.name != null
+                ? entry
+                : throw const FormatException('Nameless OATH list entry'),
+          )
+          .toList(),
+    );
   }
 
   /// Set or replace the access code. The current key validates in the same
   /// operation; pass no old key only when the applet is unprotected.
   Future<void> setCode({required Uint8List newKey, Uint8List? oldKey}) =>
-      _execute((profile) => profile.oathSetCode(
-            oldKey: oldKey,
-            newKey: newKey,
-            challenge: challengeGenerator(),
-          ));
+      _execute(
+        (profile) => profile.oathSetCode(
+          oldKey: oldKey,
+          newKey: newKey,
+          challenge: _randomChallenge(),
+        ),
+      );
 
   Future<void> clearCode({Uint8List? key}) {
     final (accessKey, accessChallenge) = _accessParts(key);
-    return _execute((profile) => profile.oathClearCode(
-          key: accessKey,
-          challenge: accessChallenge,
-        ));
+    return _execute(
+      (profile) =>
+          profile.oathClearCode(key: accessKey, challenge: accessChallenge),
+    );
   }
 
   /// Mark an existing HOTP credential as the touch keyboard-emulation
@@ -249,62 +257,36 @@ class OathCardClient extends ProfileCardClient {
       throw RangeError.range(slot, 0, 1, 'slot');
     }
     final (accessKey, accessChallenge) = _accessParts(key);
-    return _execute((profile) => profile.oathSetDefault(
-          slot: slot,
-          appendEnter: appendEnter,
-          name: name,
-          accessKey: accessKey,
-          accessChallenge: accessChallenge,
-        ));
+    return _execute(
+      (profile) => profile.oathSetDefault(
+        slot: slot,
+        appendEnter: appendEnter,
+        name: name,
+        accessKey: accessKey,
+        accessChallenge: accessChallenge,
+      ),
+    );
   }
 
-  // name_len (0xff = nameless) | name | digits | code tag | code_len | code.
-  static List<OathCalculatedEntry> _decodeCalculations(Uint8List data) {
-    final result = <OathCalculatedEntry>[];
-    var pos = 0;
-    int read() {
-      if (pos >= data.length) {
-        throw const FormatException('Truncated OATH calculation encoding');
-      }
-      return data[pos++];
-    }
-
-    while (pos < data.length) {
-      final nameLength = read();
-      if (nameLength != 0xff && (nameLength == 0 || pos + nameLength > data.length)) {
-        throw const FormatException('Truncated OATH calculation name');
-      }
-      final name = nameLength == 0xff
-          ? null
-          : utf8.decode(data.sublist(pos, pos + nameLength));
-      if (nameLength != 0xff) pos += nameLength;
-      final digits = read();
-      final tag = read();
-      final codeLength = read();
-      if (pos + codeLength > data.length) {
-        throw const FormatException('Truncated OATH calculation code');
-      }
-      final code = data.sublist(pos, pos + codeLength);
-      pos += codeLength;
-      result.add(switch (tag) {
-        0x76 when codeLength == 4 => OathCalculatedEntry._(
-            name: name,
-            digits: digits,
-            rawCode: ByteData.sublistView(code).getUint32(0),
-          ),
-        0x77 when codeLength == 0 => OathCalculatedEntry._(
-            name: name,
-            digits: digits,
-            isHotp: true,
-          ),
-        0x7c when codeLength == 0 => OathCalculatedEntry._(
-            name: name,
-            digits: digits,
-            requiresTouch: true,
-          ),
-        _ => throw const FormatException('Unexpected OATH calculation code'),
-      });
-    }
-    return result;
+  static OathCalculatedEntry _calculation(OathCalculation entry) {
+    final name = entry.name == null ? null : utf8.decode(entry.name!);
+    return switch (entry.code) {
+      OathCode.truncated => OathCalculatedEntry._(
+        name: name,
+        digits: entry.digits,
+        rawCode: entry.rawCode,
+      ),
+      OathCode.hotp => OathCalculatedEntry._(
+        name: name,
+        digits: entry.digits,
+        isHotp: true,
+      ),
+      OathCode.touchRequired => OathCalculatedEntry._(
+        name: name,
+        digits: entry.digits,
+        requiresTouch: true,
+      ),
+      _ => throw const FormatException('Unexpected full OATH calculation code'),
+    };
   }
 }

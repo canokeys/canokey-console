@@ -68,7 +68,7 @@ class CustomizedTextStyle {
 
   static Map<int, FontWeight> _defaultFontWeight = {};
 
-  static Map<TextType, double> _defaultTextSize = {
+  static const Map<TextType, double> _defaultTextSize = {
     TextType.displayLarge: 57,
     TextType.displayMedium: 45,
     TextType.displaySmall: 36,
@@ -493,14 +493,6 @@ class CustomizedTextStyle {
     CustomizedTextStyle._defaultTextFontWeight = defaultFontWeight;
   }
 
-  static void changeDefaultTextSize(Map<TextType, double> defaultTextSize) {
-    CustomizedTextStyle._defaultTextSize = defaultTextSize;
-  }
-
-  static void changeDefaultLetterSpacing(Map<TextType, double> defaultLetterSpacing) {
-    CustomizedTextStyle._defaultLetterSpacing = defaultLetterSpacing;
-  }
-
   static Map<TextType, double> get defaultTextSize => _defaultTextSize;
 
   static Map<TextType, double> get defaultLetterSpacing => _defaultLetterSpacing;
@@ -523,24 +515,6 @@ class CustomizedTextStyle {
       700: FontWeight.w600,
       800: FontWeight.w700,
       900: FontWeight.w800,
-    };
-
-    _defaultTextSize = {
-      TextType.displayLarge: 57,
-      TextType.displayMedium: 45,
-      TextType.displaySmall: 36,
-      TextType.headlineLarge: 32,
-      TextType.headlineMedium: 28,
-      TextType.headlineSmall: 26,
-      TextType.titleLarge: 22,
-      TextType.titleMedium: 16,
-      TextType.titleSmall: 14,
-      TextType.labelLarge: 14,
-      TextType.labelMedium: 12,
-      TextType.labelSmall: 11,
-      TextType.bodyLarge: 16,
-      TextType.bodyMedium: 14,
-      TextType.bodySmall: 12,
     };
 
     _defaultTextFontWeight = {

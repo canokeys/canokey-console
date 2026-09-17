@@ -116,6 +116,7 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
           AppDialogHeader(
             title: widget.title,
             onClose: () async {
+              if (_submitting) return;
               Navigator.pop(Get.context!);
               await widget.onCancel();
             },
@@ -191,6 +192,7 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
               AppDialogAction(
                 label: S.of(Get.context!).cancel,
                 onPressed: () async {
+                  if (_submitting) return;
                   Navigator.pop(Get.context!);
                   await widget.onCancel();
                 },

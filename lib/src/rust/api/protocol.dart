@@ -5,8 +5,9 @@
 
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'piv_crypto.dart';
 
-// These functions are ignored because they are not marked as `pub`: `admin_operation`, `admin_progress`, `admin_result`, `bytes`, `change_pin_with_iv`, `ctap_credentials_data`, `ctap_info_data`, `ctap_rps_data`, `drive`, `drive`, `failure`, `from_operation`, `new`, `new`, `oath_access`, `openpgp_slot`, `pass_slots_data`, `pin_iv`, `pin_token_with_iv`, `piv_slot`, `set_pin_with_iv`, `token`
+// These functions are ignored because they are not marked as `pub`: `bytes`, `drive`, `drive`, `failure`, `from_operation`, `operation`, `profile`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `Inner`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `from`
 
@@ -31,10 +32,6 @@ abstract class CtapPinSession implements RustOpaqueInterface {
     String? rpId,
   });
 
-  /// The pin/UV auth protocol version (1 or 2) this session speaks.
-  /// Dart picks it from getInfo's advertised pinUvAuthProtocols.
-  int protocolVersion();
-
   /// Set the initial PIN (subcommand 0x03). V2 IVs are generated here from
   /// the CSPRNG; PIN bytes enter upstream zeroizing owners immediately.
   ProtocolOperation setPin({required List<int> newPin});
@@ -52,8 +49,8 @@ abstract class CtapPinToken implements RustOpaqueInterface {
 
   /// Enumerate one RP's resident credentials. `metadata_only` enables the
   /// CanoKey vendor extension (subCommandParams key 0x80): the raw COSE
-  /// algorithm replaces the public key in responses. Data: see
-  /// `ctap_credentials_data`. A Begin 0x2E yields an empty result.
+  /// algorithm replaces the public key in typed credential results.
+  /// A Begin 0x2E yields an empty result.
   ProtocolOperation enumerateCredentials({
     required List<int> rpIdHash,
     required bool metadataOnly,
@@ -61,12 +58,8 @@ abstract class CtapPinToken implements RustOpaqueInterface {
 
   /// Enumerate relying parties with resident credentials (Begin + GetNext
   /// run inside the one operation). A 0x2E NO_CREDENTIALS status yields an
-  /// empty result, not an error. Data: see `ctap_rps_data`.
+  /// empty result, not an error. Returns typed relying parties.
   ProtocolOperation enumerateRps();
-
-  /// The pin/UV auth protocol version (1 or 2) of the session that minted
-  /// this token; credmgmt operations authenticate with it.
-  int protocolVersion();
 }
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolOperation>>
@@ -101,33 +94,12 @@ abstract class ProtocolOperation implements RustOpaqueInterface {
   /// authenticatorGetInfo (0x04), profile-free with its own SELECT. The
   /// final `data` carries the parsed fields Dart needs (credMgmt/clientPin
   /// tri-states, forcePinChange, minPinLength, advertised pinUvAuthProtocol
-  /// versions); see `ctap_info_data` for the encoding.
+  /// versions) as typed fields.
   static ProtocolOperation ctapGetInfo() =>
       RustLib.instance.api.crateApiProtocolProtocolOperationCtapGetInfo();
 
-  /// Select the FIDO2 applet only; the caller owns the selected context.
-  static ProtocolOperation ctapSelectApplication() => RustLib.instance.api
-      .crateApiProtocolProtocolOperationCtapSelectApplication();
-
-  /// Select the FIDO2 applet and send one CTAP message within that selection.
-  static ProtocolOperation ctapTransceive({required List<int> message}) =>
-      RustLib.instance.api.crateApiProtocolProtocolOperationCtapTransceive(
-        message: message,
-      );
-
-  /// One CTAP message to the caller's already selected FIDO2 applet.
-  /// Data is the CTAP status byte followed by the payload; a non-success
-  /// status is not a protocol error and stays visible to Dart.
-  static ProtocolOperation ctapTransceiveSelected({
-    required List<int> message,
-  }) => RustLib.instance.api
-      .crateApiProtocolProtocolOperationCtapTransceiveSelected(
-        message: message,
-      );
-
   /// Profile-free NDEF capability-container read. Selects the NDEF applet.
-  /// Data encodes `max_message_length` (big-endian u16, excluding the two
-  /// NLEN bytes) followed by the read-only flag byte.
+  /// Returns the maximum message length (excluding NLEN) and write protection.
   static ProtocolOperation ndefReadCapability() => RustLib.instance.api
       .crateApiProtocolProtocolOperationNdefReadCapability();
 
@@ -143,8 +115,8 @@ abstract class ProtocolOperation implements RustOpaqueInterface {
         message: message,
       );
 
-  /// Construct without I/O. Only Select changes applet selection; reads never
-  /// probe, SELECT, authenticate, or retain a device profile implicitly.
+  /// Construct without I/O. Reads never probe, SELECT, authenticate, or
+  /// retain a device profile implicitly.
   static ProtocolOperation pivRead({required PivReadOperation kind}) =>
       RustLib.instance.api.crateApiProtocolProtocolOperationPivRead(kind: kind);
 
@@ -248,11 +220,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     Uint8List? accessChallenge,
   });
 
-  ProtocolOperation oathList({
-    Uint8List? accessKey,
-    Uint8List? accessChallenge,
-  });
-
   ProtocolOperation oathPut({
     required List<int> name,
     required int kind,
@@ -262,13 +229,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     required bool requireTouch,
     required bool increasing,
     required int initialCounter,
-    Uint8List? accessKey,
-    Uint8List? accessChallenge,
-  });
-
-  ProtocolOperation oathRename({
-    required List<int> old,
-    required List<int> new_,
     Uint8List? accessKey,
     Uint8List? accessChallenge,
   });
@@ -300,24 +260,11 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     required List<int> challenge,
   });
 
-  ProtocolOperation openpgpActivate({required List<int> password});
-
   ProtocolOperation openpgpChangePassword({
     required int reference,
     required List<int> old,
     required List<int> new_,
   });
-
-  ProtocolOperation openpgpGenerateKey({
-    required int slot,
-    required List<int> password,
-  });
-
-  ProtocolOperation openpgpLogout({required int reference});
-
-  ProtocolOperation openpgpPinStatus({required int reference});
-
-  ProtocolOperation openpgpReadCertificate({required int slot});
 
   ProtocolOperation openpgpReadData({required int tag});
 
@@ -328,8 +275,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     required List<int> retries,
     required List<int> password,
   });
-
-  ProtocolOperation openpgpTerminate({required List<int> password});
 
   /// Reset PW1 after explicit PW3 verification; does not change PW3.
   ProtocolOperation openpgpUnblockWithAdmin({
@@ -348,35 +293,9 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     required List<int> password,
   });
 
-  ProtocolOperation openpgpWriteCertificate({
-    required int slot,
-    required List<int> certificate,
-    required List<int> password,
-  });
-
-  ProtocolOperation openpgpWriteLanguage({
-    required List<int> language,
-    required List<int> password,
-  });
-
-  ProtocolOperation openpgpWriteLogin({
-    required List<int> login,
-    required List<int> password,
-  });
-
-  ProtocolOperation openpgpWriteName({
-    required List<int> name,
-    required List<int> password,
-  });
-
   /// Set (Some) or clear (None) the reset code after explicit PW3 verification.
   ProtocolOperation openpgpWriteResetCode({
     Uint8List? resetCode,
-    required List<int> password,
-  });
-
-  ProtocolOperation openpgpWriteSex({
-    required int sex,
     required List<int> password,
   });
 
@@ -398,11 +317,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
   ProtocolOperation openpgpWriteTouchPolicy({
     required int slot,
     required int policy,
-    required List<int> password,
-  });
-
-  ProtocolOperation openpgpWriteUrl({
-    required List<int> url,
     required List<int> password,
   });
 
@@ -438,14 +352,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     required List<int> ciphertext,
   });
 
-  ProtocolOperation pivDecrypt({
-    required int slot,
-    required int algorithm,
-    required List<int> ciphertext,
-  });
-
-  ProtocolOperation pivDeleteCertificate({required int objectId});
-
   ProtocolOperation pivDeleteKey({required int slot});
 
   ProtocolOperation pivDerive({
@@ -461,21 +367,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     required int touchPolicy,
   });
 
-  ProtocolOperation pivImportEcKey({
-    required int slot,
-    required int algorithm,
-    required List<int> scalar,
-    required int pinPolicy,
-    required int touchPolicy,
-  });
-
-  ProtocolOperation pivImportEd25519Key({
-    required int slot,
-    required List<int> seed,
-    required int pinPolicy,
-    required int touchPolicy,
-  });
-
   /// Import a post-quantum seed (INS FE): kind 0 = ML-DSA-65 (32-byte seed),
   /// 1 = ML-KEM-768 (64-byte d||z seed). Semantics match the EC/RSA/Ed25519
   /// imports: Access::Existing inside the caller's reserved transaction.
@@ -487,14 +378,11 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     required int touchPolicy,
   });
 
-  ProtocolOperation pivImportRsaKey({
+  /// Import validated file material without round-tripping private components through Dart.
+  ProtocolOperation pivImportPrivateKey({
     required int slot,
     required int algorithm,
-    required List<int> p,
-    required List<int> q,
-    required List<int> dp,
-    required List<int> dq,
-    required List<int> qinv,
+    required PivPrivateKeyData key,
     required int pinPolicy,
     required int touchPolicy,
   });
@@ -532,11 +420,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
 
   ProtocolOperation pivSetAlgorithmConfig({required List<int> raw});
 
-  ProtocolOperation pivSetContainerName({
-    required int slot,
-    required String name,
-  });
-
   ProtocolOperation pivSetManagementKey({
     required int algorithm,
     required List<int> key,
@@ -561,16 +444,6 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
     Uint8List? userId,
   });
 
-  ProtocolOperation pivSm2Agreement({
-    required int slot,
-    required int role,
-    required List<int> peerStatic,
-    required List<int> peerEphemeral,
-    Uint8List? userId,
-    Uint8List? peerId,
-    required int keyLen,
-  });
-
   /// Writes may be partially applied before failure; never retry or roll back.
   /// Existing delegates authorization to the card in the caller-owned lease.
   ProtocolOperation pivWriteObject({
@@ -589,7 +462,6 @@ enum AdminAction {
   keyboardReturn,
   keyboardKeymap,
   clearKeyboardKeymap,
-  legacyPivExtensions,
   legacyTouch,
   writeSm2,
   nfc,
@@ -600,6 +472,31 @@ enum AdminAction {
   resetCtap,
   resetPass,
   factoryReset,
+}
+
+class AdminAppletUsage {
+  final int appletId;
+  final int flags;
+  final int logicalBytes;
+
+  const AdminAppletUsage({
+    required this.appletId,
+    required this.flags,
+    required this.logicalBytes,
+  });
+
+  @override
+  int get hashCode =>
+      appletId.hashCode ^ flags.hashCode ^ logicalBytes.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AdminAppletUsage &&
+          runtimeType == other.runtimeType &&
+          appletId == other.appletId &&
+          flags == other.flags &&
+          logicalBytes == other.logicalBytes;
 }
 
 class AdminConfigurationPatch {
@@ -683,15 +580,27 @@ class AdminResult {
   final AdminValueKind kind;
   final Uint8List data;
   final AdminProgress progress;
+  final List<PassSlotData>? passSlots;
+  final AdminStorageUsage? flashUsage;
+  final List<AdminAppletUsage>? appletUsage;
 
   const AdminResult({
     required this.kind,
     required this.data,
     required this.progress,
+    this.passSlots,
+    this.flashUsage,
+    this.appletUsage,
   });
 
   @override
-  int get hashCode => kind.hashCode ^ data.hashCode ^ progress.hashCode;
+  int get hashCode =>
+      kind.hashCode ^
+      data.hashCode ^
+      progress.hashCode ^
+      passSlots.hashCode ^
+      flashUsage.hashCode ^
+      appletUsage.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -700,7 +609,28 @@ class AdminResult {
           runtimeType == other.runtimeType &&
           kind == other.kind &&
           data == other.data &&
-          progress == other.progress;
+          progress == other.progress &&
+          passSlots == other.passSlots &&
+          flashUsage == other.flashUsage &&
+          appletUsage == other.appletUsage;
+}
+
+class AdminStorageUsage {
+  final int usedKiB;
+  final int totalKiB;
+
+  const AdminStorageUsage({required this.usedKiB, required this.totalKiB});
+
+  @override
+  int get hashCode => usedKiB.hashCode ^ totalKiB.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AdminStorageUsage &&
+          runtimeType == other.runtimeType &&
+          usedKiB == other.usedKiB &&
+          totalKiB == other.totalKiB;
 }
 
 enum AdminValueKind {
@@ -724,17 +654,220 @@ enum AdminValueKind {
 /// no other applet selection and no device observations are created.
 enum BootstrapIdentityStep { selectAdmin, serial }
 
-/// Explicit actions in an already prepared lease; never SELECT or probe.
-enum PivCredentialOperation {
-  verifyPin,
-  changePin,
-  changePuk,
-  unblockPin,
-  logout,
+class CtapCredential {
+  final Uint8List credentialId;
+  final Uint8List? userId;
+  final String? userName;
+  final String? userDisplayName;
+  final int? credProtect;
+  final PlatformInt64? coseAlgorithm;
+  final Uint8List? publicKey;
+
+  const CtapCredential({
+    required this.credentialId,
+    this.userId,
+    this.userName,
+    this.userDisplayName,
+    this.credProtect,
+    this.coseAlgorithm,
+    this.publicKey,
+  });
+
+  @override
+  int get hashCode =>
+      credentialId.hashCode ^
+      userId.hashCode ^
+      userName.hashCode ^
+      userDisplayName.hashCode ^
+      credProtect.hashCode ^
+      coseAlgorithm.hashCode ^
+      publicKey.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CtapCredential &&
+          runtimeType == other.runtimeType &&
+          credentialId == other.credentialId &&
+          userId == other.userId &&
+          userName == other.userName &&
+          userDisplayName == other.userDisplayName &&
+          credProtect == other.credProtect &&
+          coseAlgorithm == other.coseAlgorithm &&
+          publicKey == other.publicKey;
 }
 
+class CtapInfo {
+  final bool? credMgmt;
+  final bool? clientPin;
+  final bool? forcePinChange;
+  final BigInt? minPinLength;
+  final Uint8List pinUvAuthProtocols;
+
+  const CtapInfo({
+    this.credMgmt,
+    this.clientPin,
+    this.forcePinChange,
+    this.minPinLength,
+    required this.pinUvAuthProtocols,
+  });
+
+  @override
+  int get hashCode =>
+      credMgmt.hashCode ^
+      clientPin.hashCode ^
+      forcePinChange.hashCode ^
+      minPinLength.hashCode ^
+      pinUvAuthProtocols.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CtapInfo &&
+          runtimeType == other.runtimeType &&
+          credMgmt == other.credMgmt &&
+          clientPin == other.clientPin &&
+          forcePinChange == other.forcePinChange &&
+          minPinLength == other.minPinLength &&
+          pinUvAuthProtocols == other.pinUvAuthProtocols;
+}
+
+class CtapRp {
+  final String id;
+  final String? name;
+  final Uint8List idHash;
+
+  const CtapRp({required this.id, this.name, required this.idHash});
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode ^ idHash.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CtapRp &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          idHash == other.idHash;
+}
+
+class NdefCapabilityData {
+  final int maxMessageLength;
+  final bool readOnly;
+
+  const NdefCapabilityData({
+    required this.maxMessageLength,
+    required this.readOnly,
+  });
+
+  @override
+  int get hashCode => maxMessageLength.hashCode ^ readOnly.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NdefCapabilityData &&
+          runtimeType == other.runtimeType &&
+          maxMessageLength == other.maxMessageLength &&
+          readOnly == other.readOnly;
+}
+
+class OathCalculation {
+  final Uint8List? name;
+  final int digits;
+  final OathCode code;
+  final int? rawCode;
+  final Uint8List? fullCode;
+
+  const OathCalculation({
+    this.name,
+    required this.digits,
+    required this.code,
+    this.rawCode,
+    this.fullCode,
+  });
+
+  @override
+  int get hashCode =>
+      name.hashCode ^
+      digits.hashCode ^
+      code.hashCode ^
+      rawCode.hashCode ^
+      fullCode.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OathCalculation &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          digits == other.digits &&
+          code == other.code &&
+          rawCode == other.rawCode &&
+          fullCode == other.fullCode;
+}
+
+enum OathCode { truncated, full, hotp, touchRequired }
+
+/// OATH selection evidence, including legacy serial observations.
+class OathSelectionData {
+  final Uint8List? version;
+  final Uint8List? salt;
+  final Uint8List? challenge;
+  final Uint8List? serial;
+
+  const OathSelectionData({
+    this.version,
+    this.salt,
+    this.challenge,
+    this.serial,
+  });
+
+  @override
+  int get hashCode =>
+      version.hashCode ^ salt.hashCode ^ challenge.hashCode ^ serial.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OathSelectionData &&
+          runtimeType == other.runtimeType &&
+          version == other.version &&
+          salt == other.salt &&
+          challenge == other.challenge &&
+          serial == other.serial;
+}
+
+class PassSlotData {
+  final int kind;
+  final Uint8List name;
+  final bool appendEnter;
+
+  const PassSlotData({
+    required this.kind,
+    required this.name,
+    required this.appendEnter,
+  });
+
+  @override
+  int get hashCode => kind.hashCode ^ name.hashCode ^ appendEnter.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PassSlotData &&
+          runtimeType == other.runtimeType &&
+          kind == other.kind &&
+          name == other.name &&
+          appendEnter == other.appendEnter;
+}
+
+/// Explicit actions in an already prepared lease; never SELECT or probe.
+enum PivCredentialOperation { verifyPin, changePin, changePuk, unblockPin }
+
 /// Initial PIV operations; reads require an already selected PIV application.
-enum PivReadOperation { select, version, pinStatus }
+enum PivReadOperation { pinStatus }
 
 /// Structured, payload-free protocol failure. Transport errors remain in Dart.
 /// For CTAP-level failures `status_word` carries the raw CTAP status byte
@@ -787,6 +920,12 @@ class ProtocolStep {
   final AdminResult? admin;
   final CtapPinSession? pinSession;
   final CtapPinToken? pinToken;
+  final OathSelectionData? oathSelection;
+  final List<OathCalculation>? oathCalculations;
+  final CtapInfo? ctapInfo;
+  final NdefCapabilityData? ndefCapability;
+  final List<CtapRp>? ctapRps;
+  final List<CtapCredential>? ctapCredentials;
 
   const ProtocolStep({
     this.command,
@@ -796,7 +935,16 @@ class ProtocolStep {
     this.admin,
     this.pinSession,
     this.pinToken,
+    this.oathSelection,
+    this.oathCalculations,
+    this.ctapInfo,
+    this.ndefCapability,
+    this.ctapRps,
+    this.ctapCredentials,
   });
+
+  static ProtocolStep default_() =>
+      RustLib.instance.api.crateApiProtocolProtocolStepDefault();
 
   @override
   int get hashCode =>
@@ -806,7 +954,13 @@ class ProtocolStep {
       profile.hashCode ^
       admin.hashCode ^
       pinSession.hashCode ^
-      pinToken.hashCode;
+      pinToken.hashCode ^
+      oathSelection.hashCode ^
+      oathCalculations.hashCode ^
+      ctapInfo.hashCode ^
+      ndefCapability.hashCode ^
+      ctapRps.hashCode ^
+      ctapCredentials.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -819,5 +973,11 @@ class ProtocolStep {
           profile == other.profile &&
           admin == other.admin &&
           pinSession == other.pinSession &&
-          pinToken == other.pinToken;
+          pinToken == other.pinToken &&
+          oathSelection == other.oathSelection &&
+          oathCalculations == other.oathCalculations &&
+          ctapInfo == other.ctapInfo &&
+          ndefCapability == other.ndefCapability &&
+          ctapRps == other.ctapRps &&
+          ctapCredentials == other.ctapCredentials;
 }

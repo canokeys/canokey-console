@@ -1,3 +1,4 @@
+use canokey::{piv, Error, ErrorKind, SecretBytes};
 use std::str::FromStr;
 
 use const_oid::ObjectIdentifier;
@@ -58,12 +59,53 @@ pub struct PivPublicKeyData {
     pub raw_public_key: Vec<u8>,
 }
 
-#[derive(Clone)]
+/// Import key components remain in zeroizing Rust owners. Only public metadata crosses FRB.
+#[flutter_rust_bridge::frb(opaque)]
 pub struct PivPrivateKeyData {
-    pub algorithm: u8,
-    /// PIV key component TLVs, excluding PIN and touch policy TLVs.
-    pub import_data: Vec<u8>,
-    pub subject_public_key_info: Vec<u8>,
+    algorithm: u8,
+    components: Vec<SecretBytes>,
+    subject_public_key_info: Vec<u8>,
+}
+
+impl PivPrivateKeyData {
+    #[flutter_rust_bridge::frb(sync, getter)]
+    pub fn algorithm(&self) -> u8 {
+        self.algorithm
+    }
+
+    #[flutter_rust_bridge::frb(sync, getter)]
+    pub fn subject_public_key_info(&self) -> Vec<u8> {
+        self.subject_public_key_info.clone()
+    }
+
+    /// Wipe the import components. Idempotent; previously constructed operations own their copy.
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn close(&mut self) {
+        self.components.clear();
+    }
+
+    pub(crate) fn material(
+        &self,
+        algorithm: piv::Algorithm,
+    ) -> Result<piv::PrivateKeyMaterial, Error> {
+        match self.components.as_slice() {
+            [p, q, dp, dq, qinv] => piv::PrivateKeyMaterial::rsa_crt(
+                algorithm,
+                [
+                    p.as_bytes(),
+                    q.as_bytes(),
+                    dp.as_bytes(),
+                    dq.as_bytes(),
+                    qinv.as_bytes(),
+                ],
+            ),
+            [scalar] if algorithm == piv::Algorithm::Ed25519 => {
+                piv::PrivateKeyMaterial::ed25519_seed(scalar.as_bytes())
+            }
+            [scalar] => piv::PrivateKeyMaterial::ec_scalar(algorithm, scalar.as_bytes()),
+            _ => Err(Error::new(ErrorKind::OperationStateError)),
+        }
+    }
 }
 
 pub struct PivImportFileData {
@@ -115,16 +157,8 @@ struct SignedDerObject {
     signature: BitString,
 }
 
-pub fn build_piv_public_key(
-    algorithm: u8,
-    card_data: Vec<u8>,
-    generated_response: bool,
-) -> Result<PivPublicKeyData, String> {
-    let key_data = if generated_response {
-        tlv_value(&card_data, 0x7F49)?
-    } else {
-        card_data.as_slice()
-    };
+pub fn build_piv_public_key(algorithm: u8, card_data: Vec<u8>) -> Result<PivPublicKeyData, String> {
+    let key_data = card_data.as_slice();
 
     match algorithm {
         PIV_RSA1024 | PIV_RSA2048 | PIV_RSA3072 | PIV_RSA4096 => {
@@ -263,29 +297,35 @@ pub fn piv_certificate_supports_macos(
     slot: u8,
     now_unix: i64,
 ) -> bool {
-    let Ok((remaining, cert)) = x509_parser::parse_x509_certificate(&der) else {
+    use x509_info::ExtensionDetails;
+    let Ok(cert) = x509_info::parse_der(&der, Default::default()) else {
         return false;
     };
-    if !remaining.is_empty() || cert.public_key().raw != expected_public_key {
+    if cert.public_key.spki_der != expected_public_key || !cert.validity.contains(now_unix) {
         return false;
     }
-    let Ok(now) = x509_parser::time::ASN1Time::from_timestamp(now_unix) else {
-        return false;
-    };
-    if !cert.validity().is_valid_at(now) {
-        return false;
+    let mut usage = None;
+    let mut eku = None;
+    for ext in &cert.extensions {
+        if !matches!(ext.oid.as_str(), "2.5.29.19" | "2.5.29.15" | "2.5.29.37") {
+            continue;
+        }
+        if ext.duplicate {
+            return false;
+        }
+        match &ext.details {
+            ExtensionDetails::BasicConstraints { ca: false, .. } => {}
+            ExtensionDetails::KeyUsage(value) => usage = Some(value),
+            ExtensionDetails::ExtendedKeyUsage(value) => eku = Some(value),
+            _ => return false,
+        }
     }
-    let Ok(basic) = cert.basic_constraints() else {
-        return false;
-    };
-    if basic.is_some_and(|ext| ext.value.ca) {
-        return false;
-    }
-    let Ok(usage) = cert.key_usage() else {
-        return false;
-    };
-    let Ok(eku) = cert.extended_key_usage() else {
-        return false;
+    let allows_eku = |client_auth| {
+        eku.is_none_or(|purposes| {
+            purposes
+                .iter()
+                .any(|p| p.oid == "2.5.29.37.0" || (client_auth && p.oid == "1.3.6.1.5.5.7.3.2"))
+        })
     };
     let Ok(spki) = SubjectPublicKeyInfo::from_der(&expected_public_key) else {
         return false;
@@ -297,18 +337,15 @@ pub fn piv_certificate_supports_macos(
         return false;
     }
     match slot {
-        0x9A => {
-            usage.is_none_or(|ext| ext.value.digital_signature())
-                && eku.is_none_or(|ext| ext.value.any || ext.value.client_auth)
-        }
+        0x9A => usage.is_none_or(|ext| ext.digital_signature) && allows_eku(true),
         0x9D => {
             usage.is_none_or(|ext| {
                 if algorithm == PIV_RSA2048 {
-                    ext.value.key_encipherment()
+                    ext.key_encipherment
                 } else {
-                    ext.value.key_agreement()
+                    ext.key_agreement
                 }
-            }) && eku.is_none_or(|ext| ext.value.any)
+            }) && allows_eku(false)
         }
         _ => false,
     }
@@ -567,9 +604,11 @@ fn rsa_private_key_data(mut key: RsaPrivateKey) -> Result<PivPrivateKeyData, Str
     if key.primes().len() != 2 {
         return Err("multi-prime RSA keys are not supported".into());
     }
+    if key.e() != &rsa::BigUint::from(65537u32) {
+        return Err("PIV RSA import requires public exponent 65537".into());
+    }
     key.precompute()
         .map_err(|_| "failed to compute RSA CRT parameters")?;
-    let component_size = size / 2;
     let qinv = key
         .qinv()
         .and_then(|value| value.to_biguint())
@@ -581,13 +620,6 @@ fn rsa_private_key_data(mut key: RsaPrivateKey) -> Result<PivPrivateKeyData, Str
         key.dq().ok_or("missing RSA dQ")?.to_bytes_be(),
         qinv.to_bytes_be(),
     ];
-    let mut import_data = Vec::with_capacity(5 * (component_size + 4));
-    for (index, component) in components.iter().enumerate() {
-        import_data.push(index as u8 + 1);
-        import_data.push(0x82);
-        import_data.extend_from_slice(&(component_size as u16).to_be_bytes());
-        import_data.extend_from_slice(&left_pad(component, component_size)?);
-    }
     let subject_public_key_info = key
         .to_public_key()
         .to_public_key_der()
@@ -596,7 +628,7 @@ fn rsa_private_key_data(mut key: RsaPrivateKey) -> Result<PivPrivateKeyData, Str
         .to_vec();
     Ok(PivPrivateKeyData {
         algorithm,
-        import_data,
+        components: components.into_iter().map(SecretBytes::new).collect(),
         subject_public_key_info,
     })
 }
@@ -607,12 +639,9 @@ fn ec_private_key_data(
     public_key: Vec<u8>,
 ) -> Result<PivPrivateKeyData, String> {
     let subject_public_key_info = public_key_data(algorithm, public_key)?.subject_public_key_info;
-    let mut import_data = vec![0x06];
-    encode_tlv_length(scalar.len(), &mut import_data)?;
-    import_data.extend_from_slice(&scalar);
     Ok(PivPrivateKeyData {
         algorithm,
-        import_data,
+        components: vec![SecretBytes::new(scalar)],
         subject_public_key_info,
     })
 }
@@ -621,11 +650,9 @@ fn ed25519_private_key_data(key: Ed25519SigningKey) -> Result<PivPrivateKeyData,
     let subject_public_key_info =
         public_key_data(PIV_ED25519, key.verifying_key().to_bytes().to_vec())?
             .subject_public_key_info;
-    let mut import_data = vec![0x06, 0x20];
-    import_data.extend_from_slice(&key.to_bytes());
     Ok(PivPrivateKeyData {
         algorithm: PIV_ED25519,
-        import_data,
+        components: vec![SecretBytes::new(key.to_bytes().to_vec())],
         subject_public_key_info,
     })
 }
@@ -869,15 +896,7 @@ fn rsa_pkcs1_v15_input(algorithm: u8, data: &[u8]) -> Result<Vec<u8>, String> {
     Ok(output)
 }
 
-fn left_pad(bytes: &[u8], length: usize) -> Result<Vec<u8>, String> {
-    if bytes.len() > length {
-        return Err("private key component is too large".into());
-    }
-    let mut output = vec![0; length];
-    output[length - bytes.len()..].copy_from_slice(bytes);
-    Ok(output)
-}
-
+#[cfg(test)]
 fn encode_tlv_length(length: usize, output: &mut Vec<u8>) -> Result<(), String> {
     match length {
         0..=0x7F => output.push(length as u8),
@@ -892,44 +911,11 @@ fn encode_tlv_length(length: usize, output: &mut Vec<u8>) -> Result<(), String> 
 }
 
 fn tlv_value(data: &[u8], wanted_tag: u32) -> Result<&[u8], String> {
-    let mut offset = 0;
-    while offset < data.len() {
-        let mut tag = data[offset] as u32;
-        offset += 1;
-        if tag & 0x1F == 0x1F {
-            loop {
-                let byte = *data.get(offset).ok_or("truncated TLV tag")?;
-                offset += 1;
-                tag = (tag << 8) | byte as u32;
-                if byte & 0x80 == 0 {
-                    break;
-                }
-            }
+    let mut reader = canokey::tlv::TlvReader::new_ber(data, Default::default());
+    while let Some(field) = reader.next().map_err(|error| error.to_string())? {
+        if field.tag.value() == wanted_tag {
+            return Ok(field.value);
         }
-        let first_length = *data.get(offset).ok_or("truncated TLV length")?;
-        offset += 1;
-        let length = if first_length & 0x80 == 0 {
-            first_length as usize
-        } else {
-            let count = (first_length & 0x7F) as usize;
-            if count == 0 || count > 3 || offset + count > data.len() {
-                return Err("invalid TLV length".into());
-            }
-            let mut length = 0usize;
-            for byte in &data[offset..offset + count] {
-                length = (length << 8) | *byte as usize;
-            }
-            offset += count;
-            length
-        };
-        let end = offset.checked_add(length).ok_or("invalid TLV length")?;
-        if end > data.len() {
-            return Err("truncated TLV value".into());
-        }
-        if tag == wanted_tag {
-            return Ok(&data[offset..end]);
-        }
-        offset = end;
     }
     Err(format!("missing TLV tag {wanted_tag:X}"))
 }
@@ -965,12 +951,11 @@ mod tests {
             encode_tlv_length(modulus.len(), &mut slot).unwrap();
             slot.extend_from_slice(&modulus);
             slot.extend_from_slice(&[0x82, 3, 1, 0, 1]);
-            let mut generated = vec![0x7f, 0x49];
-            encode_tlv_length(slot.len(), &mut generated).unwrap();
-            generated.extend_from_slice(&slot);
 
-            let metadata = build_piv_public_key(algorithm, slot, false).unwrap();
-            let response = build_piv_public_key(algorithm, generated, true).unwrap();
+            let metadata = build_piv_public_key(algorithm, slot).unwrap();
+            let response =
+                parse_piv_public_key_info(algorithm, metadata.subject_public_key_info.clone())
+                    .unwrap();
             assert_eq!(
                 metadata.subject_public_key_info,
                 response.subject_public_key_info
@@ -983,18 +968,30 @@ mod tests {
     }
 
     #[test]
+    fn public_key_tlv_accepts_ber_lengths_and_rejects_malformed_fields() {
+        assert_eq!(tlv_value(&[0x86, 0x82, 0, 1, 42], 0x86).unwrap(), &[42]);
+        assert_eq!(tlv_value(&[0x81, 1, 0, 0x86, 1, 42], 0x86).unwrap(), &[42]);
+        for bytes in [
+            &[0x86][..],         // Missing length.
+            &[0x86, 0x80, 0, 0], // Indefinite length.
+            &[0x86, 0x82, 0],    // Truncated long length.
+            &[0x86, 2, 42],      // Truncated value.
+            &[0x7f, 0x81],       // Truncated multi-byte tag.
+            &[0x81, 1, 42],      // Wanted tag absent.
+        ] {
+            assert!(tlv_value(bytes, 0x86).is_err());
+        }
+    }
+
+    #[test]
     fn reports_rsa_validation_reason() {
-        let error = build_piv_public_key(
-            PIV_RSA2048,
-            vec![0x81, 3, 0x80, 0, 0, 0x82, 3, 1, 0, 1],
-            false,
-        )
-        .err()
-        .unwrap();
+        let error = build_piv_public_key(PIV_RSA2048, vec![0x81, 3, 0x80, 0, 0, 0x82, 3, 1, 0, 1])
+            .err()
+            .unwrap();
         assert!(error.contains(&rsa::errors::Error::InvalidModulus.to_string()));
         assert!(error.contains("modulus: 3 bytes, exponent: 3 bytes"));
 
-        let error = build_piv_public_key(PIV_RSA2048, vec![0x81, 3, 0x80, 0, 1, 0x82, 1, 2], false)
+        let error = build_piv_public_key(PIV_RSA2048, vec![0x81, 3, 0x80, 0, 1, 0x82, 1, 2])
             .err()
             .unwrap();
         assert!(error.contains(&rsa::errors::Error::InvalidExponent.to_string()));
@@ -1018,8 +1015,20 @@ mod tests {
         let parsed = parse_piv_import_file(der.as_bytes().to_vec()).unwrap();
         let key = parsed.private_key.unwrap();
         assert_eq!(key.algorithm, PIV_RSA1024);
-        assert_eq!(key.import_data.len(), 5 * (4 + 64));
+        assert_eq!(key.components.len(), 5);
+        assert!(key.material(piv::Algorithm::Rsa1024).is_ok());
         assert!(!key.subject_public_key_info.is_empty());
+    }
+
+    #[test]
+    fn rejects_rsa_import_with_nonstandard_exponent() {
+        let key = RsaPrivateKey::new_with_exp(
+            &mut rsa::rand_core::OsRng,
+            1024,
+            &rsa::BigUint::from(3u32),
+        )
+        .unwrap();
+        assert!(rsa_private_key_data(key).err().unwrap().contains("65537"));
     }
 
     #[test]
@@ -1029,7 +1038,7 @@ mod tests {
         let parsed = parse_piv_import_file(der.as_bytes().to_vec()).unwrap();
         let parsed = parsed.private_key.unwrap();
         assert_eq!(parsed.algorithm, PIV_ECC_P256);
-        assert_eq!(&parsed.import_data[..2], &[0x06, 0x20]);
+        assert_eq!(parsed.components.len(), 1);
         let public =
             parse_piv_public_key_info(PIV_ECC_P256, parsed.subject_public_key_info.clone())
                 .unwrap();
@@ -1047,23 +1056,22 @@ mod tests {
         let parsed = parse_piv_import_file(der.as_bytes().to_vec()).unwrap();
         let parsed = parsed.private_key.unwrap();
         assert_eq!(parsed.algorithm, PIV_ED25519);
-        assert_eq!(&parsed.import_data[..2], &[0x06, 0x20]);
-        assert_eq!(&parsed.import_data[2..], &[5; 32]);
+        assert_eq!(parsed.components.len(), 1);
+        assert_eq!(parsed.components[0].as_bytes(), &[5; 32]);
     }
 
     #[test]
-    fn converts_slot_and_generate_responses_to_the_same_spki() {
+    fn slot_public_key_roundtrips_through_spki() {
         let key = p256::SecretKey::from_slice(&[4; 32]).unwrap();
         let raw = key.public_key().to_sec1_point(false).as_bytes().to_vec();
         let mut slot = vec![0x86];
         encode_tlv_length(raw.len(), &mut slot).unwrap();
         slot.extend_from_slice(&raw);
-        let mut generated = vec![0x7F, 0x49];
-        encode_tlv_length(slot.len(), &mut generated).unwrap();
-        generated.extend_from_slice(&slot);
 
-        let metadata = build_piv_public_key(PIV_ECC_P256, slot, false).unwrap();
-        let response = build_piv_public_key(PIV_ECC_P256, generated, true).unwrap();
+        let metadata = build_piv_public_key(PIV_ECC_P256, slot).unwrap();
+        let response =
+            parse_piv_public_key_info(PIV_ECC_P256, metadata.subject_public_key_info.clone())
+                .unwrap();
         assert_eq!(
             metadata.subject_public_key_info,
             response.subject_public_key_info

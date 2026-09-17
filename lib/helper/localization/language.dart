@@ -24,14 +24,6 @@ class Language {
     return true;
   }
 
-  static List<Locale> getLocales() {
-    return languages.map((e) => e.locale).toList();
-  }
-
-  static List<String> getLanguagesCodes() {
-    return languages.map((e) => e.locale.languageCode).toList();
-  }
-
   static Language getSystemLanguage() {
     findSystemLocale();
     return getLanguageFromCode(Intl.systemLocale);

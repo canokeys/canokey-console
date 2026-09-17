@@ -6,6 +6,10 @@ import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/src/rust/api/protocol.dart';
 import 'package:convert/convert.dart';
 
+/// Uppercase four-digit hex rendering of a card status word.
+String? formatStatusWord(int? status) =>
+    status?.toRadixString(16).padLeft(4, '0').toUpperCase();
+
 /// Protocol failures retain card status/context; transport exceptions pass through.
 class ProtocolException implements Exception {
   const ProtocolException(this.details, {this.exchangeAttempted = false});
@@ -16,9 +20,11 @@ class ProtocolException implements Exception {
   final bool exchangeAttempted;
 
   @override
-  String toString() =>
-      'libcanokey: ${details.kind} during ${details.phase}'
-      '${details.statusWord == null ? '' : ' (SW=${details.statusWord!.toRadixString(16).padLeft(4, '0').toUpperCase()})'}';
+  String toString() {
+    final status = formatStatusWord(details.statusWord);
+    return 'libcanokey: ${details.kind} during ${details.phase}'
+        '${status == null ? '' : ' (SW=$status)'}';
+  }
 }
 
 /// The caller retains its selected card session for this entire future.
@@ -29,7 +35,7 @@ Future<Uint8List> executeProtocolOperation(
   ApduTransport transport, {
   CardLease? lease,
   CardCancellation? cancellation,
-}) => _execute(
+}) => executeProtocolResult(
   operation,
   transport,
   lease: lease,
@@ -42,7 +48,7 @@ Future<ProtocolProfile> executeProfileProbe(
   ApduTransport transport, {
   required CardLease lease,
   CardCancellation? cancellation,
-}) => _execute(
+}) => executeProtocolResult(
   operation,
   transport,
   lease: lease,
@@ -51,45 +57,13 @@ Future<ProtocolProfile> executeProfileProbe(
       step.profile ?? (throw StateError('Expected profile result')),
 );
 
-/// Runs one ClientPIN key agreement and returns the session handle. The
-/// caller owns the handle and closes it after its dependent operations.
-Future<CtapPinSession> executeCtapPinSession(
-  ProtocolOperation operation,
-  ApduTransport transport, {
-  CardLease? lease,
-  CardCancellation? cancellation,
-}) => _execute(
-  operation,
-  transport,
-  lease: lease,
-  cancellation: cancellation,
-  result: (step) =>
-      step.pinSession ?? (throw StateError('Expected CTAP PIN session')),
-);
-
-/// Runs one ClientPIN token request and returns the token handle. The caller
-/// owns the handle and closes it after use; tokens are never cached.
-Future<CtapPinToken> executeCtapPinToken(
-  ProtocolOperation operation,
-  ApduTransport transport, {
-  CardLease? lease,
-  CardCancellation? cancellation,
-}) => _execute(
-  operation,
-  transport,
-  lease: lease,
-  cancellation: cancellation,
-  result: (step) =>
-      step.pinToken ?? (throw StateError('Expected CTAP PIN token')),
-);
-
 Future<AdminResult> executeAdminOperation(
   ProtocolOperation operation,
   ApduTransport transport, {
   required CardLease lease,
   CardCancellation? cancellation,
   required void Function(AdminProgress) onProgress,
-}) => _execute(
+}) => executeProtocolResult(
   operation,
   transport,
   lease: lease,
@@ -102,7 +76,8 @@ Future<AdminResult> executeAdminOperation(
   },
 );
 
-Future<T> _execute<T>(
+/// Executes a typed result under the same lease and cleanup rules as byte results.
+Future<T> executeProtocolResult<T>(
   ProtocolOperation operation,
   ApduTransport transport, {
   CardLease? lease,
@@ -132,13 +107,24 @@ Future<T> _execute<T>(
           step.profile != null ||
           step.admin != null ||
           step.pinSession != null ||
-          step.pinToken != null) {
+          step.pinToken != null ||
+          step.oathSelection != null ||
+          step.oathCalculations != null ||
+          step.ctapInfo != null ||
+          step.ndefCapability != null ||
+          step.ctapRps != null ||
+          step.ctapCredentials != null) {
         try {
           check();
           return result(step);
         } catch (_) {
           final data = step.data ?? step.admin?.data;
           data?.fillRange(0, data.length, 0);
+          for (final calculation
+              in step.oathCalculations ?? <OathCalculation>[]) {
+            final code = calculation.fullCode;
+            code?.fillRange(0, code.length, 0);
+          }
           final profile = step.profile;
           if (profile != null) {
             try {
@@ -206,5 +192,4 @@ Future<T> _execute<T>(
   }
 }
 
-typedef PivReadExecutor = Future<Uint8List> Function(PivReadOperation kind);
 typedef PivCertificateExecutor = Future<Uint8List> Function(int objectId);

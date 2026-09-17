@@ -159,6 +159,9 @@ class OathController extends PollingController {
       }
       log.i('Successfully changed code');
 
+      // Drop any stale persisted code first; this also bumps the credential
+      // generation so page-level CredentialCache copies are invalidated.
+      await LocalStorage.setPinCache(sn, _tag, null);
       _localCodeCache[sn] = newCode;
       if (saveCode) {
         await LocalStorage.setPinCache(sn, _tag, newCode);
@@ -173,7 +176,7 @@ class OathController extends PollingController {
 
   Future<String> calculate(String name, OathType type) async {
     log.t('Call OathController.calculate');
-    late String code;
+    String code = '';
     await SmartCard.process((String sn) async {
       final (authenticated, key) = await _authenticate(sn);
       try {
@@ -318,9 +321,12 @@ class OathController extends PollingController {
         initValue: counter);
   }
 
-  /// Validate a candidate code against the card. An incorrect code reports
-  /// and returns null; protocol and transport failures propagate.
-  Future<Uint8List?> _verifyCode(String code, List<int> salt) async {
+  /// Validate a candidate code against the card. An incorrect code returns
+  /// null; protocol and transport failures propagate. When [report] is true,
+  /// an incorrect code also shows a pinIncorrect prompt — silent candidates
+  /// (caches tried before prompting the user) pass false.
+  Future<Uint8List?> _verifyCode(String code, List<int> salt,
+      {bool report = true}) async {
     final key = OathCardClient.deriveKey(code, salt);
     try {
       await _client.validate(key);
@@ -329,8 +335,10 @@ class OathController extends PollingController {
       key.fillRange(0, key.length, 0);
       if (e.details.kind == 'AuthenticationFailed' ||
           e.details.kind == 'DeviceAuthenticationFailed') {
-        Prompts.showPrompt(
-            S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+        if (report) {
+          Prompts.showPrompt(
+              S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+        }
         return null;
       }
       rethrow;
@@ -355,7 +363,7 @@ class OathController extends PollingController {
 
     // Try local cache first
     if (_localCodeCache.containsKey(sn)) {
-      final key = await _verifyCode(_localCodeCache[sn]!, salt);
+      final key = await _verifyCode(_localCodeCache[sn]!, salt, report: false);
       if (key != null) {
         return (true, key);
       }
@@ -365,7 +373,7 @@ class OathController extends PollingController {
     // Try LocalStorage
     String? codeToTry = LocalStorage.getPinCache(sn, _tag);
     if (codeToTry != null) {
-      final key = await _verifyCode(codeToTry, salt);
+      final key = await _verifyCode(codeToTry, salt, report: false);
       if (key != null) {
         _localCodeCache[sn] = codeToTry;
         return (true, key);
@@ -399,6 +407,16 @@ class OathController extends PollingController {
           // The poll above bound a new lease; rediscover before validating.
           await _client.prepare();
           key = await _verifyCode(code, salt);
+        } on ProtocolException catch (e) {
+          await SmartCard.stopPollingNfc(withInput: true);
+          log.e('_verifyCode failed', error: e);
+          Prompts.showPrompt(
+              S.of(Get.context!).operationFailed, ContentThemeColor.danger);
+        } on StateError catch (e) {
+          await SmartCard.stopPollingNfc(withInput: true);
+          log.e('_verifyCode failed', error: e);
+          Prompts.showPrompt(
+              S.of(Get.context!).operationFailed, ContentThemeColor.danger);
         } on PlatformException catch (e) {
           await SmartCard.stopPollingNfc(withInput: true);
           log.e('_verifyCode failed', error: e);
@@ -413,7 +431,9 @@ class OathController extends PollingController {
           if (saveCode) {
             await LocalStorage.setPinCache(sn, _tag, code);
           }
-          completer.complete((true, key));
+          if (!completer.isCompleted) {
+            completer.complete((true, key));
+          }
           // Since PIN has been cached, if error happens, we don't need to re-prompt
           SmartCard.nfcState = NfcState.processWithoutInput;
           // Close the dialog
@@ -422,7 +442,9 @@ class OathController extends PollingController {
       },
       onCancel: () async {
         SmartCard.nfcState = NfcState.idle;
-        completer.complete((false, null));
+        if (!completer.isCompleted) {
+          completer.complete((false, null));
+        }
       },
     );
     return await completer.future;

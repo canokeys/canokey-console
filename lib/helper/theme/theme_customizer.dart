@@ -53,12 +53,6 @@ class ThemeCustomizer {
     _notify();
   }
 
-  static Future<void> changeLanguage(Language language) async {
-    Logging.logger('Theme').t('Call ThemeCustomizer.changeLanguage');
-    oldInstance = instance.clone();
-    ThemeCustomizer.instance.currentLanguage = language;
-  }
-
   static void toggleLeftBarCondensed() {
     Logging.logger('Theme').t('Call ThemeCustomizer.toggleLeftBarCondensed');
     instance.leftBarCondensed = !instance.leftBarCondensed;

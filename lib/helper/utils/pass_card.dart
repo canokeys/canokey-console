@@ -34,7 +34,7 @@ class PassCardClient extends AdminSessionCardClient {
       // an on-card 6982.
       selectionSufficient: false,
     );
-    return PassSlot.decode(result.data);
+    return result.passSlots!.map(PassSlot.fromResult).toList();
   }
 
   /// Returns false only when the card rejects or blocks the supplied PIN;

@@ -21,7 +21,6 @@ import 'package:canokey_console/helper/utils/app_loader_overlay.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
-import 'package:canokey_console/helper/utils/x509_algorithm_names.dart';
 import 'package:canokey_console/helper/widgets/applet_disabled_screen.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
@@ -168,11 +167,8 @@ class _PivPageState extends State<PivPage>
   }
 
   String _certificateKeySummary(X509CertData cert) {
-    final algorithm = x509PublicKeyAlgorithmName(cert.publicKeyAlgorithm);
-    final size = switch (cert.publicKeyAlgorithm) {
-      '1.3.101.112' || '1.3.101.110' => BigInt.from(256),
-      _ => cert.publicKeySize,
-    };
+    final algorithm = cert.publicKeyAlgorithmName;
+    final size = cert.publicKeySize;
     if (size == BigInt.zero) {
       return algorithm;
     }
@@ -1904,10 +1900,7 @@ class _PivPageState extends State<PivPage>
                                                 ),
                                                 _certificateDetail(
                                                   s.pivSignatureAlgorithm,
-                                                  x509SignatureAlgorithmName(
-                                                    certificate
-                                                        .signatureAlgorithm,
-                                                  ),
+                                                  certificate.signatureAlgorithmName,
                                                 ),
                                                 _certificateDetail(
                                                   s.pivSha256Fingerprint,
@@ -2759,10 +2752,24 @@ class _PivPageState extends State<PivPage>
       }
     }
 
+    var importDialogClosed = false;
+
+    void releasePrivateKey() {
+      final key = privateKey;
+      privateKey = null;
+      if (key != null) {
+        try {
+          key.close();
+        } finally {
+          key.dispose();
+        }
+      }
+    }
+
     void resetImportState() {
+      releasePrivateKey();
       hasCert.value = false;
       hasKey.value = false;
-      privateKey = null;
       cert = null;
       certBytes = null;
       parseMessage.value = '';
@@ -2781,6 +2788,8 @@ class _PivPageState extends State<PivPage>
         hasCert.value = cert != null;
       } catch (error) {
         parseMessage.value = error.toString();
+      } finally {
+        bytes.fillRange(0, bytes.length, 0);
       }
       if (!hasCert.value && !hasKey.value && parseMessage.value.isEmpty) {
         parseMessage.value = S.of(context).pivUnsupportedImportFile;
@@ -2857,8 +2866,13 @@ class _PivPageState extends State<PivPage>
                     final result = await FilePicker.pickFiles();
                     final file = result.firstOrNull;
                     if (file != null) {
+                      final bytes = await file.xFile.readAsBytes();
+                      if (importDialogClosed) {
+                        bytes.fillRange(0, bytes.length, 0);
+                        return;
+                      }
                       selected.value = true;
-                      parseImportFile(await file.xFile.readAsBytes());
+                      parseImportFile(bytes);
                       if (hasKey.value && hasCert.value) {
                         nextStep();
                       }
@@ -3019,7 +3033,10 @@ class _PivPageState extends State<PivPage>
           ),
         ),
       ),
-    ));
+    )).whenComplete(() {
+      importDialogClosed = true;
+      releasePrivateKey();
+    });
   }
 
   void _showGenerateDialog(String slotNumber, {required bool selfSigned}) {

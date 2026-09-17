@@ -153,28 +153,6 @@ class SmartCard {
   static ConnectionType connectionType = ConnectionType.none;
   static String? connectionError;
 
-  /// Returns the response APDU without the SW
-  static String dropSW(String rapdu) {
-    return rapdu.substring(0, rapdu.length - 4);
-  }
-
-  /// Returns true if the SW is '9000'
-  static bool isOK(String rapdu) {
-    return sw(rapdu) == '9000';
-  }
-
-  /// Returns the status word of the response APDU in uppercase.
-  static String sw(String rapdu) {
-    return rapdu.substring(rapdu.length - 4).toUpperCase();
-  }
-
-  /// Throws an exception if the SW is not '9000'
-  static void assertOK(String rapdu) {
-    if (!isOK(rapdu)) {
-      throw Exception('SW is not ok');
-    }
-  }
-
   /// On iOS, the built-in keyboard will be hidden if an external keyboard is connected.
   /// This function shows the keyboard by sending an eject consumer report.
   static Future<void> eject() async {
@@ -677,7 +655,11 @@ class SmartCard {
         'CanoKey (USB) removed: $_currentSN. Connection Type updated to None.',
       );
       _sessions.invalidate();
-      await _disconnectCcidCard(activeCard);
+      if (!await _disconnectCcidCard(activeCard)) {
+        _connectionQuarantined = true;
+        connectionError =
+            'Card transport cleanup failed; restart the app before reuse';
+      }
       _ccidCard = null;
       _ccidBootstrapSerial = null;
       if (connectionType == ConnectionType.ccid) {
@@ -728,7 +710,11 @@ class SmartCard {
         'Successfully connected to CanoKey (USB). SN: $_currentSN. Connection Type updated to CCID.',
       );
     } catch (e) {
-      await _disconnectCcidCard(candidate);
+      if (!await _disconnectCcidCard(candidate)) {
+        _connectionQuarantined = true;
+        connectionError =
+            'Card transport cleanup failed; restart the app before reuse';
+      }
       if (_isUsbPermissionDenied(e)) {
         _permissionDeniedCcidReaders.add(name);
         log.w('USB permission denied for CanoKey reader $name.');

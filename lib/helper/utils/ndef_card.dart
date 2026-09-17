@@ -30,16 +30,16 @@ class NdefCardClient extends CardClientBase {
   NdefCardClient({super.transport, super.lease});
 
   Future<NdefCardData?> read() async {
-    final capability = await _execute(ProtocolOperation.ndefReadCapability());
+    final capability = await _executeResult(
+      ProtocolOperation.ndefReadCapability(),
+      (step) => step.ndefCapability!,
+    );
     if (capability == null) return null;
-    if (capability.length != 3) {
-      throw const FormatException('Invalid NDEF capability data');
-    }
     final message = await _execute(ProtocolOperation.ndefReadMessage());
     if (message == null) return null;
     return NdefCardData(
-      maxMessageLength: (capability[0] << 8) | capability[1],
-      readOnly: capability[2] != 0,
+      maxMessageLength: capability.maxMessageLength,
+      readOnly: capability.readOnly,
       message: message,
     );
   }
@@ -49,15 +49,22 @@ class NdefCardClient extends CardClientBase {
       null;
 
   /// Null only when the NDEF applet is absent (6A82 at SELECT).
-  Future<Uint8List?> _execute(ProtocolOperation operation) async {
+  Future<Uint8List?> _execute(ProtocolOperation operation) =>
+      _executeResult(operation, (step) => step.data!);
+
+  Future<T?> _executeResult<T>(
+    ProtocolOperation operation,
+    T Function(ProtocolStep) result,
+  ) async {
     cancellation.check();
     final lease = this.lease;
     // Every NDEF operation selects the applet before its target commands.
     lease.willSelectApplet();
     try {
-      return await executeProtocolOperation(
+      return await executeProtocolResult(
         operation,
         transport,
+        result: result,
         lease: lease,
         cancellation: cancellation,
       );

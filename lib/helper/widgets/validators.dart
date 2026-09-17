@@ -1,23 +1,6 @@
 import 'package:canokey_console/generated/l10n.dart';
-import 'package:canokey_console/helper/utils/string_utils.dart';
 import 'package:canokey_console/helper/widgets/field_validator.dart';
 import 'package:get/get.dart';
-
-class EmailValidator extends FieldValidatorRule<String> {
-  @override
-  String? validate(String? value, bool required, Map<String, dynamic> data) {
-    if (!required) {
-      if (value == null) {
-        return null;
-      }
-    } else if (value != null && value.isNotEmpty) {
-      if (!StringUtils.isEmail(value)) {
-        return S.current.ndefInvalidEmail;
-      }
-    }
-    return null;
-  }
-}
 
 class IntValidator extends FieldValidatorRule<String> {
   final bool required;
@@ -73,6 +56,7 @@ class LengthValidator implements FieldValidatorRule<String> {
 }
 
 class HexStringValidator implements FieldValidatorRule<String> {
+  static final _hexPattern = RegExp(r'^[0-9a-fA-F]+$');
   final bool required;
 
   HexStringValidator({this.required = true});
@@ -83,7 +67,7 @@ class HexStringValidator implements FieldValidatorRule<String> {
       if (!required && value.isEmpty) {
         return null;
       }
-      if (!StringUtils.isHex(value)) {
+      if (!_hexPattern.hasMatch(value)) {
         return S.of(Get.context!).validationHexString;
       }
     }

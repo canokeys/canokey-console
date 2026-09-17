@@ -401,7 +401,11 @@ class PivController extends PollingController {
         }
         if (!await _writePinOnlyObjects(newKey, enabled: true)) {
           // Roll back to the previous key; otherwise the on-card key and the
-          // stored protected key disagree and the user is locked out.
+          // stored protected key disagree and the user is locked out. A failed
+          // write discards the prepared profile, so re-establish the profile
+          // and the management-key authorization before restoring the key.
+          await _client.prepareIfStale();
+          await _authenticateManagementKey(newKey);
           await _setManagementKeyInSession(
             currentKey,
             touchPolicy: touchPolicy ?? managementKeyTouchPolicy,
@@ -870,7 +874,11 @@ class PivController extends PollingController {
       }
       if (!await _writePinOnlyObjects(newKey, enabled: true)) {
         // Roll back the random management key; otherwise the card keeps an
-        // unknown key with pin-only mode off and is locked out until reset.
+        // unknown key with pin-only mode off and is locked out until reset. A
+        // failed write discards the prepared profile, so re-establish the
+        // profile and the management-key authorization before restoring the key.
+        await _client.prepareIfStale();
+        await _authenticateManagementKey(newKey);
         await _setManagementKeyInSession(
           currentManagementKey,
           touchPolicy: managementKeyTouchPolicy,
@@ -1215,62 +1223,14 @@ class PivController extends PollingController {
     final algorithm = AlgorithmType.fromValue(key.algorithm);
     final slot = int.parse(slotNumber, radix: 16);
     final wireId = algorithmExtensionConfig.idFor(algorithm);
-    final components = TLV.parse(key.importData);
-    final copies = <Uint8List>[];
-    Uint8List component(int tag) {
-      final value = components[tag];
-      if (value is! List<int>) {
-        throw FormatException(
-          'PIV import data lacks component ${tag.toRadixString(16)}',
-        );
-      }
-      final copy = Uint8List.fromList(value);
-      copies.add(copy);
-      return copy;
-    }
-
     try {
-      switch (algorithm) {
-        case AlgorithmType.rsa1024 ||
-        AlgorithmType.rsa2048 ||
-        AlgorithmType.rsa3072 ||
-        AlgorithmType.rsa4096:
-          await _client.importRsaKey(
-            slot: slot,
-            algorithm: wireId,
-            p: component(0x01),
-            q: component(0x02),
-            dp: component(0x03),
-            dq: component(0x04),
-            qinv: component(0x05),
-            pinPolicy: pinPolicy.value,
-            touchPolicy: touchPolicy.value,
-          );
-        case AlgorithmType.ed25519:
-          await _client.importEd25519Key(
-            slot: slot,
-            seed: component(0x06),
-            pinPolicy: pinPolicy.value,
-            touchPolicy: touchPolicy.value,
-          );
-        default:
-          await _client.importEcKey(
-            slot: slot,
-            algorithm: wireId,
-            scalar: component(0x06),
-            pinPolicy: pinPolicy.value,
-            touchPolicy: touchPolicy.value,
-          );
-      }
+      await _client.importPrivateKey(
+        slot: slot, algorithm: wireId, key: key,
+        pinPolicy: pinPolicy.value, touchPolicy: touchPolicy.value,
+      );
       return true;
     } on ProtocolException {
       return false;
-    } on FormatException {
-      return false;
-    } finally {
-      for (final copy in copies) {
-        copy.fillRange(0, copy.length, 0);
-      }
     }
   }
 
@@ -1671,8 +1631,12 @@ class PivController extends PollingController {
       _client.readObject(objectId);
 
   Future<bool> _putDataObject(int objectId, Uint8List data) async {
-    await _client.writeObject(objectId, data);
-    return true;
+    try {
+      await _client.writeObject(objectId, data);
+      return true;
+    } on ProtocolException {
+      return false;
+    }
   }
 
   String _tlv(int tag, List<int> value) {

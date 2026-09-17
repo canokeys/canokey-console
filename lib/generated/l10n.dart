@@ -2374,6 +2374,11 @@ class S {
     );
   }
 
+  /// `Unknown`
+  String get passSlotUnknown {
+    return Intl.message('Unknown', name: 'passSlotUnknown', desc: '', args: []);
+  }
+
   /// `This CanoKey does not support a WebAuthn PIN.`
   String get webauthnClientPinNotSupported {
     return Intl.message(

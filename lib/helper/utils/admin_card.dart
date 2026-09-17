@@ -8,12 +8,6 @@ import 'package:canokey_console/models/webauthn.dart';
 import 'package:canokey_console/src/rust/api/protocol.dart';
 import 'package:convert/convert.dart';
 
-class AdminStorageUsage {
-  const AdminStorageUsage({required this.usedKiB, required this.totalKiB});
-  final int usedKiB;
-  final int totalKiB;
-}
-
 /// Shared Admin-facade plumbing for clients whose upstream operations either
 /// SELECT Admin and explicitly verify a PIN, or reuse this lease's recorded
 /// Admin authentication via `Access::Existing`. That session evidence is
@@ -38,7 +32,11 @@ abstract class AdminSessionCardClient extends ProfileCardClient {
   /// Otherwise the request SELECTs and verifies only the explicitly supplied
   /// PIN.
   Future<AdminResult> executeAdminRequest(
-    ProtocolOperation Function(ProtocolProfile profile, Uint8List? pin, bool existing)
+    ProtocolOperation Function(
+      ProtocolProfile profile,
+      Uint8List? pin,
+      bool existing,
+    )
     create, {
     String? pin,
     bool existingAllowed = true,
@@ -48,7 +46,8 @@ abstract class AdminSessionCardClient extends ProfileCardClient {
     final binding = preparedBinding;
     lastStatusWord = null;
     lastProgress = null;
-    final existing = existingAllowed &&
+    final existing =
+        existingAllowed &&
         (binding.lease.hasAdminAuthentication ||
             (selectionSufficient && pin == null && binding.selectionFresh));
     if (!existing) {
@@ -227,6 +226,7 @@ class AdminCardClient extends AdminSessionCardClient {
     cancellation.check();
     return hex.encode(data).toUpperCase();
   }
+
   Future<String> readChipId() async =>
       hex.encode((await _read(AdminReadOperation.chipId)).data).toUpperCase();
 
@@ -234,13 +234,11 @@ class AdminCardClient extends AdminSessionCardClient {
       (await _read(AdminReadOperation.configuration, pin: pin)).data;
   Future<bool> readNfcEnabled({String? pin}) async =>
       (await _read(AdminReadOperation.nfcStatus, pin: pin)).data.single == 1;
-  Future<AdminStorageUsage> readStorageUsage({String? pin}) async {
-    final data = (await _read(AdminReadOperation.flashUsage, pin: pin)).data;
-    return AdminStorageUsage(usedKiB: data[0], totalKiB: data[1]);
-  }
+  Future<AdminStorageUsage> readStorageUsage({String? pin}) async =>
+      (await _read(AdminReadOperation.flashUsage, pin: pin)).flashUsage!;
 
-  Future<Uint8List> readAppletStorageUsage() async =>
-      (await _read(AdminReadOperation.appletUsage)).data;
+  Future<List<AdminAppletUsage>> readAppletStorageUsage() async =>
+      (await _read(AdminReadOperation.appletUsage)).appletUsage!;
 
   Future<int> readKeyboardLayout({String? pin}) async =>
       (await _read(AdminReadOperation.keyboardLayout, pin: pin)).data.single;
@@ -311,12 +309,6 @@ class AdminCardClient extends AdminSessionCardClient {
       _action(AdminAction.keyboardInterface, pin: pin, value: enabled ? 1 : 0);
   Future<void> setKeyboardReturn(bool enabled, {required String pin}) =>
       _action(AdminAction.keyboardReturn, pin: pin, value: enabled ? 1 : 0);
-  Future<void> setLegacyPivExtensions(bool enabled, {required String pin}) =>
-      _action(
-        AdminAction.legacyPivExtensions,
-        pin: pin,
-        value: enabled ? 1 : 0,
-      );
   Future<void> setLegacyTouch(int index, int value, {required String pin}) {
     RangeError.checkValueInInterval(index, 0, 3, 'index');
     RangeError.checkValueInInterval(value, 0, 0xff, 'value');

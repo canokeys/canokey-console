@@ -7,18 +7,16 @@ import '../frb_generated.dart';
 import 'crypto.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `algorithm_from_spki`, `der_error`, `ec_private_key_data`, `ed25519_private_key_data`, `encode_tlv_length`, `escape_dn_value`, `is_rsa`, `left_pad`, `normalize_signature`, `parse_ec_private_key_der`, `parse_ec_private_key_pem`, `parse_piv_pem_file`, `parse_private_key_der`, `parse_private_key_pem`, `pem_blocks`, `public_key_data`, `rsa_pkcs1_v15_input`, `rsa_private_key_data`, `signature_algorithm`, `subject_alt_name_extension`, `subject_name`, `tlv_value`, `validate_raw_public_key`
+// These functions are ignored because they are not marked as `pub`: `algorithm_from_spki`, `der_error`, `ec_private_key_data`, `ed25519_private_key_data`, `escape_dn_value`, `is_rsa`, `material`, `normalize_signature`, `parse_ec_private_key_der`, `parse_ec_private_key_pem`, `parse_piv_pem_file`, `parse_private_key_der`, `parse_private_key_pem`, `pem_blocks`, `public_key_data`, `rsa_pkcs1_v15_input`, `rsa_private_key_data`, `signature_algorithm`, `subject_alt_name_extension`, `subject_name`, `tlv_value`, `validate_raw_public_key`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `EcSignature`, `SignedDerObject`, `TbsCertificate`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `decode_value`, `decode_value`, `decode_value`, `encode_value`, `encode_value`, `encode_value`, `value_len`, `value_len`, `value_len`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `decode_value`, `decode_value`, `decode_value`, `encode_value`, `encode_value`, `encode_value`, `value_len`, `value_len`, `value_len`
 
 PivPublicKeyData buildPivPublicKey({
   required int algorithm,
   required List<int> cardData,
-  required bool generatedResponse,
 }) => RustLib.instance.api.crateApiPivCryptoBuildPivPublicKey(
   algorithm: algorithm,
   cardData: cardData,
-  generatedResponse: generatedResponse,
 );
 
 PivPublicKeyData parsePivPublicKeyInfo({
@@ -97,6 +95,16 @@ Uint8List preparePivSigningInput({
   publicKey: publicKey,
 );
 
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PivPrivateKeyData>>
+abstract class PivPrivateKeyData implements RustOpaqueInterface {
+  int get algorithm;
+
+  /// Wipe the import components. Idempotent; previously constructed operations own their copy.
+  void close();
+
+  Uint8List get subjectPublicKeyInfo;
+}
+
 class PivImportFileData {
   final PivPrivateKeyData? privateKey;
   final X509CertData? certificate;
@@ -113,33 +121,6 @@ class PivImportFileData {
           runtimeType == other.runtimeType &&
           privateKey == other.privateKey &&
           certificate == other.certificate;
-}
-
-class PivPrivateKeyData {
-  final int algorithm;
-
-  /// PIV key component TLVs, excluding PIN and touch policy TLVs.
-  final Uint8List importData;
-  final Uint8List subjectPublicKeyInfo;
-
-  const PivPrivateKeyData({
-    required this.algorithm,
-    required this.importData,
-    required this.subjectPublicKeyInfo,
-  });
-
-  @override
-  int get hashCode =>
-      algorithm.hashCode ^ importData.hashCode ^ subjectPublicKeyInfo.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PivPrivateKeyData &&
-          runtimeType == other.runtimeType &&
-          algorithm == other.algorithm &&
-          importData == other.importData &&
-          subjectPublicKeyInfo == other.subjectPublicKeyInfo;
 }
 
 class PivPublicKeyData {

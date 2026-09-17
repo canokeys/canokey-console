@@ -6,39 +6,12 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `copy_unsigned_integer`, `fixed_width_signature`, `gen_x590_meta`, `verify_ed25519_signature`, `verify_k256_signature`, `verify_p256_signature`, `verify_p384_signature`, `verify_p521_signature`, `verify_rsa_signature`, `verify_sm2_signature`, `x509_public_key_size`
+// These functions are ignored because they are not marked as `pub`: `certificate_data`, `copy_unsigned_integer`, `fixed_width_signature`, `parse_x509_cert_from_pem`, `sm2_message_digest`, `verify_ed25519_signature`, `verify_k256_signature`, `verify_p256_signature`, `verify_p384_signature`, `verify_p521_signature`, `verify_rsa_signature`, `verify_sm2_signature`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `DerSignature`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `decode_value`, `encode_value`, `value_len`
 
-Uint8List tdesEde3Enc({required List<int> key, required List<int> data}) =>
-    RustLib.instance.api.crateApiCryptoTdesEde3Enc(key: key, data: data);
-
-Uint8List encryptPivManagementKeyChallenge({
-  required int algorithm,
-  required List<int> key,
-  required List<int> challenge,
-}) => RustLib.instance.api.crateApiCryptoEncryptPivManagementKeyChallenge(
-  algorithm: algorithm,
-  key: key,
-  challenge: challenge,
-);
-
 Uint8List sha256Digest({required List<int> data}) =>
     RustLib.instance.api.crateApiCryptoSha256Digest(data: data);
-
-Uint8List sha384Digest({required List<int> data}) =>
-    RustLib.instance.api.crateApiCryptoSha384Digest(data: data);
-
-Uint8List sha512Digest({required List<int> data}) =>
-    RustLib.instance.api.crateApiCryptoSha512Digest(data: data);
-
-Uint8List sm2MessageDigest({
-  required List<int> data,
-  required List<int> publicKey,
-}) => RustLib.instance.api.crateApiCryptoSm2MessageDigest(
-  data: data,
-  publicKey: publicKey,
-);
 
 bool verifyPivSignature({
   required int algorithm,
@@ -51,9 +24,6 @@ bool verifyPivSignature({
   data: data,
   signature: signature,
 );
-
-X509CertData parseX509CertFromPem({required String pem}) =>
-    RustLib.instance.api.crateApiCryptoParseX509CertFromPem(pem: pem);
 
 X509CertData parseX509CertFromDer({required List<int> der}) =>
     RustLib.instance.api.crateApiCryptoParseX509CertFromDer(der: der);
@@ -70,9 +40,6 @@ Uint8List pbkdf2HmacSha1({
   keyLen: keyLen,
 );
 
-Uint8List hmacSha1({required List<int> key, required List<int> data}) =>
-    RustLib.instance.api.crateApiCryptoHmacSha1(key: key, data: data);
-
 class X509CertData {
   final Uint8List bytes;
   final String subject;
@@ -84,6 +51,8 @@ class X509CertData {
   final Uint8List signatureValue;
   final String publicKeyAlgorithm;
   final BigInt publicKeySize;
+  final String publicKeyAlgorithmName;
+  final String signatureAlgorithmName;
   final Uint8List subjectPublicKeyInfo;
   final Uint8List rawPublicKey;
 
@@ -98,6 +67,8 @@ class X509CertData {
     required this.signatureValue,
     required this.publicKeyAlgorithm,
     required this.publicKeySize,
+    required this.publicKeyAlgorithmName,
+    required this.signatureAlgorithmName,
     required this.subjectPublicKeyInfo,
     required this.rawPublicKey,
   });
@@ -114,6 +85,8 @@ class X509CertData {
       signatureValue.hashCode ^
       publicKeyAlgorithm.hashCode ^
       publicKeySize.hashCode ^
+      publicKeyAlgorithmName.hashCode ^
+      signatureAlgorithmName.hashCode ^
       subjectPublicKeyInfo.hashCode ^
       rawPublicKey.hashCode;
 
@@ -132,6 +105,8 @@ class X509CertData {
           signatureValue == other.signatureValue &&
           publicKeyAlgorithm == other.publicKeyAlgorithm &&
           publicKeySize == other.publicKeySize &&
+          publicKeyAlgorithmName == other.publicKeyAlgorithmName &&
+          signatureAlgorithmName == other.signatureAlgorithmName &&
           subjectPublicKeyInfo == other.subjectPublicKeyInfo &&
           rawPublicKey == other.rawPublicKey;
 }

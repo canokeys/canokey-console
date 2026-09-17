@@ -6,10 +6,6 @@ import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/src/rust/api/protocol.dart';
 
-/// Uppercase four-digit hex rendering of a card status word.
-String? formatStatusWord(int? status) =>
-    status?.toRadixString(16).padLeft(4, '0').toUpperCase();
-
 /// Immutable profile evidence bound to one physical lease. The binding expires
 /// on lease replacement and on profile invalidation; with [bindSelection] it
 /// additionally expires on any later applet selection. The profile is
@@ -79,11 +75,10 @@ abstract class CardClientBase {
 
   ApduTransport get transport => _transport;
 
-  CardLease get lease =>
-      _transport is SmartCardApduTransport
-          ? SmartCard.currentLease
-          : injectedCurrentLease ??
-                (throw StateError('Injected transport requires withSession'));
+  CardLease get lease => _transport is SmartCardApduTransport
+      ? SmartCard.currentLease
+      : injectedCurrentLease ??
+            (throw StateError('Injected transport requires withSession'));
 
   /// The caller-owned lease bound for an injected transport, if any.
   CardLease? get injectedCurrentLease =>
@@ -111,11 +106,8 @@ abstract class CardClientBase {
 /// [ProfileBinding]. Discovery is explicit, evidence is revalidated before and
 /// after every operation, and failures never trigger a hidden re-probe.
 abstract class ProfileCardClient extends CardClientBase {
-  ProfileCardClient({
-    super.transport,
-    super.lease,
-    required bool bindSelection,
-  }) : _bindSelection = bindSelection;
+  ProfileCardClient({super.transport, super.lease, required bool bindSelection})
+    : _bindSelection = bindSelection;
 
   final bool _bindSelection;
   ProfileBinding? _profile;
@@ -204,14 +196,33 @@ abstract class ProfileCardClient extends CardClientBase {
     bool recheckOnProtocolError = true,
     bool discardOnOtherError = false,
     bool Function(ProtocolException error)? discardOnProtocolError,
+  }) => executePreparedResult(
+    create,
+    result: (step) => step.data!,
+    selectApplet: selectApplet,
+    verifyProfileIdentity: verifyProfileIdentity,
+    recheckOnProtocolError: recheckOnProtocolError,
+    discardOnOtherError: discardOnOtherError,
+    discardOnProtocolError: discardOnProtocolError,
+  );
+
+  Future<T> executePreparedResult<T>(
+    ProtocolOperation Function(ProtocolProfile profile) create, {
+    required T Function(ProtocolStep) result,
+    bool selectApplet = false,
+    bool verifyProfileIdentity = false,
+    bool recheckOnProtocolError = true,
+    bool discardOnOtherError = false,
+    bool Function(ProtocolException error)? discardOnProtocolError,
   }) async {
     final binding = preparedBinding;
     lastStatusWord = null;
     if (selectApplet) binding.lease.willSelectApplet();
     try {
-      final data = await executeProtocolOperation(
+      final data = await executeProtocolResult(
         create(binding.profile),
         transport,
+        result: result,
         lease: binding.lease,
         cancellation: cancellation,
       );

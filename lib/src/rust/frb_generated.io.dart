@@ -30,6 +30,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCtapPinTokenPtr;
 
   CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_PivPrivateKeyDataPtr => wire
+      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyDataPtr;
+
+  CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_ProtocolOperationPtr => wire
       ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperationPtr;
 
@@ -46,6 +50,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CtapPinToken
   dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCtapPinToken(
+    dynamic raw,
+  );
+
+  @protected
+  PivPrivateKeyData
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
     dynamic raw,
   );
 
@@ -74,6 +84,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  PivPrivateKeyData
+  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    dynamic raw,
+  );
+
+  @protected
   ProtocolOperation
   dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
     dynamic raw,
@@ -98,6 +114,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  PivPrivateKeyData
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    dynamic raw,
+  );
+
+  @protected
   ProtocolProfile
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     dynamic raw,
@@ -112,6 +134,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CtapPinToken
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCtapPinToken(
+    dynamic raw,
+  );
+
+  @protected
+  PivPrivateKeyData
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
     dynamic raw,
   );
 
@@ -134,6 +162,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AdminAction dco_decode_admin_action(dynamic raw);
 
   @protected
+  AdminAppletUsage dco_decode_admin_applet_usage(dynamic raw);
+
+  @protected
   AdminConfigurationPatch dco_decode_admin_configuration_patch(dynamic raw);
 
   @protected
@@ -144,6 +175,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   AdminResult dco_decode_admin_result(dynamic raw);
+
+  @protected
+  AdminStorageUsage dco_decode_admin_storage_usage(dynamic raw);
 
   @protected
   AdminValueKind dco_decode_admin_value_kind(dynamic raw);
@@ -167,6 +201,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  PivPrivateKeyData
+  dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    dynamic raw,
+  );
+
+  @protected
   ProtocolProfile
   dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     dynamic raw,
@@ -184,10 +224,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AdminResult dco_decode_box_autoadd_admin_result(dynamic raw);
 
   @protected
+  AdminStorageUsage dco_decode_box_autoadd_admin_storage_usage(dynamic raw);
+
+  @protected
   bool dco_decode_box_autoadd_bool(dynamic raw);
 
   @protected
-  PivPrivateKeyData dco_decode_box_autoadd_piv_private_key_data(dynamic raw);
+  CtapInfo dco_decode_box_autoadd_ctap_info(dynamic raw);
+
+  @protected
+  PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
+
+  @protected
+  NdefCapabilityData dco_decode_box_autoadd_ndef_capability_data(dynamic raw);
+
+  @protected
+  OathSelectionData dco_decode_box_autoadd_oath_selection_data(dynamic raw);
 
   @protected
   ProtocolError dco_decode_box_autoadd_protocol_error(dynamic raw);
@@ -200,10 +252,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_box_autoadd_u_16(dynamic raw);
 
   @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  BigInt dco_decode_box_autoadd_u_64(dynamic raw);
+
+  @protected
   int dco_decode_box_autoadd_u_8(dynamic raw);
 
   @protected
   X509CertData dco_decode_box_autoadd_x_509_cert_data(dynamic raw);
+
+  @protected
+  CtapCredential dco_decode_ctap_credential(dynamic raw);
+
+  @protected
+  CtapInfo dco_decode_ctap_info(dynamic raw);
+
+  @protected
+  CtapRp dco_decode_ctap_rp(dynamic raw);
 
   @protected
   int dco_decode_i_32(dynamic raw);
@@ -215,10 +282,37 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
+  List<AdminAppletUsage> dco_decode_list_admin_applet_usage(dynamic raw);
+
+  @protected
+  List<CtapCredential> dco_decode_list_ctap_credential(dynamic raw);
+
+  @protected
+  List<CtapRp> dco_decode_list_ctap_rp(dynamic raw);
+
+  @protected
+  List<OathCalculation> dco_decode_list_oath_calculation(dynamic raw);
+
+  @protected
+  List<PassSlotData> dco_decode_list_pass_slot_data(dynamic raw);
+
+  @protected
   List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  NdefCapabilityData dco_decode_ndef_capability_data(dynamic raw);
+
+  @protected
+  OathCalculation dco_decode_oath_calculation(dynamic raw);
+
+  @protected
+  OathCode dco_decode_oath_code(dynamic raw);
+
+  @protected
+  OathSelectionData dco_decode_oath_selection_data(dynamic raw);
 
   @protected
   String? dco_decode_opt_String(dynamic raw);
@@ -236,6 +330,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  PivPrivateKeyData?
+  dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    dynamic raw,
+  );
+
+  @protected
   ProtocolProfile?
   dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     dynamic raw,
@@ -248,10 +348,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AdminResult? dco_decode_opt_box_autoadd_admin_result(dynamic raw);
 
   @protected
+  AdminStorageUsage? dco_decode_opt_box_autoadd_admin_storage_usage(
+    dynamic raw,
+  );
+
+  @protected
   bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
 
   @protected
-  PivPrivateKeyData? dco_decode_opt_box_autoadd_piv_private_key_data(
+  CtapInfo? dco_decode_opt_box_autoadd_ctap_info(dynamic raw);
+
+  @protected
+  PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
+
+  @protected
+  NdefCapabilityData? dco_decode_opt_box_autoadd_ndef_capability_data(
+    dynamic raw,
+  );
+
+  @protected
+  OathSelectionData? dco_decode_opt_box_autoadd_oath_selection_data(
     dynamic raw,
   );
 
@@ -262,22 +378,43 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? dco_decode_opt_box_autoadd_u_16(dynamic raw);
 
   @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
+
+  @protected
   int? dco_decode_opt_box_autoadd_u_8(dynamic raw);
 
   @protected
   X509CertData? dco_decode_opt_box_autoadd_x_509_cert_data(dynamic raw);
 
   @protected
+  List<AdminAppletUsage>? dco_decode_opt_list_admin_applet_usage(dynamic raw);
+
+  @protected
+  List<CtapCredential>? dco_decode_opt_list_ctap_credential(dynamic raw);
+
+  @protected
+  List<CtapRp>? dco_decode_opt_list_ctap_rp(dynamic raw);
+
+  @protected
+  List<OathCalculation>? dco_decode_opt_list_oath_calculation(dynamic raw);
+
+  @protected
+  List<PassSlotData>? dco_decode_opt_list_pass_slot_data(dynamic raw);
+
+  @protected
   Uint8List? dco_decode_opt_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  PassSlotData dco_decode_pass_slot_data(dynamic raw);
 
   @protected
   PivCredentialOperation dco_decode_piv_credential_operation(dynamic raw);
 
   @protected
   PivImportFileData dco_decode_piv_import_file_data(dynamic raw);
-
-  @protected
-  PivPrivateKeyData dco_decode_piv_private_key_data(dynamic raw);
 
   @protected
   PivPublicKeyData dco_decode_piv_public_key_data(dynamic raw);
@@ -303,6 +440,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_u_32(dynamic raw);
 
   @protected
+  BigInt dco_decode_u_64(dynamic raw);
+
+  @protected
   int dco_decode_u_8(dynamic raw);
 
   @protected
@@ -323,6 +463,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CtapPinToken
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCtapPinToken(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  PivPrivateKeyData
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
     SseDeserializer deserializer,
   );
 
@@ -351,6 +497,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  PivPrivateKeyData
+  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ProtocolOperation
   sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
     SseDeserializer deserializer,
@@ -375,6 +527,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  PivPrivateKeyData
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ProtocolProfile
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     SseDeserializer deserializer,
@@ -389,6 +547,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CtapPinToken
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCtapPinToken(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  PivPrivateKeyData
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
     SseDeserializer deserializer,
   );
 
@@ -411,6 +575,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AdminAction sse_decode_admin_action(SseDeserializer deserializer);
 
   @protected
+  AdminAppletUsage sse_decode_admin_applet_usage(SseDeserializer deserializer);
+
+  @protected
   AdminConfigurationPatch sse_decode_admin_configuration_patch(
     SseDeserializer deserializer,
   );
@@ -425,6 +592,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   AdminResult sse_decode_admin_result(SseDeserializer deserializer);
+
+  @protected
+  AdminStorageUsage sse_decode_admin_storage_usage(
+    SseDeserializer deserializer,
+  );
 
   @protected
   AdminValueKind sse_decode_admin_value_kind(SseDeserializer deserializer);
@@ -450,6 +622,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  PivPrivateKeyData
+  sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ProtocolProfile
   sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     SseDeserializer deserializer,
@@ -469,10 +647,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AdminResult sse_decode_box_autoadd_admin_result(SseDeserializer deserializer);
 
   @protected
+  AdminStorageUsage sse_decode_box_autoadd_admin_storage_usage(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   bool sse_decode_box_autoadd_bool(SseDeserializer deserializer);
 
   @protected
-  PivPrivateKeyData sse_decode_box_autoadd_piv_private_key_data(
+  CtapInfo sse_decode_box_autoadd_ctap_info(SseDeserializer deserializer);
+
+  @protected
+  PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
+  NdefCapabilityData sse_decode_box_autoadd_ndef_capability_data(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  OathSelectionData sse_decode_box_autoadd_oath_selection_data(
     SseDeserializer deserializer,
   );
 
@@ -491,12 +685,27 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_box_autoadd_u_16(SseDeserializer deserializer);
 
   @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
 
   @protected
   X509CertData sse_decode_box_autoadd_x_509_cert_data(
     SseDeserializer deserializer,
   );
+
+  @protected
+  CtapCredential sse_decode_ctap_credential(SseDeserializer deserializer);
+
+  @protected
+  CtapInfo sse_decode_ctap_info(SseDeserializer deserializer);
+
+  @protected
+  CtapRp sse_decode_ctap_rp(SseDeserializer deserializer);
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
@@ -508,10 +717,49 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
+  List<AdminAppletUsage> sse_decode_list_admin_applet_usage(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CtapCredential> sse_decode_list_ctap_credential(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CtapRp> sse_decode_list_ctap_rp(SseDeserializer deserializer);
+
+  @protected
+  List<OathCalculation> sse_decode_list_oath_calculation(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<PassSlotData> sse_decode_list_pass_slot_data(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  NdefCapabilityData sse_decode_ndef_capability_data(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  OathCalculation sse_decode_oath_calculation(SseDeserializer deserializer);
+
+  @protected
+  OathCode sse_decode_oath_code(SseDeserializer deserializer);
+
+  @protected
+  OathSelectionData sse_decode_oath_selection_data(
+    SseDeserializer deserializer,
+  );
 
   @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
@@ -525,6 +773,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CtapPinToken?
   sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCtapPinToken(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  PivPrivateKeyData?
+  sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
     SseDeserializer deserializer,
   );
 
@@ -545,10 +799,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  AdminStorageUsage? sse_decode_opt_box_autoadd_admin_storage_usage(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
 
   @protected
-  PivPrivateKeyData? sse_decode_opt_box_autoadd_piv_private_key_data(
+  CtapInfo? sse_decode_opt_box_autoadd_ctap_info(SseDeserializer deserializer);
+
+  @protected
+  PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
+  NdefCapabilityData? sse_decode_opt_box_autoadd_ndef_capability_data(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  OathSelectionData? sse_decode_opt_box_autoadd_oath_selection_data(
     SseDeserializer deserializer,
   );
 
@@ -561,6 +831,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? sse_decode_opt_box_autoadd_u_16(SseDeserializer deserializer);
 
   @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
+
+  @protected
   int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer);
 
   @protected
@@ -569,7 +845,33 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<AdminAppletUsage>? sse_decode_opt_list_admin_applet_usage(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CtapCredential>? sse_decode_opt_list_ctap_credential(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CtapRp>? sse_decode_opt_list_ctap_rp(SseDeserializer deserializer);
+
+  @protected
+  List<OathCalculation>? sse_decode_opt_list_oath_calculation(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<PassSlotData>? sse_decode_opt_list_pass_slot_data(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   Uint8List? sse_decode_opt_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  PassSlotData sse_decode_pass_slot_data(SseDeserializer deserializer);
 
   @protected
   PivCredentialOperation sse_decode_piv_credential_operation(
@@ -578,11 +880,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PivImportFileData sse_decode_piv_import_file_data(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  PivPrivateKeyData sse_decode_piv_private_key_data(
     SseDeserializer deserializer,
   );
 
@@ -610,6 +907,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_u_32(SseDeserializer deserializer);
 
   @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_u_8(SseDeserializer deserializer);
 
   @protected
@@ -632,6 +932,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCtapPinToken(
     CtapPinToken self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    PivPrivateKeyData self,
     SseSerializer serializer,
   );
 
@@ -665,6 +972,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    PivPrivateKeyData self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolOperation(
     ProtocolOperation self,
     SseSerializer serializer,
@@ -693,6 +1007,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    PivPrivateKeyData self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     ProtocolProfile self,
     SseSerializer serializer,
@@ -709,6 +1030,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCtapPinToken(
     CtapPinToken self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    PivPrivateKeyData self,
     SseSerializer serializer,
   );
 
@@ -733,6 +1061,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_admin_action(AdminAction self, SseSerializer serializer);
 
   @protected
+  void sse_encode_admin_applet_usage(
+    AdminAppletUsage self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_admin_configuration_patch(
     AdminConfigurationPatch self,
     SseSerializer serializer,
@@ -749,6 +1083,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_admin_result(AdminResult self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_admin_storage_usage(
+    AdminStorageUsage self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_admin_value_kind(
@@ -781,6 +1121,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    PivPrivateKeyData self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerProtocolProfile(
     ProtocolProfile self,
     SseSerializer serializer,
@@ -805,11 +1152,35 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_admin_storage_usage(
+    AdminStorageUsage self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer);
 
   @protected
-  void sse_encode_box_autoadd_piv_private_key_data(
-    PivPrivateKeyData self,
+  void sse_encode_box_autoadd_ctap_info(
+    CtapInfo self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_i_64(
+    PlatformInt64 self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_ndef_capability_data(
+    NdefCapabilityData self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_oath_selection_data(
+    OathSelectionData self,
     SseSerializer serializer,
   );
 
@@ -829,6 +1200,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_box_autoadd_u_16(int self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
 
   @protected
@@ -836,6 +1213,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     X509CertData self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_ctap_credential(
+    CtapCredential self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_ctap_info(CtapInfo self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_ctap_rp(CtapRp self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
@@ -847,11 +1236,59 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_admin_applet_usage(
+    List<AdminAppletUsage> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_ctap_credential(
+    List<CtapCredential> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_ctap_rp(List<CtapRp> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_oath_calculation(
+    List<OathCalculation> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_pass_slot_data(
+    List<PassSlotData> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_ndef_capability_data(
+    NdefCapabilityData self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_oath_calculation(
+    OathCalculation self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_oath_code(OathCode self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_oath_selection_data(
+    OathSelectionData self,
     SseSerializer serializer,
   );
 
@@ -869,6 +1306,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void
   sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCtapPinToken(
     CtapPinToken? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    PivPrivateKeyData? self,
     SseSerializer serializer,
   );
 
@@ -892,11 +1336,35 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_admin_storage_usage(
+    AdminStorageUsage? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
 
   @protected
-  void sse_encode_opt_box_autoadd_piv_private_key_data(
-    PivPrivateKeyData? self,
+  void sse_encode_opt_box_autoadd_ctap_info(
+    CtapInfo? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_i_64(
+    PlatformInt64? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_ndef_capability_data(
+    NdefCapabilityData? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_oath_selection_data(
+    OathSelectionData? self,
     SseSerializer serializer,
   );
 
@@ -910,11 +1378,47 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_u_16(int? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
+
+  @protected
   void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_x_509_cert_data(
     X509CertData? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_admin_applet_usage(
+    List<AdminAppletUsage>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_ctap_credential(
+    List<CtapCredential>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_ctap_rp(
+    List<CtapRp>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_oath_calculation(
+    List<OathCalculation>? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_list_pass_slot_data(
+    List<PassSlotData>? self,
     SseSerializer serializer,
   );
 
@@ -925,6 +1429,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_pass_slot_data(PassSlotData self, SseSerializer serializer);
+
+  @protected
   void sse_encode_piv_credential_operation(
     PivCredentialOperation self,
     SseSerializer serializer,
@@ -933,12 +1440,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_piv_import_file_data(
     PivImportFileData self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_piv_private_key_data(
-    PivPrivateKeyData self,
     SseSerializer serializer,
   );
 
@@ -971,6 +1472,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_8(int self, SseSerializer serializer);
@@ -1065,6 +1569,40 @@ class RustLibWire implements BaseWire {
       );
   late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCtapPinToken =
       _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCtapPinTokenPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyDataPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_canokey_console_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData',
+      );
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData =
+      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyDataPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyDataPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_canokey_console_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData',
+      );
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyData =
+      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPivPrivateKeyDataPtr
           .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 
   void

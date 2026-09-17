@@ -9,10 +9,8 @@ crate-type = ["cdylib", "staticlib"]
 [dependencies]
 canokey = { git = "https://github.com/canokeys/libcanokey", rev = "f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e", features = ["clientpin"] }
 canokey-protocol = { git = "https://github.com/canokeys/libcanokey", rev = "f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e" }
-aes = "^0.9.3"
 const-oid = "^0.10.1"
 der = { version = "^0.8.1", features = ["derive", "pem"] }
-des = "^0.9.0"
 ed25519-dalek = { version = "^3.0.0", default-features = false, features = ["fast", "pem", "pkcs8"] }
 flutter_rust_bridge = "=2.13.0"
 hex-literal = "^1.1.0"
@@ -33,7 +31,8 @@ sha2_legacy = { package = "sha2", version = "^0.10.9" }
 sm2 = { version = "^0.13.3", default-features = false, features = ["dsa", "pem", "pkcs8", "std"] }
 sm3 = "^0.5.0"
 x509-cert = "^0.3.0"
-x509-parser = "^0.18.1"
+x509-info = "0.1.1"
+time = { version = "0.3", features = ["formatting", "macros"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "^0.4.3", features = ["wasm_js"] }
