@@ -293,6 +293,7 @@ pub struct CtapInfo {
     pub client_pin: Option<bool>,
     pub force_pin_change: Option<bool>,
     pub min_pin_length: Option<u64>,
+    pub always_uv: Option<bool>,
     pub pin_uv_auth_protocols: Vec<u8>,
 }
 

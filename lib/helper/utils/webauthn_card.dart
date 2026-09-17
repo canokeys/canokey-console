@@ -12,6 +12,7 @@ class WebAuthnInfo {
     required this.clientPin,
     required this.forcePinChange,
     required this.minPinLength,
+    required this.alwaysUv,
     required this.pinUvAuthProtocols,
   });
 
@@ -19,6 +20,7 @@ class WebAuthnInfo {
   final bool? clientPin;
   final bool? forcePinChange;
   final int? minPinLength;
+  final bool? alwaysUv;
   final List<int> pinUvAuthProtocols;
 
   /// The ClientPIN protocol to speak: prefer V2 when advertised, like the
@@ -30,6 +32,7 @@ class WebAuthnInfo {
     clientPin: info.clientPin,
     forcePinChange: info.forcePinChange,
     minPinLength: info.minPinLength?.toInt(),
+    alwaysUv: info.alwaysUv,
     pinUvAuthProtocols: List.unmodifiable(info.pinUvAuthProtocols),
   );
 }
@@ -103,8 +106,9 @@ class WebAuthnPinSession {
     }
   }
 
-  /// Mint a pinUvAuthToken (credentialManagement permission 0x04). The token
-  /// outlives this session; close the session once the token exists.
+  /// Mint a pinUvAuthToken (credentialManagement permission 0x04 by default;
+  /// pass [permissions] for other scopes such as authenticatorConfig 0x20).
+  /// The token outlives this session; close the session once the token exists.
   Future<WebAuthnPinToken> getPinToken(
     String pin, {
     int permissions = WebAuthnCardClient.permissionCredentialManagement,
@@ -192,6 +196,31 @@ class WebAuthnPinToken {
   Future<void> deleteCredential(List<int> credentialId) async =>
       _client._execute(_token.deleteCredential(credentialId: credentialId));
 
+  /// Toggle the device-global alwaysUv option. Requires the
+  /// authenticatorConfig permission (0x20).
+  Future<void> toggleAlwaysUv() async =>
+      _client._execute(_token.toggleAlwaysUv());
+
+  /// Raise the device-global minimum PIN length. The value can only grow, so
+  /// a lower value is rejected with PIN_POLICY_VIOLATION (0x37). The RP
+  /// allowlist (minPinLengthRPIDs) is not exposed: it stays empty, disclosing
+  /// the value to no relying party. Requires the authenticatorConfig
+  /// permission (0x20).
+  Future<void> setMinPinLength(int newMinPinLength, {bool? forcePinChange}) =>
+      _client._execute(
+        _token.setMinPinLength(
+          newMinPinLength: newMinPinLength,
+          forcePinChange: forcePinChange,
+          rpIds: const [],
+        ),
+      );
+
+  /// Require a 30-second long touch for authenticatorReset. Irreversible;
+  /// only a full authenticatorReset clears it. Requires the
+  /// authenticatorConfig permission (0x20).
+  Future<void> enableLongTouchForReset() async =>
+      _client._execute(_token.enableLongTouchForReset());
+
   void close() {
     final handle = _handle;
     _handle = null;
@@ -214,6 +243,7 @@ class WebAuthnCardClient extends CardClientBase {
   WebAuthnCardClient({super.transport, super.lease});
 
   static const int permissionCredentialManagement = 0x04;
+  static const int permissionAuthenticatorConfig = 0x20;
 
   Future<WebAuthnInfo> getInfo() async => WebAuthnInfo.fromResult(
     await _executeResult(

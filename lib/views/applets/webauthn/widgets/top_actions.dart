@@ -3,7 +3,7 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:canokey_console/helper/widgets/validators.dart';
-import 'package:canokey_console/views/applets/webauthn/dialogs/sm2_config_dialog.dart';
+import 'package:canokey_console/views/applets/webauthn/dialogs/authenticator_config_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
@@ -47,24 +47,24 @@ class TopActions extends StatelessWidget with UIMixin {
               icon: Icon(LucideIcons.lock, color: topBarTheme.onBackground),
             ),
           );
-          if (controller.supportsSm2Settings) {
+          if (controller.supportsConfig) {
             widgets.insert(
               0,
               IconButton(
-                tooltip: S.of(context).settingsWebAuthnSm2Support,
+                tooltip: S.of(context).webauthnAuthenticatorSettings,
                 onPressed: () async {
-                  final config = await controller.readSm2Config();
-                  if (config == null) {
-                    return;
-                  }
-                  await Sm2ConfigDialog.show(
-                    config: config,
-                    canChangeEnabled: config.canChangeEnabled,
-                    onConfirm: controller.changeSm2Config,
+                  await AuthenticatorConfigDialog.show(
+                    alwaysUv: controller.alwaysUv,
+                    minPinLength: controller.minPinLength,
+                    onToggleAlwaysUv: controller.toggleAlwaysUv,
+                    onSetMinPinLength: controller.setMinPinLength,
+                    onEnableLongTouch: controller.enableLongTouchForReset,
                   );
                 },
-                icon:
-                    Icon(LucideIcons.settings, color: topBarTheme.onBackground),
+                icon: Icon(
+                  LucideIcons.settings2,
+                  color: topBarTheme.onBackground,
+                ),
               ),
             );
           }

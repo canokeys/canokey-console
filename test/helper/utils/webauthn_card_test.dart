@@ -23,11 +23,12 @@ const _credentialMeta =
     'a406a26269644405060708646e616d6565616c69636507a2626964440102030464747970656a7075626c69632d6b6579090118803830';
 
 /// getInfo fixture: versions [FIDO_2_0, FIDO_2_1], credMgmt true, clientPin
-/// false, forcePinChange true, minPinLength 4, pinUvAuthProtocols [1, 2].
+/// false, alwaysUv true, forcePinChange true, minPinLength 4,
+/// pinUvAuthProtocols [1, 2].
 const _getInfoPayload = 'a6'
     '0182684649444f5f325f30684649444f5f325f31'
     '0350244eb29ee0904e4981fe1f20f8d3b8f4'
-    '04a362726bf568637265644d676d74f569636c69656e7450696ef4'
+    '04a462726bf568637265644d676d74f569636c69656e7450696ef468616c776179735576f5'
     '06820102'
     '0cf5'
     '0d04';
@@ -50,6 +51,7 @@ void main() {
       expect(info.pinProtocol, 2);
       expect(info.credMgmt, isTrue);
       expect(info.clientPin, isFalse);
+      expect(info.alwaysUv, isTrue);
     });
   });
 
@@ -64,6 +66,7 @@ void main() {
       expect(info.pinUvAuthProtocols, isEmpty);
       expect(info.pinProtocol, 1);
       expect(info.credMgmt, isNull);
+      expect(info.alwaysUv, isNull);
     });
   });
 
@@ -150,6 +153,7 @@ WebAuthnInfo _info({required List<int> protocols}) => WebAuthnInfo(
       clientPin: true,
       forcePinChange: false,
       minPinLength: 4,
+      alwaysUv: false,
       pinUvAuthProtocols: protocols,
     );
 

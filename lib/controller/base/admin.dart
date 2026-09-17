@@ -106,7 +106,7 @@ mixin AdminApplet on GetxController {
     final completer = Completer<bool>();
     InputPinDialog.show(
       title: S.of(Get.context!).settingsInputPin,
-      label: 'PIN',
+      label: S.of(Get.context!).adminPin,
       prompt: S.of(Get.context!).settingsInputPinPrompt,
       showSaveOption: true,
       onSubmit: (pin, savePin) async {

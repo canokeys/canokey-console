@@ -59,6 +59,11 @@ class S {
     return Intl.message('Applets', name: 'applets', desc: '', args: []);
   }
 
+  /// `Admin PIN`
+  String get adminPin {
+    return Intl.message('Admin PIN', name: 'adminPin', desc: '', args: []);
+  }
+
   /// `Settings`
   String get settings {
     return Intl.message('Settings', name: 'settings', desc: '', args: []);
@@ -799,20 +804,20 @@ class S {
     );
   }
 
-  /// `PIN Verification`
+  /// `Admin PIN Verification`
   String get settingsInputPin {
     return Intl.message(
-      'PIN Verification',
+      'Admin PIN Verification',
       name: 'settingsInputPin',
       desc: '',
       args: [],
     );
   }
 
-  /// `Enter the admin PIN used for Settings. The default is 123456. It is separate from the PINs for OpenPGP, PIV and other applets.`
+  /// `Enter the admin PIN. The default is 123456. It is separate from the PINs for WebAuthn, OpenPGP, PIV and other applets.`
   String get settingsInputPinPrompt {
     return Intl.message(
-      'Enter the admin PIN used for Settings. The default is 123456. It is separate from the PINs for OpenPGP, PIV and other applets.',
+      'Enter the admin PIN. The default is 123456. It is separate from the PINs for WebAuthn, OpenPGP, PIV and other applets.',
       name: 'settingsInputPinPrompt',
       desc: '',
       args: [],
@@ -5904,6 +5909,116 @@ class S {
     return Intl.message(
       'Could not change the WebAuthn PIN. Read CanoKey again and try again.',
       name: 'webauthnChangePinFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Authenticator Settings`
+  String get webauthnAuthenticatorSettings {
+    return Intl.message(
+      'Authenticator Settings',
+      name: 'webauthnAuthenticatorSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Always Require User Verification`
+  String get webauthnAlwaysUv {
+    return Intl.message(
+      'Always Require User Verification',
+      name: 'webauthnAlwaysUv',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `When enabled, every WebAuthn sign-in requires PIN verification. Enabling it also disables the legacy U2F interface of CanoKey.`
+  String get webauthnAlwaysUvDescription {
+    return Intl.message(
+      'When enabled, every WebAuthn sign-in requires PIN verification. Enabling it also disables the legacy U2F interface of CanoKey.',
+      name: 'webauthnAlwaysUvDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Toggle Always UV? The change is persistent and applies to all credentials on this CanoKey.`
+  String get webauthnAlwaysUvTogglePrompt {
+    return Intl.message(
+      'Toggle Always UV? The change is persistent and applies to all credentials on this CanoKey.',
+      name: 'webauthnAlwaysUvTogglePrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Minimum PIN Length`
+  String get webauthnMinPinLength {
+    return Intl.message(
+      'Minimum PIN Length',
+      name: 'webauthnMinPinLength',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The minimum PIN length can only be increased, and must be at least {min}.`
+  String webauthnMinPinLengthHint(Object min) {
+    return Intl.message(
+      'The minimum PIN length can only be increased, and must be at least $min.',
+      name: 'webauthnMinPinLengthHint',
+      desc: '',
+      args: [min],
+    );
+  }
+
+  /// `Force PIN change after applying`
+  String get webauthnForcePinChange {
+    return Intl.message(
+      'Force PIN change after applying',
+      name: 'webauthnForcePinChange',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Danger Zone`
+  String get webauthnDangerZone {
+    return Intl.message(
+      'Danger Zone',
+      name: 'webauthnDangerZone',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Once enabled, resetting WebAuthn requires touching CanoKey for 30 seconds. This cannot be undone; only resetting WebAuthn clears it.`
+  String get webauthnLongTouchWarning {
+    return Intl.message(
+      'Once enabled, resetting WebAuthn requires touching CanoKey for 30 seconds. This cannot be undone; only resetting WebAuthn clears it.',
+      name: 'webauthnLongTouchWarning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable long touch for reset? This cannot be undone.`
+  String get webauthnLongTouchEnablePrompt {
+    return Intl.message(
+      'Enable long touch for reset? This cannot be undone.',
+      name: 'webauthnLongTouchEnablePrompt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `CanoKey rejected the change: the minimum PIN length can only be increased.`
+  String get webauthnPinPolicyViolation {
+    return Intl.message(
+      'CanoKey rejected the change: the minimum PIN length can only be increased.',
+      name: 'webauthnPinPolicyViolation',
       desc: '',
       args: [],
     );

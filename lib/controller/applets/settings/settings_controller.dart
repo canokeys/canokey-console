@@ -17,6 +17,7 @@ import 'package:canokey_console/helper/utils/screenshot_mode.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/keyboard_keymap.dart';
+import 'package:canokey_console/models/webauthn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
@@ -33,6 +34,9 @@ class SettingsController extends PollingController with AdminApplet {
   bool get refreshWebOnReady => false;
 
   late CanoKey key;
+
+  bool get supportsSm2Settings =>
+      key.getFunctionSet().contains(Func.webAuthnSm2Support);
 
   @override
   Logger get log => Logging.logger('Settings:Controller');
@@ -274,6 +278,48 @@ class SettingsController extends PollingController with AdminApplet {
         forceSnackBar: true,
       );
       await _refresh(sn);
+    });
+  }
+
+  Future<WebAuthnSm2Config?> readSm2Config() async {
+    log.t('Call SettingsController.readSm2Config');
+    if (!supportsSm2Settings) {
+      return null;
+    }
+
+    WebAuthnSm2Config? config;
+    await SmartCard.process((String sn) async {
+      if (!await authenticate(sn)) {
+        return;
+      }
+      config = await adminCardClient.readSm2Config(pin: adminPinForCurrentLease);
+    });
+    return config;
+  }
+
+  Future<void> changeSm2Config(bool enabled, int curveId, int algoId) async {
+    log.t('Call SettingsController.changeSm2Config');
+    if (!supportsSm2Settings) {
+      Prompts.showPrompt(
+          S.of(Get.context!).notSupported, ContentThemeColor.warning);
+      return;
+    }
+
+    await SmartCard.process((String sn) async {
+      if (!await authenticate(sn)) {
+        return;
+      }
+      await adminCardClient.writeSm2Config(
+        pin: adminPinForCurrentLease,
+        enabled: enabled,
+        curveId: curveId,
+        algoId: algoId,
+      );
+      log.i('Successfully changed WebAuthn SM2 config');
+      Navigator.pop(Get.context!);
+      Prompts.showPrompt(
+          S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
+          forceSnackBar: true);
     });
   }
 

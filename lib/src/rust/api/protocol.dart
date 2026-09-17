@@ -47,6 +47,12 @@ abstract class CtapPinToken implements RustOpaqueInterface {
   /// an unknown ID surfaces as NotFound (CTAP 0x2E/0x22).
   ProtocolOperation deleteCredential({required List<int> credentialId});
 
+  /// Require a 30-second long touch for authenticatorReset
+  /// (authenticatorConfig subcommand 0x04, CanoKey firmware 3.x).
+  /// Irreversible; only a full authenticatorReset clears it. Requires a
+  /// token with the AUTHENTICATOR_CONFIG (0x20) permission.
+  ProtocolOperation enableLongTouchForReset();
+
   /// Enumerate one RP's resident credentials. `metadata_only` enables the
   /// CanoKey vendor extension (subCommandParams key 0x80): the raw COSE
   /// algorithm replaces the public key in typed credential results.
@@ -60,6 +66,23 @@ abstract class CtapPinToken implements RustOpaqueInterface {
   /// run inside the one operation). A 0x2E NO_CREDENTIALS status yields an
   /// empty result, not an error. Returns typed relying parties.
   ProtocolOperation enumerateRps();
+
+  /// Set the minimum PIN length (authenticatorConfig subcommand 0x03). The
+  /// value can only grow; `force_pin_change` forces a PIN change and resets
+  /// all pinUvAuthTokens. `rp_ids` bounds which relying parties may read the
+  /// value via the minPinLength extension (at most 4, omitted when empty).
+  /// Requires a token with the AUTHENTICATOR_CONFIG (0x20) permission.
+  ProtocolOperation setMinPinLength({
+    required int newMinPinLength,
+    bool? forcePinChange,
+    required List<String> rpIds,
+  });
+
+  /// Toggle the alwaysUv option (authenticatorConfig subcommand 0x02). A
+  /// persistent device-global change; enabling it also disables the legacy
+  /// U2F/CTAP1 interface on CanoKey firmware. Requires a token with the
+  /// AUTHENTICATOR_CONFIG (0x20) permission.
+  ProtocolOperation toggleAlwaysUv();
 }
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ProtocolOperation>>
@@ -702,6 +725,7 @@ class CtapInfo {
   final bool? clientPin;
   final bool? forcePinChange;
   final BigInt? minPinLength;
+  final bool? alwaysUv;
   final Uint8List pinUvAuthProtocols;
 
   const CtapInfo({
@@ -709,6 +733,7 @@ class CtapInfo {
     this.clientPin,
     this.forcePinChange,
     this.minPinLength,
+    this.alwaysUv,
     required this.pinUvAuthProtocols,
   });
 
@@ -718,6 +743,7 @@ class CtapInfo {
       clientPin.hashCode ^
       forcePinChange.hashCode ^
       minPinLength.hashCode ^
+      alwaysUv.hashCode ^
       pinUvAuthProtocols.hashCode;
 
   @override
@@ -729,6 +755,7 @@ class CtapInfo {
           clientPin == other.clientPin &&
           forcePinChange == other.forcePinChange &&
           minPinLength == other.minPinLength &&
+          alwaysUv == other.alwaysUv &&
           pinUvAuthProtocols == other.pinUvAuthProtocols;
 }
 

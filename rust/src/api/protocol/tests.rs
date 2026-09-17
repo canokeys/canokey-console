@@ -1327,6 +1327,10 @@ const CTAP_RESP_CRED_META: &str = "a406a26269644405060708646e616d6565616c6963650
 const CTAP_RESP_CRED_BEGIN: &str = "a606a36269644405060708646e616d6565616c6963656b646973706c61794e616d6565416c69636507a2626964440102030464747970656a7075626c69632d6b657908a50102032620012158201111111111111111111111111111111111111111111111111111111111111111225820222222222222222222222222222222222222222222222222222222222222222209020a020b58203333333333333333333333333333333333333333333333333333333333333333";
 const CTAP_RESP_CRED_NEXT: &str = "a207a2626964440908070664747970656a7075626c69632d6b657908a501020326200121582044444444444444444444444444444444444444444444444444444444444444442258205555555555555555555555555555555555555555555555555555555555555555";
 const CTAP_MSG_DELETE: &str = "0aa4010602a102a2626964440102030464747970656a7075626c69632d6b657903010450038bc0ba9fef742b26ce891514a2142c";
+const CTAP_MSG_TOGGLE_ALWAYS_UV: &str = "0da30102030104504c5f2977f89922eb13b28960c0c7b4da";
+const CTAP_MSG_LONG_TOUCH_RESET: &str = "0da3010403010450967369eaf14c745bb57c5340d0cc9416";
+const CTAP_MSG_MIN_PIN_LEN: &str =
+    "0da4010302a3010802816b6578616d706c652e636f6d03f503010450477dff2bb8a3fba3b96035e32ecce793";
 const CTAP_RP_ID_HASH: [u8; 32] = [
     0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf,
     0xb0, 0xb1, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0xbe, 0xbf,
@@ -1408,13 +1412,14 @@ fn ctap_fixture_token_v1() -> CtapPinToken {
 }
 
 /// getInfo fixture: versions [FIDO_2_0, FIDO_2_1], credMgmt true,
-/// clientPin false, forcePinChange true, minPinLength 4, protocols [1, 2].
+/// clientPin false, alwaysUv true, forcePinChange true, minPinLength 4,
+/// protocols [1, 2].
 fn ctap_get_info_payload() -> Vec<u8> {
     ctap_hex(
         "a6 \
              01 82 684649444f5f325f30 684649444f5f325f31 \
              03 50 244eb29ee0904e4981fe1f20f8d3b8f4 \
-             04 a3 62726bf5 68637265644d676d74f5 69636c69656e7450696ef4 \
+             04 a4 62726bf5 68616c776179735576f5 68637265644d676d74f5 69636c69656e7450696ef4 \
              06 82 01 02 \
              0c f5 \
              0d 04",
@@ -1454,6 +1459,7 @@ fn ctap_get_info_parses_fields_and_keeps_ctap_status() {
     assert_eq!(info.client_pin, Some(false));
     assert_eq!(info.force_pin_change, Some(true));
     assert_eq!(info.min_pin_length, Some(4));
+    assert_eq!(info.always_uv, Some(true));
     assert_eq!(info.pin_uv_auth_protocols, [1, 2]);
     assert_eq!(op.start().error.unwrap().kind, "OperationStateError");
 
@@ -1467,6 +1473,7 @@ fn ctap_get_info_parses_fields_and_keeps_ctap_status() {
     assert_eq!(info.client_pin, None);
     assert_eq!(info.force_pin_change, None);
     assert_eq!(info.min_pin_length, None);
+    assert_eq!(info.always_uv, None);
     assert!(info.pin_uv_auth_protocols.is_empty());
 
     // A CTAP-level failure keeps the raw CTAP status byte (upstream carries
@@ -1731,6 +1738,68 @@ fn ctap_delete_credential_golden_and_handle_lifecycle() {
     token.close();
     token.close();
     let mut op = token.enumerate_rps();
+    assert_eq!(op.start().error.unwrap().kind, "OperationStateError");
+}
+
+#[test]
+fn ctap_config_operations_match_golden_wire_bytes() {
+    let token = ctap_fixture_token_v1();
+    let mut op = token.toggle_always_uv();
+    let step = ctap_after_select(&mut op);
+    assert_eq!(
+        step.command.unwrap(),
+        ctap_wrapped(&ctap_hex(CTAP_MSG_TOGGLE_ALWAYS_UV))
+    );
+    assert_eq!(
+        op.advance(vec![0x00, 0x90, 0]).data.unwrap(),
+        Vec::<u8>::new()
+    );
+
+    let mut op = token.enable_long_touch_for_reset();
+    let step = ctap_after_select(&mut op);
+    assert_eq!(
+        step.command.unwrap(),
+        ctap_wrapped(&ctap_hex(CTAP_MSG_LONG_TOUCH_RESET))
+    );
+    assert_eq!(
+        op.advance(vec![0x00, 0x90, 0]).data.unwrap(),
+        Vec::<u8>::new()
+    );
+
+    // SubCommandParams carry newMinPINLength, minPinLengthRPIDs and
+    // forcePinChange; empty rp_ids are omitted from the wire map.
+    let mut op = token.set_min_pin_length(8, Some(true), vec!["example.com".to_string()]);
+    let step = ctap_after_select(&mut op);
+    assert_eq!(
+        step.command.unwrap(),
+        ctap_wrapped(&ctap_hex(CTAP_MSG_MIN_PIN_LEN))
+    );
+    assert_eq!(
+        op.advance(vec![0x00, 0x90, 0]).data.unwrap(),
+        Vec::<u8>::new()
+    );
+
+    // PIN_POLICY_VIOLATION keeps the raw CTAP status byte.
+    let mut op = token.set_min_pin_length(8, None, vec![]);
+    ctap_after_select(&mut op);
+    let error = op.advance(vec![0x37, 0x90, 0x00]).error.unwrap();
+    assert_eq!(error.kind, "InvalidPin");
+    assert_eq!(error.status_word, Some(0x37));
+
+    // Upstream validation happens before any I/O: below the minimum, an
+    // empty RP ID, or more than four RP IDs are rejected at construction.
+    let mut op = token.set_min_pin_length(3, None, vec![]);
+    assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
+    let mut op = token.set_min_pin_length(8, None, vec!["".to_string()]);
+    assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
+    let five_rps = (0..5).map(|i| format!("rp{i}.example.com")).collect();
+    let mut op = token.set_min_pin_length(8, None, five_rps);
+    assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
+
+    // A closed token handle rejects config operations.
+    let mut token = ctap_fixture_token_v1();
+    token.close();
+    let mut op = token.toggle_always_uv();
     assert_eq!(op.start().error.unwrap().kind, "OperationStateError");
 }
 

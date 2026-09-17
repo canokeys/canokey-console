@@ -5,6 +5,7 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/applet_switches_dialog.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/keymap_dialog.dart';
+import 'package:canokey_console/views/applets/settings/dialogs/sm2_config_dialog.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/switch_dialog.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_item.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +36,18 @@ class SettingsCard extends StatelessWidget {
       canokey: controller.key,
       functionSet: functionSet,
       onConfirm: controller.changeSwitches,
+    );
+  }
+
+  Future<void> _showSm2ConfigDialog() async {
+    final config = await controller.readSm2Config();
+    if (config == null) {
+      return;
+    }
+    await Sm2ConfigDialog.show(
+      config: config,
+      canChangeEnabled: config.canChangeEnabled,
+      onConfirm: controller.changeSm2Config,
     );
   }
 
@@ -134,6 +147,14 @@ class SettingsCard extends StatelessWidget {
               title: S.of(context).settingsAppletSwitches,
               value: '',
               onTap: () => _showAppletSwitchesDialog(functionSet),
+            ),
+          },
+          if (functionSet.contains(Func.webAuthnSm2Support)) ...{
+            InfoItem(
+              iconData: LucideIcons.key,
+              title: S.of(context).settingsWebAuthnSm2Support,
+              value: '',
+              onTap: _showSm2ConfigDialog,
             ),
           },
           if (functionSet.contains(Func.ndefReadonly)) ...{

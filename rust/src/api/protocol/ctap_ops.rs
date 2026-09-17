@@ -185,6 +185,63 @@ impl CtapPinToken {
         })())
     }
 
+    /// Toggle the alwaysUv option (authenticatorConfig subcommand 0x02). A
+    /// persistent device-global change; enabling it also disables the legacy
+    /// U2F/CTAP1 interface on CanoKey firmware. Requires a token with the
+    /// AUTHENTICATOR_CONFIG (0x20) permission.
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn toggle_always_uv(&self) -> ProtocolOperation {
+        ProtocolOperation::from_operation((|| {
+            ctap::config::toggle_always_uv(
+                self.token()?,
+                self.protocol,
+                OperationOptions::default(),
+            )
+            .map(Inner::Management)
+        })())
+    }
+
+    /// Set the minimum PIN length (authenticatorConfig subcommand 0x03). The
+    /// value can only grow; `force_pin_change` forces a PIN change and resets
+    /// all pinUvAuthTokens. `rp_ids` bounds which relying parties may read the
+    /// value via the minPinLength extension (at most 4, omitted when empty).
+    /// Requires a token with the AUTHENTICATOR_CONFIG (0x20) permission.
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn set_min_pin_length(
+        &self,
+        new_min_pin_length: u8,
+        force_pin_change: Option<bool>,
+        rp_ids: Vec<String>,
+    ) -> ProtocolOperation {
+        ProtocolOperation::from_operation((|| {
+            ctap::config::set_min_pin_length(
+                self.token()?,
+                self.protocol,
+                new_min_pin_length,
+                force_pin_change,
+                rp_ids,
+                OperationOptions::default(),
+            )
+            .map(Inner::Management)
+        })())
+    }
+
+    /// Require a 30-second long touch for authenticatorReset
+    /// (authenticatorConfig subcommand 0x04, CanoKey firmware 3.x).
+    /// Irreversible; only a full authenticatorReset clears it. Requires a
+    /// token with the AUTHENTICATOR_CONFIG (0x20) permission.
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn enable_long_touch_for_reset(&self) -> ProtocolOperation {
+        ProtocolOperation::from_operation((|| {
+            ctap::config::enable_long_touch_for_reset(
+                self.token()?,
+                self.protocol,
+                OperationOptions::default(),
+            )
+            .map(Inner::Management)
+        })())
+    }
+
     /// Idempotent local cleanup. Does not alter the card or pending operations.
     #[flutter_rust_bridge::frb(sync)]
     pub fn close(&mut self) {
@@ -203,6 +260,7 @@ pub(super) fn ctap_info(info: ctap::AuthenticatorInfo) -> ProtocolStep {
             client_pin: option("clientPin"),
             force_pin_change: info.force_pin_change(),
             min_pin_length: info.min_pin_length(),
+            always_uv: option("alwaysUv"),
             pin_uv_auth_protocols: info.pin_uv_auth_protocols().unwrap_or(&[]).to_vec(),
         }),
         ..Default::default()

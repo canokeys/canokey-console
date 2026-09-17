@@ -1,7 +1,7 @@
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:flutter/widgets.dart';
 import 'package:canokey_console/models/webauthn.dart';
-import 'package:canokey_console/views/applets/webauthn/dialogs/sm2_config_dialog.dart';
+import 'package:canokey_console/views/applets/settings/dialogs/sm2_config_dialog.dart';
 import 'package:convert/convert.dart';
 import 'package:flutter_test/flutter_test.dart';
 

@@ -36,6 +36,7 @@ enum Func {
   resetPass,
   factoryReset,
   webAuthnSm2Support,
+  webAuthnAuthenticatorConfig,
   pass,
   passHmacSha1,
   keyboardKeymap,
@@ -228,6 +229,7 @@ class CanoKey {
           Func.resetWebAuthn,
           Func.resetPass,
           Func.webAuthnSm2Support,
+          Func.webAuthnAuthenticatorConfig,
           Func.pass,
         };
       case FunctionSetVersion.v5:
@@ -242,6 +244,7 @@ class CanoKey {
           Func.resetWebAuthn,
           Func.resetPass,
           Func.webAuthnSm2Support,
+          Func.webAuthnAuthenticatorConfig,
           Func.pass,
           Func.passHmacSha1,
           Func.keyboardKeymap,

@@ -92,11 +92,14 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m34(name) => "删除 ${name} 的登录凭据？此操作无法撤销，请先确认您有其他方式登录该服务。";
 
+  static String m35(min) => "最小 PIN 长度只能调大、不能调小，且不得小于 ${min}。";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("关于"),
     "actions": MessageLookupByLibrary.simpleMessage("操作"),
     "add": MessageLookupByLibrary.simpleMessage("添加"),
+    "adminPin": MessageLookupByLibrary.simpleMessage("管理 PIN"),
     "agreeAndContinue": MessageLookupByLibrary.simpleMessage("同意并继续"),
     "androidAlertTitle": MessageLookupByLibrary.simpleMessage("读取 CanoKey"),
     "androidPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
@@ -1018,9 +1021,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsFixNFCSuccess": MessageLookupByLibrary.simpleMessage("修复 NFC 成功"),
     "settingsHotp": MessageLookupByLibrary.simpleMessage("触摸时输出 HOTP"),
     "settingsInfo": MessageLookupByLibrary.simpleMessage("CanoKey 信息"),
-    "settingsInputPin": MessageLookupByLibrary.simpleMessage("PIN 验证"),
+    "settingsInputPin": MessageLookupByLibrary.simpleMessage("管理 PIN 验证"),
     "settingsInputPinPrompt": MessageLookupByLibrary.simpleMessage(
-      "请输入设置页面使用的管理 PIN，默认值为 123456。它与 OpenPGP、PIV 等应用的 PIN 分别设置。",
+      "请输入管理 PIN，默认值为 123456。它与 WebAuthn、OpenPGP、PIV 等应用的 PIN 分别设置。",
     ),
     "settingsKeyboardLayout": MessageLookupByLibrary.simpleMessage("键盘布局"),
     "settingsKeyboardLayoutCurrent": m27,
@@ -1115,24 +1118,49 @@ class MessageLookup extends MessageLookupByLibrary {
     "webPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "请将您的 CanoKey 插入 USB 接口并点击刷新按钮",
     ),
+    "webauthnAlwaysUv": MessageLookupByLibrary.simpleMessage("始终要求用户验证"),
+    "webauthnAlwaysUvDescription": MessageLookupByLibrary.simpleMessage(
+      "启用后，每次 WebAuthn 登录都需要验证 PIN。启用后还会禁用 CanoKey 的传统 U2F 接口。",
+    ),
+    "webauthnAlwaysUvTogglePrompt": MessageLookupByLibrary.simpleMessage(
+      "切换「始终要求用户验证」？此更改持久生效，并应用于 CanoKey 上的所有凭据。",
+    ),
+    "webauthnAuthenticatorSettings": MessageLookupByLibrary.simpleMessage(
+      "验证器设置",
+    ),
     "webauthnChangePinFailed": MessageLookupByLibrary.simpleMessage(
       "无法修改 WebAuthn PIN，请重新读取 CanoKey 后重试。",
     ),
     "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
       "此 CanoKey 不支持设置 WebAuthn PIN。",
     ),
+    "webauthnDangerZone": MessageLookupByLibrary.simpleMessage("危险操作"),
     "webauthnDelete": m34,
+    "webauthnForcePinChange": MessageLookupByLibrary.simpleMessage(
+      "应用后强制修改 PIN",
+    ),
     "webauthnInputPinPrompt": MessageLookupByLibrary.simpleMessage(
       "请输入您的 WebAuthn PIN。",
     ),
     "webauthnInputPinTitle": MessageLookupByLibrary.simpleMessage(
       "解锁 WebAuthn",
     ),
+    "webauthnLongTouchEnablePrompt": MessageLookupByLibrary.simpleMessage(
+      "启用重置长按确认？此操作无法撤销。",
+    ),
+    "webauthnLongTouchWarning": MessageLookupByLibrary.simpleMessage(
+      "启用后，重置 WebAuthn 需要长按触摸 CanoKey 30 秒。此设置无法撤销，只有重置 WebAuthn 才能清除。",
+    ),
+    "webauthnMinPinLength": MessageLookupByLibrary.simpleMessage("最小 PIN 长度"),
+    "webauthnMinPinLengthHint": m35,
     "webauthnPinAuthBlocked": MessageLookupByLibrary.simpleMessage(
       "WebAuthn PIN 已暂时锁定。请重新插拔 CanoKey 后重试。",
     ),
     "webauthnPinBlocked": MessageLookupByLibrary.simpleMessage(
       "WebAuthn PIN 已锁定，需要重置 WebAuthn 才能继续使用。重置会删除所有 WebAuthn 凭据。",
+    ),
+    "webauthnPinPolicyViolation": MessageLookupByLibrary.simpleMessage(
+      "CanoKey 拒绝了此更改：最小 PIN 长度只能调大、不能调小。",
     ),
     "webauthnPinRequired": MessageLookupByLibrary.simpleMessage(
       "请先刷新页面并输入 WebAuthn PIN，再重试此操作。",

@@ -69,7 +69,11 @@ class Prompts {
         Get.find<RxString>(tag: 'dialog_error_level').value = level;
         Timer(Duration(seconds: 3), () {
           if (generation == _promptGeneration) {
-            Get.find<RxString>(tag: 'dialog_error').value = '';
+            try {
+              Get.find<RxString>(tag: 'dialog_error').value = '';
+            } catch (_) {
+              // The dialog that owned the prompt has been closed.
+            }
           }
         });
       } catch (e) {

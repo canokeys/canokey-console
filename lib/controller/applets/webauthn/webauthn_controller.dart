@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:canokey_console/controller/base/admin.dart';
 import 'package:canokey_console/controller/base/polling_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
@@ -22,7 +21,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
-class WebAuthnController extends PollingController with AdminApplet {
+class WebAuthnController extends PollingController {
   final WebAuthnCardClient _client = WebAuthnCardClient();
   final _localPinCache = CredentialCache('webauthn');
   final List<WebAuthnItem> webAuthnItems = [];
@@ -33,8 +32,20 @@ class WebAuthnController extends PollingController with AdminApplet {
   /// Display state from the latest getInfo; refreshed after PIN mutations.
   WebAuthnInfo? _info;
 
-  bool get supportsSm2Settings =>
-      CanoKey.functionSet(functionSetVersion).contains(Func.webAuthnSm2Support);
+  /// authenticatorConfig (0x0D) always fails on 2.0.x firmware; on 3.x it is
+  /// offered only once getInfo reports one of the related options.
+  bool get supportsConfig =>
+      CanoKey.functionSet(
+        functionSetVersion,
+      ).contains(Func.webAuthnAuthenticatorConfig) &&
+      hasConfigInfo;
+
+  bool get hasConfigInfo =>
+      _info?.alwaysUv != null || _info?.minPinLength != null;
+
+  bool? get alwaysUv => _info?.alwaysUv;
+
+  int? get minPinLength => _info?.minPinLength;
 
   @override
   Logger get log => Logging.logger('WebAuthn:Controller');
@@ -114,48 +125,6 @@ class WebAuthnController extends PollingController with AdminApplet {
     });
   }
 
-  Future<WebAuthnSm2Config?> readSm2Config() async {
-    log.t('Call WebAuthnController.readSm2Config');
-    if (!supportsSm2Settings) {
-      return null;
-    }
-
-    WebAuthnSm2Config? config;
-    await SmartCard.process((String sn) async {
-      if (!await authenticate(sn)) {
-        return;
-      }
-      config = await adminCardClient.readSm2Config(pin: adminPinForCurrentLease);
-    });
-    return config;
-  }
-
-  Future<void> changeSm2Config(bool enabled, int curveId, int algoId) async {
-    log.t('Call WebAuthnController.changeSm2Config');
-    if (!supportsSm2Settings) {
-      Prompts.showPrompt(
-          S.of(Get.context!).notSupported, ContentThemeColor.warning);
-      return;
-    }
-
-    await SmartCard.process((String sn) async {
-      if (!await authenticate(sn)) {
-        return;
-      }
-      await adminCardClient.writeSm2Config(
-        pin: adminPinForCurrentLease,
-        enabled: enabled,
-        curveId: curveId,
-        algoId: algoId,
-      );
-      log.i('Successfully changed WebAuthn SM2 config');
-      Navigator.pop(Get.context!);
-      Prompts.showPrompt(
-          S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
-          forceSnackBar: true);
-    });
-  }
-
   Future<void> delete(List<int> credentialId) async {
     log.t('Call WebAuthnController.delete');
     await SmartCard.process((String sn) async {
@@ -185,6 +154,75 @@ class WebAuthnController extends PollingController with AdminApplet {
     });
   }
 
+  Future<bool> toggleAlwaysUv() async {
+    log.t('Call WebAuthnController.toggleAlwaysUv');
+    return _runAuthenticatorConfig((token) => token.toggleAlwaysUv());
+  }
+
+  Future<bool> setMinPinLength(int newMinPinLength, bool forcePinChange) async {
+    log.t('Call WebAuthnController.setMinPinLength');
+    return _runAuthenticatorConfig(
+      (token) => token.setMinPinLength(
+        newMinPinLength,
+        forcePinChange: forcePinChange,
+      ),
+    );
+  }
+
+  Future<bool> enableLongTouchForReset() async {
+    log.t('Call WebAuthnController.enableLongTouchForReset');
+    return _runAuthenticatorConfig((token) => token.enableLongTouchForReset());
+  }
+
+  /// Run one authenticatorConfig operation with a fresh cfg (0x20) token;
+  /// never reuse the credmgmt (0x04) token.
+  Future<bool> _runAuthenticatorConfig(
+    Future<void> Function(WebAuthnPinToken token) operation,
+  ) async {
+    if (!supportsConfig) {
+      return false;
+    }
+
+    var succeeded = false;
+    await SmartCard.process((String sn) async {
+      final pinToken = await _getPinToken(
+        sn,
+        permissions: WebAuthnCardClient.permissionAuthenticatorConfig,
+      );
+      if (pinToken == null) {
+        return;
+      }
+      try {
+        await operation(pinToken);
+      } on ProtocolException catch (e) {
+        _showConfigError(e);
+        return;
+      } finally {
+        pinToken.close();
+      }
+      succeeded = true;
+      log.i('Successfully changed authenticator config');
+      Prompts.showPrompt(
+        S.of(Get.context!).successfullyChanged,
+        ContentThemeColor.success,
+        forceSnackBar: true,
+      );
+      await refreshData();
+    });
+    return succeeded;
+  }
+
+  void _showConfigError(ProtocolException error) {
+    if (error.details.statusWord == 0x37) {
+      Prompts.showPrompt(
+        S.of(Get.context!).webauthnPinPolicyViolation,
+        ContentThemeColor.danger,
+      );
+    } else {
+      _showPinError(error);
+    }
+  }
+
   String? _loadPin(String sn) {
     // Try local cache first
     if (_localPinCache.containsKey(sn)) {
@@ -204,7 +242,10 @@ class WebAuthnController extends PollingController with AdminApplet {
   Future<WebAuthnInfo> _refreshInfo() async =>
       _info = await _client.getInfo();
 
-  Future<WebAuthnPinToken?> _getPinToken(String sn) async {
+  Future<WebAuthnPinToken?> _getPinToken(
+    String sn, {
+    int permissions = WebAuthnCardClient.permissionCredentialManagement,
+  }) async {
     final info = await _refreshInfo();
 
     // We do nothing if the device does not support credMgmt or clientPin
@@ -224,12 +265,15 @@ class WebAuthnController extends PollingController with AdminApplet {
     assert(_info!.clientPin == true);
 
     if (_info!.forcePinChange == true) {
-      return _forceChangePin(sn);
+      return _forceChangePin(sn, permissions: permissions);
     }
 
     // Try local cache first
     if (_localPinCache.containsKey(sn)) {
-      final pinToken = await _doGetPinToken(_localPinCache[sn]!);
+      final pinToken = await _doGetPinToken(
+        _localPinCache[sn]!,
+        permissions: permissions,
+      );
       if (pinToken != null) {
         return pinToken;
       }
@@ -239,7 +283,7 @@ class WebAuthnController extends PollingController with AdminApplet {
     // Try LocalStorage
     String? pinToTry = LocalStorage.getPinCache(sn, _tag);
     if (pinToTry != null) {
-      final pinToken = await _doGetPinToken(pinToTry);
+      final pinToken = await _doGetPinToken(pinToTry, permissions: permissions);
       if (pinToken != null) {
         _localPinCache[sn] = pinToTry;
         return pinToken;
@@ -271,7 +315,7 @@ class WebAuthnController extends PollingController with AdminApplet {
         Prompts.stopPromptAndroidPolling();
         WebAuthnPinToken? pinToken;
         try {
-          pinToken = await _doGetPinToken(pin);
+          pinToken = await _doGetPinToken(pin, permissions: permissions);
         } on PlatformException catch (e) {
           await SmartCard.stopPollingNfc(withInput: true);
           log.e('_doGetPinToken failed', error: e);
@@ -363,11 +407,14 @@ class WebAuthnController extends PollingController with AdminApplet {
     return await completer.future;
   }
 
-  Future<WebAuthnPinToken?> _doGetPinToken(String pin) async {
+  Future<WebAuthnPinToken?> _doGetPinToken(
+    String pin, {
+    int permissions = WebAuthnCardClient.permissionCredentialManagement,
+  }) async {
     final session =
         await _client.beginPinSession(_info ?? await _refreshInfo());
     try {
-      return await session.getPinToken(pin);
+      return await session.getPinToken(pin, permissions: permissions);
     } on ProtocolException catch (e) {
       _showPinError(e);
       return null;
@@ -376,7 +423,10 @@ class WebAuthnController extends PollingController with AdminApplet {
     }
   }
 
-  Future<WebAuthnPinToken?> _forceChangePin(String sn) async {
+  Future<WebAuthnPinToken?> _forceChangePin(
+    String sn, {
+    int permissions = WebAuthnCardClient.permissionCredentialManagement,
+  }) async {
     await SmartCard.stopPollingNfc(withInput: true);
     final completer = Completer<WebAuthnPinToken?>();
     await ForcePinChangeDialog.show(
@@ -399,7 +449,7 @@ class WebAuthnController extends PollingController with AdminApplet {
             session.close();
           }
           await _refreshInfo();
-          final pinToken = await _doGetPinToken(newPin);
+          final pinToken = await _doGetPinToken(newPin, permissions: permissions);
           if (pinToken == null) {
             await SmartCard.stopPollingNfc(withInput: true);
             return false;
