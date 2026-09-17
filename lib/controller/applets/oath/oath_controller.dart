@@ -33,7 +33,9 @@ class OathController extends PollingController {
   @override
   void onReady() {
     super.onReady();
-    timerController.addListener(() {
+    // The timer is started inside a card session and inherits its zone.
+    // Run expiry handling in the page's zone so a refresh opens a new session.
+    timerController.addListener(Zone.current.bindCallback(() {
       if (timerController.value.remaining == 0) {
         // set codes to empty for TOTP with touch required
         for (var name in oathMap.keys) {
@@ -47,7 +49,7 @@ class OathController extends PollingController {
           refreshData();
         }
       }
-    });
+    }));
   }
 
   @override
