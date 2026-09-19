@@ -56,8 +56,21 @@ jobs:
         cargo install flutter_rust_bridge_codegen --version 2.13.0 --locked
         cargo install wasm-pack --version "$WASM_PACK_VERSION" --locked
         flutter_rust_bridge_codegen build-web --release \
-          --wasm-pack-rustup-toolchain "$RUST_NIGHTLY"
+          --wasm-pack-rustup-toolchain "$RUST_NIGHTLY" \
+          --wasm-pack-rustflags "-C target-feature=+atomics,+bulk-memory,+mutable-globals -C link-args=--shared-memory -C link-args=--max-memory=1073741824 -C link-args=--import-memory -C link-args=--export=__heap_base -C link-args=--export=__wasm_init_tls -C link-args=--export=__tls_size -C link-args=--export=__tls_align -C link-args=--export=__tls_base -C opt-level=z"
     - run: flutter build web --verbose --dart-define=BUILD_COMMIT="${{ github.event.pull_request.head.sha || github.sha }}" --dart-define=BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    - name: Trim unused web artifacts
+      run: |
+        # Unused per-weight variable fonts from lucide_icons_flutter; the app
+        # only uses the tree-shaken lucide.ttf.
+        rm -rf build/web/assets/packages/lucide_icons_flutter/assets/build_font
+        # Renderer variants only reachable from dart2wasm builds or opt-in
+        # flags; this is a canvaskit JS build.
+        rm -rf build/web/canvaskit/skwasm* \
+               build/web/canvaskit/wimp* \
+               build/web/canvaskit/webparagraph \
+               build/web/canvaskit/experimental_webparagraph
+        rm -f build/web/canvaskit/*.symbols build/web/canvaskit/chromium/*.symbols
     - uses: actions/upload-artifact@v7
       with:
         name: web-spa

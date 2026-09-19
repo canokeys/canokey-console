@@ -8,10 +8,9 @@ run this script (directly or via CI) before `flutter pub get` / build / test.
 
 Character set: printable ASCII, Latin-1, general/CJK punctuation, full-width
 forms, common arrows and symbols, every character used by the ARB
-localizations in lib/l10n, all CJK ideographs encodable in GB2312
-(simplified), and Big5 level 1 (common traditional). User-supplied content
-outside this set falls back to the engine font fallback (web) or system fonts
-(native).
+localizations in lib/l10n and by the Dart sources in lib, plus a small safety
+set of common date/time ideographs. User-supplied content outside this set
+falls back to the engine font fallback (web) or system fonts (native).
 
 Usage: python3 tool/subset_cjk_font.py   (requires: pip install fonttools)
 """
@@ -52,24 +51,14 @@ def build_charset() -> str:
     add_range(0x3000, 0x303F)  # CJK symbols and punctuation
     add_range(0xFF00, 0xFF65)  # full-width forms
 
-    for code in range(0x4E00, 0x9FFF + 1):
-        ch = chr(code)
-        try:
-            ch.encode("gb2312")
-            chars.add(ch)
-            continue
-        except UnicodeEncodeError:
-            pass
-        # Big5 level 1 (lead byte A4-C6): the ~5400 common traditional chars.
-        try:
-            encoded = ch.encode("big5")
-        except UnicodeEncodeError:
-            continue
-        if len(encoded) == 2 and encoded[0] <= 0xC6:
-            chars.add(ch)
+    # Common date/time ideographs in case a formatted date or hand-written
+    # string slips past the source scan below.
+    chars.update("年月日时分秒星期上午下午凌晨中午午夜一二三四五六七八九十")
 
     for arb in sorted((ROOT / "lib" / "l10n").glob("*.arb")):
         chars.update(arb.read_text(encoding="utf-8"))
+    for dart in sorted((ROOT / "lib").rglob("*.dart")):
+        chars.update(dart.read_text(encoding="utf-8"))
 
     return "".join(sorted(chars))
 

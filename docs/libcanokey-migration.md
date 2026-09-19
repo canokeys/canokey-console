@@ -133,7 +133,9 @@ flutter test --no-pub --tags native   # injected-transport transcripts
 ```
 
 The FRB WASM package (`flutter_rust_bridge_codegen build-web --release
---wasm-pack-rustup-toolchain <nightly>`) and `flutter build web --no-pub`
+--wasm-pack-rustup-toolchain <nightly>`; CI additionally passes
+`--wasm-pack-rustflags "... -C opt-level=z"` for size, see
+`.github/workflows/deploy.yml`) and `flutter build web --no-pub`
 must be rebuilt after facade changes; the wasm-bindgen crate family in
 `rust/Cargo.toml` tracks the `wasm-bindgen-cli` version used by wasm-pack.
 The USB/IP firmware matrix runs in CI (`.github/workflows/usbip.yml`) via

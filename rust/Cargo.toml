@@ -44,5 +44,12 @@ wasm-bindgen-futures = "=0.4.78"
 
 [dev-dependencies]
 
+# flutter_rust_bridge_codegen build-web drives wasm-pack; optimize the wasm
+# binary beyond the default -O. --all-features is required because the
+# nightly std uses atomics/bulk-memory, which the bundled wasm-opt otherwise
+# rejects during validation.
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-Oz", "--all-features"]
+
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
