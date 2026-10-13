@@ -1,6 +1,7 @@
-New in 1.2.7:
+New in 1.2.8:
 
-- Refreshed applet and settings pages with improved mobile layouts and large-text support.
-- Improved PIV slot management and access to certificate actions.
-- Added recognizable service icons for OATH accounts and expanded passkey search to include usernames.
-- Improved handling of unreadable PIV certificates and public keys, and corrected certificate replacement warnings.
+- Added CTAP authenticator settings and moved SM2 configuration into Settings.
+- Improved compatibility with firmware authentication requirements and handling of PIV certificates and keys.
+- Fixed TOTP refresh after switching cards and settings refresh after WebAuthn operations.
+- Unified dialog interactions and bundled fonts for more consistent display.
+- Reduced web download size and fixed startup in ChromeOS browsers.

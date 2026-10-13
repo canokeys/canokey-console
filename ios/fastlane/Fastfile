@@ -6,13 +6,27 @@ ROOT_DIR = File.expand_path("../..", __dir__)
 IPA_PATH = File.join(ROOT_DIR, "dist", "ios", "CanoKey-Console.ipa")
 IOS_METADATA_DIR = File.join(__dir__, "metadata")
 
+# Compile-time build metadata shown in the About dialog.
+def build_defines
+  commit =
+    if ENV["GITHUB_EVENT_NAME"] == "pull_request" && ENV["GITHUB_EVENT_PATH"]
+      # GITHUB_SHA is a temporary merge commit on pull_request events.
+      require "json"
+      JSON.parse(File.read(ENV["GITHUB_EVENT_PATH"])).dig("pull_request", "head", "sha")
+    else
+      ENV.fetch("GITHUB_SHA") { `git rev-parse HEAD`.strip }
+    end
+  time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+  ["--dart-define=BUILD_COMMIT=#{commit}", "--dart-define=BUILD_TIME=#{time}"]
+end
+
 platform :ios do
   desc "Build the signed App Store IPA without uploading it"
   lane :build_testflight do
     FileUtils.mkdir_p(File.dirname(IPA_PATH))
 
     Dir.chdir(ROOT_DIR) do
-      sh("flutter", "build", "ios", "--config-only", "--release")
+      sh("flutter", "build", "ios", "--config-only", "--release", *build_defines)
     end
 
     original_path = ENV.fetch("PATH", "")

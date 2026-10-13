@@ -48,9 +48,9 @@ void main() {
           await tester.pumpAndSettle();
           expect(tester.takeException(), isNull);
           expect(find.byType(AppDialogHeader), findsOneWidget);
-          await tester.ensureVisible(find.text(S.current.confirm));
+          await tester.ensureVisible(find.text(S.current.save));
           await tester.pumpAndSettle();
-          expect(find.text(S.current.confirm).hitTestable(), findsOneWidget);
+          expect(find.text(S.current.save).hitTestable(), findsOneWidget);
           expect(tester.takeException(), isNull);
           Get.back();
           await tester.pumpAndSettle();
@@ -79,8 +79,8 @@ void main() {
     await tester.tap(find.byType(Checkbox).first);
     await tester.pump();
     expect(submitted, isNull);
-    await tester.ensureVisible(find.text(S.current.confirm));
-    await tester.tap(find.text(S.current.confirm));
+    await tester.ensureVisible(find.text(S.current.save));
+    await tester.tap(find.text(S.current.save));
     await tester.pump();
     expect(submitted, {Func.passSwitch: !card.passEnabled});
     Get.back();

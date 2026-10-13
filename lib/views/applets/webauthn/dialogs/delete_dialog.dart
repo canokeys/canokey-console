@@ -34,53 +34,51 @@ class _WebAuthnDeleteDialogState extends BaseDialogState<WebAuthnDeleteDialog>
     with UIMixin {
   @override
   Widget buildDialogContent() {
-    return SingleChildScrollView(
-      child: Obx(
-        () => Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppDialogHeader(title: S.of(context).delete),
-            const Divider(height: 0, thickness: 1),
+    return Obx(
+      () => AppDialogColumn(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppDialogHeader(title: S.of(context).delete),
+          const Divider(height: 0, thickness: 1),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: CustomizedText.bodyMedium(
+              S
+                  .of(context)
+                  .webauthnDelete(
+                    '${widget.item.userDisplayName} (${widget.item.userName})',
+                  ),
+            ),
+          ),
+          if (errorMessage.value.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: Spacing.all(24),
               child: CustomizedText.bodyMedium(
-                S
-                    .of(context)
-                    .webauthnDelete(
-                      '${widget.item.userDisplayName} (${widget.item.userName})',
-                    ),
+                errorMessage.value,
+                color: errorLevel.value == 'E'
+                    ? ContentThemeColor.danger.color
+                    : ContentThemeColor.warning.color,
               ),
             ),
-            if (errorMessage.value.isNotEmpty)
-              Padding(
-                padding: Spacing.all(16),
-                child: CustomizedText.bodyMedium(
-                  errorMessage.value,
-                  color: errorLevel.value == 'E'
-                      ? ContentThemeColor.danger.color
-                      : ContentThemeColor.warning.color,
-                ),
+          const Divider(height: 0, thickness: 1),
+          AppDialogActions(
+            children: [
+              AppDialogAction(
+                label: S.of(context).cancel,
+                onPressed: () => Navigator.pop(context),
+                secondary: true,
+                destructive: false,
               ),
-            const Divider(height: 0, thickness: 1),
-            AppDialogActions(
-              children: [
-                AppDialogAction(
-                  label: S.of(context).cancel,
-                  onPressed: () => Navigator.pop(context),
-                  secondary: true,
-                  destructive: false,
-                ),
-                AppDialogAction(
-                  label: S.of(context).delete,
-                  onPressed: () => widget.onDelete(),
-                  secondary: false,
-                  destructive: true,
-                ),
-              ],
-            ),
-          ],
-        ),
+              AppDialogAction(
+                label: S.of(context).delete,
+                onPressed: () => widget.onDelete(),
+                secondary: false,
+                destructive: true,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

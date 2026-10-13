@@ -25,48 +25,10 @@ enum AlgorithmType {
 
   const AlgorithmType(this.value);
 
-  static AlgorithmType fromValue(int value) {
-    switch (value) {
-      case 0xFF:
-        return AlgorithmType.pin;
-      case 0x03:
-        return AlgorithmType.tdes;
-      case 0x08:
-        return AlgorithmType.aes128;
-      case 0x0A:
-        return AlgorithmType.aes192;
-      case 0x0C:
-        return AlgorithmType.aes256;
-      case 0x06:
-        return AlgorithmType.rsa1024;
-      case 0x07:
-        return AlgorithmType.rsa2048;
-      case 0x05:
-        return AlgorithmType.rsa3072;
-      case 0x16:
-        return AlgorithmType.rsa4096;
-      case 0x11:
-        return AlgorithmType.eccp256;
-      case 0x14:
-        return AlgorithmType.eccp384;
-      case 0x15:
-        return AlgorithmType.eccp521;
-      case 0x53:
-        return AlgorithmType.secp256k1;
-      case 0x54:
-        return AlgorithmType.sm2;
-      case 0xE0:
-        return AlgorithmType.ed25519;
-      case 0xE1:
-        return AlgorithmType.x25519;
-      case 0xE2:
-        return AlgorithmType.mldsa65;
-      case 0xE3:
-        return AlgorithmType.mlkem768;
-      default:
-        throw ArgumentError('Invalid algorithm value: $value');
-    }
-  }
+  static AlgorithmType fromValue(int value) => values.firstWhere(
+        (entry) => entry.value == value,
+        orElse: () => throw ArgumentError('Invalid algorithm value: $value'),
+      );
 
   final int value;
 
@@ -211,20 +173,10 @@ enum PinPolicy {
 
   const PinPolicy(this.value);
 
-  static PinPolicy fromValue(int value) {
-    switch (value) {
-      case 0x00:
-        return PinPolicy.defaultPolicy;
-      case 0x01:
-        return PinPolicy.never;
-      case 0x02:
-        return PinPolicy.once;
-      case 0x03:
-        return PinPolicy.always;
-      default:
-        throw ArgumentError('Invalid pin policy value: $value');
-    }
-  }
+  static PinPolicy fromValue(int value) => values.firstWhere(
+        (entry) => entry.value == value,
+        orElse: () => throw ArgumentError('Invalid pin policy value: $value'),
+      );
 
   @override
   String toString() {
@@ -259,20 +211,10 @@ enum TouchPolicy {
 
   const TouchPolicy(this.value);
 
-  static TouchPolicy fromValue(int value) {
-    switch (value) {
-      case 0x00:
-        return TouchPolicy.defaultPolicy;
-      case 0x01:
-        return TouchPolicy.never;
-      case 0x02:
-        return TouchPolicy.always;
-      case 0x03:
-        return TouchPolicy.cached;
-      default:
-        throw ArgumentError('Invalid touch policy value: $value');
-    }
-  }
+  static TouchPolicy fromValue(int value) => values.firstWhere(
+        (entry) => entry.value == value,
+        orElse: () => throw ArgumentError('Invalid touch policy value: $value'),
+      );
 
   @override
   String toString() {
@@ -297,16 +239,10 @@ enum Origin {
 
   const Origin(this.value);
 
-  static Origin fromValue(int value) {
-    switch (value) {
-      case 0x01:
-        return Origin.generated;
-      case 0x02:
-        return Origin.imported;
-      default:
-        throw ArgumentError('Invalid origin value: $value');
-    }
-  }
+  static Origin fromValue(int value) => values.firstWhere(
+        (entry) => entry.value == value,
+        orElse: () => throw ArgumentError('Invalid origin value: $value'),
+      );
 
   final int value;
 }
@@ -338,37 +274,53 @@ class SlotInfo {
   static SlotInfo parse(
     int number,
     List<int> buf, {
+    AlgorithmType Function(int wireId)? resolveAlgorithm,
     PivAlgorithmExtensionConfig algorithmExtensionConfig =
         PivAlgorithmExtensionConfig.defaults,
   }) {
     Map map = TLV.parse(buf);
-    final algoId = map[0x01][0] as int;
-    var algo = algorithmExtensionConfig.enabled
+    List<int> requiredField(int tag, int length) {
+      final value = map[tag];
+      if (value is! List<int> || value.length != length) {
+        throw FormatException(
+          'PIV metadata lacks a displayable field ${tag.toRadixString(16)}',
+        );
+      }
+      return value;
+    }
+    final algoId = requiredField(0x01, 1)[0];
+    var algo = resolveAlgorithm != null
+        ? resolveAlgorithm(algoId)
+        : algorithmExtensionConfig.enabled
         ? (algorithmExtensionConfig.toAlgorithmMap()[algoId] ??
             AlgorithmType.fromValue(algoId))
         : AlgorithmType.fromValue(algoId);
     var pinPolicy = PinPolicy.defaultPolicy;
     var touchPolicy = TouchPolicy.defaultPolicy;
     if (number != 0x80 && number != 0x81) {
-      pinPolicy = PinPolicy.fromValue(map[0x02][0]);
-      touchPolicy = TouchPolicy.fromValue(map[0x02][1]);
+      pinPolicy = PinPolicy.fromValue(requiredField(0x02, 2)[0]);
+      touchPolicy = TouchPolicy.fromValue(requiredField(0x02, 2)[1]);
     }
     var origin = Origin.generated;
     if (number != 0x80 && number != 0x81 && number != 0x9B) {
-      origin = Origin.fromValue(map[0x03][0]);
+      origin = Origin.fromValue(requiredField(0x03, 1)[0]);
     }
     List<int> public = [];
     if (number != 0x80 && number != 0x81 && number != 0x9B) {
-      public = map[0x04];
+      public = (map[0x04] as List<int>?) ?? const [];
     }
     var defaultValue = false;
     if (number == 0x80 || number == 0x81 || number == 0x9B) {
-      defaultValue = map[0x05][0] == 0x01;
+      final flag = requiredField(0x05, 1)[0];
+      if (flag != 0 && flag != 1) {
+        throw const FormatException('Unknown PIV default-credential flag');
+      }
+      defaultValue = flag == 1;
     }
     var retriesCount = 0, remainingCount = 0;
     if (number == 0x80 || number == 0x81) {
-      retriesCount = map[0x06][0];
-      remainingCount = map[0x06][1];
+      retriesCount = requiredField(0x06, 2)[0];
+      remainingCount = requiredField(0x06, 2)[1];
     }
     return SlotInfo(number, algo, pinPolicy, touchPolicy, origin, public,
         defaultValue, retriesCount, remainingCount);

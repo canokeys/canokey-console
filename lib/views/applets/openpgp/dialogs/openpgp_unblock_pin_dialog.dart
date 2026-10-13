@@ -36,6 +36,9 @@ class OpenPgpUnblockPinDialog extends BaseDialog {
   }
 
   @override
+  bool get managesOwnScrolling => true;
+
+  @override
   State<OpenPgpUnblockPinDialog> createState() =>
       _OpenPgpUnblockPinDialogState();
 }
@@ -81,15 +84,17 @@ class _OpenPgpUnblockPinDialogState
                 RadioListTile<bool>(
                   dense: true,
                   value: true,
-                  title:
-                      CustomizedText.bodyMedium(S.of(context).openpgpUseAdminPin),
+                  title: CustomizedText.bodyMedium(
+                    S.of(context).openpgpUseAdminPin,
+                  ),
                   contentPadding: EdgeInsets.zero,
                 ),
                 RadioListTile<bool>(
                   dense: true,
                   value: false,
                   title: CustomizedText.bodyMedium(
-                      S.of(context).openpgpUseResetCode),
+                    S.of(context).openpgpUseResetCode,
+                  ),
                   contentPadding: EdgeInsets.zero,
                 ),
               ],
@@ -143,16 +148,16 @@ class _OpenPgpUnblockPinDialogState
     );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_validator.validateForm()) {
       return;
     }
     final secret = _validator.getController('secret')!.text;
     final newPin = _validator.getController('new')!.text;
     if (_useAdminPin.value) {
-      widget.onSubmitWithAdmin(secret, newPin);
+      await widget.onSubmitWithAdmin(secret, newPin);
     } else {
-      widget.onSubmitWithResetCode(secret, newPin);
+      await widget.onSubmitWithResetCode(secret, newPin);
     }
   }
 

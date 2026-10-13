@@ -14,7 +14,6 @@ class InvalidPublicKeyApi implements RustLibApi {
   PivPublicKeyData crateApiPivCryptoBuildPivPublicKey({
     required int algorithm,
     required List<int> cardData,
-    required bool generatedResponse,
   }) {
     parseCalls++;
     // Match the synchronous bridge's Result<_, String> error representation.

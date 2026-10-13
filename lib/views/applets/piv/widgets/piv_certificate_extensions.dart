@@ -1,3 +1,4 @@
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/models/piv_self_sign_options.dart';
 import 'package:flutter/material.dart';
@@ -80,17 +81,12 @@ class PivCertificateExtensions extends StatelessWidget {
         _field(
           context,
           s.pivBasicConstraints,
-          CheckboxListTile(
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-            visualDensity: VisualDensity.compact,
-            controlAffinity: ListTileControlAffinity.leading,
+          AppDialogCheckbox(
             title: Text(
               s.pivEndEntityConstraint,
               style: PivStyle.text(context, 12),
             ),
             value: options.includeBasicConstraints,
-            activeColor: PivStyle.primary,
             onChanged: (value) =>
                 onChanged(() => options.includeBasicConstraints = value!),
           ),
@@ -123,17 +119,12 @@ class PivCertificateExtensions extends StatelessWidget {
                     ),
                 ],
               );
-              final critical = CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                visualDensity: VisualDensity.compact,
-                controlAffinity: ListTileControlAffinity.leading,
+              final critical = AppDialogCheckbox(
                 title: Text(
                   s.pivKeyUsageCritical,
                   style: PivStyle.text(context, 11),
                 ),
                 value: options.keyUsageCritical,
-                activeColor: PivStyle.primary,
                 onChanged: (value) =>
                     onChanged(() => options.keyUsageCritical = value!),
               );

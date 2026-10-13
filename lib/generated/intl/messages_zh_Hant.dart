@@ -92,11 +92,14 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m34(name) => "刪除 ${name} 的登入憑證？此操作無法復原，請先確認您有其他方式登入該服務。";
 
+  static String m35(min) => "最短 PIN 長度只能調大、不能調小，且不得小於 ${min}。";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("關於"),
     "actions": MessageLookupByLibrary.simpleMessage("操作"),
     "add": MessageLookupByLibrary.simpleMessage("新增"),
+    "adminPin": MessageLookupByLibrary.simpleMessage("管理 PIN"),
     "agreeAndContinue": MessageLookupByLibrary.simpleMessage("同意並繼續"),
     "androidAlertTitle": MessageLookupByLibrary.simpleMessage("讀取 CanoKey"),
     "androidPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
@@ -115,6 +118,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "browserNotSupported": MessageLookupByLibrary.simpleMessage(
       "目前環境無法使用 WebUSB",
     ),
+    "buildCommit": MessageLookupByLibrary.simpleMessage("提交"),
+    "buildTime": MessageLookupByLibrary.simpleMessage("建置時間"),
     "cancel": MessageLookupByLibrary.simpleMessage("取消"),
     "change": MessageLookupByLibrary.simpleMessage("修改"),
     "changePin": MessageLookupByLibrary.simpleMessage("修改 PIN"),
@@ -484,6 +489,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "passSlotOff": MessageLookupByLibrary.simpleMessage("關閉"),
     "passSlotShort": MessageLookupByLibrary.simpleMessage("短按"),
     "passSlotStatic": MessageLookupByLibrary.simpleMessage("固定密碼"),
+    "passSlotUnknown": MessageLookupByLibrary.simpleMessage("未知"),
     "passSlotWithEnter": MessageLookupByLibrary.simpleMessage("輸出後按 Enter"),
     "passStatus": MessageLookupByLibrary.simpleMessage("狀態"),
     "passkey": MessageLookupByLibrary.simpleMessage("通行密鑰"),
@@ -1017,9 +1023,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsFixNFCSuccess": MessageLookupByLibrary.simpleMessage("修復 NFC 成功"),
     "settingsHotp": MessageLookupByLibrary.simpleMessage("觸碰時輸出 HOTP"),
     "settingsInfo": MessageLookupByLibrary.simpleMessage("CanoKey 資訊"),
-    "settingsInputPin": MessageLookupByLibrary.simpleMessage("PIN 驗證"),
+    "settingsInputPin": MessageLookupByLibrary.simpleMessage("管理 PIN 驗證"),
     "settingsInputPinPrompt": MessageLookupByLibrary.simpleMessage(
-      "請輸入設定頁面使用的管理 PIN，預設值為 123456。它與 OpenPGP、PIV 等應用程式的 PIN 分開設定。",
+      "請輸入管理 PIN，預設值為 123456。它與 WebAuthn、OpenPGP、PIV 等應用程式的 PIN 分開設定。",
     ),
     "settingsKeyboardLayout": MessageLookupByLibrary.simpleMessage("鍵盤配置"),
     "settingsKeyboardLayoutCurrent": m27,
@@ -1081,6 +1087,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settingsWebUSB": MessageLookupByLibrary.simpleMessage("插入時顯示 WebUSB 提示"),
     "sm2AlgorithmId": MessageLookupByLibrary.simpleMessage("演算法 ID"),
+    "sm2ConfigWarning": MessageLookupByLibrary.simpleMessage(
+      "請謹慎修改 SM2 設定，不正確的設定可能影響 WebAuthn 驗證。",
+    ),
     "sm2CurveId": MessageLookupByLibrary.simpleMessage("曲線 ID"),
     "sm2ReservedId": MessageLookupByLibrary.simpleMessage(
       "此 ID 已被其他演算法或曲線使用，請換一個值。",
@@ -1114,24 +1123,54 @@ class MessageLookup extends MessageLookupByLibrary {
     "webPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "請將您的 CanoKey 插入 USB 連接埠並點選重新整理按鈕",
     ),
+    "webauthnAlwaysUv": MessageLookupByLibrary.simpleMessage("一律要求使用者驗證"),
+    "webauthnAlwaysUvDescription": MessageLookupByLibrary.simpleMessage(
+      "啟用後，每次 WebAuthn 登入都需要驗證 PIN。啟用後亦會停用 CanoKey 的舊式 U2F 介面。",
+    ),
+    "webauthnAlwaysUvTogglePrompt": MessageLookupByLibrary.simpleMessage(
+      "切換「一律要求使用者驗證」？此變更會持久生效，並套用於 CanoKey 上的所有憑證。",
+    ),
+    "webauthnUserVerification": MessageLookupByLibrary.simpleMessage("使用者驗證"),
+    "webauthnPinPolicy": MessageLookupByLibrary.simpleMessage("PIN 原則"),
+    "webauthnConfigRefreshFailed": MessageLookupByLibrary.simpleMessage(
+      "設定已儲存，但無法重新整理狀態。請重新讀取 CanoKey。",
+    ),
+    "webauthnAuthenticatorSettings": MessageLookupByLibrary.simpleMessage(
+      "驗證器設定",
+    ),
     "webauthnChangePinFailed": MessageLookupByLibrary.simpleMessage(
       "無法修改 WebAuthn PIN，請重新讀取 CanoKey 後再試一次。",
     ),
     "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
       "此 CanoKey 不支援設定 WebAuthn PIN。",
     ),
+    "webauthnDangerZone": MessageLookupByLibrary.simpleMessage("危險操作"),
     "webauthnDelete": m34,
+    "webauthnForcePinChange": MessageLookupByLibrary.simpleMessage(
+      "套用後強制變更 PIN",
+    ),
     "webauthnInputPinPrompt": MessageLookupByLibrary.simpleMessage(
       "請輸入您的 WebAuthn PIN。",
     ),
     "webauthnInputPinTitle": MessageLookupByLibrary.simpleMessage(
       "解鎖 WebAuthn",
     ),
+    "webauthnLongTouchEnablePrompt": MessageLookupByLibrary.simpleMessage(
+      "啟用重置長按確認？此操作無法復原。",
+    ),
+    "webauthnLongTouchWarning": MessageLookupByLibrary.simpleMessage(
+      "啟用後，重置 WebAuthn 需要長按觸摸 CanoKey 30 秒。此設定無法復原，只有重置 WebAuthn 才能清除。",
+    ),
+    "webauthnMinPinLength": MessageLookupByLibrary.simpleMessage("最短 PIN 長度"),
+    "webauthnMinPinLengthHint": m35,
     "webauthnPinAuthBlocked": MessageLookupByLibrary.simpleMessage(
       "WebAuthn PIN 已暫時鎖定。請重新插拔 CanoKey 後再試一次。",
     ),
     "webauthnPinBlocked": MessageLookupByLibrary.simpleMessage(
       "WebAuthn PIN 已鎖定，需要重置 WebAuthn 才能繼續使用。重置會刪除所有 WebAuthn 憑證。",
+    ),
+    "webauthnPinPolicyViolation": MessageLookupByLibrary.simpleMessage(
+      "CanoKey 拒絕了此變更：最短 PIN 長度只能調大、不能調小。",
     ),
     "webauthnPinRequired": MessageLookupByLibrary.simpleMessage(
       "請先重新整理頁面並輸入 WebAuthn PIN，再重試此操作。",

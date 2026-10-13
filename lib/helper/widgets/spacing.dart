@@ -22,32 +22,16 @@ class Spacing {
     return Spacing.only(left: spacing);
   }
 
-  static EdgeInsets nLeft(double spacing) {
-    return Spacing.only(top: spacing, bottom: spacing, right: spacing);
-  }
-
   static EdgeInsets top(double spacing) {
     return Spacing.only(top: spacing);
-  }
-
-  static EdgeInsets nTop(double spacing) {
-    return Spacing.only(left: spacing, bottom: spacing, right: spacing);
   }
 
   static EdgeInsets right(double spacing) {
     return Spacing.only(right: spacing);
   }
 
-  static EdgeInsets nRight(double spacing) {
-    return Spacing.only(top: spacing, bottom: spacing, left: spacing);
-  }
-
   static EdgeInsets bottom(double spacing) {
     return Spacing.only(bottom: spacing);
-  }
-
-  static EdgeInsets nBottom(double spacing) {
-    return Spacing.only(top: spacing, left: spacing, right: spacing);
   }
 
   static EdgeInsets horizontal(double spacing) {
@@ -82,10 +66,6 @@ class Spacing {
     );
   }
 
-  static double fullWidth(BuildContext context) {
-    return MediaQuery.of(context).size.width;
-  }
-
   static SizedBox width(double width) {
     return SizedBox(
       width: width,
@@ -96,7 +76,4 @@ class Spacing {
     return SizedBox(width: 0, height: 0);
   }
 
-  static double safeAreaTop(BuildContext context) {
-    return MediaQuery.of(context).padding.top;
-  }
 }

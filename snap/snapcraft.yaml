@@ -1,6 +1,6 @@
 name: canokey-console
 base: core24
-version: '1.2.7'
+version: '1.2.8'
 title: CanoKey Console
 summary: Manage CanoKey security keys
 icon: assets/images/logo/logo_icon_dark.png
@@ -47,7 +47,6 @@ parts:
       cp --archive "$bundle_dir/." "$CRAFT_PART_INSTALL/"
     stage-packages:
       - libpcsclite1
-      - fonts-droid-fallback
 
   desktop-metadata:
     plugin: nil

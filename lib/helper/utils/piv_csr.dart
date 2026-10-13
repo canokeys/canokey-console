@@ -16,18 +16,6 @@ class PivPublicKey {
     this.rawPublicKey,
   });
 
-  factory PivPublicKey.fromGenerateResponse(
-    AlgorithmType algorithm,
-    List<int> response,
-  ) {
-    final data = buildPivPublicKey(
-      algorithm: algorithm.value,
-      cardData: response,
-      generatedResponse: true,
-    );
-    return PivPublicKey._fromRust(algorithm, data);
-  }
-
   factory PivPublicKey.fromSlotMetadata(
     AlgorithmType algorithm,
     List<int> public,
@@ -35,7 +23,6 @@ class PivPublicKey {
     final data = buildPivPublicKey(
       algorithm: algorithm.value,
       cardData: public,
-      generatedResponse: false,
     );
     return PivPublicKey._fromRust(algorithm, data);
   }

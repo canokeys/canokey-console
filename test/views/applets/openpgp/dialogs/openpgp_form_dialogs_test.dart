@@ -84,7 +84,7 @@ void main() {
           ),
         };
         await _open(tester, dialog);
-        await _tap(tester, S.current.confirm);
+        await _tap(tester, S.current.save);
         expect(submitted, isNull);
 
         final inputs = switch (kind) {
@@ -99,7 +99,7 @@ void main() {
           await tester.ensureVisible(field);
           await tester.enterText(field, inputs[i]);
         }
-        await _tap(tester, S.current.confirm);
+        await _tap(tester, S.current.save);
         expect(submitted, switch (kind) {
           'reset' => ['12345678', '87654321'],
           'retries' => ['12345678', 5, 4, 2],
@@ -139,7 +139,7 @@ void main() {
     );
     await _tap(tester, OpenPgpTouchPolicy.permanent.label);
     final confirm = find.ancestor(
-      of: find.text(S.current.confirm),
+      of: find.text(S.current.save),
       matching: find.byType(AppDialogAction),
     );
     expect(tester.widget<AppDialogAction>(confirm).onPressed, isNull);
@@ -148,7 +148,7 @@ void main() {
     final field = find.byType(TextFormField);
     await tester.ensureVisible(field);
     await tester.enterText(field, '12345678');
-    await _tap(tester, S.current.confirm);
+    await _tap(tester, S.current.save);
     expect(submitted, OpenPgpTouchPolicy.permanent);
     await _tap(tester, OpenPgpTouchPolicy.off.label);
     await _tap(tester, OpenPgpTouchPolicy.permanent.label);

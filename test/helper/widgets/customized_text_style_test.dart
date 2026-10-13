@@ -11,7 +11,7 @@ void main() {
 
     final fallback = CustomizedTextStyle.bodyMedium().fontFamilyFallback;
 
-    expect(fallback!.first, snapChineseFontFamily);
+    expect(fallback!.first, bundledCjkFontFamily);
     expect(fallback, contains('Noto Sans CJK SC'));
     expect(fallback, contains('Droid Sans Fallback'));
     expect(

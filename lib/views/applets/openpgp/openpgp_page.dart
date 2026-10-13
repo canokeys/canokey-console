@@ -22,7 +22,7 @@ import 'package:canokey_console/views/applets/openpgp/widgets/openpgp_touch_poli
 import 'package:canokey_console/views/layout/layout.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:platform_detector/platform_detector.dart';
+import 'package:canokey_console/helper/utils/app_platform.dart';
 
 class OpenPgpPage extends StatefulWidget {
   const OpenPgpPage({super.key});

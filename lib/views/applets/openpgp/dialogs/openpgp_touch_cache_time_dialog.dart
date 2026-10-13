@@ -33,6 +33,9 @@ class OpenPgpTouchCacheTimeDialog extends BaseDialog {
   }
 
   @override
+  bool get managesOwnScrolling => true;
+
+  @override
   State<OpenPgpTouchCacheTimeDialog> createState() =>
       _OpenPgpTouchCacheTimeDialogState();
 }
@@ -107,11 +110,11 @@ class _OpenPgpTouchCacheTimeDialogState
     ),
   );
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_validator.validateForm()) {
       return;
     }
-    widget.onSubmit(
+    await widget.onSubmit(
       _validator.getController('admin')!.text,
       int.parse(_validator.getController('seconds')!.text),
     );

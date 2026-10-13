@@ -1,1 +1,1 @@
-const String snapChineseFontFamily = 'CanoKey CJK';
+const String bundledCjkFontFamily = 'CanoKey CJK';

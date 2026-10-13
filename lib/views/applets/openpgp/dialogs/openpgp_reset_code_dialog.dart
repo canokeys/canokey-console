@@ -22,6 +22,9 @@ class OpenPgpResetCodeDialog extends BaseDialog {
   }
 
   @override
+  bool get managesOwnScrolling => true;
+
+  @override
   State<OpenPgpResetCodeDialog> createState() => _OpenPgpResetCodeDialogState();
 }
 
@@ -99,11 +102,11 @@ class _OpenPgpResetCodeDialogState
     );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_validator.validateForm()) {
       return;
     }
-    widget.onSubmit(
+    await widget.onSubmit(
       _validator.getController('admin')!.text,
       _validator.getController('reset')!.text,
     );

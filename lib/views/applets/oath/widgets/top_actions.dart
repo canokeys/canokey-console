@@ -7,7 +7,7 @@ import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:canokey_console/models/oath.dart';
 import 'package:flutter/material.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
-import 'package:platform_detector/platform_detector.dart';
+import 'package:canokey_console/helper/utils/app_platform.dart';
 
 class TopActions extends StatelessWidget with UIMixin {
   static const double _actionWidth = 32;

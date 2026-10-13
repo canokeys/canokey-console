@@ -12,7 +12,7 @@ import 'package:canokey_console/helper/widgets/validators.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/reset_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:platform_detector/platform_detector.dart';
+import 'package:canokey_console/helper/utils/app_platform.dart';
 
 bool shouldBlockFactoryReset({
   required bool mobile,

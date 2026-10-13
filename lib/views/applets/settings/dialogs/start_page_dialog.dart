@@ -1,3 +1,5 @@
+import 'package:canokey_console/helper/utils/prompts.dart';
+import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
@@ -57,55 +59,53 @@ class _StartPageDialogState extends State<StartPageDialog> with UIMixin {
     return AppDialogSurface(
       child: SizedBox(
         width: AppDialogWidth.compact,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppDialogHeader(
-                title: S.of(context).settingsStartPage,
-                icon: Icons.home_outlined,
-              ),
-              Divider(height: 0, thickness: 1),
-              Obx(
-                () => Column(
-                  children: [
-                    _buildStartPageItem(context, startPage, '/'),
-                    _buildStartPageItem(context, startPage, '/applets/oath'),
-                    _buildStartPageItem(
-                      context,
-                      startPage,
-                      '/applets/webauthn',
-                    ),
-                    _buildStartPageItem(context, startPage, '/applets/pass'),
-                    _buildStartPageItem(context, startPage, '/applets/piv'),
-                    _buildStartPageItem(context, startPage, '/applets/openpgp'),
-                    _buildStartPageItem(context, startPage, '/applets/ndef'),
-                  ],
-                ),
-              ),
-              Divider(height: 0, thickness: 1),
-              AppDialogActions(
+        child: AppDialogColumn(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppDialogHeader(
+              title: S.of(context).settingsStartPage,
+              icon: Icons.home_outlined,
+            ),
+            Divider(height: 0, thickness: 1),
+            Obx(
+              () => Column(
                 children: [
-                  AppDialogAction(
-                    label: S.of(context).cancel,
-                    onPressed: () => Navigator.pop(context),
-                    secondary: true,
-                    destructive: false,
-                  ),
-                  AppDialogAction(
-                    label: S.of(context).confirm,
-                    onPressed: () {
-                      LocalStorage.setStartPage(startPage.value);
-                      Navigator.pop(context);
-                    },
-                    secondary: false,
-                    destructive: false,
-                  ),
+                  _buildStartPageItem(context, startPage, '/'),
+                  _buildStartPageItem(context, startPage, '/applets/oath'),
+                  _buildStartPageItem(context, startPage, '/applets/webauthn'),
+                  _buildStartPageItem(context, startPage, '/applets/pass'),
+                  _buildStartPageItem(context, startPage, '/applets/piv'),
+                  _buildStartPageItem(context, startPage, '/applets/openpgp'),
+                  _buildStartPageItem(context, startPage, '/applets/ndef'),
                 ],
               ),
-            ],
-          ),
+            ),
+            Divider(height: 0, thickness: 1),
+            AppDialogActions(
+              children: [
+                AppDialogAction(
+                  label: S.of(context).cancel,
+                  onPressed: () => Navigator.pop(context),
+                  secondary: true,
+                  destructive: false,
+                ),
+                AppDialogAction(
+                  label: S.of(context).save,
+                  onPressed: () async {
+                    await LocalStorage.setStartPage(startPage.value);
+                    Prompts.showPrompt(
+                      S.current.successfullyChanged,
+                      ContentThemeColor.success,
+                    );
+                    if (context.mounted) Navigator.pop(context);
+                  },
+                  secondary: false,
+                  destructive: false,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

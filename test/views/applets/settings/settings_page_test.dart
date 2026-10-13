@@ -1,9 +1,12 @@
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 import 'package:canokey_console/controller/applets/settings/settings_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/screenshot_mode.dart';
+import 'package:canokey_console/models/webauthn.dart';
+import 'package:canokey_console/views/applets/settings/dialogs/sm2_config_dialog.dart';
 import 'package:canokey_console/views/applets/settings/settings_page.dart';
 import 'package:canokey_console/views/applets/settings/widgets/action_card.dart';
 import 'package:canokey_console/views/applets/settings/widgets/info_card.dart';
@@ -16,6 +19,25 @@ import 'package:package_info_plus/package_info_plus.dart';
 class _SettingsController extends SettingsController {
   @override
   void onReady() {}
+}
+
+class _Sm2SettingsController extends SettingsController {
+  int sm2Reads = 0;
+  @override
+  void onReady() {}
+  @override
+  Future<WebAuthnSm2Config?> readSm2Config() async {
+    sm2Reads++;
+    return const WebAuthnSm2Config(enabled: true, curveId: 9, algoId: -54);
+  }
+}
+
+class _LifecycleSettingsController extends SettingsController {
+  int refreshes = 0;
+  @override
+  Future<void> doRefreshData() async {
+    refreshes++;
+  }
 }
 
 void main() {
@@ -32,6 +54,29 @@ void main() {
     );
   });
   tearDown(Get.reset);
+
+  testWidgets(
+    'web settings refresh on each page entry with a retained controller',
+    (tester) async {
+      final controller =
+          Get.put<SettingsController>(
+                _LifecycleSettingsController(),
+                permanent: true,
+              )
+              as _LifecycleSettingsController;
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      expect(controller.refreshes, 1);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      expect(controller.refreshes, 2);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await Get.delete<SettingsController>(force: true);
+    },
+    skip: !kIsWeb,
+  );
 
   testWidgets('settings adapt to desktop, mobile, dark mode and large text', (
     tester,
@@ -86,6 +131,35 @@ void main() {
     await tester.tap(find.text('LED'));
     await tester.pumpAndSettle();
     expect(find.byType(Dialog), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('WebAuthn SM2 settings open their dialog from device settings', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1536, 1200);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final controller =
+        Get.put<SettingsController>(
+              _Sm2SettingsController()
+                ..polled = true
+                ..key = ScreenshotMode.canoKey(),
+            )
+            as _Sm2SettingsController;
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text(S.current.settingsWebAuthnSm2Support));
+    await tester.pumpAndSettle();
+    expect(controller.sm2Reads, 0);
+    await tester.tap(find.text(S.current.settingsWebAuthnSm2Support));
+    await tester.pumpAndSettle();
+    expect(controller.sm2Reads, 1);
+    expect(find.byType(Sm2ConfigDialog), findsOneWidget);
+    await tester.tap(find.text(S.current.cancel));
+    await tester.pumpAndSettle();
+    expect(find.byType(Sm2ConfigDialog), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

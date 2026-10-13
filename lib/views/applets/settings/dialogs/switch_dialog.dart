@@ -4,7 +4,6 @@ import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
 import 'package:canokey_console/helper/widgets/base_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
-import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -35,6 +34,9 @@ class SwitchDialog extends BaseDialog with UIMixin {
   }
 
   @override
+  bool get managesOwnScrolling => true;
+
+  @override
   State<SwitchDialog> createState() => _SwitchDialogState();
 }
 
@@ -50,7 +52,7 @@ class _SwitchDialogState extends BaseDialogState<SwitchDialog> with UIMixin {
   @override
   Widget buildDialogContent() {
     return Obx(
-      () => Column(
+      () => AppDialogColumn(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -58,18 +60,10 @@ class _SwitchDialogState extends BaseDialogState<SwitchDialog> with UIMixin {
           Divider(height: 0, thickness: 1),
           Padding(
             padding: const EdgeInsets.all(24),
-            child: Row(
-              children: [
-                Checkbox(
-                  onChanged: (value) => newState.value = value!,
-                  value: newState.value,
-                  activeColor: contentTheme.primary,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: getCompactDensity,
-                ),
-                Spacing.width(16),
-                Expanded(child: CustomizedText.bodyMedium(widget.title)),
-              ],
+            child: AppDialogCheckbox(
+              value: newState.value,
+              onChanged: (value) => newState.value = value!,
+              title: CustomizedText.bodyMedium(widget.title),
             ),
           ),
           if (errorMessage.value.isNotEmpty)
@@ -92,7 +86,7 @@ class _SwitchDialogState extends BaseDialogState<SwitchDialog> with UIMixin {
                 destructive: false,
               ),
               AppDialogAction(
-                label: S.of(context).confirm,
+                label: S.of(context).save,
                 onPressed: () => widget.onConfirm(newState.value),
                 secondary: false,
                 destructive: false,

@@ -2,7 +2,7 @@ import 'package:canokey_console/helper/localization/hints.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/material.dart';
-import 'package:platform_detector/platform_detector.dart';
+import 'package:canokey_console/helper/utils/app_platform.dart';
 
 class PollCanoKeyScreen extends StatelessWidget {
   const PollCanoKeyScreen({super.key});

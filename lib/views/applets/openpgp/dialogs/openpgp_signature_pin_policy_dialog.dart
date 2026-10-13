@@ -35,6 +35,9 @@ class OpenPgpSignaturePinPolicyDialog extends BaseDialog {
   }
 
   @override
+  bool get managesOwnScrolling => true;
+
+  @override
   State<OpenPgpSignaturePinPolicyDialog> createState() =>
       _OpenPgpSignaturePinPolicyDialogState();
 }
@@ -111,11 +114,11 @@ class _OpenPgpSignaturePinPolicyDialogState
     ),
   );
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_validator.validateForm()) {
       return;
     }
-    widget.onSubmit(
+    await widget.onSubmit(
       _validator.getController('admin')!.text,
       _verifyForEverySignature.value,
     );

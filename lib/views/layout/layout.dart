@@ -10,7 +10,7 @@ import 'package:canokey_console/views/layout/top_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:platform_detector/platform_detector.dart';
+import 'package:canokey_console/helper/utils/app_platform.dart';
 
 class Layout extends StatelessWidget {
   static bool notSupported = false;

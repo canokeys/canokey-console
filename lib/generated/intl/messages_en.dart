@@ -101,11 +101,15 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m34(name) =>
       "Delete the sign-in credential for ${name}? This cannot be undone. Make sure you have another way to sign in.";
 
+  static String m35(min) =>
+      "The minimum PIN length can only be increased, and must be at least ${min}.";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("About"),
     "actions": MessageLookupByLibrary.simpleMessage("Actions"),
     "add": MessageLookupByLibrary.simpleMessage("Add"),
+    "adminPin": MessageLookupByLibrary.simpleMessage("Admin PIN"),
     "agreeAndContinue": MessageLookupByLibrary.simpleMessage(
       "Agree and Continue",
     ),
@@ -130,6 +134,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "browserNotSupported": MessageLookupByLibrary.simpleMessage(
       "Your browser does not support WebUSB",
     ),
+    "buildCommit": MessageLookupByLibrary.simpleMessage("Commit"),
+    "buildTime": MessageLookupByLibrary.simpleMessage("Built"),
     "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
     "change": MessageLookupByLibrary.simpleMessage("Change"),
     "changePin": MessageLookupByLibrary.simpleMessage("Change PIN"),
@@ -623,6 +629,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "passSlotOff": MessageLookupByLibrary.simpleMessage("Off"),
     "passSlotShort": MessageLookupByLibrary.simpleMessage("Short press"),
     "passSlotStatic": MessageLookupByLibrary.simpleMessage("Static Password"),
+    "passSlotUnknown": MessageLookupByLibrary.simpleMessage("Unknown"),
     "passSlotWithEnter": MessageLookupByLibrary.simpleMessage(
       "Press Enter after typing",
     ),
@@ -1347,10 +1354,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsHotp": MessageLookupByLibrary.simpleMessage("Type HOTP on touch"),
     "settingsInfo": MessageLookupByLibrary.simpleMessage("CanoKey Info"),
     "settingsInputPin": MessageLookupByLibrary.simpleMessage(
-      "PIN Verification",
+      "Admin PIN Verification",
     ),
     "settingsInputPinPrompt": MessageLookupByLibrary.simpleMessage(
-      "Enter the admin PIN used for Settings. The default is 123456. It is separate from the PINs for OpenPGP, PIV and other applets.",
+      "Enter the admin PIN. The default is 123456. It is separate from the PINs for WebAuthn, OpenPGP, PIV and other applets.",
     ),
     "settingsKeyboardLayout": MessageLookupByLibrary.simpleMessage(
       "Keyboard Layout",
@@ -1428,6 +1435,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Show WebUSB prompt when connected",
     ),
     "sm2AlgorithmId": MessageLookupByLibrary.simpleMessage("Algorithm ID"),
+    "sm2ConfigWarning": MessageLookupByLibrary.simpleMessage(
+      "Change SM2 settings with caution. Incorrect settings may affect WebAuthn authentication.",
+    ),
     "sm2CurveId": MessageLookupByLibrary.simpleMessage("Curve ID"),
     "sm2ReservedId": MessageLookupByLibrary.simpleMessage(
       "This ID is reserved for another algorithm or curve. Choose a different value.",
@@ -1472,24 +1482,60 @@ class MessageLookup extends MessageLookupByLibrary {
     "webPollCanoKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "Insert your CanoKey into the USB port and click the refresh button",
     ),
+    "webauthnAlwaysUv": MessageLookupByLibrary.simpleMessage(
+      "Always Require User Verification",
+    ),
+    "webauthnAlwaysUvDescription": MessageLookupByLibrary.simpleMessage(
+      "When enabled, every WebAuthn sign-in requires PIN verification. Enabling it also disables the legacy U2F interface of CanoKey.",
+    ),
+    "webauthnAlwaysUvTogglePrompt": MessageLookupByLibrary.simpleMessage(
+      "Toggle Always UV? The change is persistent and applies to all credentials on this CanoKey.",
+    ),
+    "webauthnUserVerification": MessageLookupByLibrary.simpleMessage(
+      "User verification",
+    ),
+    "webauthnPinPolicy": MessageLookupByLibrary.simpleMessage("PIN policy"),
+    "webauthnConfigRefreshFailed": MessageLookupByLibrary.simpleMessage(
+      "Settings were saved, but their status could not be refreshed. Read the CanoKey again.",
+    ),
+    "webauthnAuthenticatorSettings": MessageLookupByLibrary.simpleMessage(
+      "Authenticator Settings",
+    ),
     "webauthnChangePinFailed": MessageLookupByLibrary.simpleMessage(
       "Could not change the WebAuthn PIN. Read CanoKey again and try again.",
     ),
     "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
       "This CanoKey does not support a WebAuthn PIN.",
     ),
+    "webauthnDangerZone": MessageLookupByLibrary.simpleMessage("Danger Zone"),
     "webauthnDelete": m34,
+    "webauthnForcePinChange": MessageLookupByLibrary.simpleMessage(
+      "Force PIN change after applying",
+    ),
     "webauthnInputPinPrompt": MessageLookupByLibrary.simpleMessage(
       "Please input your WebAuthn PIN.",
     ),
     "webauthnInputPinTitle": MessageLookupByLibrary.simpleMessage(
       "Unlock WebAuthn",
     ),
+    "webauthnLongTouchEnablePrompt": MessageLookupByLibrary.simpleMessage(
+      "Enable long touch for reset? This cannot be undone.",
+    ),
+    "webauthnLongTouchWarning": MessageLookupByLibrary.simpleMessage(
+      "Once enabled, resetting WebAuthn requires touching CanoKey for 30 seconds. This cannot be undone; only resetting WebAuthn clears it.",
+    ),
+    "webauthnMinPinLength": MessageLookupByLibrary.simpleMessage(
+      "Minimum PIN Length",
+    ),
+    "webauthnMinPinLengthHint": m35,
     "webauthnPinAuthBlocked": MessageLookupByLibrary.simpleMessage(
       "The WebAuthn PIN is temporarily blocked. Reconnect CanoKey and try again.",
     ),
     "webauthnPinBlocked": MessageLookupByLibrary.simpleMessage(
       "The WebAuthn PIN is blocked. Reset WebAuthn to use it again. Resetting deletes all WebAuthn credentials.",
+    ),
+    "webauthnPinPolicyViolation": MessageLookupByLibrary.simpleMessage(
+      "CanoKey rejected the change: the minimum PIN length can only be increased.",
     ),
     "webauthnPinRequired": MessageLookupByLibrary.simpleMessage(
       "Refresh the page and enter your WebAuthn PIN before trying this operation again.",

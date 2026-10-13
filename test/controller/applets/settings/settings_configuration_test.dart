@@ -43,6 +43,8 @@ class _Controller extends SettingsController {
   _Controller(AdminCardClient client) : super(client: client);
   @override
   Future<bool> authenticate(String sn) async => true;
+  @override
+  String get adminPinForCurrentLease => '123456';
 }
 
 class _Card extends AdminCardClient {
@@ -50,13 +52,16 @@ class _Card extends AdminCardClient {
   final String firmware;
   final List<int> config;
   @override
+  Future<void> prepare() async {}
+  @override
   Future<String> readFirmwareVersion() async => firmware;
   @override
   Future<String> readModel() async => 'CanoKey';
   @override
   Future<String> readChipId() async => '0102';
   @override
-  Future<Uint8List> readConfig() async => Uint8List.fromList(config);
+  Future<Uint8List> readConfig({String? pin}) async =>
+      Uint8List.fromList(config);
   @override
-  Future<bool> readNfcEnabled() async => true;
+  Future<bool> readNfcEnabled({String? pin}) async => true;
 }

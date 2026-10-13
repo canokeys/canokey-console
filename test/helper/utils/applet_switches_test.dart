@@ -1,3 +1,7 @@
+@Tags(['native'])
+library;
+
+import 'package:canokey_console/src/rust/frb_generated.dart';
 import 'dart:convert';
 
 import 'package:canokey_console/helper/utils/admin_card.dart';
@@ -9,17 +13,27 @@ import 'package:convert/convert.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  setUpAll(() => RustLib.init());
+  tearDownAll(RustLib.dispose);
   tearDown(() => SmartCard.connectionType = ConnectionType.none);
 
   test('legacy firmware does not read the feature configuration', () async {
     final transport = _Transport([
       '9000',
       '${hex.encode(utf8.encode('3.0.0'))}9000',
+      '43616e6f4b65799000',
+      '010203049000',
     ]);
-    final status = await AppletSwitches.readStatus(
-      client: AdminCardClient(transport: transport),
+    final client = AdminCardClient(transport: transport);
+    final status = await client.withSession(
+      () => AppletSwitches.readStatus(client: client),
     );
-    expect(transport.commands, ['00A4040005F000000000', '0031000000']);
+    expect(transport.commands, [
+      '00A4040005F00000000000',
+      '0031000000',
+      '0031010000',
+      '0032000000',
+    ]);
     expect(status.functionSetVersion, FunctionSetVersion.v4);
     expect(status.featureSwitchesSupported, isFalse);
     expect(status.passEnabled, isTrue);
@@ -33,14 +47,19 @@ void main() {
       final transport = _Transport([
         '9000',
         '${hex.encode(utf8.encode('3.1.0'))}9000',
+        '43616e6f4b65799000',
+        '010203049000',
         '01000001000d9000',
       ]);
-      final status = await AppletSwitches.readStatus(
-        client: AdminCardClient(transport: transport),
+      final client = AdminCardClient(transport: transport);
+      final status = await client.withSession(
+        () => AppletSwitches.readStatus(client: client),
       );
       expect(transport.commands, [
-        '00A4040005F000000000',
+        '00A4040005F00000000000',
         '0031000000',
+        '0031010000',
+        '0032000000',
         '0042000000',
       ]);
       expect(status.featureSwitchesSupported, isTrue);

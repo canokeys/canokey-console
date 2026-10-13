@@ -1,3 +1,4 @@
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/views/applets/piv/widgets/piv_management_key_authentication.dart';
 import 'package:canokey_console/controller/applets/piv/piv_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
@@ -108,102 +109,112 @@ class _PivMacOsSetupDialogState extends State<PivMacOsSetupDialog> {
     final s = S.of(context);
     return PopScope(
       canPop: !_busy,
-      child: AlertDialog(
-        title: Text(s.pivMacSetupTitle),
-        content: SizedBox(
-          width: 480,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(_done ? s.pivMacSetupDone : s.pivMacSetupIntro),
-                if (_busy)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: LinearProgressIndicator(),
-                  ),
-                if (_plan != null && !_done) ...[
-                  const SizedBox(height: 12),
-                  for (final slot in _plan!.slots)
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Text(slot.slotNumber),
-                      title: Text(_action(s, slot.action)),
-                      subtitle: _progress.containsKey(slot.slotNumber)
-                          ? Text(
-                              _progress[slot.slotNumber]!
-                                  ? s.pivMacSetupFinished
-                                  : s.pivMacSetupWorking,
-                            )
-                          : null,
+      child: AppDialogSurface(
+        child: SizedBox(
+          width: AppDialogWidth.medium,
+          child: AppDialogLayout(
+            header: AppDialogHeader(
+              title: s.pivMacSetupTitle,
+              closeEnabled: !_busy,
+            ),
+            body: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(_done ? s.pivMacSetupDone : s.pivMacSetupIntro),
+                  if (_busy)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: LinearProgressIndicator(),
                     ),
-                  if (!_failed) ...[
-                    if (_plan!.needsReplacementConsent)
-                      CheckboxListTile(
+                  if (_plan != null && !_done) ...[
+                    const SizedBox(height: 12),
+                    for (final slot in _plan!.slots)
+                      ListTile(
                         contentPadding: EdgeInsets.zero,
-                        value: _consent,
-                        onChanged: _busy
-                            ? null
-                            : (value) =>
-                                  setState(() => _consent = value ?? false),
-                        title: Text(s.pivMacSetupConsent),
+                        leading: Text(slot.slotNumber),
+                        title: Text(_action(s, slot.action)),
+                        subtitle: _progress.containsKey(slot.slotNumber)
+                            ? Text(
+                                _progress[slot.slotNumber]!
+                                    ? s.pivMacSetupFinished
+                                    : s.pivMacSetupWorking,
+                              )
+                            : null,
                       ),
-                    PivManagementKeyAuthentication(
-                      pinProtected: widget.controller.pinOnlyMode,
-                      usePinOnly: _usePinOnly,
-                      onChanged: (value) {
-                        if (!_busy) setState(() => _usePinOnly = value);
-                      },
-                      requiresPin: true,
-                      pinField: TextField(
-                        controller: _pin,
-                        enabled: !_busy,
-                        obscureText: true,
-                        decoration: const InputDecoration(labelText: 'PIV PIN'),
-                      ),
-                      managementKeyField: TextField(
-                        controller: _managementKey,
-                        enabled: !_busy,
-                        obscureText: true,
-                        decoration: InputDecoration(labelText: s.pivMacSetupManagementKey),
-                      ),
-                    ),
-                    if (_invalid)
-                      Text(
-                        s.pivMacSetupInvalid,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
+                    if (!_failed) ...[
+                      if (_plan!.needsReplacementConsent)
+                        AppDialogCheckbox(
+                          value: _consent,
+                          onChanged: _busy
+                              ? null
+                              : (value) =>
+                                    setState(() => _consent = value ?? false),
+                          title: Text(s.pivMacSetupConsent),
+                        ),
+                      PivManagementKeyAuthentication(
+                        pinProtected: widget.controller.pinOnlyMode,
+                        usePinOnly: _usePinOnly,
+                        onChanged: (value) {
+                          if (!_busy) setState(() => _usePinOnly = value);
+                        },
+                        requiresPin: true,
+                        pinField: TextField(
+                          controller: _pin,
+                          enabled: !_busy,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            labelText: 'PIV PIN',
+                          ),
+                        ),
+                        managementKeyField: TextField(
+                          controller: _managementKey,
+                          enabled: !_busy,
+                          obscureText: true,
+                          decoration: InputDecoration(
+                            labelText: s.pivMacSetupManagementKey,
+                          ),
                         ),
                       ),
+                      if (_invalid)
+                        Text(
+                          s.pivMacSetupInvalid,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                    ],
                   ],
+                  if (_failed) Text(s.pivMacSetupError),
                 ],
-                if (_failed) Text(s.pivMacSetupError),
-              ],
+              ),
             ),
+            actions: [
+              AppDialogAction(
+                onPressed: _busy ? null : () => Navigator.of(context).pop(),
+                secondary: true,
+                label: s.close,
+              ),
+              if (_failed)
+                AppDialogAction(
+                  onPressed: _busy ? null : _inspect,
+                  label: s.pivMacSetupInspect,
+                )
+              else if (!_done)
+                AppDialogAction(
+                  onPressed:
+                      _busy ||
+                          _plan == null ||
+                          (_plan!.needsReplacementConsent && !_consent)
+                      ? null
+                      : _configure,
+                  label: s.pivMacSetupStart,
+                ),
+            ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: _busy ? null : () => Navigator.of(context).pop(),
-            child: Text(s.close),
-          ),
-          if (_failed)
-            FilledButton(
-              onPressed: _busy ? null : _inspect,
-              child: Text(s.pivMacSetupInspect),
-            )
-          else if (!_done)
-            FilledButton(
-              onPressed:
-                  _busy ||
-                      _plan == null ||
-                      (_plan!.needsReplacementConsent && !_consent)
-                  ? null
-                  : _configure,
-              child: Text(s.pivMacSetupStart),
-            ),
-        ],
       ),
     );
   }

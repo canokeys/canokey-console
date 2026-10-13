@@ -36,6 +36,9 @@ class ResetDialog extends BaseDialog with UIMixin {
   }
 
   @override
+  bool get managesOwnScrolling => true;
+
+  @override
   State<ResetDialog> createState() => _ResetDialogState();
 }
 
@@ -50,19 +53,19 @@ class _ResetDialogState extends BaseDialogState<ResetDialog> with UIMixin {
         : S.of(context).settingsResetApplet(widget.applet!.name);
 
     return Obx(
-      () => Column(
+      () => AppDialogColumn(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AppDialogHeader(title: title),
           Divider(height: 0, thickness: 1),
           Padding(
-            padding: Spacing.all(16),
+            padding: Spacing.all(24),
             child: CustomizedText.labelLarge(prompt),
           ),
           if (errorMessage.value.isNotEmpty)
             Padding(
-              padding: Spacing.all(16),
+              padding: Spacing.all(24),
               child: CustomizedText.bodyMedium(
                 errorMessage.value,
                 color: errorLevel.value == 'E'
@@ -80,12 +83,12 @@ class _ResetDialogState extends BaseDialogState<ResetDialog> with UIMixin {
                 destructive: false,
               ),
               AppDialogAction(
-                label: S.of(context).confirm,
+                label: S.of(context).reset,
                 onPressed: () => widget.applet == null
                     ? widget.resetCanokey()
                     : widget.resetApplet(widget.applet!),
                 secondary: false,
-                destructive: false,
+                destructive: true,
               ),
             ],
           ),

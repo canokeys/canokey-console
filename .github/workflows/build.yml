@@ -27,11 +27,27 @@ jobs:
           channel: stable
           version: ${{ env.FLUTTER_VERSION }}
           cache: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Generate bundled CJK fonts
+        run: |
+          python -m pip install --quiet fonttools==4.63.0
+          python tool/subset_cjk_font.py
+          git diff --exit-code -- assets/fonts/CanoKeyCJK-Bold.ttf assets/fonts/CanoKeyCJK-Regular.ttf
       - run: flutter pub get
       - name: Test UI and firmware compatibility
         run: >-
           flutter test --no-pub --reporter expanded
           --exclude-tags native
+
+      - name: Test browser platform detection and settings lifecycle
+        run: >-
+          flutter test --no-pub --platform chrome
+          test/helper/utils/app_platform_test.dart
+          test/helper/utils/chromeos_startup_test.dart
+          test/views/applets/settings/settings_page_test.dart
+          --name 'startup platform checks|classifies|web settings refresh'
 
   build:
     if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
@@ -144,6 +160,14 @@ jobs:
       run: ${{ matrix.pre-build-script }}
 
     # basic format & linting check
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+    - name: Generate bundled CJK fonts
+      run: |
+        python -m pip install --quiet fonttools==4.63.0
+        python tool/subset_cjk_font.py
+        git diff --exit-code -- assets/fonts/CanoKeyCJK-Bold.ttf assets/fonts/CanoKeyCJK-Regular.ttf
     - run: flutter pub get
     # - run: dart format --output=none --set-exit-if-changed lib/
     - run: dart analyze
@@ -153,7 +177,9 @@ jobs:
       run: cargo install flutter_rust_bridge_codegen --version 2.13.0 --locked
     - name: Run flutter release build (${{ matrix.target }})
       run: |
-        flutter build ${{ matrix.target }} --release ${{ matrix.build-args }} --verbose
+        flutter build ${{ matrix.target }} --release ${{ matrix.build-args }} --verbose \
+          --dart-define=BUILD_COMMIT="${{ github.event.pull_request.head.sha || github.sha }}" \
+          --dart-define=BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
         if [ "${{ matrix.target }}" == "linux" ]; then
           sudo sh -c 'umask 022; exec /snap/bin/snapcraft pack --destructive-mode --platform "$1"' _ "${{ matrix.arch }}"
           sudo chown "$USER:$USER" ./*.snap

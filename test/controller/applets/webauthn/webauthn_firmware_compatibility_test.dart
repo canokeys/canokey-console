@@ -2,38 +2,45 @@ import 'package:canokey_console/controller/applets/webauthn/webauthn_controller.
 import 'package:canokey_console/models/canokey.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+class _ConfigController extends WebAuthnController {
+  _ConfigController(this._hasInfo);
+
+  final bool _hasInfo;
+
+  @override
+  bool get hasConfigInfo => _hasInfo;
+}
+
 void main() {
-  WebAuthnController controllerFor(String version) {
-    final controller = WebAuthnController();
+  WebAuthnController configControllerFor(String version, {bool hasInfo = true}) {
+    final controller = _ConfigController(hasInfo);
     controller.firmwareVersion = FirmwareVersion.parse(version);
     controller.functionSetVersion =
         CanoKey.functionSetFromFirmwareVersion(version);
     return controller;
   }
 
-  test('shows SM2 settings on legacy and current supported firmware', () {
-    for (final version in [
-      '3.0.0',
-      '3.0.3',
-      '3.1.0-28-gd2820836',
-      '3.1.0',
-      '3.1.1'
-    ]) {
-      expect(controllerFor(version).supportsSm2Settings, isTrue,
+  test('gates authenticator config by firmware and getInfo options', () {
+    for (final version in ['3.0.0', '3.0.3', '3.1.0', '3.1.1']) {
+      expect(configControllerFor(version).supportsConfig, isTrue,
           reason: version);
+      expect(configControllerFor(version, hasInfo: false).supportsConfig,
+          isFalse,
+          reason: '$version without config options in getInfo');
     }
 
-    for (final version in [
-      '2.0.1',
-    ]) {
-      expect(controllerFor(version).supportsSm2Settings, isFalse,
+    for (final version in ['1.6.2', '2.0.1']) {
+      expect(configControllerFor(version).supportsConfig, isFalse,
           reason: version);
     }
   });
 
-  test('does not access the card when SM2 settings are hidden', () async {
-    final controller = controllerFor('2.0.1');
+  test('does not access the card when authenticator config is hidden',
+      () async {
+    final controller = configControllerFor('2.0.1');
 
-    expect(await controller.readSm2Config(), isNull);
+    expect(await controller.toggleAlwaysUv(), isFalse);
+    expect(await controller.setMinPinLength(8, false), isFalse);
+    expect(await controller.enableLongTouchForReset(), isFalse);
   });
 }

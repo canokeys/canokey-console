@@ -40,7 +40,7 @@ class StorageUsageDialog extends StatelessWidget with UIMixin {
               Flexible(
                 child: SingleChildScrollView(
                   child: Padding(
-                    padding: Spacing.all(16),
+                    padding: Spacing.all(24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -85,7 +85,7 @@ class StorageUsageDialog extends StatelessWidget with UIMixin {
                   AppDialogAction(
                     label: S.of(context).close,
                     onPressed: () => Navigator.pop(context),
-                    secondary: false,
+                    secondary: true,
                     destructive: false,
                   ),
                 ],

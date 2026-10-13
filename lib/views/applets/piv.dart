@@ -21,7 +21,6 @@ import 'package:canokey_console/helper/utils/app_loader_overlay.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/utils/ui_mixins.dart';
-import 'package:canokey_console/helper/utils/x509_algorithm_names.dart';
 import 'package:canokey_console/helper/widgets/applet_disabled_screen.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/widgets/customized_button.dart';
@@ -46,7 +45,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
-import 'package:platform_detector/platform_detector.dart';
+import 'package:canokey_console/helper/utils/app_platform.dart';
 import 'package:share_plus/share_plus.dart';
 
 class PivPage extends StatefulWidget {
@@ -168,11 +167,8 @@ class _PivPageState extends State<PivPage>
   }
 
   String _certificateKeySummary(X509CertData cert) {
-    final algorithm = x509PublicKeyAlgorithmName(cert.publicKeyAlgorithm);
-    final size = switch (cert.publicKeyAlgorithm) {
-      '1.3.101.112' || '1.3.101.110' => BigInt.from(256),
-      _ => cert.publicKeySize,
-    };
+    final algorithm = cert.publicKeyAlgorithmName;
+    final size = cert.publicKeySize;
     if (size == BigInt.zero) {
       return algorithm;
     }
@@ -213,7 +209,7 @@ class _PivPageState extends State<PivPage>
             ),
             Divider(height: 0, thickness: 1),
             Padding(
-              padding: Spacing.all(16),
+              padding: Spacing.all(24),
               child: CustomizedText.bodyMedium(
                 S.of(context).pivOverwriteKeyPrompt(action, slotNumber),
                 color: contentTheme.danger,
@@ -450,16 +446,17 @@ class _PivPageState extends State<PivPage>
         validators: validators);
 
     AppDialog.show(KeyboardSafeDialog(
+      managesOwnScrolling: true,
       child: SizedBox(
         width: AppDialogWidth.compact,
-        child: Column(
+        child: AppDialogColumn(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AppDialogHeader(title: title),
             Divider(height: 0, thickness: 1),
             Padding(
-                padding: Spacing.all(16),
+                padding: Spacing.all(24),
                 child: Form(
                     key: validator.formKey,
                     child: Column(
@@ -536,10 +533,10 @@ class _PivPageState extends State<PivPage>
                   destructive: false,
                 ),
                 AppDialogAction(
-                  label: S.of(Get.context!).confirm,
-                  onPressed: () {
+                  label: S.of(Get.context!).save,
+                  onPressed: () async {
                     if (validator.validateForm()) {
-                      handler(
+                      await handler(
                         validator.getController('old')!.text,
                         validator.getController('new')!.text,
                       );
@@ -690,7 +687,7 @@ class _PivPageState extends State<PivPage>
               Divider(height: 0, thickness: 1),
               Flexible(
                 child: SingleChildScrollView(
-                  padding: Spacing.all(16),
+                  padding: Spacing.all(24),
                   child: Form(
                     key: validator.formKey,
                     child: Column(
@@ -698,11 +695,10 @@ class _PivPageState extends State<PivPage>
                       children: [
                         _buildAlgorithmIdWarning(),
                         Spacing.height(16),
-                        CheckboxListTile(
+                        AppDialogCheckbox(
                           value: enabled,
                           onChanged: (value) =>
                               setDialogState(() => enabled = value ?? enabled),
-                          contentPadding: EdgeInsets.zero,
                           title: Text(S.of(context).enabled),
                           subtitle: Text(S.of(context).pivAlgorithmIdsPrompt),
                         ),
@@ -888,17 +884,18 @@ class _PivPageState extends State<PivPage>
         validators: [IntValidator(min: 1, max: 15)]);
 
     AppDialog.show(KeyboardSafeDialog(
+      managesOwnScrolling: true,
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
           width: AppDialogWidth.medium,
-          child: Column(
+          child: AppDialogColumn(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AppDialogHeader(title: S.of(context).pivSetPinPukRetries),
               Divider(height: 0, thickness: 1),
               Padding(
-                padding: Spacing.all(16),
+                padding: Spacing.all(24),
                 child: Form(
                   key: validator.formKey,
                   child: Column(
@@ -956,7 +953,7 @@ class _PivPageState extends State<PivPage>
                     destructive: false,
                   ),
                   AppDialogAction(
-                    label: S.of(context).confirm,
+                    label: S.of(context).save,
                     onPressed: () async {
                       if (!validator.validateForm()) return;
                       if (!_validateManagementKeyInput(
@@ -1023,9 +1020,10 @@ class _PivPageState extends State<PivPage>
         validators: [LengthValidator(exact: 48), HexStringValidator()]);
 
     AppDialog.show(KeyboardSafeDialog(
+      managesOwnScrolling: true,
       child: SizedBox(
         width: AppDialogWidth.medium,
-        child: Column(
+        child: AppDialogColumn(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1034,7 +1032,7 @@ class _PivPageState extends State<PivPage>
             ),
             Divider(height: 0, thickness: 1),
             Padding(
-              padding: Spacing.all(16),
+              padding: Spacing.all(24),
               child: Form(
                 key: validator.formKey,
                 child: Column(
@@ -1129,10 +1127,11 @@ class _PivPageState extends State<PivPage>
         validators: [LengthValidator(exact: 48), HexStringValidator()]);
 
     AppDialog.show(KeyboardSafeDialog(
+      managesOwnScrolling: true,
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
           width: AppDialogWidth.medium,
-          child: Column(
+          child: AppDialogColumn(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1141,7 +1140,7 @@ class _PivPageState extends State<PivPage>
               ),
               Divider(height: 0, thickness: 1),
               Padding(
-                padding: Spacing.all(16),
+                padding: Spacing.all(24),
                 child: Form(
                   key: validator.formKey,
                   child: Column(
@@ -1276,17 +1275,18 @@ class _PivPageState extends State<PivPage>
         validators: [LengthValidator(exact: 48), HexStringValidator()]);
 
     AppDialog.show(KeyboardSafeDialog(
+      managesOwnScrolling: true,
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
           width: AppDialogWidth.medium,
-          child: Column(
+          child: AppDialogColumn(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AppDialogHeader(title: S.of(context).pivChangeManagementKey),
               Divider(height: 0, thickness: 1),
               Padding(
-                  padding: Spacing.all(16),
+                  padding: Spacing.all(24),
                   child: Form(
                       key: validator.formKey,
                       child: Column(children: [
@@ -1358,11 +1358,10 @@ class _PivPageState extends State<PivPage>
                         ],
                         if (controller.pinOnlyMode) ...[
                           Spacing.height(12),
-                          CheckboxListTile(
+                          AppDialogCheckbox(
                             value: storeOnDevice,
                             onChanged: (value) => setDialogState(
                                 () => storeOnDevice = value ?? true),
-                            contentPadding: EdgeInsets.zero,
                             title:
                                 Text(S.of(context).pivStoreManagementKeyOnCard),
                             subtitle: Text(S
@@ -1383,7 +1382,7 @@ class _PivPageState extends State<PivPage>
                     destructive: false,
                   ),
                   AppDialogAction(
-                    label: S.of(Get.context!).confirm,
+                    label: S.of(Get.context!).save,
                     onPressed: () async {
                       if (!validator.validateForm()) return;
                       if (!_validateManagementKeyInput(validator, 'old', usePinOnly)) {
@@ -1904,10 +1903,7 @@ class _PivPageState extends State<PivPage>
                                                 ),
                                                 _certificateDetail(
                                                   s.pivSignatureAlgorithm,
-                                                  x509SignatureAlgorithmName(
-                                                    certificate
-                                                        .signatureAlgorithm,
-                                                  ),
+                                                  certificate.signatureAlgorithmName,
                                                 ),
                                                 _certificateDetail(
                                                   s.pivSha256Fingerprint,
@@ -2006,7 +2002,7 @@ class _PivPageState extends State<PivPage>
             child: IconButton(
               padding: EdgeInsets.zero,
               tooltip: MaterialLocalizations.of(context).copyButtonLabel,
-              onPressed: () => Clipboard.setData(ClipboardData(text: value)),
+              onPressed: () => Prompts.copyText(value),
               icon: Icon(
                 Icons.copy_outlined,
                 size: 14,
@@ -2063,7 +2059,7 @@ class _PivPageState extends State<PivPage>
                         ).copyButtonLabel,
                         icon: Icons.copy_outlined,
                         onPressed: () =>
-                            Clipboard.setData(ClipboardData(text: pem)),
+                            Prompts.copyText(pem),
                       ),
                       PivButton(
                         label: s.close,
@@ -2154,7 +2150,7 @@ class _PivPageState extends State<PivPage>
                   AppDialogHeader(title: S.of(context).pivExportPublicKey),
                   Divider(height: 0, thickness: 1),
                   Padding(
-                      padding: Spacing.all(16),
+                      padding: Spacing.all(24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -2222,17 +2218,18 @@ class _PivPageState extends State<PivPage>
     final signature = ''.obs;
 
     final dialog = KeyboardSafeDialog(
+      managesOwnScrolling: true,
       useCompositedKeyboardMotion: true,
       child: SizedBox(
         width: AppDialogWidth.medium,
-        child: Column(
+        child: AppDialogColumn(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AppDialogHeader(title: S.of(context).pivSignMessage),
             Divider(height: 0, thickness: 1),
             Padding(
-              padding: Spacing.all(16),
+              padding: Spacing.all(24),
               child: Form(
                 key: validator.formKey,
                 child: Column(
@@ -2348,17 +2345,18 @@ class _PivPageState extends State<PivPage>
     Uint8List? selectedBytes;
 
     AppDialog.show(KeyboardSafeDialog(
+      managesOwnScrolling: true,
       child: Obx(
         () => SizedBox(
           width: AppDialogWidth.medium,
-          child: Column(
+          child: AppDialogColumn(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AppDialogHeader(title: S.of(context).pivSignFile),
               Divider(height: 0, thickness: 1),
               Padding(
-                padding: Spacing.all(16),
+                padding: Spacing.all(24),
                 child: Form(
                   key: validator.formKey,
                   child: Column(
@@ -2487,7 +2485,7 @@ class _PivPageState extends State<PivPage>
               AppDialogHeader(title: S.of(context).pivVerifyFileSignature),
               Divider(height: 0, thickness: 1),
               Padding(
-                padding: Spacing.all(16),
+                padding: Spacing.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -2759,10 +2757,24 @@ class _PivPageState extends State<PivPage>
       }
     }
 
+    var importDialogClosed = false;
+
+    void releasePrivateKey() {
+      final key = privateKey;
+      privateKey = null;
+      if (key != null) {
+        try {
+          key.close();
+        } finally {
+          key.dispose();
+        }
+      }
+    }
+
     void resetImportState() {
+      releasePrivateKey();
       hasCert.value = false;
       hasKey.value = false;
-      privateKey = null;
       cert = null;
       certBytes = null;
       parseMessage.value = '';
@@ -2781,6 +2793,8 @@ class _PivPageState extends State<PivPage>
         hasCert.value = cert != null;
       } catch (error) {
         parseMessage.value = error.toString();
+      } finally {
+        bytes.fillRange(0, bytes.length, 0);
       }
       if (!hasCert.value && !hasKey.value && parseMessage.value.isEmpty) {
         parseMessage.value = S.of(context).pivUnsupportedImportFile;
@@ -2857,8 +2871,13 @@ class _PivPageState extends State<PivPage>
                     final result = await FilePicker.pickFiles();
                     final file = result.firstOrNull;
                     if (file != null) {
+                      final bytes = await file.xFile.readAsBytes();
+                      if (importDialogClosed) {
+                        bytes.fillRange(0, bytes.length, 0);
+                        return;
+                      }
                       selected.value = true;
-                      parseImportFile(await file.xFile.readAsBytes());
+                      parseImportFile(bytes);
                       if (hasKey.value && hasCert.value) {
                         nextStep();
                       }
@@ -3019,7 +3038,10 @@ class _PivPageState extends State<PivPage>
           ),
         ),
       ),
-    ));
+    )).whenComplete(() {
+      importDialogClosed = true;
+      releasePrivateKey();
+    });
   }
 
   void _showGenerateDialog(String slotNumber, {required bool selfSigned}) {
@@ -3667,17 +3689,18 @@ class _PivPageState extends State<PivPage>
         ]);
 
     AppDialog.show(KeyboardSafeDialog(
+      managesOwnScrolling: true,
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
           width: AppDialogWidth.medium,
-          child: Column(
+          child: AppDialogColumn(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AppDialogHeader(title: S.of(context).pivGenerateKey),
               Divider(height: 0, thickness: 1),
               Padding(
-                padding: Spacing.all(16),
+                padding: Spacing.all(24),
                 child: Form(
                   key: validator.formKey,
                   child: Column(
@@ -3817,7 +3840,7 @@ class _PivPageState extends State<PivPage>
             AppDialogHeader(title: S.current.pivCsrGenerated),
             Divider(height: 0, thickness: 1),
             Padding(
-              padding: Spacing.all(16),
+              padding: Spacing.all(24),
               child: SizedBox(
                 height: 260,
                 child: TextFormField(
@@ -3886,7 +3909,7 @@ class _PivPageState extends State<PivPage>
             AppDialogHeader(title: S.current.pivCertificateCreated),
             Divider(height: 0, thickness: 1),
             Padding(
-              padding: Spacing.all(16),
+              padding: Spacing.all(24),
               child: CustomizedText.bodyMedium(
                 S.of(context).pivCertificateWritten(slotNumber),
               ),
@@ -3996,10 +4019,11 @@ class _PivPageState extends State<PivPage>
     );
 
     AppDialog.show(KeyboardSafeDialog(
+      managesOwnScrolling: true,
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
           width: AppDialogWidth.medium,
-          child: Column(
+          child: AppDialogColumn(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -4008,7 +4032,7 @@ class _PivPageState extends State<PivPage>
               ),
               Divider(height: 0, thickness: 1),
               Padding(
-                padding: Spacing.all(16),
+                padding: Spacing.all(24),
                 child: Form(
                   key: validator.formKey,
                   child: Column(
@@ -4144,10 +4168,11 @@ class _PivPageState extends State<PivPage>
         ]);
 
     AppDialog.show(KeyboardSafeDialog(
+      managesOwnScrolling: true,
       child: StatefulBuilder(
         builder: (context, setDialogState) => SizedBox(
           width: AppDialogWidth.medium,
-          child: Column(
+          child: AppDialogColumn(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -4156,7 +4181,7 @@ class _PivPageState extends State<PivPage>
               ),
               Divider(height: 0, thickness: 1),
               Padding(
-                padding: Spacing.all(16),
+                padding: Spacing.all(24),
                 child: Form(
                   key: validator.formKey,
                   child: Column(

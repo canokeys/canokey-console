@@ -3,10 +3,6 @@ import 'package:canokey_console/helper/theme/theme_customizer.dart';
 import 'package:canokey_console/helper/theme/theme_type.dart';
 import 'package:flutter/material.dart';
 
-enum LeftBarThemeType { light, dark }
-
-enum ContentThemeType { light, dark }
-
 enum ContentThemeColor {
   primary,
   secondary,
@@ -52,14 +48,6 @@ class LeftBarTheme {
       activeItemBackground: const Color(0xff363c44),
       activeItemColor: const Color(0xffffffff));
 
-  static LeftBarTheme getThemeFromType(LeftBarThemeType leftBarThemeType) {
-    switch (leftBarThemeType) {
-      case LeftBarThemeType.light:
-        return lightLeftBarTheme;
-      case LeftBarThemeType.dark:
-        return darkLeftBarTheme;
-    }
-  }
 }
 
 class TopBarTheme {

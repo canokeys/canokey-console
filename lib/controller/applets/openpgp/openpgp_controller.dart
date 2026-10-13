@@ -22,6 +22,12 @@ class OpenPgpController extends PollingController {
   Logger get log => Logging.logger('OpenPGP:Controller');
 
   @override
+  void onClose() {
+    _client.cancelPendingOperations();
+    super.onClose();
+  }
+
+  @override
   Future<void> doRefreshData() async {
     log.t('Call OpenPgpController.doRefreshData');
     await SmartCard.process((String sn) async {
@@ -38,6 +44,7 @@ class OpenPgpController extends PollingController {
       }
       disabledMessage = null;
 
+      await _client.prepare();
       cardInfo = await _client.readCardInfo();
       polled = true;
       update();
@@ -128,6 +135,7 @@ class OpenPgpController extends PollingController {
     String Function()? successMessage,
   }) async {
     await SmartCard.process((String sn) async {
+      await _client.prepare();
       final ok = await operation();
       if (!ok) {
         Prompts.promptPinFailureResult(_client.lastStatusWord ?? '');

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
@@ -16,6 +18,8 @@ abstract class BaseDialog extends StatefulWidget {
 }
 
 abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
+  static final List<BaseDialogState> _dialogs = [];
+
   final RxBool _showPolling = false.obs;
   final RxString errorMessage = ''.obs;
   final RxString errorLevel = 'E'.obs;
@@ -23,17 +27,26 @@ abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
   @override
   void initState() {
     super.initState();
-    Get.put(_showPolling, tag: 'dialog_polling');
-    Get.put(errorMessage, tag: 'dialog_error');
-    Get.put(errorLevel, tag: 'dialog_error_level');
+    _dialogs.add(this);
+    _bindActiveDialog();
   }
 
   @override
   void dispose() {
+    _dialogs.remove(this);
+    _bindActiveDialog();
+    super.dispose();
+  }
+
+  static void _bindActiveDialog() {
     Get.delete<RxBool>(tag: 'dialog_polling');
     Get.delete<RxString>(tag: 'dialog_error');
     Get.delete<RxString>(tag: 'dialog_error_level');
-    super.dispose();
+    if (_dialogs.isEmpty) return;
+    final active = _dialogs.last;
+    Get.put(active._showPolling, tag: 'dialog_polling');
+    Get.put(active.errorMessage, tag: 'dialog_error');
+    Get.put(active.errorLevel, tag: 'dialog_error_level');
   }
 
   Widget buildDialogContent();
@@ -43,19 +56,19 @@ abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
     required String title,
     required Widget description,
     required Widget form,
-    required VoidCallback? onSubmit,
-  }) => Column(
+    required FutureOr<void> Function()? onSubmit,
+  }) => AppDialogColumn(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       AppDialogHeader(title: title),
       const Divider(height: 0, thickness: 1),
-      Padding(padding: Spacing.all(16), child: description),
+      Padding(padding: Spacing.all(24), child: description),
       const Divider(height: 0, thickness: 1),
-      Padding(padding: Spacing.all(16), child: form),
+      Padding(padding: Spacing.all(24), child: form),
       if (errorMessage.value.isNotEmpty)
         Padding(
-          padding: Spacing.all(16),
+          padding: Spacing.all(24),
           child: CustomizedText.bodyMedium(
             errorMessage.value,
             color: errorLevel.value == 'E'
@@ -71,7 +84,7 @@ abstract class BaseDialogState<T extends BaseDialog> extends State<T> {
             secondary: true,
             onPressed: () => Navigator.pop(context),
           ),
-          AppDialogAction(label: S.of(context).confirm, onPressed: onSubmit),
+          AppDialogAction(label: S.of(context).save, onPressed: onSubmit),
         ],
       ),
     ],

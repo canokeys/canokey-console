@@ -1,25 +1,35 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:canokey_console/helper/tlv.dart';
-import 'package:canokey_console/helper/utils/apdu_transport.dart';
-import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/utils/card_client.dart';
+import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:canokey_console/models/openpgp.dart';
+import 'package:canokey_console/src/rust/api/protocol.dart';
 import 'package:convert/convert.dart';
 
-class OpenPgpCardClient {
-  OpenPgpCardClient({ApduTransport transport = const SmartCardApduTransport()})
-    : _transport = transport;
+/// libcanokey owns every OpenPGP operation: card-info reads, PW1/PW3
+/// credentials and all administrative writes. Each upstream operation SELECTs
+/// OpenPGP and explicitly verifies its own password; the prepared profile is
+/// immutable firmware evidence, never an authorization token. OpenPGP
+/// operations self-SELECT, so applet switches do not invalidate the profile;
+/// only profile evidence and lease generations matter.
+class OpenPgpCardClient extends ProfileCardClient {
+  OpenPgpCardClient({super.transport, super.lease})
+    : super(bindSelection: false);
 
-  static const String _aid = 'D27600012401';
-  final ApduTransport _transport;
-  String? lastStatusWord;
+  /// Explicit minimal discovery before any OpenPGP operation. The profile only
+  /// carries firmware observations; upstream operations SELECT OpenPGP themselves.
+  Future<void> prepare() => prepareProfile(
+    () => ProtocolOperation.probeAdmin(observedSerial: lease.bootstrapSerial),
+  );
 
-  Future<void> select() async {
-    SmartCard.assertOK(await _transceive('00A4040006$_aid'));
-  }
+  /// Every upstream OpenPGP operation SELECTs its applet first.
+  Future<Uint8List> _execute(
+    ProtocolOperation Function(ProtocolProfile) create,
+  ) => executePrepared(create, selectApplet: true);
 
   Future<OpenPgpCardInfo> readCardInfo() async {
-    await select();
     final applicationData = await _readDataObject(0x6E);
     final application = _parseApplicationRelatedData(applicationData);
     final discretionary = _parseDiscretionaryData(application);
@@ -32,13 +42,12 @@ class OpenPgpCardClient {
     final pinState = _parsePinState(_bytes(discretionary[0xC4]));
     final fingerprints = _splitFixed(_bytes(discretionary[0xC5]), 20);
     final generationTimes = _splitFixed(_bytes(discretionary[0xCD]), 4);
-    final uif = _parseUif(discretionary);
     final touchCacheTime = await _readTouchCacheTime();
 
     final slots = <OpenPgpKeyType, OpenPgpKeySlotInfo>{};
     for (final type in OpenPgpKeyType.values) {
       final index = type.index;
-      final touch = uif[type] ?? (OpenPgpTouchPolicy.off, false);
+      final touch = _parseUifValue(_bytes(discretionary[type.uifTag]));
       slots[type] = OpenPgpKeySlotInfo(
         type: type,
         fingerprint: _fingerprintAt(fingerprints, index),
@@ -61,110 +70,168 @@ class OpenPgpCardClient {
   }
 
   Future<bool> changeUserPin(String oldPin, String newPin) =>
-      _replacePin('00240081', oldPin, newPin);
+      _changePassword(0, oldPin, newPin);
 
   Future<bool> changeAdminPin(String oldPin, String newPin) =>
-      _replacePin('00240083', oldPin, newPin);
+      _changePassword(2, oldPin, newPin);
 
-  Future<bool> _replacePin(String command, String secret, String newPin) async {
-    await select();
-    final data = hex.encode([...utf8.encode(secret), ...utf8.encode(newPin)]);
-    return SmartCard.isOK(await _transceive(_capdu(command, data)));
-  }
+  /// PW1-sign (0) or PW3 (2); upstream sends old||new without a prior VERIFY.
+  Future<bool> _changePassword(int reference, String oldPin, String newPin) =>
+      _runWithPasswords(
+        [oldPin, newPin],
+        (profile, passwords) => profile.openpgpChangePassword(
+          reference: reference,
+          old: passwords[0],
+          new_: passwords[1],
+        ),
+      );
 
+  Future<bool> verifyAdminPin(String adminPin) => _runAdminWrite(
+    adminPin,
+    (profile, password) =>
+        profile.openpgpVerify(reference: 2, password: password),
+  );
+
+  /// Set (or clear with an empty string) the reset code via upstream
+  /// `DataWrite::ResetCode` after its own explicit PW3 verification.
   Future<bool> setResetCode(String adminPin, String resetCode) =>
-      _runAdminOperation(adminPin, () {
-        final data = hex.encode(utf8.encode(resetCode));
-        return _putDataObject(0xD3, data);
-      });
+      _runWithPasswords(
+        [adminPin, resetCode],
+        (profile, passwords) => profile.openpgpWriteResetCode(
+          resetCode: resetCode.isEmpty ? null : passwords[1],
+          password: passwords[0],
+        ),
+        securityRejectionIsFalse: true,
+      );
 
+  /// Upstream `Request::ResetRetries`, gated on the retry-reset capability.
+  /// On success the card resets PW1/PW3 to firmware defaults and clears
+  /// authorization; Console caches no OpenPGP credentials, so nothing local
+  /// needs invalidation. Never retried after an uncertain outcome.
   Future<bool> setPinRetries(
     String adminPin,
     int userRetries,
     int resetRetries,
     int adminRetries,
-  ) => _runAdminOperation(adminPin, () {
-    final data = hex.encode([userRetries, resetRetries, adminRetries]);
-    return _transceive(_capdu('00F20000', data));
-  });
+  ) => _runAdminWrite(
+    adminPin,
+    (profile, password) => profile.openpgpResetRetries(
+      retries: [userRetries, resetRetries, adminRetries],
+      password: password,
+    ),
+  );
 
+  /// Upstream `DataWrite::ReuseSignaturePin`; Console's flag is inverted.
   Future<bool> setSignaturePinPolicy(
     String adminPin,
     bool verifyForEverySignature,
-  ) => _runAdminOperation(adminPin, () {
-    final data = hex.encode([verifyForEverySignature ? 0x00 : 0x01]);
-    return _putDataObject(0xC4, data);
-  });
+  ) => _runAdminWrite(
+    adminPin,
+    (profile, password) => profile.openpgpWriteSignaturePinPolicy(
+      reuse: !verifyForEverySignature,
+      password: password,
+    ),
+  );
 
+  /// Upstream `Request::UnblockWithAdmin` after explicit PW3 verification.
   Future<bool> unblockUserPinWithAdmin(String adminPin, String newPin) =>
-      _runAdminOperation(adminPin, () {
-        final data = hex.encode(utf8.encode(newPin));
-        return _transceive(_capdu('002C0281', data));
-      });
+      _runWithPasswords(
+        [adminPin, newPin],
+        (profile, passwords) => profile.openpgpUnblockWithAdmin(
+          newPin: passwords[1],
+          password: passwords[0],
+        ),
+        securityRejectionIsFalse: true,
+      );
 
+  /// Upstream `Request::UnblockWithCode`; no password verification is inserted.
   Future<bool> unblockUserPinWithResetCode(String resetCode, String newPin) =>
-      _replacePin('002C0081', resetCode, newPin);
+      _runWithPasswords(
+        [resetCode, newPin],
+        (profile, passwords) => profile.openpgpUnblockWithCode(
+          code: passwords[0],
+          newPin: passwords[1],
+        ),
+      );
 
-  Future<bool> verifyAdminPin(String adminPin) async {
-    final data = hex.encode(utf8.encode(adminPin));
-    return SmartCard.isOK(await _transceive(_capdu('00200083', data)));
-  }
-
+  /// Upstream `DataWrite::TouchPolicy`, emitting the standard two-byte UIF
+  /// field; the UIF capability gates construction on legacy firmware.
   Future<bool> setTouchPolicy(
     OpenPgpKeyType keyType,
     OpenPgpTouchPolicy policy,
     String adminPin,
-  ) => _runAdminOperation(adminPin, () {
-    final data = hex.encode([policy.value, 0x20]);
-    return _putDataObject(keyType.uifTag, data);
-  });
+  ) => _runAdminWrite(
+    adminPin,
+    (profile, password) => profile.openpgpWriteTouchPolicy(
+      slot: keyType.index,
+      policy: policy.value,
+      password: password,
+    ),
+  );
 
-  Future<bool> setTouchCacheTime(String adminPin, int seconds) =>
-      _runAdminOperation(adminPin, () {
-        final data = hex.encode([seconds]);
-        return _putDataObject(0x0102, data);
-      });
-
-  Future<bool> _runAdminOperation(
-    String adminPin,
-    Future<String> Function() operation,
-  ) async {
-    await select();
-    if (!await verifyAdminPin(adminPin)) return false;
-    return SmartCard.isOK(await operation());
-  }
-
-  Future<List<int>> _readDataObject(int tag) async {
-    final resp = await _getDataObject(tag);
-    SmartCard.assertOK(resp);
-    return hex.decode(SmartCard.dropSW(resp));
-  }
-
-  Future<List<int>?> _tryReadDataObject(int tag) async {
-    final resp = await _getDataObject(tag);
-    if (!SmartCard.isOK(resp)) {
-      return null;
-    }
-    return hex.decode(SmartCard.dropSW(resp));
-  }
-
-  Future<String> _getDataObject(int tag) {
-    return _transceive('00CA${tag.toRadixString(16).padLeft(4, '0')}00');
-  }
-
-  Future<String> _putDataObject(int tag, String data) {
-    return _transceive(
-      _capdu('00DA${tag.toRadixString(16).padLeft(4, '0')}', data),
+  /// Upstream `DataWrite::TouchCacheTime`; the UIF capability gates it.
+  Future<bool> setTouchCacheTime(String adminPin, int seconds) {
+    RangeError.checkValueInInterval(seconds, 0, 0xff, 'seconds');
+    return _runAdminWrite(
+      adminPin,
+      (profile, password) => profile.openpgpWriteTouchCacheTime(
+        seconds: seconds,
+        password: password,
+      ),
     );
   }
 
-  Map<OpenPgpKeyType, (OpenPgpTouchPolicy, bool)> _parseUif(Map discretionary) {
-    final result = <OpenPgpKeyType, (OpenPgpTouchPolicy, bool)>{};
-    for (final type in OpenPgpKeyType.values) {
-      final data = _bytes(discretionary[type.uifTag]);
-      result[type] = _parseUifValue(data);
+  /// PW3-protected write. Credential rejection, blocked PW3 and target-stage
+  /// security rejections keep the UI's false result and status word; other
+  /// protocol and transport failures propagate.
+  Future<bool> _runAdminWrite(
+    String adminPin,
+    ProtocolOperation Function(ProtocolProfile, Uint8List) create,
+  ) => _runWithPasswords(
+    [adminPin],
+    (profile, passwords) => create(profile, passwords.single),
+    securityRejectionIsFalse: true,
+  );
+
+  Future<bool> _runWithPasswords(
+    List<String> values,
+    ProtocolOperation Function(ProtocolProfile, List<Uint8List>) create, {
+    bool securityRejectionIsFalse = false,
+  }) async {
+    final passwords = values
+        .map((value) => Uint8List.fromList(utf8.encode(value)))
+        .toList();
+    try {
+      await _execute((profile) => create(profile, passwords));
+      return true;
+    } on ProtocolException catch (error) {
+      if (error.details.kind == 'AuthenticationFailed' ||
+          error.details.kind == 'PinBlocked' ||
+          (securityRejectionIsFalse &&
+              error.details.kind == 'SecurityStatusNotSatisfied')) {
+        return false;
+      }
+      rethrow;
+    } finally {
+      for (final password in passwords) {
+        password.fillRange(0, password.length, 0);
+      }
     }
-    return result;
+  }
+
+  Future<List<int>> _readDataObject(int tag) async {
+    return _execute((profile) => profile.openpgpReadData(tag: tag));
+  }
+
+  /// Optional objects: only a missing object (or an unsupported feature gate
+  /// before any exchange) becomes null; security/malformed failures propagate.
+  Future<List<int>?> _tryReadDataObject(int tag) async {
+    try {
+      return await _readDataObject(tag);
+    } on ProtocolException catch (error) {
+      if (error.details.kind == 'NotFound') return null;
+      rethrow;
+    }
   }
 
   (OpenPgpTouchPolicy, bool) _parseUifValue(List<int> data) {
@@ -179,11 +246,18 @@ class OpenPgpCardClient {
   }
 
   Future<int?> _readTouchCacheTime() async {
-    final resp = await _transceive('00CA010201');
-    if (!SmartCard.isOK(resp)) {
-      return null;
+    List<int> data;
+    try {
+      data = await _readDataObject(0x0102);
+    } on ProtocolException catch (error) {
+      // Firmware before the UIF gate and cards without the object both keep
+      // the previous absent-cache-time behavior.
+      if (error.details.kind == 'NotFound' ||
+          error.details.kind == 'UnsupportedFeature') {
+        return null;
+      }
+      rethrow;
     }
-    final data = hex.decode(SmartCard.dropSW(resp));
     if (data.isEmpty) {
       return null;
     }
@@ -315,22 +389,5 @@ class OpenPgpCardClient {
     final seconds =
         (bytes[0] << 24) + (bytes[1] << 16) + (bytes[2] << 8) + bytes[3];
     return DateTime.fromMillisecondsSinceEpoch(seconds * 1000, isUtc: true);
-  }
-
-  String _capdu(String header, String data) {
-    return '$header${_hexLength(data.length ~/ 2)}$data';
-  }
-
-  String _hexLength(int length) {
-    if (length <= 0xFF) {
-      return length.toRadixString(16).padLeft(2, '0');
-    }
-    return '00${length.toRadixString(16).padLeft(4, '0')}';
-  }
-
-  Future<String> _transceive(String capdu) async {
-    final response = await _transport.transceiveChained(capdu);
-    lastStatusWord = SmartCard.sw(response);
-    return response;
   }
 }
