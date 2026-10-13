@@ -26,27 +26,32 @@ platform :ios do
     FileUtils.mkdir_p(File.dirname(IPA_PATH))
 
     Dir.chdir(ROOT_DIR) do
-      sh("flutter", "build", "ios", "--config-only", "--release", *build_defines)
+      Bundler.with_unbundled_env do
+        sh("flutter", "build", "ios", "--config-only", "--release", *build_defines)
+      end
     end
 
-    original_path = ENV.fetch("PATH", "")
-    begin
-      # Xcode's system rsync launches a second rsync via PATH during IPA export.
-      ENV["PATH"] = ["/usr/bin", "/bin", "/usr/sbin", "/sbin", original_path].join(":")
+    Bundler.with_unbundled_env do
+      original_path = ENV.fetch("PATH", "")
+      begin
+        # Xcode's system rsync launches a second rsync via PATH during IPA export.
+        ENV["PATH"] = ["/usr/bin", "/bin", "/usr/sbin", "/sbin", original_path].join(":")
 
-      build_app(
-        workspace: File.join(ROOT_DIR, "ios", "Runner.xcworkspace"),
-        scheme: "Runner",
-        configuration: "Release",
-        export_method: "app-store-connect",
-        output_directory: File.dirname(IPA_PATH),
-        output_name: File.basename(IPA_PATH),
-        xcargs: "-allowProvisioningUpdates",
-        export_xcargs: "-allowProvisioningUpdates",
-        clean: true
-      )
-    ensure
-      ENV["PATH"] = original_path
+        build_app(
+          workspace: File.join(ROOT_DIR, "ios", "Runner.xcworkspace"),
+          scheme: "Runner",
+          configuration: "Release",
+          xcodebuild_formatter: "",
+          export_method: "app-store",
+          output_directory: File.dirname(IPA_PATH),
+          output_name: File.basename(IPA_PATH),
+          xcargs: "-allowProvisioningUpdates",
+          export_xcargs: "-allowProvisioningUpdates",
+          clean: true
+        )
+      ensure
+        ENV["PATH"] = original_path
+      end
     end
 
     UI.success("IPA ready: #{IPA_PATH}")

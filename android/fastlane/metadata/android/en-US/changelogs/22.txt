@@ -1,0 +1,4 @@
+- Improved firmware compatibility and PIV certificate/key handling.
+- Fixed TOTP refresh after switching cards and settings refresh after WebAuthn operations.
+- Unified dialog interactions and bundled fonts for consistent display.
+- Added build commit and time information to the About dialog.

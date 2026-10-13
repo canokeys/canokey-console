@@ -1,7 +1,4 @@
-New in 1.2.8:
-
-- Added CTAP authenticator settings and moved SM2 configuration into Settings.
-- Improved compatibility with firmware authentication requirements and handling of PIV certificates and keys.
+- Improved firmware compatibility and PIV certificate/key handling.
 - Fixed TOTP refresh after switching cards and settings refresh after WebAuthn operations.
-- Unified dialog interactions and bundled fonts for more consistent display.
-- Reduced web download size and fixed startup in ChromeOS browsers.
+- Unified dialog interactions and bundled fonts for consistent display.
+- Added build commit and time information to the About dialog.
