@@ -24,6 +24,38 @@ Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
 - Android: Download from [Google Play Store](https://play.google.com/store/apps/details?id=org.canokeys.console)
 - iOS: Download from [App Store](https://apps.apple.com/app/canokey-console/id6476454147)
 
+### Linux (Snap)
+
+Install from the [Snap Store](https://snapcraft.io/canokey-console), then connect
+the smart-card interface and launch the app:
+
+```bash
+sudo snap install canokey-console
+sudo snap connect canokey-console:pcscd
+snap run canokey-console
+```
+
+Packages are available for AMD64 and ARM64. The `pcscd` connection is required
+to access CanoKey over USB.
+
+### macOS (Homebrew)
+
+```bash
+brew install --cask canokeys/tap/canokey-console
+```
+
+Requires macOS 12 (Monterey) or later. The app supports both Intel and Apple
+Silicon Macs and is signed and notarized by Apple.
+
+### Windows
+
+Download [CanoKey Console 1.2.8 for Windows (x64)](https://github.com/canokeys/canokey-console/releases/download/v1.2.8/canokey-console-1.2.8-windows-x64.zip),
+extract the entire ZIP, and run `canokey-console.exe` from the extracted folder.
+Keep the bundled DLLs and `data` folder alongside the executable.
+
+See [GitHub Releases](https://github.com/canokeys/canokey-console/releases) for
+available versions and downloads.
+
 ## Development
 
 ### Prerequisites
