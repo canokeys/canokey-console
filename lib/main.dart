@@ -28,7 +28,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:loader_overlay/loader_overlay.dart';
-import 'package:platform_detector/platform_detector.dart';
+import 'package:canokey_console/helper/utils/app_platform.dart';
 import 'package:provider/provider.dart';
 
 Future<void> main() async {

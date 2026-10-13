@@ -2,7 +2,7 @@ import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
-import 'package:platform_detector/platform_detector.dart';
+import 'package:canokey_console/helper/utils/app_platform.dart';
 
 class Audio {
   static const int soundSetCount = 3;

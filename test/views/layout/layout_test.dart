@@ -12,8 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:platform_detector/enums.dart';
-import 'package:platform_detector/platform_detector.dart';
 
 void main() {
   setUp(() {
@@ -95,21 +93,9 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
 
-    final platform = PlatformDetector.platform;
-    final originalType = platform.type;
-    final originalName = platform.name;
-    final originalCompany = platform.company;
-    platform
-      ..type = PlatformType.mobile
-      ..name = PlatformName.iOS
-      ..company = PlatformCompany.apple;
     AppleDevice.setIPadForTesting(false);
     addTearDown(() {
       AppleDevice.setIPadForTesting(false);
-      platform
-        ..type = originalType
-        ..name = originalName
-        ..company = originalCompany;
     });
 
     var refreshCount = 0;
@@ -168,26 +154,14 @@ void main() {
 
     expect(refreshCount, 1);
     await tester.pumpWidget(const SizedBox.shrink());
-  });
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 
   testWidgets('iPad uses the macOS USB connection prompt', (tester) async {
-    final platform = PlatformDetector.platform;
-    final originalType = platform.type;
-    final originalName = platform.name;
-    final originalCompany = platform.company;
-    platform
-      ..type = PlatformType.mobile
-      ..name = PlatformName.iOS
-      ..company = PlatformCompany.apple;
     AppleDevice.setIPadForTesting(true);
     SmartCard.connectionError = null;
     addTearDown(() {
       AppleDevice.setIPadForTesting(false);
       SmartCard.connectionError = null;
-      platform
-        ..type = originalType
-        ..name = originalName
-        ..company = originalCompany;
     });
 
     await tester.pumpWidget(
@@ -212,7 +186,7 @@ void main() {
     expect(find.textContaining('iPhone'), findsNothing);
 
     await tester.pumpWidget(const SizedBox.shrink());
-  });
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 
   testWidgets('large top bar clears the status area and sizes refresh action',
       (tester) async {
@@ -262,21 +236,6 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
 
-    final platform = PlatformDetector.platform;
-    final originalType = platform.type;
-    final originalName = platform.name;
-    final originalCompany = platform.company;
-    platform
-      ..type = PlatformType.mobile
-      ..name = PlatformName.android
-      ..company = PlatformCompany.google;
-    addTearDown(() {
-      platform
-        ..type = originalType
-        ..name = originalName
-        ..company = originalCompany;
-    });
-
     await tester.pumpWidget(
       GetMaterialApp(
         home: Layout(
@@ -289,7 +248,7 @@ void main() {
 
     expect(find.byType(CupertinoSliverRefreshControl), findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
-  });
+  }, variant: TargetPlatformVariant.only(TargetPlatform.android));
 
   testWidgets('keyboard insets do not rebuild page content', (tester) async {
     tester.view.devicePixelRatio = 1;

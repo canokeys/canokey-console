@@ -1,6 +1,6 @@
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
-import 'package:platform_detector/platform_detector.dart';
+import 'package:canokey_console/helper/utils/app_platform.dart';
 
 class AppleDevice {
   static bool _isIPad = false;

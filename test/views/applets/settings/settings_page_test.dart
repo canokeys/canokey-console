@@ -1,7 +1,6 @@
 import 'package:canokey_console/helper/storage/local_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:platform_detector/platform_detector.dart';
-import 'package:platform_detector/enums.dart';
+import 'package:flutter/foundation.dart';
 import 'package:canokey_console/controller/applets/settings/settings_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
@@ -59,10 +58,6 @@ void main() {
   testWidgets(
     'web settings refresh on each page entry with a retained controller',
     (tester) async {
-      final platform = PlatformDetector.platform;
-      final previousType = platform.type;
-      platform.type = PlatformType.web;
-      addTearDown(() => platform.type = previousType);
       final controller =
           Get.put<SettingsController>(
                 _LifecycleSettingsController(),
@@ -80,6 +75,7 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
       await Get.delete<SettingsController>(force: true);
     },
+    skip: !kIsWeb,
   );
 
   testWidgets('settings adapt to desktop, mobile, dark mode and large text', (

@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:canokey_console/helper/utils/app_platform.dart';
 
 import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/widgets/constant.dart';
@@ -11,13 +11,7 @@ class AppStyle {
     CustomizedTextStyle.resetFontStyles();
     CustomizedTextStyle.changeFontFamily(GoogleFonts.poppins);
     WidgetConstant.setConstant(WidgetConstantData());
-    var isMobile = false;
-    try {
-      isMobile = Platform.isAndroid || Platform.isIOS;
-    } catch (_) {
-      // Platform queries are unavailable on web.
-    }
-    ScreenMedia.flexSpacing = isMobile ? 16 : 24;
+    ScreenMedia.flexSpacing = isMobile() ? 16 : 24;
     AdminTheme.setTheme();
   }
 }

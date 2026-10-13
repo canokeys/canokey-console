@@ -45,7 +45,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
-import 'package:platform_detector/platform_detector.dart';
+import 'package:canokey_console/helper/utils/app_platform.dart';
 import 'package:share_plus/share_plus.dart';
 
 class PivPage extends StatefulWidget {

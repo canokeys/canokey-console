@@ -2,7 +2,7 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/utils/apple_device.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:get/get.dart';
-import 'package:platform_detector/platform_detector.dart';
+import 'package:canokey_console/helper/utils/app_platform.dart';
 
 class Hints {
   static String get pollCanoKeyPrompt {

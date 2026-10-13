@@ -41,6 +41,14 @@ jobs:
           flutter test --no-pub --reporter expanded
           --exclude-tags native
 
+      - name: Test browser platform detection and settings lifecycle
+        run: >-
+          flutter test --no-pub --platform chrome
+          test/helper/utils/app_platform_test.dart
+          test/helper/utils/chromeos_startup_test.dart
+          test/views/applets/settings/settings_page_test.dart
+          --name 'startup platform checks|classifies|web settings refresh'
+
   build:
     if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
     defaults:

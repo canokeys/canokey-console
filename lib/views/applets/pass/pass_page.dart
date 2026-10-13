@@ -11,7 +11,7 @@ import 'package:canokey_console/views/layout/layout.dart';
 import 'package:canokey_console/views/layout/top_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:platform_detector/platform_detector.dart';
+import 'package:canokey_console/helper/utils/app_platform.dart';
 
 class PassPage extends StatefulWidget {
   const PassPage({super.key});

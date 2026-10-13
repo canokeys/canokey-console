@@ -8,7 +8,7 @@ import 'package:canokey_console/helper/widgets/spacing.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:platform_detector/platform_detector.dart';
+import 'package:canokey_console/helper/utils/app_platform.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 /// OPPO compliance: the privacy consent dialog only applies to Chinese

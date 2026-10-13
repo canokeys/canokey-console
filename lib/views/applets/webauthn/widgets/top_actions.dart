@@ -7,7 +7,7 @@ import 'package:canokey_console/views/applets/webauthn/dialogs/authenticator_con
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:canokey_console/helper/widgets/lucide_icons.dart';
-import 'package:platform_detector/platform_detector.dart';
+import 'package:canokey_console/helper/utils/app_platform.dart';
 
 class TopActions extends StatelessWidget with UIMixin {
   final WebAuthnController controller;
