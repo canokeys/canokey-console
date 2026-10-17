@@ -6,6 +6,8 @@ import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/theme/app_theme.dart';
 import 'package:canokey_console/helper/utils/screenshot_mode.dart';
 import 'package:canokey_console/models/webauthn.dart';
+import 'package:canokey_console/models/canokey.dart';
+import 'package:canokey_console/views/applets/settings/dialogs/applet_switches_dialog.dart';
 import 'package:canokey_console/views/applets/settings/dialogs/sm2_config_dialog.dart';
 import 'package:canokey_console/views/applets/settings/settings_page.dart';
 import 'package:canokey_console/views/applets/settings/widgets/action_card.dart';
@@ -17,8 +19,13 @@ import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class _SettingsController extends SettingsController {
+  Map<Func, bool>? submittedSwitches;
   @override
   void onReady() {}
+  @override
+  Future<void> changeSwitches(Map<Func, bool> values) async {
+    submittedSwitches = values;
+  }
 }
 
 class _Sm2SettingsController extends SettingsController {
@@ -54,6 +61,64 @@ void main() {
     );
   });
   tearDown(Get.reset);
+
+  for (final firmware in ['1.0.0', '1.5.2', '1.6.2', '3.0.0']) {
+    testWidgets('$firmware shows applet switches when NDEF is supported', (
+      tester,
+    ) async {
+      Get.put<SettingsController>(
+        _SettingsController()
+          ..polled = true
+          ..key = _legacyKey(firmware),
+      );
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      expect(
+        find.text(S.current.settingsAppletSwitches),
+        firmware == '1.0.0' ? findsNothing : findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  for (final enabled in [true, false]) {
+    testWidgets('1.6.2 can submit NDEF ${enabled ? 'disable' : 'enable'}', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(1536, 1200);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      final controller = _SettingsController()
+        ..polled = true
+        ..key = _legacyKey('1.6.2', ndefEnabled: enabled);
+      Get.put<SettingsController>(controller);
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text(S.current.settingsAppletSwitches));
+      await tester.tap(find.text(S.current.settingsAppletSwitches));
+      await tester.pumpAndSettle();
+      final dialog = find.byType(AppletSwitchesDialog);
+      expect(dialog, findsOneWidget);
+      expect(
+        find.descendant(of: dialog, matching: find.text('NFC Tag')),
+        findsOneWidget,
+      );
+      final checkbox = find.descendant(
+        of: dialog,
+        matching: find.byType(Checkbox),
+      );
+      expect(checkbox, findsOneWidget);
+      expect(tester.widget<Checkbox>(checkbox).value, enabled);
+      await tester.tap(checkbox);
+      await tester.pump();
+      expect(controller.submittedSwitches, isNull);
+      await tester.tap(find.text(S.current.save));
+      await tester.pump();
+      expect(controller.submittedSwitches, {Func.ndefEnabled: !enabled});
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets(
     'web settings refresh on each page entry with a retained controller',
@@ -176,6 +241,25 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 }
+
+CanoKey _legacyKey(String firmware, {bool ndefEnabled = true}) => CanoKey(
+  model: 'CanoKey',
+  sn: 'FFFFFFFF',
+  chipId: '0102',
+  firmwareVersion: firmware,
+  functionSetVersion: CanoKey.functionSetFromFirmwareVersion(firmware),
+  ledOn: true,
+  hotpOn: false,
+  ndefReadonly: false,
+  ndefEnabled: ndefEnabled,
+  webusbLandingEnabled: false,
+  keyboardWithReturn: false,
+  sigTouch: false,
+  decTouch: false,
+  autTouch: false,
+  touchCacheTime: 0,
+  nfcEnabled: true,
+);
 
 Widget _app({bool dark = false, double scale = 1}) => GetMaterialApp(
   theme: dark ? AppTheme.darkTheme : AppTheme.lightTheme,

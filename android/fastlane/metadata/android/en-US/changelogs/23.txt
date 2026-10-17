@@ -1,0 +1,1 @@
+- Fixed the missing NFC Tag enable switch on firmware 1.6.2 and other supported older firmware.

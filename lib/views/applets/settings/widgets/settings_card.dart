@@ -52,8 +52,7 @@ class SettingsCard extends StatelessWidget {
   }
 
   bool _hasAppletSwitches(Set<Func> functionSet) {
-    return (functionSet.contains(Func.nfcSwitch) &&
-            functionSet.contains(Func.ndefEnabled)) ||
+    return functionSet.contains(Func.ndefEnabled) ||
         (controller.key.featureSwitchesSupported &&
             (functionSet.contains(Func.passSwitch) ||
                 functionSet.contains(Func.webAuthnSwitch) ||
