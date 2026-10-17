@@ -9,6 +9,7 @@ import 'package:canokey_console/views/layout/left_bar.dart';
 import 'package:canokey_console/views/layout/top_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:canokey_console/helper/utils/app_platform.dart';
 
@@ -146,51 +147,83 @@ class Layout extends StatelessWidget {
   }
 
   Widget largeScreen(BuildContext context) {
-    final topInset = MediaQuery.viewPaddingOf(context).top;
+    final statusBarStyle =
+        ThemeData.estimateBrightnessForColor(topBarTheme.background) ==
+            Brightness.dark
+        ? SystemUiOverlayStyle.light
+        : SystemUiOverlayStyle.dark;
 
-    return Scaffold(
-      key: controller.scaffoldKey,
-      resizeToAvoidBottomInset: !scrollable,
-      body: Row(
-        children: [
-          LeftBar(isCondensed: ThemeCustomizer.instance.leftBarCondensed),
-          Expanded(
-              child: Stack(
-            children: [
-              Positioned(
-                top: 0,
-                right: 0,
-                left: 0,
-                bottom: 0,
-                child: SafeArea(
-                  top: false,
-                  child: !scrollable
-                      ? Padding(
-                          padding: Spacing.fromLTRB(
-                              0, topInset + 58 + flexSpacing, 0, flexSpacing),
-                          child: child,
-                        )
-                      : SingleChildScrollView(
-                          padding: Spacing.fromLTRB(
-                              0, topInset + 58 + flexSpacing, 0, flexSpacing),
-                          key: controller.scrollKey,
-                          child: child),
-                ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: statusBarStyle,
+      child: Scaffold(
+        key: controller.scaffoldKey,
+        resizeToAvoidBottomInset: !scrollable,
+        // Paint one full-width status area before the sidebar/content split.
+        // SafeArea also prevents scrolling content from painting behind it.
+        body: ColoredBox(
+          color: topBarTheme.background,
+          child: SafeArea(
+            left: false,
+            right: false,
+            bottom: false,
+            child: ColoredBox(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              child: Row(
+                children: [
+                  LeftBar(
+                    isCondensed: ThemeCustomizer.instance.leftBarCondensed,
+                  ),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: SafeArea(
+                            top: false,
+                            child: !scrollable
+                                ? Padding(
+                                    padding: Spacing.fromLTRB(
+                                      0,
+                                      58 + flexSpacing,
+                                      0,
+                                      flexSpacing,
+                                    ),
+                                    child: child,
+                                  )
+                                : SingleChildScrollView(
+                                    padding: Spacing.fromLTRB(
+                                      0,
+                                      58 + flexSpacing,
+                                      0,
+                                      flexSpacing,
+                                    ),
+                                    key: controller.scrollKey,
+                                    child: child,
+                                  ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: SafeArea(
+                            top: false,
+                            left: false,
+                            right: false,
+                            bottom: false,
+                            child: TopBar(
+                              actions: topActions,
+                              title: desktopTitle,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: SafeArea(
-                  left: false,
-                  right: false,
-                  bottom: false,
-                  child: TopBar(actions: topActions, title: desktopTitle),
-                ),
-              ),
-            ],
-          )),
-        ],
+            ),
+          ),
+        ),
       ),
     );
   }
