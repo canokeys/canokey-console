@@ -145,36 +145,38 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
                 Form(
                   key: _validator.formKey,
                   child: Builder(
-                    builder: (fieldContext) => TextFormField(
-                      enabled: !_submitting,
-                      autofocus: true,
-                      onTapOutside: (_) =>
-                          FocusManager.instance.primaryFocus?.unfocus(),
-                      onTap: widget.onFocus,
-                      obscureText: !_showPin.value,
-                      controller: _validator.getController('pin'),
-                      validator: _validator.getValidator('pin'),
-                      onFieldSubmitted: (_) =>
-                          AppDialogSurface.run(fieldContext, _onSubmit),
-                      decoration: InputDecoration(
-                        labelText: widget.label,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                          borderSide: BorderSide(
-                            width: 1,
-                            strokeAlign: 0,
-                            color: AppTheme.theme.colorScheme.onSurface
-                                .withAlpha(80),
+                    builder: (fieldContext) => Obx(
+                      () => TextFormField(
+                        enabled: !_submitting,
+                        autofocus: true,
+                        onTapOutside: (_) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
+                        onTap: widget.onFocus,
+                        obscureText: !_showPin.value,
+                        controller: _validator.getController('pin'),
+                        validator: _validator.getValidator('pin'),
+                        onFieldSubmitted: (_) =>
+                            AppDialogSurface.run(fieldContext, _onSubmit),
+                        decoration: InputDecoration(
+                          labelText: widget.label,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderSide: BorderSide(
+                              width: 1,
+                              strokeAlign: 0,
+                              color: AppTheme.theme.colorScheme.onSurface
+                                  .withAlpha(80),
+                            ),
                           ),
-                        ),
-                        floatingLabelBehavior: FloatingLabelBehavior.auto,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _showPin.value
-                                ? Icons.visibility
-                                : Icons.visibility_off,
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _showPin.value
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: () => _showPin.toggle(),
                           ),
-                          onPressed: () => _showPin.toggle(),
                         ),
                       ),
                     ),
