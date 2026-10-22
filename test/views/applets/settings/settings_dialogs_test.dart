@@ -78,11 +78,55 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byType(Checkbox).first);
     await tester.pump();
+    expect(
+      tester.widget<Checkbox>(find.byType(Checkbox).first).value,
+      !card.passEnabled,
+    );
     expect(submitted, isNull);
     await tester.ensureVisible(find.text(S.current.save));
     await tester.tap(find.text(S.current.save));
     await tester.pump();
     expect(submitted, {Func.passSwitch: !card.passEnabled});
+    Get.back();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('each applet switch updates and can be toggled back', (
+    tester,
+  ) async {
+    final card = ScreenshotMode.canoKey();
+    Map<Func, bool>? submitted;
+    await tester.pumpWidget(
+      _app(
+        AppletSwitchesDialog(
+          canokey: card,
+          functionSet: card.getFunctionSet(),
+          onConfirm: (values) async => submitted = values,
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    final checkboxes = find.byType(Checkbox);
+    expect(checkboxes, findsNWidgets(7));
+    for (var index = 0; index < 7; index++) {
+      final checkbox = checkboxes.at(index);
+      final initial = tester.widget<Checkbox>(checkbox).value;
+      await tester.ensureVisible(checkbox);
+      await tester.tap(checkbox);
+      await tester.pumpAndSettle();
+      expect(tester.widget<Checkbox>(checkbox).value, !initial!);
+      await tester.tap(checkbox);
+      await tester.pumpAndSettle();
+      expect(tester.widget<Checkbox>(checkbox).value, initial);
+    }
+
+    expect(submitted, isNull);
+    await tester.ensureVisible(find.text(S.current.save));
+    await tester.tap(find.text(S.current.save));
+    await tester.pumpAndSettle();
+    expect(submitted, isEmpty);
     Get.back();
     await tester.pumpAndSettle();
   });
