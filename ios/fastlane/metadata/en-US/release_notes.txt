@@ -1,1 +1,3 @@
-- Fixed the missing NFC Tag enable switch on firmware 1.6.2 and other supported older firmware.
+- Improved NFC connection and reading reliability.
+- Improved background and theme support.
+- Fixed applet checkbox states and PIN visibility controls not updating immediately.

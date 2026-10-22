@@ -1,0 +1,3 @@
+- Improved NFC connection and reading reliability.
+- Improved background and theme support.
+- Fixed applet checkbox states and PIN visibility controls not updating immediately.

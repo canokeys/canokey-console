@@ -1,14 +1,20 @@
 import 'package:canokey_console/controller/applets/oath/oath_controller.dart';
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/theme/app_theme.dart';
+import 'package:canokey_console/helper/theme/theme_customizer.dart';
+import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:canokey_console/helper/utils/apple_device.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
 import 'package:canokey_console/views/applets/oath/widgets/top_actions.dart'
     as oath;
 import 'package:canokey_console/views/layout/layout.dart';
+import 'package:canokey_console/views/layout/left_bar.dart';
 import 'package:canokey_console/views/layout/top_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
@@ -19,6 +25,97 @@ void main() {
   });
 
   tearDown(Get.reset);
+
+  for (final dark in [false, true]) {
+    for (final size in [const Size(1366, 1024), const Size(1024, 1366)]) {
+      testWidgets('iPad status area stays uniform ($size, dark: $dark)', (
+        tester,
+      ) async {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = size;
+        tester.view.viewPadding = const FakeViewPadding(top: 24);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetViewPadding);
+        final previousTheme = ThemeCustomizer.instance.theme;
+        final previousAdminTheme = AdminTheme.theme;
+        final previousThemeType = AppTheme.themeType;
+        ThemeCustomizer.instance.theme = dark
+            ? ThemeMode.dark
+            : ThemeMode.light;
+        AdminTheme.setTheme();
+        addTearDown(() {
+          ThemeCustomizer.instance.theme = previousTheme;
+          AdminTheme.theme = previousAdminTheme;
+          AppTheme.themeType = previousThemeType;
+        });
+
+        await tester.pumpWidget(
+          GetMaterialApp(
+            theme: dark ? AppTheme.darkTheme : AppTheme.lightTheme,
+            locale: const Locale('en'),
+            localizationsDelegates: const [
+              S.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: S.delegate.supportedLocales,
+            home: Layout(child: const SizedBox(height: 3000)),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.getTopLeft(find.byType(LeftBar)).dy, 24);
+        expect(tester.getTopLeft(find.byType(TopBar)).dy, 24);
+        final statusBackground = find.ancestor(
+          of: find.byType(LeftBar),
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is ColoredBox &&
+                widget.color == AdminTheme.theme.topBarTheme.background,
+          ),
+        );
+        expect(statusBackground, findsOneWidget);
+        expect(tester.getRect(statusBackground), Offset.zero & size);
+
+        final expectedBrightness = dark ? Brightness.dark : Brightness.light;
+        expect(
+          SystemChrome.latestStyle?.statusBarBrightness,
+          expectedBrightness,
+        );
+        final contentScroll = find
+            .descendant(
+              of: find.byType(Layout),
+              matching: find.byType(SingleChildScrollView),
+            )
+            .last;
+        await tester.drag(contentScroll, const Offset(0, -600));
+        await tester.pumpAndSettle();
+        expect(tester.getTopLeft(contentScroll).dy, 24);
+        expect(tester.getTopLeft(find.byType(TopBar)).dy, 24);
+
+        final dialogClosed = AppDialog.show(
+          const AlertDialog(title: Text('Status bar test')),
+        );
+        await tester.pumpAndSettle();
+        expect(
+          SystemChrome.latestStyle?.statusBarBrightness,
+          expectedBrightness,
+        );
+        Get.back();
+        await tester.pumpAndSettle();
+        await dialogClosed;
+        expect(
+          SystemChrome.latestStyle?.statusBarBrightness,
+          expectedBrightness,
+        );
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+    }
+  }
+
 
   testWidgets('mobile top bar keeps actions compact and title visible',
       (tester) async {

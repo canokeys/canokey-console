@@ -217,10 +217,14 @@ class _AppletSwitchesDialogState extends BaseDialogState<AppletSwitchesDialog>
   }
 
   Widget _switchControl(Func func, String label) {
-    return AppDialogCheckbox(
-      value: _values[func]!.value,
-      onChanged: (value) => _values[func]!.value = value ?? false,
-      title: CustomizedText.bodySmall(label),
+    // LayoutBuilder runs after the outer Obx has finished tracking reads.
+    // Observe each value here so checkbox changes rebuild their own control.
+    return Obx(
+      () => AppDialogCheckbox(
+        value: _values[func]!.value,
+        onChanged: (value) => _values[func]!.value = value ?? false,
+        title: CustomizedText.bodySmall(label),
+      ),
     );
   }
 

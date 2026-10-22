@@ -12,8 +12,59 @@ void main() {
 
   tearDown(Get.reset);
 
-  testWidgets('submitting releases the PIN field focus before NFC work',
+  for (final showSaveOption in [false, true]) {
+    testWidgets(
+      'PIN visibility toggles without losing input (save option=$showSaveOption)',
       (tester) async {
+        await tester.pumpWidget(
+          GetMaterialApp(
+            localizationsDelegates: const [
+              S.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: S.delegate.supportedLocales,
+            home: Scaffold(
+              body: InputPinDialog(
+                title: 'PIN',
+                label: 'PIN',
+                prompt: 'Enter PIN',
+                required: true,
+                showSaveOption: showSaveOption,
+                validators: const [],
+                onFocus: () async {},
+                onSubmit: (_, _) async {},
+                onCancel: () async {},
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextFormField), '123456');
+
+        EditableText field() =>
+            tester.widget<EditableText>(find.byType(EditableText));
+        expect(field().obscureText, isTrue);
+
+        await tester.tap(find.byIcon(Icons.visibility_off));
+        await tester.pumpAndSettle();
+        expect(field().obscureText, isFalse);
+        expect(field().controller.text, '123456');
+        expect(find.byIcon(Icons.visibility), findsOneWidget);
+
+        await tester.tap(find.byIcon(Icons.visibility));
+        await tester.pumpAndSettle();
+        expect(field().obscureText, isTrue);
+        expect(field().controller.text, '123456');
+        expect(find.byIcon(Icons.visibility_off), findsOneWidget);
+      },
+    );
+  }
+
+  testWidgets('submitting releases the PIN field focus before NFC work', (
+    tester,
+  ) async {
     var submittedWithoutFocus = false;
     late FocusNode pinFocusNode;
 
@@ -34,7 +85,7 @@ void main() {
             required: true,
             showSaveOption: false,
             validators: const [],
-            onSubmit: (_, __) async {
+            onSubmit: (_, _) async {
               submittedWithoutFocus = !pinFocusNode.hasFocus;
             },
             onCancel: () async {},
@@ -46,8 +97,9 @@ void main() {
 
     final field = find.byType(TextFormField);
     expect(field, findsOneWidget);
-    pinFocusNode =
-        tester.widget<EditableText>(find.byType(EditableText)).focusNode;
+    pinFocusNode = tester
+        .widget<EditableText>(find.byType(EditableText))
+        .focusNode;
     expect(pinFocusNode.hasFocus, isTrue);
 
     await tester.enterText(field, '123456');

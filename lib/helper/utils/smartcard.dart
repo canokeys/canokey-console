@@ -177,7 +177,7 @@ class SmartCard {
       try {
         final tag = await FlutterNfcKit.poll(
           timeout: const Duration(seconds: 10),
-          androidCheckNDEF: false,
+          checkNDEF: false,
           readIso14443B: false,
           readIso15693: false,
           androidPlatformSound: false,
@@ -309,13 +309,37 @@ class SmartCard {
           return true;
       }
     } else {
-      if (isIOSApp()) {
+      final ios = isIOSApp();
+      if (ios) {
         FocusManager.instance.primaryFocus?.unfocus();
         await SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
       }
-      await FlutterNfcKit.poll(
-        iosAlertMessage: S.of(Get.context!).iosAlertMessage,
-      );
+      final timer = Stopwatch()..start();
+      if (ios) log.i('poll: ISO 14443, automatic NDEF discovery disabled');
+      try {
+        await FlutterNfcKit.poll(
+          iosAlertMessage: S.of(Get.context!).iosAlertMessage,
+          // Console uses its own ISO 7816 NDEF client on iOS.
+          readIso15693: !ios,
+          checkNDEF: !ios,
+        );
+        if (ios) log.i('poll returned after ${timer.elapsedMilliseconds}ms');
+      } catch (error, stack) {
+        if (!ios) rethrow;
+        log.e(
+          'poll failed after ${timer.elapsedMilliseconds}ms',
+          error: error,
+          stackTrace: stack,
+        );
+        // Poll can fail before the business-operation finally. Preserve its
+        // original error even when backend cleanup also fails.
+        try {
+          await FlutterNfcKit.finish();
+        } catch (cleanupError) {
+          log.w('poll cleanup failed', error: cleanupError);
+        }
+        rethrow;
+      }
       _bindConnection();
       return true;
     }
