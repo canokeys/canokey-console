@@ -1,9 +1,9 @@
 # Mobile prerelease checklist
 
-The current candidate is version `1.3.0` with build/version code `24`.
+The current candidate is version `1.3.1` with build/version code `25`.
 
 Before building, confirm in both App Store Connect and Google Play Console that
-build number/version code `24` has not already been used. Increment the number
+build number/version code `25` has not already been used. Increment the number
 in `pubspec.yaml` if necessary.
 
 ## Prerequisites
