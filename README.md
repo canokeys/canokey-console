@@ -56,7 +56,7 @@ Silicon Macs and is signed and notarized by Apple.
 
 ### Windows
 
-Download [CanoKey Console 1.3.0 for Windows (x64)](https://github.com/canokeys/canokey-console/releases/download/v1.3.0/canokey-console-1.3.0-windows-x64.zip),
+Download [CanoKey Console 1.3.1 for Windows (x64)](https://github.com/canokeys/canokey-console/releases/download/v1.3.1/canokey-console-1.3.1-windows-x64.zip),
 extract the entire ZIP, and run `canokey-console.exe` from the extracted folder.
 Keep the bundled DLLs and `data` folder alongside the executable.
 
