@@ -343,8 +343,8 @@ checksum = "8f1fe948ff07f4bd06c30984e69f5b4899c516a3ef74f34df92a2df2ab535495"
 
 [[package]]
 name = "canokey"
-version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e#f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e"
+version = "0.1.2"
+source = "git+https://github.com/canokeys/libcanokey?tag=v0.1.2#7a7591e3cba349734d392b264f83cc4f186ec264"
 dependencies = [
  "canokey-admin",
  "canokey-compat",
@@ -358,8 +358,8 @@ dependencies = [
 
 [[package]]
 name = "canokey-admin"
-version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e#f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e"
+version = "0.1.2"
+source = "git+https://github.com/canokeys/libcanokey?tag=v0.1.2#7a7591e3cba349734d392b264f83cc4f186ec264"
 dependencies = [
  "canokey-compat",
  "canokey-protocol",
@@ -367,16 +367,16 @@ dependencies = [
 
 [[package]]
 name = "canokey-compat"
-version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e#f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e"
+version = "0.1.2"
+source = "git+https://github.com/canokeys/libcanokey?tag=v0.1.2#7a7591e3cba349734d392b264f83cc4f186ec264"
 dependencies = [
  "canokey-protocol",
 ]
 
 [[package]]
 name = "canokey-ctap"
-version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e#f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e"
+version = "0.1.2"
+source = "git+https://github.com/canokeys/libcanokey?tag=v0.1.2#7a7591e3cba349734d392b264f83cc4f186ec264"
 dependencies = [
  "aes",
  "canokey-protocol",
@@ -390,8 +390,8 @@ dependencies = [
 
 [[package]]
 name = "canokey-key"
-version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e#f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e"
+version = "0.1.2"
+source = "git+https://github.com/canokeys/libcanokey?tag=v0.1.2#7a7591e3cba349734d392b264f83cc4f186ec264"
 dependencies = [
  "canokey-compat",
  "canokey-protocol",
@@ -402,16 +402,16 @@ dependencies = [
 
 [[package]]
 name = "canokey-ndef"
-version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e#f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e"
+version = "0.1.2"
+source = "git+https://github.com/canokeys/libcanokey?tag=v0.1.2#7a7591e3cba349734d392b264f83cc4f186ec264"
 dependencies = [
  "canokey-protocol",
 ]
 
 [[package]]
 name = "canokey-oath"
-version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e#f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e"
+version = "0.1.2"
+source = "git+https://github.com/canokeys/libcanokey?tag=v0.1.2#7a7591e3cba349734d392b264f83cc4f186ec264"
 dependencies = [
  "canokey-compat",
  "canokey-protocol",
@@ -423,8 +423,8 @@ dependencies = [
 
 [[package]]
 name = "canokey-openpgp"
-version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e#f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e"
+version = "0.1.2"
+source = "git+https://github.com/canokeys/libcanokey?tag=v0.1.2#7a7591e3cba349734d392b264f83cc4f186ec264"
 dependencies = [
  "canokey-compat",
  "canokey-key",
@@ -433,8 +433,8 @@ dependencies = [
 
 [[package]]
 name = "canokey-piv"
-version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e#f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e"
+version = "0.1.2"
+source = "git+https://github.com/canokeys/libcanokey?tag=v0.1.2#7a7591e3cba349734d392b264f83cc4f186ec264"
 dependencies = [
  "aes",
  "canokey-compat",
@@ -454,8 +454,8 @@ dependencies = [
 
 [[package]]
 name = "canokey-protocol"
-version = "0.1.0"
-source = "git+https://github.com/canokeys/libcanokey?rev=f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e#f94f40acaf5bb57906d2edab1fd1b73d0cfdd97e"
+version = "0.1.2"
+source = "git+https://github.com/canokeys/libcanokey?tag=v0.1.2#7a7591e3cba349734d392b264f83cc4f186ec264"
 dependencies = [
  "thiserror 2.0.20",
  "zeroize",
