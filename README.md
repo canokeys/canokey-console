@@ -44,12 +44,19 @@ to access CanoKey over USB.
 brew install --cask canokeys/tap/canokey-console
 ```
 
+To update an existing installation:
+
+```bash
+brew update
+brew upgrade --cask canokeys/tap/canokey-console
+```
+
 Requires macOS 12 (Monterey) or later. The app supports both Intel and Apple
 Silicon Macs and is signed and notarized by Apple.
 
 ### Windows
 
-Download [CanoKey Console 1.2.8 for Windows (x64)](https://github.com/canokeys/canokey-console/releases/download/v1.2.8/canokey-console-1.2.8-windows-x64.zip),
+Download [CanoKey Console 1.3.0 for Windows (x64)](https://github.com/canokeys/canokey-console/releases/download/v1.3.0/canokey-console-1.3.0-windows-x64.zip),
 extract the entire ZIP, and run `canokey-console.exe` from the extracted folder.
 Keep the bundled DLLs and `data` folder alongside the executable.
 
