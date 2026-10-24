@@ -9,7 +9,8 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 
 class Prompts {
-  static SnackbarController? _pollingSnackbarController;
+  static OverlayEntry? _pollingEntry;
+  static OverlayState? _pollingOverlay;
   static OverlayEntry? _resultEntry;
   static OverlayState? _resultOverlay;
 
@@ -100,20 +101,16 @@ class Prompts {
 
   static void promptAndroidPolling() {
     dismissTransientPrompt();
-    try {
+    _dismissAndroidPollingNotice();
+    if (Get.isRegistered<RxBool>(tag: 'dialog_polling')) {
       Get.find<RxBool>(tag: 'dialog_polling').value = true;
-    } catch (e) {
-      _pollingSnackbarController?.close();
-      _pollingSnackbarController = Get.snackbar(
-        S.of(Get.context!).androidAlertTitle,
-        S.of(Get.context!).readingAlertMessage,
-        icon: SpinKitRipple(color: Colors.tealAccent, size: 32.0),
-        duration: const Duration(seconds: 99),
-        backgroundColor: Colors.grey.withValues(alpha: 0.2),
-        snackPosition: SnackPosition.BOTTOM,
-        maxWidth: 400,
-      );
+      return;
     }
+    final overlay = Get.key.currentState!.overlay!;
+    final entry = OverlayEntry(builder: (_) => const _PollingNotice());
+    _pollingEntry = entry;
+    _pollingOverlay = overlay;
+    overlay.insert(entry);
   }
 
   static void stopPromptAndroidPolling() {
@@ -122,16 +119,72 @@ class Prompts {
     } catch (e) {
       // ignore: empty_catches
     }
-    try {
-      _pollingSnackbarController?.close();
-      _pollingSnackbarController = null;
-    } catch (e) {
-      // ignore: empty_catches
+    _dismissAndroidPollingNotice();
+  }
+
+  static void _dismissAndroidPollingNotice() {
+    if (_pollingOverlay?.mounted == true) {
+      _pollingEntry?.remove();
+      _pollingEntry?.dispose();
     }
+    _pollingEntry = null;
+    _pollingOverlay = null;
   }
 }
 
 class UserCanceledError {}
+
+class _PollingNotice extends StatelessWidget {
+  const _PollingNotice();
+
+  @override
+  Widget build(BuildContext context) => Positioned(
+    left: 16,
+    right: 16,
+    bottom: 16 + MediaQuery.viewInsetsOf(context).bottom,
+    child: SafeArea(
+      top: false,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: Semantics(
+            liveRegion: true,
+            child: Material(
+              color: Color.alphaBlend(
+                Colors.grey.withValues(alpha: 0.2),
+                Theme.of(context).colorScheme.surface,
+              ),
+              textStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              elevation: 8,
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const SpinKitRipple(color: Colors.tealAccent, size: 32),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(S.of(context).androidAlertTitle),
+                          Text(S.of(context).readingAlertMessage),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
 
 /// The timer belongs to the overlay widget, so app/route teardown cancels it.
 class _ResultNotice extends StatefulWidget {
