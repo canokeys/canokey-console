@@ -1,0 +1,1 @@
+- Fixed NFC scanning getting stuck after a read error on Android.

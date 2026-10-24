@@ -81,6 +81,9 @@ class SmartCard {
 
   static Completer<bool>? _androidNfcCompleter;
 
+  static Completer<void>? _androidNfcPollReset;
+  static Future<void>? _androidNfcRecovery;
+
   static Timer? _androidNfcTimer;
 
   static int _androidNfcOperation = 0;
@@ -173,15 +176,29 @@ class SmartCard {
   }
 
   static Future<void> startAndroidNfcHandler() async {
+    var nfcUnavailable = false;
     while (true) {
+      var retryDelay = const Duration(milliseconds: 100);
+      // finish() cancels Android's native poll timeout without completing its
+      // result. Release that Dart wait, but only poll again after cleanup.
+      while (_androidNfcRecovery != null) {
+        await _androidNfcRecovery;
+      }
+      final reset = Completer<void>();
+      _androidNfcPollReset = reset;
       try {
-        final tag = await FlutterNfcKit.poll(
-          timeout: const Duration(seconds: 10),
-          checkNDEF: false,
-          readIso14443B: false,
-          readIso15693: false,
-          androidPlatformSound: false,
-        );
+        final tag = await Future.any([
+          FlutterNfcKit.poll(
+            timeout: const Duration(seconds: 10),
+            checkNDEF: false,
+            readIso14443B: false,
+            readIso15693: false,
+            androidPlatformSound: false,
+          ),
+          reset.future.then((_) => null),
+        ]);
+        if (tag == null || reset.isCompleted) continue;
+        nfcUnavailable = false;
         // A re-poll of the tag held in the field is the in-flight operation's
         // own event (the process* states complete its completer below), so
         // evidence is only invalidated when a new use case binds its lease.
@@ -241,19 +258,29 @@ class SmartCard {
             }
             Audio.poll();
         }
-      } on PlatformException catch (e) {
-        if (e.code == '408') {
-          // do nothing
+      } catch (e, stack) {
+        if (e is PlatformException && e.code == '404') {
+          retryDelay = const Duration(seconds: 2);
+          if (!nfcUnavailable) {
+            log.w('[nfcHandler] NFC unavailable; retrying every 2 seconds.');
+          }
+          nfcUnavailable = true;
+        } else if (e is PlatformException && e.code == '408') {
+          // A native scan timed out normally, so NFC is available again.
+          nfcUnavailable = false;
         } else {
-          rethrow;
+          log.e(
+            '[nfcHandler] Current state: $nfcState. Error polling NFC tag.',
+            error: e,
+            stackTrace: stack,
+          );
         }
-      } catch (e) {
-        log.e(
-          '[nfcHandler] Current state: $nfcState. Error polling NFC tag.',
-          error: e,
-        );
+      } finally {
+        if (identical(_androidNfcPollReset, reset)) {
+          _androidNfcPollReset = null;
+        }
       }
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(retryDelay);
     }
   }
 
@@ -604,11 +631,22 @@ class SmartCard {
           }
           _connectionQuarantined = !await _disconnectCcidCard(card);
         } else {
+          final recovery = isAndroidApp() ? Completer<void>() : null;
+          if (recovery != null) {
+            _androidNfcRecovery = recovery.future;
+            final reset = _androidNfcPollReset;
+            if (reset != null && !reset.isCompleted) reset.complete();
+          }
           try {
             await FlutterNfcKit.finish();
             _connectionQuarantined = false;
           } catch (_) {
             // Preserve the original transport failure and prevent channel reuse.
+          } finally {
+            if (recovery != null) {
+              _androidNfcRecovery = null;
+              recovery.complete();
+            }
           }
         }
         if (_connectionQuarantined) {
