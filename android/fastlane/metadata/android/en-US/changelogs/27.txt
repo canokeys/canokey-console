@@ -1,0 +1,3 @@
+- Fixed NFC scanning failing to recover after an interrupted read on Android.
+- Improved responsiveness when scanning again immediately after a read.
+- Fixed reading prompts remaining visible and improved their readability.

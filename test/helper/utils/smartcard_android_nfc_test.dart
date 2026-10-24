@@ -26,6 +26,7 @@ void main() {
     addTearDown(() {
       messenger.setMockMethodCallHandler(channel, null);
       SmartCard.connectionType = ConnectionType.none;
+      SmartCard.refreshHandler = null;
       Get.reset();
     });
     Get.put(RxBool(false), tag: 'dialog_polling');
@@ -106,11 +107,19 @@ void main() {
     polls[4].complete(_tag());
     await tester.pump();
     expect(await nextScan, isTrue);
+    final pollsDuringRead = polls.length;
+    await tester.pump(const Duration(seconds: 1));
+    expect(
+      polls,
+      hasLength(pollsDuringRead),
+      reason: 'Keep reader mode stable',
+    );
     expect(await SmartCard.transceive('00A4040000'), '9000');
     expect(exchanges, 2);
     final cleanup = SmartCard.stopPollingNfc();
     await tester.pump(const Duration(milliseconds: 500));
     await cleanup;
+    await tester.pump(const Duration(milliseconds: 100));
     expect(Get.find<RxBool>(tag: 'dialog_polling').value, isFalse);
 
     SmartCard.nfcState = NfcState.mute;
@@ -160,5 +169,159 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
     expect(polls, hasLength(initialPolls + 7));
+
+    // Reproduce recovery on a page: finish() returns before controller cleanup
+    // ends. A second scan must not join that still-active failed refresh.
+    final controllerCleanup = Completer<void>();
+    var refreshes = 0;
+    var failNextExchange = true;
+    var failNextFinish = false;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      switch (call.method) {
+        case 'poll':
+          final poll = Completer<String>();
+          polls.add(poll);
+          return poll.future;
+        case 'finish':
+          if (failNextFinish) {
+            failNextFinish = false;
+            throw PlatformException(
+              code: '503',
+              message: 'Tag already removed',
+            );
+          }
+          return null;
+        case 'transceive':
+          exchanges++;
+          if (failNextExchange) {
+            failNextExchange = false;
+            throw PlatformException(code: '500', message: 'Tag lost');
+          }
+          return '9000';
+      }
+      throw StateError('Unexpected method: ${call.method}');
+    });
+    SmartCard.nfcState = NfcState.idle;
+    SmartCard.refreshHandler = () async {
+      refreshes++;
+      try {
+        await SmartCard.transceive('00A4040000');
+      } on PlatformException {
+        SmartCard.nfcState = NfcState.idle;
+        await controllerCleanup.future;
+      }
+    };
+    final beforeFailure = polls.length;
+    final exchangesBeforeFailure = exchanges;
+    polls.last.complete(_tag());
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(refreshes, 1);
+    expect(
+      exchanges,
+      exchangesBeforeFailure + 1,
+      reason: 'Do not replay APDUs',
+    );
+    expect(
+      polls,
+      hasLength(beforeFailure),
+      reason: 'Wait for controller cleanup',
+    );
+    controllerCleanup.complete();
+    await tester.pump();
+    expect(Get.find<RxBool>(tag: 'dialog_polling').value, isFalse);
+    expect(polls, hasLength(beforeFailure + 1));
+    polls.last.complete(_tag());
+    await tester.pump();
+    expect(refreshes, 2, reason: 'The next tap must perform a new refresh');
+    expect(exchanges, exchangesBeforeFailure + 2);
+    expect(SmartCard.nfcState, NfcState.idle);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // On the real device, finish() itself threw for an out-of-date Tag. Reject
+    // reuse of that handle, but recover when a subsequent poll supplies a tag.
+    failNextExchange = true;
+    failNextFinish = true;
+    polls.last.complete(_tag());
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    final beforeFreshTag = exchanges;
+    await expectLater(SmartCard.transceive('00A4040000'), throwsStateError);
+    expect(
+      exchanges,
+      beforeFreshTag,
+      reason: 'Do not reuse the obsolete handle',
+    );
+    expect(SmartCard.connectionError, contains('scan the card again'));
+    polls.last.complete(_tag());
+    await tester.pump();
+    expect(exchanges, beforeFreshTag + 1);
+    expect(SmartCard.connectionError, isNull);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // A failure before SmartCard.process starts must also dismiss the notice.
+    SmartCard.refreshHandler = () => throw StateError('Refresh setup failed');
+    polls.last.complete(_tag());
+    await tester.pump();
+    expect(Get.find<RxBool>(tag: 'dialog_polling').value, isFalse);
+    expect(SmartCard.nfcState, NfcState.idle);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // A refresh may retain its card session while waiting for PIN entry. It
+    // must release the scan gate at that boundary and accept another tap.
+    final dialogClosed = Completer<void>();
+    var dialogRefreshes = 0;
+    SmartCard.refreshHandler = () async {
+      dialogRefreshes++;
+      await SmartCard.stopPollingNfc(withInput: true);
+      await dialogClosed.future;
+    };
+    polls.last.complete(_tag());
+    await tester.pump();
+    final beforeInput = polls.length;
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(SmartCard.nfcState, NfcState.input);
+    expect(polls, hasLength(beforeInput + 1));
+    // Dialog dismissal may restore idle before its owning future settles.
+    SmartCard.nfcState = NfcState.idle;
+    polls.last.complete(_tag());
+    await tester.pump();
+    expect(dialogRefreshes, 1);
+    expect(SmartCard.nfcState, NfcState.idle);
+    await tester.pump(const Duration(milliseconds: 100));
+    SmartCard.nfcState = NfcState.processWithInput;
+    final pinScan = SmartCard.pollNfcOrWebUsb();
+    await tester.pump();
+    polls.last.complete(_tag());
+    await tester.pump();
+    expect(await pinScan, isTrue);
+    final duringPinRead = polls.length;
+    await tester.pump(const Duration(seconds: 1));
+    expect(polls, hasLength(duringPinRead));
+    dialogClosed.complete();
+    await tester.pump();
+    expect(polls, hasLength(duringPinRead + 1));
+    // Complete the operation's timer/notice before leaving the fake clock.
+    final pinCleanup = SmartCard.stopPollingNfc();
+    await tester.pump(const Duration(milliseconds: 500));
+    await pinCleanup;
+
+    // A genuine re-tap immediately after cleanup must not be discarded by a
+    // wall-clock debounce. The ownership gate already prevents overlap.
+    SmartCard.nfcState = NfcState.idle;
+    var quickRefreshes = 0;
+    SmartCard.refreshHandler = () async {
+      quickRefreshes++;
+      await SmartCard.stopPollingNfc();
+    };
+    polls.last.complete(_tag());
+    await tester.pump();
+    expect(quickRefreshes, 1);
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 100));
+    polls.last.complete(_tag());
+    await tester.pump();
+    expect(quickRefreshes, 2, reason: 'Accept a re-tap within two seconds');
+    await tester.pump(const Duration(milliseconds: 500));
   }, variant: TargetPlatformVariant.only(TargetPlatform.android));
 }

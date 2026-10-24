@@ -83,6 +83,9 @@ class SmartCard {
 
   static Completer<void>? _androidNfcPollReset;
   static Future<void>? _androidNfcRecovery;
+  static Completer<void>? _androidNfcRead;
+  static bool _androidNfcRefreshInProgress = false;
+  static bool _androidNfcNeedsFreshTag = false;
 
   static Timer? _androidNfcTimer;
 
@@ -97,8 +100,6 @@ class SmartCard {
   static final Set<String> _permissionDeniedCcidReaders = {};
 
   static int _activeCardOperations = 0;
-
-  static int _lastFinishedTime = 0;
 
   static NfcState _nfcState = NfcState.mute;
   static int _dialogInputScopeDepth = 0;
@@ -181,8 +182,8 @@ class SmartCard {
       var retryDelay = const Duration(milliseconds: 100);
       // finish() cancels Android's native poll timeout without completing its
       // result. Release that Dart wait, but only poll again after cleanup.
-      while (_androidNfcRecovery != null) {
-        await _androidNfcRecovery;
+      while (_androidNfcRecovery != null || _androidNfcRead != null) {
+        await (_androidNfcRecovery ?? _androidNfcRead!.future);
       }
       final reset = Completer<void>();
       _androidNfcPollReset = reset;
@@ -199,6 +200,14 @@ class SmartCard {
         ]);
         if (tag == null || reset.isCompleted) continue;
         nfcUnavailable = false;
+        if (_androidNfcNeedsFreshTag) {
+          // Android's poll callback replaces the plugin's TagTechnology. A
+          // failed close of the obsolete handle must not poison this new tag.
+          _androidNfcNeedsFreshTag = false;
+          _connectionQuarantined = false;
+          connectionError = null;
+          log.i('[nfcHandler] Fresh NFC tag restored the connection.');
+        }
         // A re-poll of the tag held in the field is the in-flight operation's
         // own event (the process* states complete its completer below), so
         // evidence is only invalidated when a new use case binds its lease.
@@ -209,40 +218,56 @@ class SmartCard {
             log.t("[nfcHandler] Current state: $nfcState. Do nothing.");
 
           case NfcState.idle:
+            // A dismissed PIN dialog can restore idle before its refresh has
+            // finished. Do not dispatch another refresh into that same future.
+            if (_androidNfcRefreshInProgress) {
+              log.t(
+                '[nfcHandler] Previous refresh is still settling. Ignored.',
+              );
+              break;
+            }
             final handler = refreshHandler;
             if (handler == null) {
               log.t('[nfcHandler] No active refresh handler. Ignored.');
               break;
             }
-            if (DateTime.now().millisecondsSinceEpoch - _lastFinishedTime <
-                2000) {
-              log.t(
-                "[nfcHandler] Current state: $nfcState. Too soon. Ignored.",
-              );
-              break;
-            }
+            // Accept every new discovery once the previous owner has settled.
+            // A time-based debounce drops genuine quick re-taps; Android may
+            // not report that tag again until it leaves and re-enters the field.
             log.t(
               "[nfcHandler] Current state: $nfcState. Next state: refresh.",
             );
             _beginAndroidNfcOperation();
-            Audio.poll();
-            Prompts.promptAndroidPolling();
-            nfcState = NfcState.refresh;
+            _pauseAndroidNfcPolling();
+            _androidNfcRefreshInProgress = true;
             unawaited(
-              handler().catchError((Object error, StackTrace stack) {
-                log.e(
-                  '[nfcHandler] Failed to refresh NFC data.',
-                  error: error,
-                  stackTrace: stack,
-                );
-              }),
+              Future<void>.sync(() {
+                    Audio.poll();
+                    Prompts.promptAndroidPolling();
+                    nfcState = NfcState.refresh;
+                    return handler();
+                  })
+                  .catchError((Object error, StackTrace stack) {
+                    log.e(
+                      '[nfcHandler] Failed to refresh NFC data.',
+                      error: error,
+                      stackTrace: stack,
+                    );
+                  })
+                  .whenComplete(() {
+                    _androidNfcRefreshInProgress = false;
+                    if (_activeCardOperations == 0) {
+                      Prompts.stopPromptAndroidPolling();
+                      if (nfcState == NfcState.refresh) {
+                        nfcState = NfcState.idle;
+                      }
+                      _resumeAndroidNfcPolling();
+                    }
+                  }),
             );
 
           case NfcState.refresh:
-            log.e(
-              "[nfcHandler] Current state: $nfcState. No tag should be polled. Next state: idle.",
-            );
-            nfcState = NfcState.idle;
+            log.t('[nfcHandler] Refresh already owns the tag. Ignored.');
 
           case NfcState.processWithoutInput:
           case NfcState.processWithInput:
@@ -252,6 +277,7 @@ class SmartCard {
             _androidNfcTimer?.cancel();
             final completer = _androidNfcCompleter;
             if (completer != null && !completer.isCompleted) {
+              _pauseAndroidNfcPolling();
               completer.complete(true);
             } else {
               log.w('[nfcHandler] No NFC operation is waiting for this tag.');
@@ -282,6 +308,17 @@ class SmartCard {
       }
       await Future.delayed(retryDelay);
     }
+  }
+
+  static void _pauseAndroidNfcPolling() {
+    // Re-enabling reader mode while a tag is in use can disturb its connection.
+    _androidNfcRead ??= Completer<void>();
+  }
+
+  static void _resumeAndroidNfcPolling() {
+    final read = _androidNfcRead;
+    _androidNfcRead = null;
+    read?.complete();
   }
 
   static Future<bool> pollNfcOrWebUsb() async {
@@ -414,7 +451,6 @@ class SmartCard {
 
         case NfcState.idle:
           log.t("[stopPollingNfc] Current state: $nfcState. Do nothing.");
-        // _lastFinishedTime = DateTime.now().millisecondsSinceEpoch;
         // Audio.finish();
 
         case NfcState.processWithoutInput:
@@ -433,7 +469,6 @@ class SmartCard {
 
         case NfcState.input: // CHECKED CASE
           log.t("[stopPollingNfc] Current state: $nfcState. Do nothing.");
-          _lastFinishedTime = DateTime.now().millisecondsSinceEpoch;
           Audio.finish();
 
         case NfcState.refresh: // CHECKED CASE
@@ -442,8 +477,14 @@ class SmartCard {
             "[stopPollingNfc] Current state: $nfcState. Next state: $nextState.",
           );
           nfcState = nextState;
-          _lastFinishedTime = DateTime.now().millisecondsSinceEpoch;
           Audio.finish();
+      }
+      // PIN dialogs explicitly release the tag and need polling again before
+      // their owning refresh completes. Otherwise keep the gate until the
+      // entire use case (including controller cleanup) has settled.
+      if (withInput ||
+          (_activeCardOperations == 0 && !_androidNfcRefreshInProgress)) {
+        _resumeAndroidNfcPolling();
       }
     } else {
       _sessions.invalidate();
@@ -451,8 +492,18 @@ class SmartCard {
     }
   }
 
-  static Future<void> process(Function(String sn) f) =>
-      _sessions.run((_) => _process(f));
+  static Future<void> process(Function(String sn) f) async {
+    try {
+      await _sessions.run((_) => _process(f));
+    } finally {
+      if (isAndroidApp() &&
+          !_androidNfcRefreshInProgress &&
+          _activeCardOperations == 0) {
+        Prompts.stopPromptAndroidPolling();
+        _resumeAndroidNfcPolling();
+      }
+    }
+  }
 
   static Future<void> _process(Function(String sn) f) async {
     _requireReusableConnection();
@@ -597,7 +648,9 @@ class SmartCard {
   static void _requireReusableConnection() {
     if (_connectionQuarantined) {
       throw StateError(
-        'Card transport cleanup failed; restart the app before reuse',
+        _androidNfcNeedsFreshTag
+            ? 'NFC connection is invalid; scan the card again before reuse'
+            : 'Card transport cleanup failed; restart the app before reuse',
       );
     }
   }
@@ -625,6 +678,7 @@ class SmartCard {
         _sessions.invalidate();
         _connectionQuarantined = true;
         if (ccid) {
+          _androidNfcNeedsFreshTag = false;
           if (identical(_ccidCard, card)) {
             _ccidCard = null;
             _ccidBootstrapSerial = null;
@@ -640,8 +694,12 @@ class SmartCard {
           try {
             await FlutterNfcKit.finish();
             _connectionQuarantined = false;
-          } catch (_) {
-            // Preserve the original transport failure and prevent channel reuse.
+          } catch (cleanupError) {
+            // In particular, Android can reject isConnected/close for an
+            // out-of-date Tag. Keep the old channel unusable, but let a later
+            // successful poll supply a replacement instead of requiring restart.
+            if (recovery != null) _androidNfcNeedsFreshTag = true;
+            log.w('NFC transport cleanup failed', error: cleanupError);
           } finally {
             if (recovery != null) {
               _androidNfcRecovery = null;
@@ -650,8 +708,9 @@ class SmartCard {
           }
         }
         if (_connectionQuarantined) {
-          connectionError =
-              'Card transport cleanup failed; restart the app before reuse';
+          connectionError = _androidNfcNeedsFreshTag
+              ? 'NFC connection is invalid; scan the card again before reuse'
+              : 'Card transport cleanup failed; restart the app before reuse';
         }
         _currentSN = '';
         connectionType = ConnectionType.none;
