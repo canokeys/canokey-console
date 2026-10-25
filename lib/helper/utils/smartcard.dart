@@ -732,8 +732,8 @@ class SmartCard {
     });
   }
 
-  static void pollCcid() {
-    Timer.periodic(const Duration(seconds: 1), (_) async {
+  static Timer pollCcid() {
+    return Timer.periodic(const Duration(seconds: 1), (_) async {
       if (_ccidPollInProgress) {
         return;
       }
@@ -853,6 +853,11 @@ class SmartCard {
       await card.disconnect();
       return true;
     } catch (e) {
+      // Android removes the reader and closes its transport on detach before
+      // Dart observes the unplug. There is nothing left to clean up in this case.
+      if (e is PlatformException && e.code == 'CCID_READER_NOT_FOUND') {
+        return true;
+      }
       log.w('Failed to disconnect CanoKey (USB)', error: e);
       return false;
     }
