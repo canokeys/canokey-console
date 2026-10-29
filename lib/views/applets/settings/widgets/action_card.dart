@@ -88,7 +88,14 @@ class ActionCard extends StatelessWidget with UIMixin {
         ? controller.key.getFunctionSet()
         : <Func>{};
     final resets = [
+      (
+        Func.resetWebAuthn,
+        Applet.webauthn,
+        s.settingsResetWebAuthn,
+        LucideIcons.keyRound,
+      ),
       (Func.resetOath, Applet.oath, s.settingsResetOATH, LucideIcons.clock),
+      (Func.resetPass, Applet.pass, s.settingsResetPass, LucideIcons.keyboard),
       (Func.resetPiv, Applet.piv, s.settingsResetPIV, LucideIcons.creditCard),
       (
         Func.resetOpenPgp,
@@ -97,13 +104,6 @@ class ActionCard extends StatelessWidget with UIMixin {
         LucideIcons.lock,
       ),
       (Func.resetNdef, Applet.ndef, s.settingsResetNDEF, LucideIcons.nfc),
-      (
-        Func.resetWebAuthn,
-        Applet.webauthn,
-        s.settingsResetWebAuthn,
-        LucideIcons.keyRound,
-      ),
-      (Func.resetPass, Applet.pass, s.settingsResetPass, LucideIcons.keyboard),
     ];
     final actions = <Widget>[
       if (functions.contains(Func.changeAdminPin))

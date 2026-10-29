@@ -1,1 +1,3 @@
-- Improved compatibility.
+1. Added PIN confirmation when setting or changing a WebAuthn PIN.
+2. Improved CanoKey compatibility.
+3. Adjusted some interface layouts.

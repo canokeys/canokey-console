@@ -19,6 +19,7 @@ class InputPinDialog extends BaseDialog {
   final String prompt;
   final bool required;
   final bool showSaveOption;
+  final bool confirmPin;
   final List<FieldValidatorRule> validators;
   final Future<void> Function(String, bool) onSubmit;
   final Future<void> Function() onCancel;
@@ -31,6 +32,7 @@ class InputPinDialog extends BaseDialog {
     required this.prompt,
     required this.required,
     required this.showSaveOption,
+    this.confirmPin = false,
     required this.validators,
     required this.onSubmit,
     required this.onCancel,
@@ -43,6 +45,7 @@ class InputPinDialog extends BaseDialog {
     required String prompt,
     bool required = true,
     bool showSaveOption = false,
+    bool confirmPin = false,
     List<FieldValidatorRule> validators = const [],
     Future<void> Function(String, bool) onSubmit = _defaultOnSubmit,
     Future<void> Function() onCancel = _defaultOnCancel,
@@ -54,6 +57,7 @@ class InputPinDialog extends BaseDialog {
         prompt: prompt,
         required: required,
         showSaveOption: showSaveOption,
+        confirmPin: confirmPin,
         validators: validators,
         // Flutter invokes UI callbacks in its own zone. Preserve the use-case
         // lease while an authentication prompt is waiting for input.
@@ -79,6 +83,8 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
   final FormValidator _validator = FormValidator();
   final RxBool _showPin = false.obs;
   final RxBool _savePin = false.obs;
+  final _confirmPinController = TextEditingController();
+  final _confirmPinFocus = FocusNode();
 
   @override
   void initState() {
@@ -112,6 +118,8 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
   @override
   void dispose() {
     _validator.getController('pin')?.dispose();
+    _confirmPinController.dispose();
+    _confirmPinFocus.dispose();
     super.dispose();
   }
 
@@ -144,42 +152,80 @@ class _InputPinDialogState extends BaseDialogState<InputPinDialog> {
               children: [
                 Form(
                   key: _validator.formKey,
-                  child: Builder(
-                    builder: (fieldContext) => Obx(
-                      () => TextFormField(
-                        enabled: !_submitting,
-                        autofocus: true,
-                        onTapOutside: (_) =>
-                            FocusManager.instance.primaryFocus?.unfocus(),
-                        onTap: widget.onFocus,
-                        obscureText: !_showPin.value,
-                        controller: _validator.getController('pin'),
-                        validator: _validator.getValidator('pin'),
-                        onFieldSubmitted: (_) =>
-                            AppDialogSurface.run(fieldContext, _onSubmit),
-                        decoration: InputDecoration(
-                          labelText: widget.label,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(4)),
-                            borderSide: BorderSide(
-                              width: 1,
-                              strokeAlign: 0,
-                              color: AppTheme.theme.colorScheme.onSurface
-                                  .withAlpha(80),
+                  child: Column(
+                    children: [
+                      Builder(
+                        builder: (fieldContext) => Obx(
+                          () => TextFormField(
+                            enabled: !_submitting,
+                            autofocus: true,
+                            onTapOutside: (_) =>
+                                FocusManager.instance.primaryFocus?.unfocus(),
+                            onTap: widget.onFocus,
+                            obscureText: !_showPin.value,
+                            controller: _validator.getController('pin'),
+                            validator: _validator.getValidator('pin'),
+                            textInputAction: widget.confirmPin
+                                ? TextInputAction.next
+                                : TextInputAction.done,
+                            onFieldSubmitted: widget.confirmPin
+                                ? (_) => _confirmPinFocus.requestFocus()
+                                : (_) => AppDialogSurface.run(
+                                    fieldContext,
+                                    _onSubmit,
+                                  ),
+                            decoration: InputDecoration(
+                              labelText: widget.label,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(4),
+                                ),
+                                borderSide: BorderSide(
+                                  width: 1,
+                                  strokeAlign: 0,
+                                  color: AppTheme.theme.colorScheme.onSurface
+                                      .withAlpha(80),
+                                ),
+                              ),
+                              floatingLabelBehavior: FloatingLabelBehavior.auto,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _showPin.value
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
+                                onPressed: () => _showPin.toggle(),
+                              ),
                             ),
-                          ),
-                          floatingLabelBehavior: FloatingLabelBehavior.auto,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _showPin.value
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                            ),
-                            onPressed: () => _showPin.toggle(),
                           ),
                         ),
                       ),
-                    ),
+                      if (widget.confirmPin) ...[
+                        Spacing.height(12),
+                        Builder(
+                          builder: (fieldContext) => TextFormField(
+                            controller: _confirmPinController,
+                            focusNode: _confirmPinFocus,
+                            enabled: !_submitting,
+                            obscureText: !_showPin.value,
+                            onTap: widget.onFocus,
+                            onTapOutside: (_) =>
+                                FocusManager.instance.primaryFocus?.unfocus(),
+                            textInputAction: TextInputAction.done,
+                            validator: (value) =>
+                                value == _validator.getController('pin')!.text
+                                ? null
+                                : S.of(context).pinConfirmationMismatch,
+                            onFieldSubmitted: (_) =>
+                                AppDialogSurface.run(fieldContext, _onSubmit),
+                            decoration: InputDecoration(
+                              labelText: S.of(context).confirmNewPin,
+                              border: const OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 if (widget.showSaveOption)

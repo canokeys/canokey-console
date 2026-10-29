@@ -37,6 +37,7 @@ class TopActions extends StatelessWidget with UIMixin {
                   title: S.of(context).changePin,
                   label: 'PIN',
                   prompt: S.of(context).changePinPrompt(4, 63),
+                  confirmPin: true,
                   validators: [LengthValidator(min: 4, max: 63)],
                   showSaveOption: true,
                   onSubmit: (pin, savePin) async {
