@@ -367,6 +367,7 @@ class WebAuthnController extends PollingController {
       title: S.of(Get.context!).webauthnSetPinTitle,
       label: 'PIN',
       prompt: S.of(Get.context!).webauthnSetPinPrompt,
+      confirmPin: true,
       validators: [LengthValidator(min: 4, max: 63)],
       showSaveOption: true,
       onSubmit: (pin, savePin) async {

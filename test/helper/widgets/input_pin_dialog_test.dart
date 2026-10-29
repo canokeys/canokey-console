@@ -12,6 +12,73 @@ void main() {
 
   tearDown(Get.reset);
 
+  testWidgets('PIN confirmation blocks empty and mismatched values', (
+    tester,
+  ) async {
+    final submitted = <String>[];
+    await tester.pumpWidget(
+      GetMaterialApp(
+        localizationsDelegates: const [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: S.delegate.supportedLocales,
+        home: Scaffold(
+          body: InputPinDialog(
+            title: 'Set PIN',
+            label: 'PIN',
+            prompt: 'Enter a new PIN',
+            required: true,
+            showSaveOption: false,
+            confirmPin: true,
+            validators: const [],
+            onFocus: () async {},
+            onSubmit: (pin, _) async {
+              submitted.add(pin);
+            },
+            onCancel: () async {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final fields = find.byType(TextFormField);
+    expect(fields, findsNWidgets(2));
+    await tester.enterText(fields.first, '123456');
+    await tester.testTextInput.receiveAction(TextInputAction.next);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<EditableText>(find.byType(EditableText).last)
+          .focusNode
+          .hasFocus,
+      isTrue,
+    );
+    expect(submitted, isEmpty);
+    await tester.tap(find.text(S.current.confirm));
+    await tester.pumpAndSettle();
+    expect(submitted, isEmpty);
+    expect(find.text(S.current.pinConfirmationMismatch), findsOneWidget);
+
+    await tester.enterText(fields.last, '654321');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(submitted, isEmpty);
+
+    await tester.enterText(fields.last, '123456');
+    await tester.enterText(fields.first, '123457');
+    await tester.tap(find.text(S.current.confirm));
+    await tester.pumpAndSettle();
+    expect(submitted, isEmpty);
+
+    await tester.enterText(fields.last, '123457');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(submitted, ['123457']);
+  });
+
   for (final showSaveOption in [false, true]) {
     testWidgets(
       'PIN visibility toggles without losing input (save option=$showSaveOption)',
