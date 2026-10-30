@@ -872,5 +872,17 @@
   "pivUsageServerAuth": "服务器身份验证",
   "pivUsageCodeSigning": "代码签名",
   "pivUsageEmailProtection": "电子邮件保护",
-  "pivUsageSmartCardLogon": "智能卡登录"
+  "pivUsageSmartCardLogon": "智能卡登录",
+  "operationSavedRefreshFailed": "修改已保存，但无法刷新状态。请重新读取 CanoKey。",
+  "nfcReadingTitle": "正在读取 CanoKey",
+  "nfcWaitingMessage": "请将 CanoKey 靠近手机背面的 NFC 感应区域。",
+  "pivManagementKeyChangedProtectionIncomplete": "新管理密钥已生效，但 PIN 保护副本尚未完成更新。请保留新密钥，贴稳同一张卡后点击“继续”，完成剩余步骤，不会再次更改密钥。",
+  "pivManagementKeyChangeOutcomeUnknown": "通信中断，尚未确认密钥是否已更改。请保留新旧密钥，贴上同一张卡后点击“继续”，先确认当前有效密钥，再处理剩余步骤。",
+  "pivContinueManagementKeyChange": "继续",
+  "pivManagementKeyPreviousStillActive": "原密钥仍然有效，本次更改尚未确认。已保留输入，请核对后再次保存，明确重试本次更改。",
+  "pivManagementKeyCardStateChanged": "卡片或管理数据与本次待完成操作不一致，未执行写入。请换回原卡，并保留新旧密钥。",
+  "pivManagementKeyContinuationAuthenticationFailed": "无法使用预期管理密钥确认本次操作，未执行写入。请保留新旧密钥，并确认使用的是原卡。",
+  "pivManagementKeyChangeSafetyHint": "完成前请保持贴卡。若中断，请保留新旧密钥并继续本次操作。待完成信息仅暂存在当前 PIV 页面内存中，离开页面或关闭应用前请保存密钥。",
+  "pivManagementKeyChangeFailed": "管理密钥未更改。请检查 PIN、当前管理密钥和连接后重试。",
+  "pivDataRefreshIncomplete": "状态未能完整刷新，当前显示上次读到的数据；可重新读卡更新。"
 }

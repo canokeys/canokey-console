@@ -24,10 +24,85 @@ import '../../../support/piv_certificate_api.dart';
 void main() {
   setUp(() {
     Get.testMode = true;
+    SmartCard.connectionType = ConnectionType.ccid;
   });
 
   tearDown(() {
+    SmartCard.connectionType = ConnectionType.none;
     Get.reset();
+  });
+
+  testWidgets('manual rotation removing protection still requests PIN', (
+    tester,
+  ) async {
+    final controller = _TestPivController()
+      ..polled = true
+      ..pinOnlyMode = true;
+    _setFirmware(controller, '3.1.1');
+    Get.put<PivController>(controller);
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    tester
+        .widget<PivPinManagementCard>(find.byType(PivPinManagementCard))
+        .onChangeManagementKey();
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text(S.current.pivManualManagementKey));
+    await tester.tap(find.text(S.current.pivManualManagementKey));
+    await tester.pumpAndSettle();
+    expect(_inputField('PIN'), findsOneWidget);
+    await tester.ensureVisible(
+      find.text(S.current.pivStoreManagementKeyOnCard),
+    );
+    await tester.tap(find.text(S.current.pivStoreManagementKeyOnCard));
+    await tester.pumpAndSettle();
+    expect(
+      _inputField('PIN'),
+      findsOneWidget,
+      reason:
+          'Controller always verifies PIN when an existing protected copy must be removed',
+    );
+  });
+
+  testWidgets('stale empty slot must not silently overwrite a committed key', (
+    tester,
+  ) async {
+    final controller = _TestPivController()
+      ..polled = true
+      ..failRefresh = true;
+    _setFirmware(controller, '3.1.1');
+    Get.put<PivController>(controller);
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    // A key was committed to 9D, but readback failed before publishing it.
+    await controller.refreshAfterMutation();
+    await tester.pumpAndSettle();
+    expect(find.byType(PollCanoKeyScreen), findsNothing);
+    expect(find.byType(PivPinManagementCard), findsOneWidget);
+    expect(find.text(S.current.pivDataRefreshIncomplete), findsOneWidget);
+    tester.widget<PivSlotListItem>(_slotItem('9D')).onTap();
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text(S.current.pivGenerateKey));
+    await tester.tap(find.text(S.current.pivGenerateKey));
+    await tester.pumpAndSettle();
+    await tester.enterText(_inputField(S.current.pivManagementKey), '01' * 24);
+    await tester.ensureVisible(find.text(S.current.pivGenerate));
+    await tester.tap(find.text(S.current.pivGenerate));
+    await tester.pumpAndSettle();
+    expect(
+      controller.keyGenerations,
+      0,
+      reason:
+          'No fresh slot check and no overwrite consent before dispatching a destructive generation',
+    );
+    expect(find.text(S.current.pivOverwriteKey), findsOneWidget);
+    await tester.tap(find.text(S.current.cancel).last);
+    await tester.pumpAndSettle();
+    expect(controller.keyGenerations, 0);
+    await tester.tap(find.text(S.current.pivGenerate));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(S.current.pivOverwrite));
+    await tester.pumpAndSettle();
+    expect(controller.keyGenerations, 1);
   });
 
   for (final remaining in [3, 0, null]) {
@@ -299,67 +374,172 @@ void main() {
     await Get.delete<PivController>(force: true);
   });
 
-  for (final (width, usePinOnly) in [
-    for (final width in [390.0, 1440.0])
-      for (final usePinOnly in [true, false]) (width, usePinOnly),
-  ]) {
-    testWidgets('manual key transition authenticates using selected mode $usePinOnly at $width',
-        (tester) async {
+  testWidgets(
+    'pending key change continues in the same form and survives dialog close',
+    (tester) async {
       tester.view.devicePixelRatio = 1;
-      tester.view.physicalSize = Size(width, 844);
+      tester.view.physicalSize = const Size(390, 844);
       addTearDown(tester.view.resetDevicePixelRatio);
       addTearDown(tester.view.resetPhysicalSize);
       final controller = _TestPivController()
         ..polled = true
-        ..pinOnlyMode = true;
+        ..pinOnlyMode = true
+        ..keyChangeResult = PivManagementKeyChangeResult.outcomeUnknown;
       _setFirmware(controller, '3.1.1');
       Get.put<PivController>(controller);
       await tester.pumpWidget(GlobalLoaderOverlay(child: _app()));
       await tester.pumpAndSettle();
-      expect(find.text(S.current.pivChangePUK), findsNothing);
-      expect(find.text(S.current.pivSetPinPukRetries), findsNothing);
-      final changeAuthentication = find.descendant(
-        of: find.byType(PivPinManagementCard),
-        matching: find.text(S.current.change),
-      );
-      await tester.ensureVisible(changeAuthentication);
+      tester
+          .widget<PivPinManagementCard>(find.byType(PivPinManagementCard))
+          .onChangeManagementKey();
       await tester.pumpAndSettle();
-      await tester.ensureVisible(changeAuthentication);
-      await tester.pumpAndSettle();
-      await tester.tap(changeAuthentication);
-      await tester.pumpAndSettle();
-
       Finder field(String label) => find.ancestor(
-          of: find.byWidgetPredicate((widget) => widget is TextField && widget.decoration?.labelText == label),
-          matching: find.byType(TextFormField));
-      expect(field('PIN'), findsOneWidget);
-      expect(field(S.current.pivOldManagementKey), findsNothing);
-      await tester.enterText(field('PIN'), 'bad');
-      await tester.tap(find.text(S.current.pivManualManagementKey));
-      await tester.pumpAndSettle();
-      expect(field('PIN'), findsNothing);
-      expect(field(S.current.pivOldManagementKey), findsOneWidget);
-      await tester.enterText(field(S.current.pivOldManagementKey), 'bad');
-      if (usePinOnly) {
-        await tester.tap(find.text(S.current.pivPinProtectedKeyOnCard).last);
-        await tester.pumpAndSettle();
-        expect(field(S.current.pivOldManagementKey), findsNothing);
-        await tester.enterText(field('PIN'), '123456');
-      } else {
-        await tester.enterText(field(S.current.pivOldManagementKey), '01' * 24);
-      }
+        of: find.byWidgetPredicate(
+          (widget) =>
+              widget is TextField && widget.decoration?.labelText == label,
+        ),
+        matching: find.byType(TextFormField),
+      );
+      await tester.enterText(field('PIN'), '123456');
       await tester.enterText(field(S.current.pivNewManagementKey), '02' * 24);
-      await tester.ensureVisible(find.text(S.current.disable));
-      await tester.tap(find.text(S.current.disable));
+      await tester.ensureVisible(find.text(S.current.save));
+      await tester.tap(find.text(S.current.save));
       await tester.pumpAndSettle();
-      expect(controller.disablePinOnlyArguments, [
-        usePinOnly ? '123456' : '',
-        usePinOnly ? '' : '01' * 24,
+      expect(controller.keyChanges, 1);
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: field(S.current.pivNewManagementKey),
+                matching: find.byType(TextField),
+              ),
+            )
+            .readOnly,
+        isTrue,
+      );
+      expect(
+        tester
+            .widget<TextFormField>(field(S.current.pivOldManagementKey))
+            .controller!
+            .text,
+        '01' * 24,
+      );
+      expect(
+        find.text(S.current.pivManagementKeyChangeOutcomeUnknown),
+        findsWidgets,
+      );
+      expect(find.text(S.current.pivManualManagementKey), findsNothing);
+      expect(
+        _actionButton(tester, S.current.pivRandomManagementKey).onPressed,
+        isNull,
+      );
+      // Close without losing the continuation, then reopen from the pending
+      // page even though its old card data has been marked stale.
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+      expect(find.byType(PollCanoKeyScreen), findsNothing);
+      final continueButton = find.widgetWithText(
+        FilledButton,
+        S.current.pivContinueManagementKeyChange,
+      );
+      await tester.tap(continueButton);
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<TextFormField>(field(S.current.pivNewManagementKey))
+            .controller!
+            .text,
         '02' * 24,
-        usePinOnly,
-      ]);
+      );
+      expect(
+        tester.widget<TextFormField>(field('PIN')).controller!.text,
+        isEmpty,
+      );
+      await tester.enterText(field('PIN'), '123456');
+      final dialogContinue = find.descendant(
+        of: find.byType(Dialog),
+        matching: continueButton,
+      );
+      await tester.ensureVisible(dialogContinue);
+      await tester.tap(dialogContinue);
+      await tester.pumpAndSettle();
+      expect(controller.keyChanges, 1);
+      expect(controller.continuationPins, ['123456']);
+      expect(find.byType(TextFormField), findsNothing);
       expect(tester.takeException(), isNull);
-    });
+    },
+  );
+
+  for (final (width, usePinOnly) in [
+    for (final width in [390.0, 1440.0])
+      for (final usePinOnly in [true, false]) (width, usePinOnly),
+  ]) {
+    testWidgets(
+      'manual key transition authenticates using selected mode $usePinOnly at $width',
+      (tester) async {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = Size(width, 844);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        addTearDown(tester.view.resetPhysicalSize);
+        final controller = _TestPivController()
+          ..polled = true
+          ..pinOnlyMode = true;
+        _setFirmware(controller, '3.1.1');
+        Get.put<PivController>(controller);
+        await tester.pumpWidget(GlobalLoaderOverlay(child: _app()));
+        await tester.pumpAndSettle();
+        expect(find.text(S.current.pivChangePUK), findsNothing);
+        expect(find.text(S.current.pivSetPinPukRetries), findsNothing);
+        final changeAuthentication = find.descendant(
+          of: find.byType(PivPinManagementCard),
+          matching: find.text(S.current.change),
+        );
+        await tester.ensureVisible(changeAuthentication);
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(changeAuthentication);
+        await tester.pumpAndSettle();
+        await tester.tap(changeAuthentication);
+        await tester.pumpAndSettle();
+
+        Finder field(String label) => find.ancestor(
+          of: find.byWidgetPredicate(
+            (widget) =>
+                widget is TextField && widget.decoration?.labelText == label,
+          ),
+          matching: find.byType(TextFormField),
+        );
+        expect(field('PIN'), findsOneWidget);
+        expect(field(S.current.pivOldManagementKey), findsNothing);
+        await tester.enterText(field('PIN'), 'bad');
+        await tester.tap(find.text(S.current.pivManualManagementKey));
+        await tester.pumpAndSettle();
+        expect(field('PIN'), findsNothing);
+        expect(field(S.current.pivOldManagementKey), findsOneWidget);
+        await tester.enterText(field(S.current.pivOldManagementKey), 'bad');
+        if (usePinOnly) {
+          await tester.tap(find.text(S.current.pivPinProtectedKeyOnCard).last);
+          await tester.pumpAndSettle();
+          expect(field(S.current.pivOldManagementKey), findsNothing);
+          await tester.enterText(field('PIN'), '123456');
+        } else {
+          await tester.enterText(
+            field(S.current.pivOldManagementKey),
+            '01' * 24,
+          );
+        }
+        await tester.enterText(field(S.current.pivNewManagementKey), '02' * 24);
+        await tester.ensureVisible(find.text(S.current.disable));
+        await tester.tap(find.text(S.current.disable));
+        await tester.pumpAndSettle();
+        expect(controller.disablePinOnlyArguments, [
+          usePinOnly ? '123456' : '',
+          usePinOnly ? '' : '01' * 24,
+          '02' * 24,
+          usePinOnly,
+        ]);
+        expect(tester.takeException(), isNull);
+      },
+    );
   }
 
   testWidgets('legacy PIN-only cards retain recovery while PUK is usable', (
@@ -635,7 +815,8 @@ void main() {
         await tester.tap(find.text('Self-sign'));
         await tester.pumpAndSettle();
         Finder credential(String label) => find.byWidgetPredicate(
-          (widget) => widget is TextField && widget.decoration?.labelText == label,
+          (widget) =>
+              widget is TextField && widget.decoration?.labelText == label,
         );
         await tester.enterText(credential('PIN'), '123456');
         await tester.enterText(
@@ -889,8 +1070,9 @@ void main() {
 }
 
 Finder _inputField(String label) => find.ancestor(
-  of: find.byWidgetPredicate((widget) =>
-      widget is TextField && widget.decoration?.labelText == label),
+  of: find.byWidgetPredicate(
+    (widget) => widget is TextField && widget.decoration?.labelText == label,
+  ),
   matching: find.byType(TextFormField),
 );
 
@@ -922,12 +1104,82 @@ SlotInfo _slot(int number, AlgorithmType algorithm) => SlotInfo(
 );
 
 class _TestPivController extends PivController {
+  int keyGenerations = 0;
+  @override
+  Future<bool> generateKey(
+    String slot,
+    AlgorithmType algorithm,
+    PinPolicy pinPolicy,
+    TouchPolicy touchPolicy,
+    String pin,
+    String managementKey,
+    bool usePinOnly,
+  ) async {
+    keyGenerations++;
+    return true;
+  }
+
+  bool failRefresh = false;
+  PivManagementKeyChangeResult keyChangeResult =
+      PivManagementKeyChangeResult.success;
+  int keyChanges = 0;
+  bool pending = false;
+  String replacement = '';
+  List<String> continuationPins = [];
+  @override
+  bool get hasPendingManagementKeyChange => pending;
+  @override
+  bool get pendingManagementKeyRequiresPin => pending;
+  @override
+  String get pendingManagementKey => pending ? replacement : '';
+  @override
+  String get pendingPreviousManagementKey => pending ? '01' * 24 : '';
+  @override
+  PivManagementKeyChangeResult? get pendingManagementKeyResult =>
+      pending ? keyChangeResult : null;
+  @override
+  Future<PivManagementKeyChangeResult> changeManagementKey(
+    String currentKey,
+    String newKey, {
+    String pin = '',
+    bool usePinOnly = false,
+    bool storeOnDevice = false,
+    TouchPolicy? touchPolicy,
+  }) async {
+    keyChanges++;
+    pending = keyChangeResult != PivManagementKeyChangeResult.success;
+    replacement = newKey;
+    if (pending) polled = false;
+    update();
+    return keyChangeResult;
+  }
+
+  @override
+  Future<PivManagementKeyChangeResult> continueManagementKeyChange(
+    String pin,
+  ) async {
+    continuationPins.add(pin);
+    pending = false;
+    polled = true;
+    update();
+    return PivManagementKeyChangeResult.success;
+  }
+
   List<Object>? disablePinOnlyArguments;
 
   @override
-  Future<bool> disablePinOnlyMode(String pin, String currentManagementKey,
-      String newManagementKey, bool usePinOnly) async {
-    disablePinOnlyArguments = [pin, currentManagementKey, newManagementKey, usePinOnly];
+  Future<bool> disablePinOnlyMode(
+    String pin,
+    String currentManagementKey,
+    String newManagementKey,
+    bool usePinOnly,
+  ) async {
+    disablePinOnlyArguments = [
+      pin,
+      currentManagementKey,
+      newManagementKey,
+      usePinOnly,
+    ];
     return true;
   }
 
@@ -979,6 +1231,7 @@ class _TestPivController extends PivController {
   @override
   Future<void> doRefreshData() async {
     refreshCount++;
+    if (failRefresh) throw StateError('readback interrupted');
   }
 
   @override

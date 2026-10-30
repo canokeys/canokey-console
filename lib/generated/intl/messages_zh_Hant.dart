@@ -301,9 +301,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "newPin": MessageLookupByLibrary.simpleMessage("新 PIN"),
     "next": MessageLookupByLibrary.simpleMessage("下一步"),
+    "nfcReadingTitle": MessageLookupByLibrary.simpleMessage("正在讀取 CanoKey"),
     "nfcSound": MessageLookupByLibrary.simpleMessage("NFC 互動音效"),
     "nfcSoundPrompt": MessageLookupByLibrary.simpleMessage(
       "播放順序：讀卡開始、讀卡結束、讀卡失敗",
+    ),
+    "nfcWaitingMessage": MessageLookupByLibrary.simpleMessage(
+      "請將 CanoKey 靠近手機背面的 NFC 感應區域。",
     ),
     "noCard": MessageLookupByLibrary.simpleMessage("未找到 CanoKey"),
     "noCredential": MessageLookupByLibrary.simpleMessage("沒有找到憑證"),
@@ -466,6 +470,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "operationFailed": MessageLookupByLibrary.simpleMessage(
       "操作失敗，請重新讀取 CanoKey 後再試一次。",
     ),
+    "operationSavedRefreshFailed": MessageLookupByLibrary.simpleMessage(
+      "修改已儲存，但無法重新整理狀態。請重新讀取 CanoKey。",
+    ),
     "other": MessageLookupByLibrary.simpleMessage("其他"),
     "passDescription": MessageLookupByLibrary.simpleMessage(
       "設定短按或長按 CanoKey 時輸出的密碼。",
@@ -580,6 +587,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "pivClearSlotTitle": m16,
     "pivCommonName": MessageLookupByLibrary.simpleMessage("一般名稱（CN）"),
+    "pivContinueManagementKeyChange": MessageLookupByLibrary.simpleMessage(
+      "繼續",
+    ),
     "pivCopyPem": MessageLookupByLibrary.simpleMessage("複製 PEM"),
     "pivCountryCode": MessageLookupByLibrary.simpleMessage("國家或地區代碼"),
     "pivCreateCertificate": MessageLookupByLibrary.simpleMessage("建立憑證"),
@@ -599,6 +609,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "移動或刪除金鑰前，請確認您有其他登入或解密方式。",
     ),
     "pivDangerZone": MessageLookupByLibrary.simpleMessage("危險操作"),
+    "pivDataRefreshIncomplete": MessageLookupByLibrary.simpleMessage(
+      "狀態未能完整重新整理，目前顯示上次讀取的資料；可重新讀卡更新。",
+    ),
     "pivDelete": MessageLookupByLibrary.simpleMessage("刪除"),
     "pivDeleteSlot": m17,
     "pivDestinationSlot": MessageLookupByLibrary.simpleMessage("目標槽位"),
@@ -749,6 +762,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivManagementKey": MessageLookupByLibrary.simpleMessage("管理金鑰"),
     "pivManagementKeyAuthentication": MessageLookupByLibrary.simpleMessage(
       "管理金鑰驗證方式",
+    ),
+    "pivManagementKeyCardStateChanged": MessageLookupByLibrary.simpleMessage(
+      "卡片或管理資料與本次待完成操作不一致，未執行寫入。請換回原卡，並保留新舊金鑰。",
+    ),
+    "pivManagementKeyChangeFailed": MessageLookupByLibrary.simpleMessage(
+      "管理金鑰未變更。請檢查 PIN、目前管理金鑰和連線後重試。",
+    ),
+    "pivManagementKeyChangeOutcomeUnknown":
+        MessageLookupByLibrary.simpleMessage(
+          "通訊中斷，尚未確認金鑰是否已變更。請保留新舊金鑰，貼上同一張卡後點選「繼續」，先確認目前有效金鑰，再處理剩餘步驟。",
+        ),
+    "pivManagementKeyChangeSafetyHint": MessageLookupByLibrary.simpleMessage(
+      "完成前請保持貼卡。若中斷，請保留新舊金鑰並繼續本次操作。待完成資訊僅暫存在目前 PIV 頁面記憶體中，離開頁面或關閉應用程式前請儲存金鑰。",
+    ),
+    "pivManagementKeyChangedProtectionIncomplete":
+        MessageLookupByLibrary.simpleMessage(
+          "新管理金鑰已生效，但 PIN 保護副本尚未完成更新。請保留新金鑰，貼穩同一張卡後點選「繼續」，完成剩餘步驟，不會再次變更金鑰。",
+        ),
+    "pivManagementKeyContinuationAuthenticationFailed":
+        MessageLookupByLibrary.simpleMessage(
+          "無法使用預期管理金鑰確認本次操作，未執行寫入。請保留新舊金鑰，並確認使用的是原卡。",
+        ),
+    "pivManagementKeyPreviousStillActive": MessageLookupByLibrary.simpleMessage(
+      "原金鑰仍然有效，本次變更尚未確認。已保留輸入，請核對後再次儲存，明確重試本次變更。",
     ),
     "pivManagementKeyVerificationFailed": MessageLookupByLibrary.simpleMessage(
       "管理金鑰驗證失敗",
@@ -1130,11 +1167,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "webauthnAlwaysUvTogglePrompt": MessageLookupByLibrary.simpleMessage(
       "切換「一律要求使用者驗證」？此變更會持久生效，並套用於 CanoKey 上的所有憑證。",
     ),
-    "webauthnUserVerification": MessageLookupByLibrary.simpleMessage("使用者驗證"),
-    "webauthnPinPolicy": MessageLookupByLibrary.simpleMessage("PIN 原則"),
-    "webauthnConfigRefreshFailed": MessageLookupByLibrary.simpleMessage(
-      "設定已儲存，但無法重新整理狀態。請重新讀取 CanoKey。",
-    ),
     "webauthnAuthenticatorSettings": MessageLookupByLibrary.simpleMessage(
       "驗證器設定",
     ),
@@ -1143,6 +1175,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
       "此 CanoKey 不支援設定 WebAuthn PIN。",
+    ),
+    "webauthnConfigRefreshFailed": MessageLookupByLibrary.simpleMessage(
+      "設定已儲存，但無法重新整理狀態。請重新讀取 CanoKey。",
     ),
     "webauthnDangerZone": MessageLookupByLibrary.simpleMessage("危險操作"),
     "webauthnDelete": m34,
@@ -1169,6 +1204,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "webauthnPinBlocked": MessageLookupByLibrary.simpleMessage(
       "WebAuthn PIN 已鎖定，需要重置 WebAuthn 才能繼續使用。重置會刪除所有 WebAuthn 憑證。",
     ),
+    "webauthnPinPolicy": MessageLookupByLibrary.simpleMessage("PIN 原則"),
     "webauthnPinPolicyViolation": MessageLookupByLibrary.simpleMessage(
       "CanoKey 拒絕了此變更：最短 PIN 長度只能調大、不能調小。",
     ),
@@ -1184,5 +1220,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "webauthnSetPinTitle": MessageLookupByLibrary.simpleMessage(
       "設定 WebAuthn PIN",
     ),
+    "webauthnUserVerification": MessageLookupByLibrary.simpleMessage("使用者驗證"),
   };
 }

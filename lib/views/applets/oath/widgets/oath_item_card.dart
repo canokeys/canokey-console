@@ -99,7 +99,23 @@ class OathItemCard extends StatelessWidget {
             ? S.of(context).refresh
             : S.of(context).oathRequireTouch,
         style: IconButton.styleFrom(minimumSize: const Size(56, 56)),
-        onPressed: () => controller.calculate(name, item.type),
+        onPressed: controller.isCalculating(name)
+            ? null
+            : () async {
+                try {
+                  await controller.calculate(name, item.type);
+                } catch (error, stack) {
+                  controller.log.w(
+                    'OATH calculation failed',
+                    error: error,
+                    stackTrace: stack,
+                  );
+                  Prompts.showPrompt(
+                    S.current.operationFailed,
+                    ContentThemeColor.danger,
+                  );
+                }
+              },
         icon: Icon(
           item.type == OathType.hotp ? LucideIcons.refreshCw : Icons.touch_app,
           size: 26,

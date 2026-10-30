@@ -10,7 +10,11 @@ void main() {
     Get.testMode = true;
   });
 
-  tearDown(Get.reset);
+  tearDown(() {
+    Prompts.stopPromptAndroidPolling();
+    Prompts.dismissTransientPrompt();
+    Get.reset();
+  });
 
   testWidgets('dismissTransientPrompt immediately removes the current error', (
     tester,
@@ -45,7 +49,7 @@ void main() {
   });
 
   testWidgets(
-    'polling notice is replaced and removed without queued animations',
+    'scan notice transitions, replacement and cleanup are idempotent',
     (tester) async {
       await tester.pumpWidget(
         GetMaterialApp(
@@ -57,46 +61,39 @@ void main() {
       await tester.pumpAndSettle();
       Prompts.promptAndroidPolling();
       await tester.pump();
+      expect(find.text(S.current.nfcWaitingMessage), findsOneWidget);
+
+      Prompts.promptAndroidReading();
+      Prompts.promptAndroidReading();
+      await tester.pump();
+      expect(find.text(S.current.nfcWaitingMessage), findsNothing);
       expect(find.text(S.current.readingAlertMessage), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      Prompts.showPrompt('Read failed', ContentThemeColor.danger);
+      await tester.pump();
+      expect(Prompts.cardReadPhase.value, isNull);
+      expect(find.text(S.current.readingAlertMessage), findsNothing);
+      expect(find.text('Read failed'), findsOneWidget);
+      Prompts.promptAndroidPolling();
+      await tester.pump();
+      expect(find.text('Read failed'), findsNothing);
+      expect(find.text(S.current.nfcWaitingMessage), findsOneWidget);
 
       // A rapid replacement must leave one notice, and stop removes it on the
       // next frame even if no opening/closing animation has had time to run.
       Prompts.promptAndroidPolling();
       await tester.pump();
-      expect(find.text(S.current.readingAlertMessage), findsOneWidget);
+      expect(find.text(S.current.nfcWaitingMessage), findsOneWidget);
       expect(tester.takeException(), isNull);
       Prompts.stopPromptAndroidPolling();
       Prompts.stopPromptAndroidPolling();
       await tester.pumpAndSettle();
-      expect(find.text(S.current.readingAlertMessage), findsNothing);
+      expect(find.text(S.current.nfcWaitingMessage), findsNothing);
       Prompts.promptAndroidPolling();
       Prompts.stopPromptAndroidPolling();
       await tester.pumpAndSettle();
-      expect(find.text(S.current.readingAlertMessage), findsNothing);
+      expect(find.text(S.current.nfcWaitingMessage), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );
-
-  testWidgets('dialog polling replaces the page notice and stops cleanly', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      GetMaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: const [S.delegate],
-        home: const Scaffold(body: SizedBox.shrink()),
-      ),
-    );
-    await tester.pumpAndSettle();
-    Prompts.promptAndroidPolling();
-    await tester.pump();
-    final polling = Get.put(RxBool(false), tag: 'dialog_polling');
-    Prompts.promptAndroidPolling();
-    await tester.pump();
-    expect(polling.value, isTrue);
-    expect(find.text(S.current.readingAlertMessage), findsNothing);
-    Prompts.stopPromptAndroidPolling();
-    expect(polling.value, isFalse);
-    await tester.pumpAndSettle();
-  });
 }

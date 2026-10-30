@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:canokey_console/controller/base/base_controller.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/theme/admin_theme.dart';
+import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/screenshot_mode.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -126,6 +129,28 @@ abstract class PollingController extends Controller {
       // ignore: empty_catches
     } catch (e) {}
     super.onClose();
+  }
+
+  /// Readback is optional only after an acknowledged write. Never replay the
+  /// mutation or turn its committed success into an invitation to retry.
+  Future<bool> refreshAfterWrite(Future<void> Function() readback) async {
+    try {
+      await readback();
+      return true;
+    } catch (error, stack) {
+      log.w(
+        'Write committed, but readback failed',
+        error: error,
+        stackTrace: stack,
+      );
+      polled = false;
+      update();
+      Prompts.showPrompt(
+        S.current.operationSavedRefreshFailed,
+        ContentThemeColor.warning,
+      );
+      return false;
+    }
   }
 
   Future<void> refreshData() {

@@ -796,5 +796,17 @@
   "pivUsageServerAuth": "Server authentication",
   "pivUsageCodeSigning": "Code signing",
   "pivUsageEmailProtection": "Email protection",
-  "pivUsageSmartCardLogon": "Smart card login"
+  "pivUsageSmartCardLogon": "Smart card login",
+  "operationSavedRefreshFailed": "The change was saved, but its status could not be refreshed. Read the CanoKey again.",
+  "nfcReadingTitle": "Reading CanoKey",
+  "nfcWaitingMessage": "Hold CanoKey near the NFC area on the back of your phone.",
+  "pivManagementKeyChangedProtectionIncomplete": "The new management key is active, but updating its PIN-protected copy did not complete. Keep the new key, hold the same card steady, and choose Continue to finish the remaining steps. The key will not be changed again.",
+  "pivManagementKeyChangeOutcomeUnknown": "The connection was interrupted before the key change could be confirmed. Keep both keys and choose Continue with the same card. We will check which key is active before making any further changes.",
+  "pivContinueManagementKeyChange": "Continue",
+  "pivManagementKeyPreviousStillActive": "The previous key is still valid; the requested change was not confirmed. Your inputs have been kept. Review them and save again to explicitly retry the change.",
+  "pivManagementKeyCardStateChanged": "The card or its management data does not match this pending change. Nothing was written. Return to the original card and keep both keys.",
+  "pivManagementKeyContinuationAuthenticationFailed": "The pending change could not be confirmed with the expected management key. Nothing was written. Keep both keys and check that this is the original card.",
+  "pivManagementKeyChangeSafetyHint": "Keep the card in place until completion. If interrupted, keep the old and new keys and continue this change. Pending details stay in memory on this PIV page only; save the keys before leaving the page or closing the app.",
+  "pivManagementKeyChangeFailed": "The management key was not changed. Check the PIN, current management key and connection, then try again.",
+  "pivDataRefreshIncomplete": "Status could not be fully refreshed. Showing the last card data; read the card again to update it."
 }

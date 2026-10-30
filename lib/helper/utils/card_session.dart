@@ -15,7 +15,7 @@ class CardCancellation {
 /// The zone is only an ownership marker, never a global selected-app/profile cache.
 class CardSessions {
   final Object _zoneKey = Object();
-  Future<void> _tail = Future<void>.value();
+  Future<void>? _tail;
   int _generation = 0;
   int _queued = 0;
 
@@ -48,6 +48,9 @@ class CardSessions {
         await session._close();
       } finally {
         _queued--;
+        // An idle queue must not retain a completed future from an old zone.
+        // Only the last queued owner may clear the tail.
+        if (identical(_tail, done.future)) _tail = null;
         done.complete();
       }
     }

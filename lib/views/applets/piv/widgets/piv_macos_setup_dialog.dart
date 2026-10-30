@@ -110,6 +110,7 @@ class _PivMacOsSetupDialogState extends State<PivMacOsSetupDialog> {
     return PopScope(
       canPop: !_busy,
       child: AppDialogSurface(
+        busy: _busy,
         child: SizedBox(
           width: AppDialogWidth.medium,
           child: AppDialogLayout(
@@ -124,11 +125,6 @@ class _PivMacOsSetupDialogState extends State<PivMacOsSetupDialog> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(_done ? s.pivMacSetupDone : s.pivMacSetupIntro),
-                  if (_busy)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: LinearProgressIndicator(),
-                    ),
                   if (_plan != null && !_done) ...[
                     const SizedBox(height: 12),
                     for (final slot in _plan!.slots)

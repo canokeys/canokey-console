@@ -1,4 +1,5 @@
 import 'package:canokey_console/generated/l10n.dart';
+import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/views/applets/piv/widgets/piv_macos_setup_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -7,6 +8,8 @@ import '../../../../controller/applets/piv/piv_macos_setup_test.dart'
     show SetupController, entry;
 
 void main() {
+  setUp(() => SmartCard.connectionType = ConnectionType.ccid);
+  tearDown(() => SmartCard.connectionType = ConnectionType.none);
   Widget app(SetupController c, {Locale locale = const Locale('en')}) =>
       MaterialApp(
         locale: locale,

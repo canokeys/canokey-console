@@ -132,7 +132,7 @@ class Layout extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Spacing.height(MediaQuery.of(Get.context!).size.height / 2 - 150),
+              Spacing.height((MediaQuery.sizeOf(Get.context!).height / 2 - 150).clamp(0.0, double.infinity)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,

@@ -17,13 +17,12 @@ import 'package:canokey_console/models/webauthn.dart';
 import 'package:canokey_console/views/applets/webauthn/dialogs/force_pin_change_dialog.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
 class WebAuthnController extends PollingController {
   WebAuthnController({WebAuthnCardClient? client})
-      : _client = client ?? WebAuthnCardClient();
+    : _client = client ?? WebAuthnCardClient();
 
   final WebAuthnCardClient _client;
   final _localPinCache = CredentialCache('webauthn');
@@ -54,6 +53,14 @@ class WebAuthnController extends PollingController {
   Logger get log => Logging.logger('WebAuthn:Controller');
 
   @override
+  void onClose() {
+    _client.cancelPendingOperations();
+    _localPinCache.clear();
+    _info = null;
+    super.onClose();
+  }
+
+  @override
   Future<void> doRefreshData() async {
     log.t('Call WebAuthnController.doRefreshData');
     await SmartCard.process((String sn) async {
@@ -79,15 +86,18 @@ class WebAuthnController extends PollingController {
 
       try {
         for (var rp in await pinToken.enumerateRps()) {
-          for (var credential
-              in await pinToken.enumerateCredentials(rp.idHash)) {
-            webAuthnItems.add(WebAuthnItem(
-              rpId: rp.id,
-              userName: credential.userName ?? '<unknown>',
-              userDisplayName: credential.userDisplayName ?? '<unknown>',
-              userId: credential.userId ?? const [],
-              credentialId: credential.credentialId,
-            ));
+          for (var credential in await pinToken.enumerateCredentials(
+            rp.idHash,
+          )) {
+            webAuthnItems.add(
+              WebAuthnItem(
+                rpId: rp.id,
+                userName: credential.userName ?? '<unknown>',
+                userDisplayName: credential.userDisplayName ?? '<unknown>',
+                userId: credential.userId ?? const [],
+                credentialId: credential.credentialId,
+              ),
+            );
           }
         }
       } finally {
@@ -104,7 +114,10 @@ class WebAuthnController extends PollingController {
     await SmartCard.process((String sn) async {
       String? pinToTry = _loadPin(sn);
       if (pinToTry == null) {
-        Prompts.showPrompt(S.current.webauthnPinRequired, ContentThemeColor.danger);
+        Prompts.showPrompt(
+          S.current.webauthnPinRequired,
+          ContentThemeColor.danger,
+        );
         return;
       }
 
@@ -114,17 +127,21 @@ class WebAuthnController extends PollingController {
       } on ProtocolException catch (e) {
         _showPinError(e);
         return;
+      } catch (error, stack) {
+        await _uncertainPinWrite(sn, error, stack);
       } finally {
         session.close();
       }
-      await _refreshInfo();
       await _setPinCache(sn, newPin, savePin);
-      log.i('Successfully changed PIN');
-
+      final refreshed = await _refreshInfoAfterPinChange();
       Navigator.pop(Get.context!);
-      Prompts.showPrompt(
-          S.of(Get.context!).pinChanged, ContentThemeColor.success,
-          forceSnackBar: true);
+      if (refreshed) {
+        Prompts.showPrompt(
+          S.current.pinChanged,
+          ContentThemeColor.success,
+          forceSnackBar: true,
+        );
+      }
     });
   }
 
@@ -133,7 +150,10 @@ class WebAuthnController extends PollingController {
     await SmartCard.process((String sn) async {
       String? pinToTry = _loadPin(sn);
       if (pinToTry == null) {
-        Prompts.showPrompt(S.current.webauthnPinRequired, ContentThemeColor.danger);
+        Prompts.showPrompt(
+          S.current.webauthnPinRequired,
+          ContentThemeColor.danger,
+        );
         return;
       }
 
@@ -149,10 +169,14 @@ class WebAuthnController extends PollingController {
       log.i('Successfully deleted credential');
 
       Navigator.pop(Get.context!);
-      Prompts.showPrompt(S.of(Get.context!).deleted, ContentThemeColor.success,
-          forceSnackBar: true);
+      Prompts.showPrompt(
+        S.of(Get.context!).deleted,
+        ContentThemeColor.success,
+        forceSnackBar: true,
+      );
       webAuthnItems.removeWhere(
-          (element) => listEquals(element.credentialId, credentialId));
+        (element) => listEquals(element.credentialId, credentialId),
+      );
       update();
     });
   }
@@ -214,9 +238,15 @@ class WebAuthnController extends PollingController {
         // which would invite a retry that reverses the device's new state.
         _info = null;
         update();
-        log.w('Config saved, but getInfo failed', error: error, stackTrace: stack);
-        Prompts.showPrompt(S.current.webauthnConfigRefreshFailed,
-            ContentThemeColor.warning);
+        log.w(
+          'Config saved, but getInfo failed',
+          error: error,
+          stackTrace: stack,
+        );
+        Prompts.showPrompt(
+          S.current.webauthnConfigRefreshFailed,
+          ContentThemeColor.warning,
+        );
         return;
       }
       update();
@@ -256,8 +286,7 @@ class WebAuthnController extends PollingController {
     return null;
   }
 
-  Future<WebAuthnInfo> _refreshInfo() async =>
-      _info = await _client.getInfo();
+  Future<WebAuthnInfo> _refreshInfo() async => _info = await _client.getInfo();
 
   Future<WebAuthnPinToken?> _getPinToken(
     String sn, {
@@ -267,8 +296,10 @@ class WebAuthnController extends PollingController {
 
     // We do nothing if the device does not support credMgmt or clientPin
     if (info.credMgmt != true || info.clientPin == null) {
-      Prompts.showPrompt(S.of(Get.context!).webauthnClientPinNotSupported,
-          ContentThemeColor.danger);
+      Prompts.showPrompt(
+        S.of(Get.context!).webauthnClientPinNotSupported,
+        ContentThemeColor.danger,
+      );
       return null;
     }
 
@@ -279,14 +310,17 @@ class WebAuthnController extends PollingController {
       }
     }
 
+    if (_info == null) return null;
     assert(_info!.clientPin == true);
 
     if (_info!.forcePinChange == true) {
       return _forceChangePin(sn, permissions: permissions);
     }
 
+    final attemptedPins = <String>{};
     // Try local cache first
     if (_localPinCache.containsKey(sn)) {
+      attemptedPins.add(_localPinCache[sn]!);
       final pinToken = await _doGetPinToken(
         _localPinCache[sn]!,
         permissions: permissions,
@@ -299,7 +333,7 @@ class WebAuthnController extends PollingController {
 
     // Try LocalStorage
     String? pinToTry = LocalStorage.getPinCache(sn, _tag);
-    if (pinToTry != null) {
+    if (pinToTry != null && attemptedPins.add(pinToTry)) {
       final pinToken = await _doGetPinToken(pinToTry, permissions: permissions);
       if (pinToken != null) {
         _localPinCache[sn] = pinToTry;
@@ -307,6 +341,9 @@ class WebAuthnController extends PollingController {
       } else {
         await LocalStorage.setPinCache(sn, _tag, null);
       }
+    } else if (pinToTry != null) {
+      // This persisted value was already rejected from the local cache.
+      await LocalStorage.setPinCache(sn, _tag, null);
     }
 
     // Finally, prompt user
@@ -320,40 +357,34 @@ class WebAuthnController extends PollingController {
       validators: [LengthValidator(min: 4, max: 63)],
       showSaveOption: true,
       onSubmit: (pin, savePin) async {
-        // When using NFC, we need to poll NFC again
-        SmartCard.nfcState = NfcState.processWithInput;
-        if (!await SmartCard.pollNfcOrWebUsb()) {
-          Prompts.stopPromptAndroidPolling();
-          Prompts.showPrompt(
-              S.of(Get.context!).noCard, ContentThemeColor.warning,
-              level: 'W');
-          return; // timeout, do not close the dialog
-        }
-        Prompts.stopPromptAndroidPolling();
-        WebAuthnPinToken? pinToken;
         try {
-          pinToken = await _doGetPinToken(pin, permissions: permissions);
-        } on PlatformException catch (e) {
-          await SmartCard.stopPollingNfc(withInput: true);
-          log.e('_doGetPinToken failed', error: e);
-          if (e.code == '500') {
-            Prompts.showPrompt(
-                S.of(Get.context!).interrupted, ContentThemeColor.danger);
+          final pinToken = await SmartCard.withInputCard<WebAuthnPinToken>(
+            sn,
+            () async {
+              await _refreshInfo();
+              final token = await _doGetPinToken(pin, permissions: permissions);
+              if (token == null) return null;
+              try {
+                await _setPinCache(sn, pin, savePin);
+                return token;
+              } catch (_) {
+                token.close();
+                rethrow;
+              }
+            },
+          );
+          if (pinToken != null && !completer.isCompleted) {
+            completer.complete(pinToken);
+            Navigator.pop(Get.context!);
           }
-        }
-        if (pinToken != null) {
-          log.t('PIN verified');
-          await _setPinCache(sn, pin, savePin);
-          completer.complete(pinToken);
-          // Since PIN has been cached, if error happens, we don't need to re-prompt
-          SmartCard.nfcState = NfcState.processWithoutInput;
-          // Close the dialog
+        } catch (error, stack) {
+          if (!completer.isCompleted) completer.completeError(error, stack);
           Navigator.pop(Get.context!);
         }
       },
       onCancel: () async {
         SmartCard.nfcState = NfcState.idle;
-        completer.complete(null);
+        if (!completer.isCompleted) completer.complete(null);
       },
     );
     return await completer.future;
@@ -371,55 +402,41 @@ class WebAuthnController extends PollingController {
       validators: [LengthValidator(min: 4, max: 63)],
       showSaveOption: true,
       onSubmit: (pin, savePin) async {
-        // When using NFC, we need to poll NFC again
-        SmartCard.nfcState = NfcState.processWithInput;
-        if (!await SmartCard.pollNfcOrWebUsb()) {
-          Prompts.stopPromptAndroidPolling();
-          Prompts.showPrompt(
-              S.of(Get.context!).noCard, ContentThemeColor.warning,
-              level: 'W');
-          return; // timeout, do not close the dialog
-        }
-        Prompts.stopPromptAndroidPolling();
         try {
-          final session =
-              await _client.beginPinSession(_info ?? await _refreshInfo());
-          try {
-            await session.setPin(pin);
-          } finally {
-            session.close();
+          final set = await SmartCard.withInputCard<bool>(sn, () async {
+            final session = await _client.beginPinSession(await _refreshInfo());
+            try {
+              await session.setPin(pin);
+            } on ProtocolException catch (error) {
+              _showPinError(error);
+              return null;
+            } catch (error, stack) {
+              await _uncertainPinWrite(sn, error, stack);
+            } finally {
+              session.close();
+            }
+            await _setPinCache(sn, pin, savePin);
+            final refreshed = await _refreshInfoAfterPinChange();
+            if (refreshed) {
+              Prompts.showPrompt(
+                S.current.pinChanged,
+                ContentThemeColor.success,
+              );
+            }
+            return true;
+          });
+          if (set == true && !completer.isCompleted) {
+            completer.complete(true);
+            Navigator.pop(Get.context!);
           }
-          // Refresh getInfo so later PIN-token operations see the
-          // authenticator's new clientPin state.
-          await _refreshInfo();
-          log.i('setPin success');
-        } on PlatformException catch (e) {
-          await SmartCard.stopPollingNfc(withInput: true);
-          log.e('setPin failed', error: e);
-          if (e.code == '500') {
-            Prompts.showPrompt(
-                S.of(Get.context!).interrupted, ContentThemeColor.danger);
-          }
-          return;
-        } catch (e, s) {
-          await SmartCard.stopPollingNfc(withInput: true);
-          log.e('setPin failed', error: e, stackTrace: s);
-          Prompts.showPrompt(S.current.webauthnSetPinFailed, ContentThemeColor.danger);
-          return;
+        } catch (error, stack) {
+          if (!completer.isCompleted) completer.completeError(error, stack);
+          Navigator.pop(Get.context!);
         }
-        await _setPinCache(sn, pin, savePin);
-
-        // PIN set, close the dialog and prompt the user
-        Navigator.pop(Get.context!);
-        Prompts.showPrompt(
-            S.of(Get.context!).pinChanged, ContentThemeColor.success);
-        // Since PIN has been cached, if error happens, we don't need to re-prompt
-        SmartCard.nfcState = NfcState.processWithoutInput;
-        completer.complete(true);
       },
       onCancel: () async {
         SmartCard.nfcState = NfcState.idle;
-        completer.complete(false);
+        if (!completer.isCompleted) completer.complete(false);
       },
     );
     return await completer.future;
@@ -429,8 +446,9 @@ class WebAuthnController extends PollingController {
     String pin, {
     int permissions = WebAuthnCardClient.permissionCredentialManagement,
   }) async {
-    final session =
-        await _client.beginPinSession(_info ?? await _refreshInfo());
+    final session = await _client.beginPinSession(
+      _info ?? await _refreshInfo(),
+    );
     try {
       return await session.getPinToken(pin, permissions: permissions);
     } on ProtocolException catch (e) {
@@ -447,70 +465,65 @@ class WebAuthnController extends PollingController {
   }) async {
     await SmartCard.stopPollingNfc(withInput: true);
     final completer = Completer<WebAuthnPinToken?>();
+    Object? terminalError;
+    StackTrace? terminalStack;
     await ForcePinChangeDialog.show(
       minPinLength: _info?.minPinLength ?? 4,
       onSubmit: (currentPin, newPin, savePin) async {
-        SmartCard.nfcState = NfcState.processWithInput;
-        if (!await SmartCard.pollNfcOrWebUsb()) {
-          Prompts.stopPromptAndroidPolling();
-          Prompts.showPrompt(
-              S.of(Get.context!).noCard, ContentThemeColor.warning,
-              level: 'W');
-          return false;
-        }
-        Prompts.stopPromptAndroidPolling();
         try {
-          final session = await _client.beginPinSession(_info!);
-          try {
-            await session.changePin(currentPin, newPin);
-          } finally {
-            session.close();
-          }
-          await _refreshInfo();
-          final pinToken = await _doGetPinToken(newPin, permissions: permissions);
-          if (pinToken == null) {
-            await SmartCard.stopPollingNfc(withInput: true);
-            return false;
-          }
-          await _setPinCache(sn, newPin, savePin);
-          SmartCard.nfcState = NfcState.processWithoutInput;
-          if (!completer.isCompleted) {
-            completer.complete(pinToken);
-          }
-          Prompts.showPrompt(
-              S.of(Get.context!).pinChanged, ContentThemeColor.success);
+          final changed = await SmartCard.withInputCard<(WebAuthnPinToken?,)>(
+            sn,
+            () async {
+              final session = await _client.beginPinSession(
+                await _refreshInfo(),
+              );
+              try {
+                await session.changePin(currentPin, newPin);
+              } on ProtocolException catch (error) {
+                _showPinError(error);
+                return null;
+              } catch (error, stack) {
+                await _uncertainPinWrite(sn, error, stack);
+              } finally {
+                session.close();
+              }
+              // From this point the old PIN is obsolete, even if readback or
+              // acquiring the next token fails. Close this dialog on success.
+              await _setPinCache(sn, newPin, savePin);
+              if (!await _refreshInfoAfterPinChange()) return (null,);
+              WebAuthnPinToken? token;
+              final acquired = await refreshAfterWrite(() async {
+                token = await _doGetPinToken(newPin, permissions: permissions);
+              });
+              if (acquired && token != null) {
+                Prompts.showPrompt(
+                  S.current.pinChanged,
+                  ContentThemeColor.success,
+                );
+              }
+              return (token,);
+            },
+          );
+          if (changed == null) return false;
+          if (!completer.isCompleted) completer.complete(changed.$1);
           return true;
-        } on ProtocolException catch (e) {
-          await SmartCard.stopPollingNfc(withInput: true);
-          _showPinError(e);
-          return false;
-        } on PlatformException catch (e) {
-          await SmartCard.stopPollingNfc(withInput: true);
-          log.e('force PIN change failed', error: e);
-          if (e.code == '500') {
-            Prompts.showPrompt(
-                S.of(Get.context!).interrupted, ContentThemeColor.danger);
-          } else {
-            Prompts.showPrompt(S.current.webauthnChangePinFailed, ContentThemeColor.danger);
-          }
-          return false;
-        } catch (e, s) {
-          await SmartCard.stopPollingNfc(withInput: true);
-          log.e('force PIN change failed', error: e, stackTrace: s);
-          Prompts.showPrompt(S.current.webauthnChangePinFailed, ContentThemeColor.danger);
+        } catch (error, stack) {
+          terminalError = error;
+          terminalStack = stack;
+          if (!completer.isCompleted) completer.complete(null);
+          Navigator.pop(Get.context!);
           return false;
         }
       },
       onCancel: () {
         SmartCard.nfcState = NfcState.idle;
-        if (!completer.isCompleted) {
-          completer.complete(null);
-        }
+        if (!completer.isCompleted) completer.complete(null);
       },
     );
-    if (!completer.isCompleted) {
-      completer.complete(null);
+    if (terminalError != null) {
+      Error.throwWithStackTrace(terminalError!, terminalStack!);
     }
+    if (!completer.isCompleted) completer.complete(null);
     return completer.future;
   }
 
@@ -521,28 +534,70 @@ class WebAuthnController extends PollingController {
     switch (error.details.statusWord) {
       case 0x31:
         Prompts.showPrompt(
-            S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+          S.of(Get.context!).pinIncorrect,
+          ContentThemeColor.danger,
+        );
       case 0x34:
         Prompts.showPrompt(
-            S.of(Get.context!).webauthnPinAuthBlocked, ContentThemeColor.danger);
+          S.of(Get.context!).webauthnPinAuthBlocked,
+          ContentThemeColor.danger,
+        );
       case 0x32:
         Prompts.showPrompt(
-            S.of(Get.context!).webauthnPinBlocked, ContentThemeColor.danger);
+          S.of(Get.context!).webauthnPinBlocked,
+          ContentThemeColor.danger,
+        );
       case 0x37:
         Prompts.showPrompt(
-            S.of(Get.context!).changePinPrompt(_info?.minPinLength ?? 4, 63),
-            ContentThemeColor.danger);
+          S.of(Get.context!).changePinPrompt(_info?.minPinLength ?? 4, 63),
+          ContentThemeColor.danger,
+        );
       default:
-        Prompts.showPrompt(S.current.pinVerificationFailed, ContentThemeColor.danger);
+        Prompts.showPrompt(
+          S.current.pinVerificationFailed,
+          ContentThemeColor.danger,
+        );
     }
   }
 
-  Future<void> _setPinCache(
-      String sn, String pin, bool cachedInLocalStorage) async {
+  Future<Never> _uncertainPinWrite(
+    String sn,
+    Object error,
+    StackTrace stack,
+  ) async {
+    await _forgetPin(sn);
+    log.w(
+      'PIN write outcome unknown; cached PIN discarded',
+      error: error,
+      stackTrace: stack,
+    );
+    // Input scans may retry a transport failure in a read-only operation.
+    // An uncertain PIN write must instead end the prompt and owning use case.
+    Error.throwWithStackTrace(
+      StateError('PIN write outcome unknown; read the card again'),
+      stack,
+    );
+  }
+
+  Future<void> _forgetPin(String sn) async {
+    _localPinCache.remove(sn);
+    await LocalStorage.setPinCache(sn, _tag, null);
+  }
+
+  Future<void> _setPinCache(String sn, String pin, bool savePin) async {
+    // Replace persisted credentials even when the user opts out of saving the
+    // new PIN. Otherwise a restart silently brings the obsolete PIN back.
+    await _forgetPin(sn);
+    if (savePin) await LocalStorage.setPinCache(sn, _tag, pin);
     _localPinCache[sn] = pin;
-    if (cachedInLocalStorage) {
-      await LocalStorage.setPinCache(sn, _tag, pin);
-    }
+  }
+
+  Future<bool> _refreshInfoAfterPinChange() async {
+    _info = null;
+    return refreshAfterWrite(() async {
+      await _refreshInfo();
+      update();
+    });
   }
 
   final String _tag = 'webauthn';

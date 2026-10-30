@@ -391,9 +391,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "newPin": MessageLookupByLibrary.simpleMessage("New PIN"),
     "next": MessageLookupByLibrary.simpleMessage("Next"),
+    "nfcReadingTitle": MessageLookupByLibrary.simpleMessage("Reading CanoKey"),
     "nfcSound": MessageLookupByLibrary.simpleMessage("NFC interaction sound"),
     "nfcSoundPrompt": MessageLookupByLibrary.simpleMessage(
       "Preview order: reading started, reading completed, reading failed",
+    ),
+    "nfcWaitingMessage": MessageLookupByLibrary.simpleMessage(
+      "Hold CanoKey near the NFC area on the back of your phone.",
     ),
     "noCard": MessageLookupByLibrary.simpleMessage("CanoKey not found"),
     "noCredential": MessageLookupByLibrary.simpleMessage("No credential"),
@@ -604,6 +608,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "operationFailed": MessageLookupByLibrary.simpleMessage(
       "The operation failed. Read CanoKey again and try again.",
     ),
+    "operationSavedRefreshFailed": MessageLookupByLibrary.simpleMessage(
+      "The change was saved, but its status could not be refreshed. Read the CanoKey again.",
+    ),
     "other": MessageLookupByLibrary.simpleMessage("Other"),
     "passDescription": MessageLookupByLibrary.simpleMessage(
       "Choose the password output for a short or long press on CanoKey.",
@@ -754,6 +761,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "pivClearSlotTitle": m16,
     "pivCommonName": MessageLookupByLibrary.simpleMessage("Common Name"),
+    "pivContinueManagementKeyChange": MessageLookupByLibrary.simpleMessage(
+      "Continue",
+    ),
     "pivCopyPem": MessageLookupByLibrary.simpleMessage("Copy PEM"),
     "pivCountryCode": MessageLookupByLibrary.simpleMessage(
       "Country or region code",
@@ -777,6 +787,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Before moving or deleting a key, make sure you have another way to sign in or decrypt your data.",
     ),
     "pivDangerZone": MessageLookupByLibrary.simpleMessage("Danger Zone"),
+    "pivDataRefreshIncomplete": MessageLookupByLibrary.simpleMessage(
+      "Status could not be fully refreshed. Showing the last card data; read the card again to update it.",
+    ),
     "pivDelete": MessageLookupByLibrary.simpleMessage("Delete"),
     "pivDeleteSlot": m17,
     "pivDestinationSlot": MessageLookupByLibrary.simpleMessage(
@@ -979,6 +992,29 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivManagementKey": MessageLookupByLibrary.simpleMessage("Management Key"),
     "pivManagementKeyAuthentication": MessageLookupByLibrary.simpleMessage(
       "Management key verification",
+    ),
+    "pivManagementKeyCardStateChanged": MessageLookupByLibrary.simpleMessage(
+      "The card or its management data does not match this pending change. Nothing was written. Return to the original card and keep both keys.",
+    ),
+    "pivManagementKeyChangeFailed": MessageLookupByLibrary.simpleMessage(
+      "The management key was not changed. Check the PIN, current management key and connection, then try again.",
+    ),
+    "pivManagementKeyChangeOutcomeUnknown": MessageLookupByLibrary.simpleMessage(
+      "The connection was interrupted before the key change could be confirmed. Keep both keys and choose Continue with the same card. We will check which key is active before making any further changes.",
+    ),
+    "pivManagementKeyChangeSafetyHint": MessageLookupByLibrary.simpleMessage(
+      "Keep the card in place until completion. If interrupted, keep the old and new keys and continue this change. Pending details stay in memory on this PIV page only; save the keys before leaving the page or closing the app.",
+    ),
+    "pivManagementKeyChangedProtectionIncomplete":
+        MessageLookupByLibrary.simpleMessage(
+          "The new management key is active, but updating its PIN-protected copy did not complete. Keep the new key, hold the same card steady, and choose Continue to finish the remaining steps. The key will not be changed again.",
+        ),
+    "pivManagementKeyContinuationAuthenticationFailed":
+        MessageLookupByLibrary.simpleMessage(
+          "The pending change could not be confirmed with the expected management key. Nothing was written. Keep both keys and check that this is the original card.",
+        ),
+    "pivManagementKeyPreviousStillActive": MessageLookupByLibrary.simpleMessage(
+      "The previous key is still valid; the requested change was not confirmed. Your inputs have been kept. Review them and save again to explicitly retry the change.",
     ),
     "pivManagementKeyVerificationFailed": MessageLookupByLibrary.simpleMessage(
       "Management Key verification failed",
@@ -1491,13 +1527,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "webauthnAlwaysUvTogglePrompt": MessageLookupByLibrary.simpleMessage(
       "Toggle Always UV? The change is persistent and applies to all credentials on this CanoKey.",
     ),
-    "webauthnUserVerification": MessageLookupByLibrary.simpleMessage(
-      "User verification",
-    ),
-    "webauthnPinPolicy": MessageLookupByLibrary.simpleMessage("PIN policy"),
-    "webauthnConfigRefreshFailed": MessageLookupByLibrary.simpleMessage(
-      "Settings were saved, but their status could not be refreshed. Read the CanoKey again.",
-    ),
     "webauthnAuthenticatorSettings": MessageLookupByLibrary.simpleMessage(
       "Authenticator Settings",
     ),
@@ -1506,6 +1535,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "webauthnClientPinNotSupported": MessageLookupByLibrary.simpleMessage(
       "This CanoKey does not support a WebAuthn PIN.",
+    ),
+    "webauthnConfigRefreshFailed": MessageLookupByLibrary.simpleMessage(
+      "Settings were saved, but their status could not be refreshed. Read the CanoKey again.",
     ),
     "webauthnDangerZone": MessageLookupByLibrary.simpleMessage("Danger Zone"),
     "webauthnDelete": m34,
@@ -1534,6 +1566,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "webauthnPinBlocked": MessageLookupByLibrary.simpleMessage(
       "The WebAuthn PIN is blocked. Reset WebAuthn to use it again. Resetting deletes all WebAuthn credentials.",
     ),
+    "webauthnPinPolicy": MessageLookupByLibrary.simpleMessage("PIN policy"),
     "webauthnPinPolicyViolation": MessageLookupByLibrary.simpleMessage(
       "CanoKey rejected the change: the minimum PIN length can only be increased.",
     ),
@@ -1548,6 +1581,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "webauthnSetPinTitle": MessageLookupByLibrary.simpleMessage(
       "Set WebAuthn PIN",
+    ),
+    "webauthnUserVerification": MessageLookupByLibrary.simpleMessage(
+      "User verification",
     ),
   };
 }

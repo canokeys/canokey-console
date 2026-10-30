@@ -5,10 +5,13 @@ import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 
+enum CardReadPhase { waiting, reading }
+
 class Prompts {
+  /// Shared by page reads, BaseDialog forms and custom dialogs.
+  static final cardReadPhase = ValueNotifier<CardReadPhase?>(null);
   static OverlayEntry? _pollingEntry;
   static OverlayState? _pollingOverlay;
   static OverlayEntry? _resultEntry;
@@ -55,6 +58,7 @@ class Prompts {
     String level = 'E',
     bool forceSnackBar = false,
   }) {
+    stopPromptAndroidPolling();
     final success = selectedColor == ContentThemeColor.success;
     final warning = selectedColor == ContentThemeColor.warning;
     final failure = selectedColor == ContentThemeColor.danger;
@@ -102,11 +106,17 @@ class Prompts {
   static void promptAndroidPolling() {
     dismissTransientPrompt();
     _dismissAndroidPollingNotice();
-    if (Get.isRegistered<RxBool>(tag: 'dialog_polling')) {
-      Get.find<RxBool>(tag: 'dialog_polling').value = true;
-      return;
-    }
-    final overlay = Get.key.currentState!.overlay!;
+    _showCardReadNotice(CardReadPhase.waiting);
+  }
+
+  static void promptAndroidReading() =>
+      _showCardReadNotice(CardReadPhase.reading);
+
+  static void _showCardReadNotice(CardReadPhase phase) {
+    cardReadPhase.value = phase;
+    if (_pollingEntry != null) return;
+    final overlay = Get.key.currentState?.overlay;
+    if (overlay == null) return;
     final entry = OverlayEntry(builder: (_) => const _PollingNotice());
     _pollingEntry = entry;
     _pollingOverlay = overlay;
@@ -114,11 +124,7 @@ class Prompts {
   }
 
   static void stopPromptAndroidPolling() {
-    try {
-      Get.find<RxBool>(tag: 'dialog_polling').value = false;
-    } catch (e) {
-      // ignore: empty_catches
-    }
+    cardReadPhase.value = null;
     _dismissAndroidPollingNotice();
   }
 
@@ -138,51 +144,81 @@ class _PollingNotice extends StatelessWidget {
   const _PollingNotice();
 
   @override
-  Widget build(BuildContext context) => Positioned(
-    left: 16,
-    right: 16,
-    bottom: 16 + MediaQuery.viewInsetsOf(context).bottom,
-    child: SafeArea(
-      top: false,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 400),
-          child: Semantics(
-            liveRegion: true,
-            child: Material(
-              color: Color.alphaBlend(
-                Colors.grey.withValues(alpha: 0.2),
-                Theme.of(context).colorScheme.surface,
-              ),
-              textStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-              elevation: 8,
-              borderRadius: BorderRadius.circular(10),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    const SpinKitRipple(color: Colors.tealAccent, size: 32),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(S.of(context).androidAlertTitle),
-                          Text(S.of(context).readingAlertMessage),
-                        ],
+  Widget build(BuildContext context) => ValueListenableBuilder<CardReadPhase?>(
+    valueListenable: Prompts.cardReadPhase,
+    builder: (context, phase, _) => phase == null
+        ? const SizedBox.shrink()
+        : Positioned(
+            left: 16,
+            right: 16,
+            bottom: 16 + MediaQuery.viewInsetsOf(context).bottom,
+            child: SafeArea(
+              top: false,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: Semantics(
+                    liveRegion: true,
+                    child: Material(
+                      color: Color.alphaBlend(
+                        Colors.grey.withValues(alpha: 0.2),
+                        Theme.of(context).colorScheme.surface,
+                      ),
+                      textStyle: Theme.of(context).textTheme.bodyMedium!
+                          .copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                      elevation: 8,
+                      borderRadius: BorderRadius.circular(10),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            SizedBox.square(
+                              dimension: 32,
+                              child: phase == CardReadPhase.waiting
+                                  ? Icon(
+                                      Icons.contactless_outlined,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                      size: 32,
+                                    )
+                                  : const Padding(
+                                      padding: EdgeInsets.all(4),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 3,
+                                      ),
+                                    ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    phase == CardReadPhase.waiting
+                                        ? S.of(context).androidAlertTitle
+                                        : S.of(context).nfcReadingTitle,
+                                  ),
+                                  Text(
+                                    phase == CardReadPhase.waiting
+                                        ? S.of(context).nfcWaitingMessage
+                                        : S.of(context).readingAlertMessage,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
-    ),
   );
 }
 

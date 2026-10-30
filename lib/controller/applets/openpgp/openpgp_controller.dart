@@ -13,7 +13,9 @@ import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
 class OpenPgpController extends PollingController {
-  final OpenPgpCardClient _client = OpenPgpCardClient();
+  OpenPgpController({OpenPgpCardClient? client})
+    : _client = client ?? OpenPgpCardClient();
+  final OpenPgpCardClient _client;
   OpenPgpCardInfo? cardInfo;
   String? disabledMessage;
   bool supportsPinRetryConfig = false;
@@ -147,8 +149,10 @@ class OpenPgpController extends PollingController {
         ContentThemeColor.success,
         forceSnackBar: true,
       );
-      cardInfo = await _client.readCardInfo();
-      update();
+      await refreshAfterWrite(() async {
+        cardInfo = await _client.readCardInfo();
+        update();
+      });
     });
   }
 }

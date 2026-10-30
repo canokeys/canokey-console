@@ -26,16 +26,88 @@ import 'package:canokey_console/src/rust/api/crypto.dart';
 import 'package:canokey_console/src/rust/api/piv_crypto.dart';
 import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
+enum PivManagementKeyChangeResult {
+  failed,
+  success,
+  keyChangedProtectionIncomplete,
+  outcomeUnknown,
+  previousKeyStillActive,
+  cardStateChanged,
+  authenticationFailed,
+}
+
+/// In-memory continuation owned by this PIV page. Never persisted or logged.
+class _PendingManagementKeyChange {
+  _PendingManagementKeyChange({
+    required this.serial,
+    required this.wasPolled,
+    required this.oldKey,
+    required this.newKey,
+    required this.storeOnDevice,
+    required this.adminBefore,
+    required this.adminAfter,
+    required this.protectedBefore,
+    required this.protectedAfter,
+  });
+  final String serial;
+  final bool wasPolled;
+  final Uint8List oldKey, newKey;
+  final bool storeOnDevice;
+  final Uint8List adminBefore, adminAfter;
+  final Uint8List? protectedBefore, protectedAfter;
+  bool keyConfirmed = false;
+  PivManagementKeyChangeResult get incomplete => keyConfirmed
+      ? PivManagementKeyChangeResult.keyChangedProtectionIncomplete
+      : PivManagementKeyChangeResult.outcomeUnknown;
+  void clear() {
+    for (final bytes in [
+      oldKey,
+      newKey,
+      adminBefore,
+      adminAfter,
+      protectedBefore,
+      protectedAfter,
+    ]) {
+      bytes?.fillRange(0, bytes.length, 0);
+    }
+  }
+}
+
 class PivController extends PollingController {
-  PivController({PivCardClient? client}) : _client = client ?? PivCardClient();
+  PivController({
+    PivCardClient? client,
+    Future<AppletSwitchStatus> Function()? readAppletStatus,
+  }) : _client = client ?? PivCardClient(),
+       _readAppletStatus = readAppletStatus ?? AppletSwitches.readStatus;
+
+  final Future<AppletSwitchStatus> Function() _readAppletStatus;
 
   final PivCardClient _client;
+  _PendingManagementKeyChange? _pendingManagementKeyChange;
+  bool get hasPendingManagementKeyChange => _pendingManagementKeyChange != null;
+  bool get pendingManagementKeyRequiresPin =>
+      _pendingManagementKeyChange?.protectedAfter != null;
+  String get pendingPreviousManagementKey => _pendingManagementKeyChange == null
+      ? ''
+      : hex.encode(_pendingManagementKeyChange!.oldKey);
+  String get pendingManagementKey => _pendingManagementKeyChange == null
+      ? ''
+      : hex.encode(_pendingManagementKeyChange!.newKey);
+  PivManagementKeyChangeResult? get pendingManagementKeyResult =>
+      _pendingManagementKeyChange?.incomplete;
+
+  void _clearPendingManagementKeyChange() {
+    _pendingManagementKeyChange?.clear();
+    _pendingManagementKeyChange = null;
+  }
 
   @override
   void onClose() {
+    _clearPendingManagementKeyChange();
     _client.cancelPendingOperations();
     super.onClose();
   }
@@ -104,58 +176,155 @@ class PivController extends PollingController {
     }
   }
 
+  bool _hasLoadedData = false;
+  String? _dataSerial;
+  bool dataRefreshFailed = false;
+
+  /// A transport disconnect or incomplete read does not erase the last snapshot.
+  bool get hasLoadedData => polled || _hasLoadedData;
+
+  void _markDataStale() {
+    _hasLoadedData = hasLoadedData;
+    dataRefreshFailed = true;
+    polled = false;
+    update();
+  }
+
   @override
   Future<void> doRefreshData() async {
     log.t('Call PivController.doRefreshData');
     await SmartCard.process((String sn) async {
-      final switchStatus = await AppletSwitches.readStatus();
-      firmwareVersion = switchStatus.firmwareVersion;
-      functionSetVersion = switchStatus.functionSetVersion;
-      extendedRetiredSlots = supportsCurrentDevelopmentFeatures;
-      if (!switchStatus.pivEnabled) {
-        disabledMessage = AppletSwitches.disabledMessage('PIV');
-        polled = false;
-        slots.clear();
-        certificateSlots.clear();
-        certificateBytes.clear();
-        certificates.clear();
-        pinInfo = null;
-        legacyPinRetriesRemaining = null;
-        pukInfo = null;
-        managementKeyInfo = null;
-        update();
+      final pending = _pendingManagementKeyChange;
+      if (pending != null && sn != pending.serial) {
+        // This page still owns an unfinished action on the original card.
+        // Another scan must not replace its capabilities or cached slot data.
+        Prompts.showPrompt(
+          S.current.pivManagementKeyCardStateChanged,
+          ContentThemeColor.warning,
+        );
         return;
       }
-      disabledMessage = null;
+      if (_dataSerial != null && _dataSerial != sn) {
+        _adoptData(
+          PivController(client: _client, readAppletStatus: _readAppletStatus),
+        );
+        _hasLoadedData = false;
+        polled = false;
+        dataRefreshFailed = false;
+        update();
+      }
+      _dataSerial = sn;
+      // Read into a separate snapshot. A lost response must not publish half
+      // of a new directory or erase certificates already shown on this page.
+      final next = PivController(
+        client: _client,
+        readAppletStatus: _readAppletStatus,
+      );
+      try {
+        await next._readDataInSession();
+        _adoptData(next);
+        polled = disabledMessage == null;
+        _hasLoadedData = polled;
+        dataRefreshFailed = false;
+        update();
+      } catch (_) {
+        _markDataStale();
+        rethrow;
+      }
+    });
+  }
 
-      await _client.prepare();
-      await _refreshCapabilities();
+  void _adoptData(PivController next) {
+    firmwareVersion = next.firmwareVersion;
+    functionSetVersion = next.functionSetVersion;
+    extendedRetiredSlots = next.extendedRetiredSlots;
+    algorithmExtensionConfig = next.algorithmExtensionConfig;
+    disabledMessage = next.disabledMessage;
+    pinInfo = next.pinInfo;
+    legacyPinRetriesRemaining = next.legacyPinRetriesRemaining;
+    pukInfo = next.pukInfo;
+    managementKeyInfo = next.managementKeyInfo;
+    pinOnlyMode = next.pinOnlyMode;
+    slots = Map.of(next.slots);
+    certificateSlots
+      ..clear()
+      ..addAll(next.certificateSlots);
+    certificateBytes
+      ..clear()
+      ..addAll(next.certificateBytes);
+    certificates
+      ..clear()
+      ..addAll(next.certificates);
+  }
+
+  Future<void> _readDataInSession() async {
+    final switchStatus = await _readAppletStatus();
+    firmwareVersion = switchStatus.firmwareVersion;
+    functionSetVersion = switchStatus.functionSetVersion;
+    extendedRetiredSlots = supportsCurrentDevelopmentFeatures;
+    if (!switchStatus.pivEnabled) {
+      disabledMessage = AppletSwitches.disabledMessage('PIV');
+      polled = false;
       slots.clear();
       certificateSlots.clear();
       certificateBytes.clear();
       certificates.clear();
-      pinInfo = supportsMetadata ? await _client.readMetadata(0x80) : null;
+      pinInfo = null;
       legacyPinRetriesRemaining = null;
-      if (!supportsMetadata) {
-        legacyPinRetriesRemaining = await _client.readRemainingPinRetries();
-      }
-      pukInfo = supportsMetadata ? await _client.readMetadata(0x81) : null;
-      managementKeyInfo = supportsMetadata
-          ? await _client.readMetadata(0x9B)
-          : null;
-      pinOnlyMode = supportsPinOnlyMode
-          ? await _readPinOnlyModeInSession()
-          : false;
-      final directory = await _readMetadataDirectory();
-      if (directory == null) {
-        await _refreshSlotsLegacy();
-      } else {
-        _refreshSlotsFromDirectory(directory);
-      }
+      pukInfo = null;
+      managementKeyInfo = null;
+      return;
+    }
+    disabledMessage = null;
 
-      polled = true;
-      update();
-    });
+    await _client.prepare();
+    await _refreshCapabilities();
+    slots.clear();
+    certificateSlots.clear();
+    certificateBytes.clear();
+    certificates.clear();
+    await _refreshCredentialsInSession();
+    final directory = await _readMetadataDirectory();
+    if (directory == null) {
+      await _refreshSlotsLegacy();
+    } else {
+      _refreshSlotsFromDirectory(directory);
+    }
+  }
+
+  /// Refresh credential state before the owning NFC session is finished.
+  Future<void> _refreshCredentialsInSession() async {
+    final nextPin = supportsMetadata ? await _client.readMetadata(0x80) : null;
+    final nextRetries = supportsMetadata
+        ? null
+        : await _client.readRemainingPinRetries();
+    final nextPuk = supportsMetadata ? await _client.readMetadata(0x81) : null;
+    final nextManagementKey = supportsMetadata
+        ? await _client.readMetadata(0x9B)
+        : null;
+    final nextPinOnly = supportsPinOnlyMode
+        ? await _readPinOnlyModeInSession()
+        : false;
+    pinInfo = nextPin;
+    legacyPinRetriesRemaining = nextRetries;
+    pukInfo = nextPuk;
+    managementKeyInfo = nextManagementKey;
+    pinOnlyMode = nextPinOnly;
+  }
+
+  /// Called inside the mutation's explicit processSequence. Bypass the page's
+  /// shared refresh future: it may be queued behind this sequence's lease.
+  Future<void> refreshAfterMutation() async {
+    try {
+      await doRefreshData();
+    } catch (error, stack) {
+      log.w(
+        'PIV operation succeeded, but refresh failed',
+        error: error,
+        stackTrace: stack,
+      );
+      _markDataStale();
+    }
   }
 
   Future<void> _refreshCapabilities() async {
@@ -320,26 +489,25 @@ class PivController extends PollingController {
     return spki == null || spki.isEmpty ? null : spki;
   }
 
-  void changePin(String oldPin, String newPin) {
+  Future<void> changePin(String oldPin, String newPin) {
     log.t('Call PivController.changePin');
-    _runPinChange(() => _client.changePin(oldPin, newPin));
+    return _runPinChange(() => _client.changePin(oldPin, newPin));
   }
 
-  void changePUK(String oldPin, String newPin) {
+  Future<void> changePUK(String oldPin, String newPin) {
     log.t('Call PivController.changePUK');
-    _runPinChange(() => _client.changePuk(oldPin, newPin));
+    return _runPinChange(() => _client.changePuk(oldPin, newPin));
   }
 
-  void unblockPin(String puk, String newPin) {
+  Future<void> unblockPin(String puk, String newPin) {
     log.t('Call PivController.unblockPin');
-    _runPinChange(() => _client.unblockPin(puk, newPin), refresh: true);
+    return _runPinChange(() => _client.unblockPin(puk, newPin), refresh: true);
   }
 
-  void _runPinChange(
+  Future<void> _runPinChange(
     Future<bool> Function() operation, {
     bool refresh = false,
   }) async {
-    var changed = false;
     await SmartCard.process((String sn) async {
       await _client.prepare();
       if (!await operation()) {
@@ -347,16 +515,27 @@ class PivController extends PollingController {
         return;
       }
       Navigator.pop(Get.context!);
-      changed = true;
+      if (refresh) {
+        try {
+          await _refreshCredentialsInSession();
+        } catch (error, stack) {
+          log.w(
+            'PIN unblocked, but credential refresh failed',
+            error: error,
+            stackTrace: stack,
+          );
+          _markDataStale();
+        }
+        update();
+      }
       Prompts.showPrompt(
         S.of(Get.context!).successfullyChanged,
         ContentThemeColor.success,
       );
     });
-    if (changed && refresh) await refreshData();
   }
 
-  Future<bool> changeManagementKey(
+  Future<PivManagementKeyChangeResult> changeManagementKey(
     String currentKey,
     String newKey, {
     String pin = '',
@@ -364,67 +543,257 @@ class PivController extends PollingController {
     bool storeOnDevice = false,
     TouchPolicy? touchPolicy,
   }) async {
-    log.t('Call PivController.changeManagementKey');
-    final c = Completer<bool>();
-    if ((usePinOnly || storeOnDevice) && !supportsPinOnlyMode) {
+    // A pending action must be resolved using its original inputs. A second
+    // submission cannot silently rotate to a different key or another card.
+    if (hasPendingManagementKeyChange) {
+      return continueManagementKeyChange(pin);
+    }
+    var result = PivManagementKeyChangeResult.failed;
+    if ((usePinOnly || storeOnDevice) && !supportsPinOnlyMode) return result;
+    if (!_validManagementKey(newKey)) return result;
+    await SmartCard.process((String sn) async {
+      // Another queued caller may have started before this action created its
+      // pending record. It must not replace that record or issue another SET.
+      if (hasPendingManagementKeyChange) {
+        result = _pendingManagementKeyChange!.incomplete;
+        return;
+      }
+      if (_dataSerial != null && _dataSerial != sn) {
+        result = PivManagementKeyChangeResult.cardStateChanged;
+        return;
+      }
+      try {
+        await _client.prepare();
+        final admin = Uint8List.fromList(
+          await _getDataObject(_pivmanDataObject) ?? [],
+        );
+        final adminFields = _pivmanFields(admin, _pivmanDataTag);
+        final flags = _pivmanFlags(admin);
+        final hadProtectedKey = flags & _pivmanManagementKeyProtectedFlag != 0;
+        final needsProtected = storeOnDevice || hadProtectedKey || usePinOnly;
+        if (needsProtected && !await _verifyPinInSession(pin)) return;
+        Uint8List? protected;
+        Map<int, List<int>>? protectedFields;
+        if (needsProtected) {
+          protected = Uint8List.fromList(
+            await _getDataObject(_pivmanProtectedDataObject) ?? [],
+          );
+          protectedFields = _pivmanFields(protected, _pivmanProtectedDataTag);
+        }
+        final oldKey = usePinOnly
+            ? hex.encode(protectedFields?[_pivmanProtectedKeyTag] ?? [])
+            : currentKey;
+        if (!await _authenticateManagementKey(oldKey)) return;
+        if (needsProtected && !await _verifyPinInSession(pin)) return;
+        var nextFlags = storeOnDevice
+            ? flags | _pivmanManagementKeyProtectedFlag
+            : flags & ~_pivmanManagementKeyProtectedFlag;
+        // Keep CanoKey's existing PUK-blocking policy when enabling protected
+        // mode, but do not repeat it when rotating an already protected key.
+        if (storeOnDevice && flags & _pivmanPukBlockedFlag == 0) {
+          if (!await _client.blockPuk()) return;
+          nextFlags |= _pivmanPukBlockedFlag;
+        }
+        if (nextFlags == 0) {
+          adminFields.remove(_pivmanFlagsTag);
+        } else {
+          adminFields[_pivmanFlagsTag] = [nextFlags];
+        }
+        adminFields.remove(_pivmanSaltTag);
+        if (protectedFields != null) {
+          if (storeOnDevice) {
+            protectedFields[_pivmanProtectedKeyTag] = hex.decode(newKey);
+          } else {
+            protectedFields.remove(_pivmanProtectedKeyTag);
+          }
+        }
+        final pending = _PendingManagementKeyChange(
+          serial: sn,
+          wasPolled: polled,
+          oldKey: Uint8List.fromList(hex.decode(oldKey)),
+          newKey: Uint8List.fromList(hex.decode(newKey)),
+          storeOnDevice: storeOnDevice,
+          adminBefore: admin,
+          adminAfter: _encodePivmanFields(adminFields, _pivmanDataTag),
+          protectedBefore: protected,
+          protectedAfter: protectedFields == null
+              ? null
+              : _encodePivmanFields(protectedFields, _pivmanProtectedDataTag),
+        );
+        _pendingManagementKeyChange = pending;
+        // ykman order: preflight both objects, SET KEY, changed ADMIN DATA,
+        // PRINTED. SET KEY retains authorization; no new-key authentication,
+        // SELECT or object read is inserted between these writes.
+        if (!await _setManagementKeyInSession(
+          newKey,
+          touchPolicy: touchPolicy ?? managementKeyTouchPolicy,
+        )) {
+          _clearPendingManagementKeyChange();
+          return;
+        }
+        pending.keyConfirmed = true;
+        result = pending.incomplete;
+        if (!await _completeManagementKeyObjects(pending)) return;
+        result = PivManagementKeyChangeResult.success;
+        await _finishManagementKeyChange(pending);
+      } catch (error, stack) {
+        result = _pendingManagementKeyChange?.incomplete ?? result;
+        log.w(
+          'Management key change stopped: $result',
+          error: error,
+          stackTrace: stack,
+        );
+      }
+    });
+    if (hasPendingManagementKeyChange) _markDataStale();
+    update();
+    return result;
+  }
+
+  /// One explicit continuation scan. Prove the replacement is active before
+  /// completing only missing object writes. Never replay SET KEY here.
+  Future<PivManagementKeyChangeResult> continueManagementKeyChange(
+    String pin,
+  ) async {
+    final pending = _pendingManagementKeyChange;
+    if (pending == null) return PivManagementKeyChangeResult.failed;
+    var result = pending.incomplete;
+    await SmartCard.process((sn) async {
+      if (sn != pending.serial) {
+        result = PivManagementKeyChangeResult.cardStateChanged;
+        return;
+      }
+      try {
+        await _client.prepare();
+        if (!await _authenticateManagementKey(hex.encode(pending.newKey))) {
+          if (!pending.keyConfirmed) {
+            // Only an explicit card rejection permits testing the previous key;
+            // a transport failure terminates this scan without another attempt.
+            await _client.prepareIfStale();
+            if (await _authenticateManagementKey(hex.encode(pending.oldKey))) {
+              result = PivManagementKeyChangeResult.previousKeyStillActive;
+              _clearPendingManagementKeyChange();
+              return;
+            }
+          }
+          result = PivManagementKeyChangeResult.authenticationFailed;
+          return;
+        }
+        // Identical old/new key bytes cannot prove a lost touch-policy update.
+        // Leave all objects alone and require a fresh explicit submission.
+        if (!pending.keyConfirmed &&
+            listEquals(pending.oldKey, pending.newKey)) {
+          result = PivManagementKeyChangeResult.previousKeyStillActive;
+          _clearPendingManagementKeyChange();
+          return;
+        }
+        pending.keyConfirmed = true;
+        result = pending.incomplete;
+        if (pending.protectedAfter != null && !await _verifyPinInSession(pin)) {
+          return;
+        }
+        final adminNow = await _getDataObject(_pivmanDataObject) ?? [];
+        final protectedNow = pending.protectedAfter == null
+            ? null
+            : await _getDataObject(_pivmanProtectedDataObject) ?? <int>[];
+        if ((!listEquals(adminNow, pending.adminBefore) &&
+                !listEquals(adminNow, pending.adminAfter)) ||
+            (protectedNow != null &&
+                !listEquals(protectedNow, pending.protectedBefore) &&
+                !listEquals(protectedNow, pending.protectedAfter))) {
+          result = PivManagementKeyChangeResult.cardStateChanged;
+          return;
+        }
+        if (!await _completeManagementKeyObjects(
+          pending,
+          adminNow: adminNow,
+          protectedNow: protectedNow,
+        )) {
+          return;
+        }
+        result = PivManagementKeyChangeResult.success;
+        await _finishManagementKeyChange(pending);
+      } catch (error, stack) {
+        result = pending.incomplete;
+        log.w(
+          'Management key continuation stopped: $result',
+          error: error,
+          stackTrace: stack,
+        );
+      }
+    });
+    update();
+    return result;
+  }
+
+  Future<bool> _completeManagementKeyObjects(
+    _PendingManagementKeyChange pending, {
+    List<int>? adminNow,
+    List<int>? protectedNow,
+  }) async {
+    if (!listEquals(adminNow ?? pending.adminBefore, pending.adminAfter) &&
+        !await _putDataObject(_pivmanDataObject, pending.adminAfter)) {
       return false;
     }
-    await SmartCard.process((String sn) async {
-      await _client.prepare();
-      if ((usePinOnly || storeOnDevice) && !await _verifyPinInSession(pin)) {
-        c.complete(false);
-        return;
-      }
-      if (!await _authenticateManagementKeyOrPinOnly(
-        pin,
-        currentKey,
-        usePinOnly,
-      )) {
-        c.complete(false);
-        return;
-      }
-      if (storeOnDevice && !await _client.blockPuk()) {
-        c.complete(false);
-        return;
-      }
-      if (!await _setManagementKeyInSession(
-        newKey,
-        touchPolicy: touchPolicy ?? managementKeyTouchPolicy,
-      )) {
-        c.complete(false);
-        return;
-      }
-      if (storeOnDevice) {
-        if (!await _authenticateManagementKey(newKey)) {
-          c.complete(false);
-          return;
-        }
-        if (!await _writePinOnlyObjects(newKey, enabled: true)) {
-          // Roll back to the previous key; otherwise the on-card key and the
-          // stored protected key disagree and the user is locked out. A failed
-          // write discards the prepared profile, so re-establish the profile
-          // and the management-key authorization before restoring the key.
-          await _client.prepareIfStale();
-          await _authenticateManagementKey(newKey);
-          await _setManagementKeyInSession(
-            currentKey,
-            touchPolicy: touchPolicy ?? managementKeyTouchPolicy,
-          );
-          c.complete(false);
-          return;
-        }
-      } else if (pinOnlyMode) {
-        if (!await _authenticateManagementKey(newKey)) {
-          c.complete(false);
-          return;
-        }
-        await _writePinOnlyObjects(newKey, enabled: false);
-      }
-      c.complete(true);
-    });
-    if (!c.isCompleted) c.complete(false);
-    return c.future;
+    if (pending.protectedAfter != null &&
+        !listEquals(
+          protectedNow ?? pending.protectedBefore,
+          pending.protectedAfter,
+        ) &&
+        !await _putDataObject(
+          _pivmanProtectedDataObject,
+          pending.protectedAfter!,
+        )) {
+      return false;
+    }
+    return true;
   }
+
+  Future<void> _finishManagementKeyChange(
+    _PendingManagementKeyChange pending,
+  ) async {
+    pinOnlyMode = pending.storeOnDevice;
+    final wasPolled = pending.wasPolled;
+    _clearPendingManagementKeyChange();
+    try {
+      await _refreshCredentialsInSession();
+      polled = wasPolled;
+      if (wasPolled) dataRefreshFailed = false;
+    } catch (error, stack) {
+      log.w(
+        'Management key saved, but credential refresh failed',
+        error: error,
+        stackTrace: stack,
+      );
+      _markDataStale();
+    }
+  }
+
+  bool _validManagementKey(String key) =>
+      key.length == 48 && RegExp(r'^[0-9a-fA-F]+$').hasMatch(key);
+
+  Map<int, List<int>> _pivmanFields(List<int> data, int outerTag) {
+    if (data.isEmpty) return {};
+    final outer = TLV.parse(data);
+    if (outer.length != 1 || outer[outerTag] is! List<int>) {
+      throw const FormatException('Malformed PIV management data');
+    }
+    return Map<int, List<int>>.from(TLV.parse(outer[outerTag]));
+  }
+
+  Uint8List _encodePivmanFields(Map<int, List<int>> fields, int outerTag) =>
+      fields.isEmpty
+      ? Uint8List(0)
+      : Uint8List.fromList(
+          hex.decode(
+            _tlv(
+              outerTag,
+              fields.entries
+                  .expand((entry) => hex.decode(_tlv(entry.key, entry.value)))
+                  .toList(),
+            ),
+          ),
+        );
 
   Future<String?> generateCsr(
     String slot,
@@ -583,49 +952,53 @@ class PivController extends PollingController {
   }) async {
     if (plan.slots.length != 2 ||
         plan.slots[0].slotNumber != '9A' ||
-        plan.slots[1].slotNumber != '9D')
+        plan.slots[1].slotNumber != '9D') {
       return false;
-    if (plan.needsReplacementConsent && !allowReplacement) return false;
-    final actual = await inspectMacOsSetup();
-    if (actual == null || !plan.sameContents(actual)) return false;
-    for (final slot in actual.slots) {
-      if (slot.compatible) {
-        onProgress(slot.slotNumber, true);
-        continue;
-      }
-      onProgress(slot.slotNumber, false);
-      final options = PivSelfSignOptions(
-        slotNumber: slot.slotNumber,
-        pinPolicy: PinPolicy.once,
-      );
-      if (slot.canReuseKey) options.algorithm = slot.key!.algorithm;
-      options.applyMacOsLogin();
-      final cert = await generateSelfSignedCertificate(
-        slot.slotNumber,
-        options.algorithm,
-        slot.canReuseKey ? slot.key!.pinPolicy : options.pinPolicy,
-        slot.canReuseKey ? slot.key!.touchPolicy : TouchPolicy.never,
-        pin,
-        managementKey,
-        {'CN': 'CanoKey Mac ${slot.slotNumber}'},
-        const [],
-        365,
-        usePinOnly,
-        keyUsage: options.keyUsage,
-        keyUsageCritical: options.keyUsageCritical,
-        extendedKeyUsage: options.extendedKeyUsage.toList(),
-        includeBasicConstraints: true,
-        reuseExistingKey: slot.canReuseKey,
-        expectedState: slot,
-        expectedSerial: plan.serial,
-      );
-      if (cert == null) return false;
-      onProgress(slot.slotNumber, true);
     }
-    final verified = await inspectMacOsSetup();
-    return verified != null &&
-        verified.serial == plan.serial &&
-        verified.complete;
+    if (plan.needsReplacementConsent && !allowReplacement) return false;
+    return await SmartCard.processSequence(() async {
+          final actual = await inspectMacOsSetup();
+          if (actual == null || !plan.sameContents(actual)) return false;
+          for (final slot in actual.slots) {
+            if (slot.compatible) {
+              onProgress(slot.slotNumber, true);
+              continue;
+            }
+            onProgress(slot.slotNumber, false);
+            final options = PivSelfSignOptions(
+              slotNumber: slot.slotNumber,
+              pinPolicy: PinPolicy.once,
+            );
+            if (slot.canReuseKey) options.algorithm = slot.key!.algorithm;
+            options.applyMacOsLogin();
+            final cert = await generateSelfSignedCertificate(
+              slot.slotNumber,
+              options.algorithm,
+              slot.canReuseKey ? slot.key!.pinPolicy : options.pinPolicy,
+              slot.canReuseKey ? slot.key!.touchPolicy : TouchPolicy.never,
+              pin,
+              managementKey,
+              {'CN': 'CanoKey Mac ${slot.slotNumber}'},
+              const [],
+              365,
+              usePinOnly,
+              keyUsage: options.keyUsage,
+              keyUsageCritical: options.keyUsageCritical,
+              extendedKeyUsage: options.extendedKeyUsage.toList(),
+              includeBasicConstraints: true,
+              reuseExistingKey: slot.canReuseKey,
+              expectedState: slot,
+              expectedSerial: plan.serial,
+            );
+            if (cert == null) return false;
+            onProgress(slot.slotNumber, true);
+          }
+          final verified = await inspectMacOsSetup();
+          return verified != null &&
+              verified.serial == plan.serial &&
+              verified.complete;
+        }) ??
+        false;
   }
 
   Future<Uint8List?> generateSelfSignedCertificate(
@@ -676,8 +1049,9 @@ class PivController extends PollingController {
         final existing = await _readKeyMetadata(int.parse(slot, radix: 16));
         if (existing == null ||
             existing.algorithm != algorithm ||
-            existing.public.isEmpty)
+            existing.public.isEmpty) {
           return;
+        }
         publicKey = PivPublicKey.fromSlotMetadata(
           existing.algorithm,
           existing.public,
@@ -1225,8 +1599,11 @@ class PivController extends PollingController {
     final wireId = algorithmExtensionConfig.idFor(algorithm);
     try {
       await _client.importPrivateKey(
-        slot: slot, algorithm: wireId, key: key,
-        pinPolicy: pinPolicy.value, touchPolicy: touchPolicy.value,
+        slot: slot,
+        algorithm: wireId,
+        key: key,
+        pinPolicy: pinPolicy.value,
+        touchPolicy: touchPolicy.value,
       );
       return true;
     } on ProtocolException {
@@ -1408,12 +1785,20 @@ class PivController extends PollingController {
     final slotId = int.parse(slot, radix: 16);
     try {
       if (algorithm == AlgorithmType.mldsa65) {
-        return await _client.signStreaming(slot: slotId, mode: 0, message: data);
+        return await _client.signStreaming(
+          slot: slotId,
+          mode: 0,
+          message: data,
+        );
       }
       if (algorithm == AlgorithmType.ed25519 &&
           (data.isEmpty || data.length > 512)) {
         // Randomized Ed25519; the signature still verifies as plain Ed25519.
-        return await _client.signStreaming(slot: slotId, mode: 1, message: data);
+        return await _client.signStreaming(
+          slot: slotId,
+          mode: 1,
+          message: data,
+        );
       }
       return await _client.sign(
         slot: slotId,
@@ -1491,7 +1876,8 @@ class PivController extends PollingController {
       await _client.setManagementKey(
         algorithm: managementKeyAlgorithm.value,
         key: bytes,
-        touch: managementKeyAlgorithm == AlgorithmType.aes192 &&
+        touch:
+            managementKeyAlgorithm == AlgorithmType.aes192 &&
                 touchPolicy == TouchPolicy.always
             ? 1
             : 0,

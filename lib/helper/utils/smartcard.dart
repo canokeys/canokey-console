@@ -362,7 +362,10 @@ class SmartCard {
             }
           });
           final found = await completer.future;
-          if (found) _bindConnection();
+          if (found) {
+            _bindConnection();
+            Prompts.promptAndroidReading();
+          }
           return found;
 
         case NfcState.refresh:
@@ -370,6 +373,7 @@ class SmartCard {
             "[pollNfcOrWebUsb] Current state: refresh. Tag has been polled.",
           );
           _bindConnection();
+          Prompts.promptAndroidReading();
           return true;
       }
     } else {
@@ -492,7 +496,75 @@ class SmartCard {
     }
   }
 
+  /// Resume an input prompt on a fresh scan. A null result keeps the prompt
+  /// open, but always releases the scan before another submission. A non-null
+  /// result transfers this lease back to the owning use case.
+  static Future<T?> withInputCard<T>(
+    String expectedSerial,
+    Future<T?> Function() action,
+  ) async {
+    T? result;
+    try {
+      nfcState = NfcState.processWithInput;
+      if (!await pollNfcOrWebUsb()) {
+        Prompts.showPrompt(S.current.noCard, ContentThemeColor.warning);
+        return null;
+      }
+      if (connectionType != ConnectionType.ccid) {
+        final serial = await _bootstrapIdentity();
+        if (serial != expectedSerial.toUpperCase()) {
+          throw StateError('Card changed while waiting for input');
+        }
+      }
+      result = await action();
+      if (result != null) nfcState = NfcState.processWithoutInput;
+      return result;
+    } on PlatformException catch (error, stack) {
+      log.w('Input card scan failed', error: error, stackTrace: stack);
+      Prompts.showPrompt(S.current.interrupted, ContentThemeColor.danger);
+      return null;
+    } finally {
+      if (result == null) await stopPollingNfc(withInput: true);
+    }
+  }
+
+  static Future<String> _bootstrapIdentity() async {
+    const transport = SmartCardApduTransport();
+    await executeProtocolOperation(
+      ProtocolOperation.bootstrapIdentity(
+        step: BootstrapIdentityStep.selectAdmin,
+      ),
+      transport,
+    );
+    final serial = await executeProtocolOperation(
+      ProtocolOperation.bootstrapIdentity(step: BootstrapIdentityStep.serial),
+      transport,
+    );
+    currentLease.recordBootstrapSerial(serial);
+    return hex.encode(serial).toUpperCase();
+  }
+
+  static final Object _processSequenceKey = Object();
+
+  /// One user action may contain several controller operations. Keep their
+  /// polling, lease and cleanup together; each operation still selects and
+  /// authenticates explicitly. No failed command is replayed.
+  static Future<T?> processSequence<T>(Future<T> Function() action) async {
+    T? result;
+    await process((_) async {
+      result = await runZoned(action, zoneValues: {_processSequenceKey: true});
+    });
+    return result;
+  }
+
   static Future<void> process(Function(String sn) f) async {
+    if (Zone.current[_processSequenceKey] == true) {
+      // Only an explicitly grouped sequence can reuse its owning session.
+      // A lost/expired lease remains terminal, even for the next step.
+      currentLease.check();
+      await f(_currentSN);
+      return;
+    }
     try {
       await _sessions.run((_) => _process(f));
     } finally {
@@ -527,21 +599,7 @@ class SmartCard {
           return;
         }
         try {
-          const transport = SmartCardApduTransport();
-          await executeProtocolOperation(
-            ProtocolOperation.bootstrapIdentity(
-              step: BootstrapIdentityStep.selectAdmin,
-            ),
-            transport,
-          );
-          final serial = await executeProtocolOperation(
-            ProtocolOperation.bootstrapIdentity(
-              step: BootstrapIdentityStep.serial,
-            ),
-            transport,
-          );
-          currentLease.recordBootstrapSerial(serial);
-          final sn = hex.encode(serial).toUpperCase();
+          final sn = await _bootstrapIdentity();
           _currentSN = sn;
           if (isWeb()) {
             connectionType = ConnectionType.webusb;

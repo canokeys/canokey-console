@@ -16,7 +16,9 @@ import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
 class PassController extends PollingController with AdminApplet {
-  final PassCardClient _client = PassCardClient();
+  PassController({PassCardClient? client})
+    : _client = client ?? PassCardClient();
+  final PassCardClient _client;
   List<PassSlot> slots = [PassSlot.empty(), PassSlot.empty()];
   PassSlot get slotShort => slots[0];
   PassSlot get slotLong => slots[1];
@@ -133,8 +135,10 @@ class PassController extends PollingController with AdminApplet {
 
       // A slot write invalidates profile evidence; explicitly re-probe before
       // the dependent read instead of reusing stale evidence.
-      await _client.prepare();
-      await _refresh();
+      await refreshAfterWrite(() async {
+        await _client.prepare();
+        await _refresh();
+      });
     });
   }
 

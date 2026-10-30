@@ -38,7 +38,7 @@ class _StarterScreenState extends State<StarterScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Spacing.height(MediaQuery.of(context).size.height / 2 - 100),
+                  Spacing.height((MediaQuery.sizeOf(context).height / 2 - 100).clamp(0.0, double.infinity)),
                   if (Layout.hasSidebar())
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

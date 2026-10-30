@@ -117,7 +117,14 @@ class SettingsController extends PollingController with AdminApplet {
         );
         await _client.prepare();
       }
-      for (final entry in values.entries) {
+      // Turning off the transport must be last, regardless of UI map order.
+      final ordered = values.entries.where((e) => e.key != Func.nfcSwitch).toList();
+      if (values.containsKey(Func.nfcSwitch)) {
+        ordered.add(MapEntry(Func.nfcSwitch, values[Func.nfcSwitch]!));
+      }
+      final stopsNfc = values[Func.nfcSwitch] == false &&
+          SmartCard.connectionType == ConnectionType.nfc;
+      for (final entry in ordered) {
         switch (entry.key) {
           case Func.hotp:
             await _client.setKeyboardInterface(entry.value, pin: pin);
@@ -136,7 +143,9 @@ class SettingsController extends PollingController with AdminApplet {
         }
         // Every successful profile-affecting operation ends its own auth/target
         // sequence. Explicitly discover before the next operation, never inside it.
-        await _client.prepare();
+        if (!(stopsNfc && entry.key == Func.nfcSwitch)) {
+          await _client.prepare();
+        }
       }
 
       log.i(
@@ -149,7 +158,12 @@ class SettingsController extends PollingController with AdminApplet {
         ContentThemeColor.success,
         forceSnackBar: true,
       );
-      await _refresh(sn);
+      if (stopsNfc) {
+        polled = false;
+        update();
+      } else {
+        await refreshAfterWrite(() => _refresh(sn));
+      }
     });
   }
 
@@ -203,7 +217,7 @@ class SettingsController extends PollingController with AdminApplet {
     });
   }
 
-  void resetCanokey() async {
+  Future<void> resetCanokey() async {
     log.t('Call SettingsController.resetCanokey');
     await SmartCard.process((String sn) async {
       await _client.prepare();
@@ -244,7 +258,7 @@ class SettingsController extends PollingController with AdminApplet {
     });
   }
 
-  void changeKeyboardKeymap(KeyboardKeymapPreset preset) async {
+  Future<void> changeKeyboardKeymap(KeyboardKeymapPreset preset) async {
     log.t('Call SettingsController.changeKeyboardKeymap');
     await SmartCard.process((String sn) async {
       if (!await authenticate(sn)) {
@@ -277,7 +291,7 @@ class SettingsController extends PollingController with AdminApplet {
         ContentThemeColor.success,
         forceSnackBar: true,
       );
-      await _refresh(sn);
+      await refreshAfterWrite(() => _refresh(sn));
     });
   }
 

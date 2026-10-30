@@ -81,7 +81,14 @@ class _AppDialogNfcScopeState extends State<_AppDialogNfcScope> {
 /// Shared operation scope for every dialog, including non-BaseDialog forms.
 class AppDialogSurface extends StatefulWidget {
   final Widget child;
-  const AppDialogSurface({super.key, required this.child});
+  final bool busy;
+  const AppDialogSurface({super.key, required this.child, this.busy = false});
+
+  static int _mountedScopes = 0;
+  static bool get hasActiveDialog => _mountedScopes > 0;
+
+  static bool isBusy(BuildContext context) =>
+      _DialogOperationScope.isBusy(context);
 
   static Future<void> run(
     BuildContext context,
@@ -101,9 +108,22 @@ class AppDialogSurface extends StatefulWidget {
 
 class _AppDialogSurfaceState extends State<AppDialogSurface> {
   bool busy = false;
+  bool get isBusy => busy || widget.busy;
+
+  @override
+  void initState() {
+    super.initState();
+    AppDialogSurface._mountedScopes++;
+  }
+
+  @override
+  void dispose() {
+    AppDialogSurface._mountedScopes--;
+    super.dispose();
+  }
 
   Future<void> run(FutureOr<void> Function() action) async {
-    if (busy) return;
+    if (isBusy) return;
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() => busy = true);
     try {
@@ -122,17 +142,17 @@ class _AppDialogSurfaceState extends State<AppDialogSurface> {
 
   @override
   Widget build(BuildContext context) => PopScope(
-    canPop: !busy,
+    canPop: !isBusy,
     child: Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       clipBehavior: Clip.antiAlias,
       insetAnimationDuration: Duration.zero,
       child: _DialogOperationScope(
-        busy: busy,
+        busy: isBusy,
         child: Stack(
           children: [
-            AbsorbPointer(absorbing: busy, child: widget.child),
-            if (busy && (ModalRoute.of(context)?.isCurrent ?? true))
+            AbsorbPointer(absorbing: isBusy, child: widget.child),
+            if (isBusy && (ModalRoute.of(context)?.isCurrent ?? true))
               const Positioned(
                 left: 0,
                 right: 0,
