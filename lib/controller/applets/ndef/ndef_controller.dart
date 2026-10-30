@@ -41,6 +41,12 @@ class NdefController extends PollingController {
   bool get canSave => canEdit && dirty && !exceedsCapacity;
 
   @override
+  void onClose() {
+    _client.cancelPendingOperations();
+    super.onClose();
+  }
+
+  @override
   Future<void> doRefreshData() async {
     log.t('Call NdefController.doRefreshData');
     if (ScreenshotMode.enabled) {

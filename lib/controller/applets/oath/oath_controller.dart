@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:canokey_console/controller/applets/oath/qr_scan_result.dart';
 import 'package:canokey_console/controller/base/polling_controller.dart';
@@ -13,14 +14,15 @@ import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:canokey_console/models/oath.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:canokey_console/helper/utils/app_platform.dart';
 import 'package:timer_controller/timer_controller.dart';
 
 class OathController extends PollingController {
-  final OathCardClient _client = OathCardClient();
+  OathController({OathCardClient? client})
+    : _client = client ?? OathCardClient();
+  final OathCardClient _client;
   final TimerController timerController = TimerController.seconds(30);
   final Rxn<QrScanResult> qrScanResult = Rxn<QrScanResult>();
   final _localCodeCache = CredentialCache('OATH');
@@ -35,21 +37,31 @@ class OathController extends PollingController {
     super.onReady();
     // The timer is started inside a card session and inherits its zone.
     // Run expiry handling in the page's zone so a refresh opens a new session.
-    timerController.addListener(Zone.current.bindCallback(() {
-      if (timerController.value.remaining == 0) {
-        // set codes to empty for TOTP with touch required
-        for (var name in oathMap.keys) {
-          if (oathMap[name]!.requireTouch ||
-              isMobile() && oathMap[name]!.type == OathType.totp) {
-            oathMap[name]!.code = '';
+    timerController.addListener(
+      Zone.current.bindCallback(() {
+        if (timerController.value.remaining == 0) {
+          // set codes to empty for TOTP with touch required
+          for (var name in oathMap.keys) {
+            if (oathMap[name]!.requireTouch ||
+                isMobile() && oathMap[name]!.type == OathType.totp) {
+              oathMap[name]!.code = '';
+            }
+          }
+          update();
+          if (SmartCard.connectionType != ConnectionType.nfc) {
+            unawaited(
+              refreshData().catchError((Object error, StackTrace stack) {
+                log.w(
+                  'OATH timer refresh failed',
+                  error: error,
+                  stackTrace: stack,
+                );
+              }),
+            );
           }
         }
-        update();
-        if (SmartCard.connectionType != ConnectionType.nfc) {
-          refreshData();
-        }
-      }
-    }));
+      }),
+    );
   }
 
   @override
@@ -76,8 +88,15 @@ class OathController extends PollingController {
     });
   }
 
-  Future<void> addAccount(String name, String secretHex, OathType type,
-      OathAlgorithm algo, int digits, bool requireTouch, int initValue) async {
+  Future<void> addAccount(
+    String name,
+    String secretHex,
+    OathType type,
+    OathAlgorithm algo,
+    int digits,
+    bool requireTouch,
+    int initValue,
+  ) async {
     log.t('Call OathController.addAccount');
     await SmartCard.process((String sn) async {
       final (authenticated, key) = await _authenticate(sn);
@@ -100,13 +119,17 @@ class OathController extends PollingController {
         } on ProtocolException catch (e) {
           if (e.details.statusWord == 0x6985) {
             Prompts.showPrompt(
-                S.of(Get.context!).oathDuplicated, ContentThemeColor.danger);
+              S.of(Get.context!).oathDuplicated,
+              ContentThemeColor.danger,
+            );
             return;
           }
           final sw = _client.lastStatusWord;
           if (sw != null && Prompts.isStorageFull(sw)) {
             Prompts.showPrompt(
-                S.of(Get.context!).storageFull, ContentThemeColor.danger);
+              S.of(Get.context!).storageFull,
+              ContentThemeColor.danger,
+            );
             return;
           }
           rethrow;
@@ -115,10 +138,12 @@ class OathController extends PollingController {
 
         Navigator.pop(Get.context!);
         Prompts.showPrompt(
-            S.of(Get.context!).oathAdded, ContentThemeColor.success,
-            forceSnackBar: true);
+          S.of(Get.context!).oathAdded,
+          ContentThemeColor.success,
+          forceSnackBar: true,
+        );
 
-        await _refresh(key);
+        await refreshAfterWrite(() => _refresh(key));
       } finally {
         key?.fillRange(0, key.length, 0);
       }
@@ -135,7 +160,6 @@ class OathController extends PollingController {
         log.w('Code not supported');
         return;
       }
-      final salt = selection.salt!;
       Uint8List? oldKey;
       if (selection.requiresCode) {
         final (authenticated, key) = await _authenticate(sn);
@@ -145,11 +169,15 @@ class OathController extends PollingController {
         oldKey = key;
       }
 
+      // A lost write acknowledgment must not leave the obsolete code cached.
+      await LocalStorage.setPinCache(sn, _tag, null);
+      _localCodeCache.remove(sn);
       try {
         if (newCode.isEmpty) {
           await _client.clearCode(key: oldKey);
         } else {
-          final newKey = OathCardClient.deriveKey(newCode, salt);
+          final fresh = await _client.select();
+          final newKey = OathCardClient.deriveKey(newCode, fresh.salt!);
           try {
             await _client.setCode(newKey: newKey, oldKey: oldKey);
           } finally {
@@ -171,12 +199,32 @@ class OathController extends PollingController {
 
       Navigator.pop(Get.context!);
       Prompts.showPrompt(
-          S.of(Get.context!).oathCodeChanged, ContentThemeColor.success,
-          forceSnackBar: true);
+        S.of(Get.context!).oathCodeChanged,
+        ContentThemeColor.success,
+        forceSnackBar: true,
+      );
     });
   }
 
-  Future<String> calculate(String name, OathType type) async {
+  final _calculations = <String, Future<String>>{};
+  bool isCalculating(String name) => _calculations.containsKey(name);
+
+  Future<String> calculate(String name, OathType type) {
+    final active = _calculations[name];
+    if (active != null) return active;
+    late final Future<String> pending;
+    pending = Future<String>.sync(() => _calculate(name, type)).whenComplete(
+      () {
+        if (identical(_calculations[name], pending)) _calculations.remove(name);
+        if (!isClosed) update();
+      },
+    );
+    _calculations[name] = pending;
+    update();
+    return pending;
+  }
+
+  Future<String> _calculate(String name, OathType type) async {
     log.t('Call OathController.calculate');
     String code = '';
     await SmartCard.process((String sn) async {
@@ -198,7 +246,10 @@ class OathController extends PollingController {
           key: key,
         );
         code = formatOathCode(
-            rawCode: rawCode, digits: digits, format: oathMap[name]!.format);
+          rawCode: rawCode,
+          digits: digits,
+          format: oathMap[name]!.format,
+        );
         oathMap[name]!.code = code;
 
         _startTimer();
@@ -224,9 +275,11 @@ class OathController extends PollingController {
 
         Navigator.pop(Get.context!);
         Prompts.showPrompt(
-            S.of(Get.context!).deleted, ContentThemeColor.success,
-            forceSnackBar: true);
-        await _refresh(key);
+          S.of(Get.context!).deleted,
+          ContentThemeColor.success,
+          forceSnackBar: true,
+        );
+        await refreshAfterWrite(() => _refresh(key));
       } finally {
         key?.fillRange(0, key.length, 0);
       }
@@ -256,12 +309,16 @@ class OathController extends PollingController {
           if (e.details.kind == 'InvalidArgument' &&
               e.details.phase == 'Construction') {
             Prompts.showPrompt(
-                S.of(Get.context!).notSupported, ContentThemeColor.warning);
+              S.of(Get.context!).notSupported,
+              ContentThemeColor.warning,
+            );
             return;
           }
           if (e.details.kind == 'NotFound') {
             Prompts.showPrompt(
-                S.of(Get.context!).operationFailed, ContentThemeColor.danger);
+              S.of(Get.context!).operationFailed,
+              ContentThemeColor.danger,
+            );
             return;
           }
           rethrow;
@@ -270,8 +327,10 @@ class OathController extends PollingController {
 
         Navigator.pop(Get.context!);
         Prompts.showPrompt(
-            S.of(Get.context!).successfullyChanged, ContentThemeColor.success,
-            forceSnackBar: true);
+          S.of(Get.context!).successfullyChanged,
+          ContentThemeColor.success,
+          forceSnackBar: true,
+        );
       } finally {
         key?.fillRange(0, key.length, 0);
       }
@@ -314,21 +373,25 @@ class OathController extends PollingController {
     final counter = int.parse(query['counter'] ?? '0');
 
     qrScanResult.value = QrScanResult(
-        issuer: issuer,
-        account: account,
-        secret: secret,
-        type: type,
-        algo: algo,
-        digits: digits,
-        initValue: counter);
+      issuer: issuer,
+      account: account,
+      secret: secret,
+      type: type,
+      algo: algo,
+      digits: digits,
+      initValue: counter,
+    );
   }
 
   /// Validate a candidate code against the card. An incorrect code returns
   /// null; protocol and transport failures propagate. When [report] is true,
   /// an incorrect code also shows a pinIncorrect prompt — silent candidates
   /// (caches tried before prompting the user) pass false.
-  Future<Uint8List?> _verifyCode(String code, List<int> salt,
-      {bool report = true}) async {
+  Future<Uint8List?> _verifyCode(
+    String code,
+    List<int> salt, {
+    bool report = true,
+  }) async {
     final key = OathCardClient.deriveKey(code, salt);
     try {
       await _client.validate(key);
@@ -339,10 +402,15 @@ class OathController extends PollingController {
           e.details.kind == 'DeviceAuthenticationFailed') {
         if (report) {
           Prompts.showPrompt(
-              S.of(Get.context!).pinIncorrect, ContentThemeColor.danger);
+            S.of(Get.context!).pinIncorrect,
+            ContentThemeColor.danger,
+          );
         }
         return null;
       }
+      rethrow;
+    } catch (_) {
+      key.fillRange(0, key.length, 0);
       rethrow;
     }
   }
@@ -394,51 +462,33 @@ class OathController extends PollingController {
       prompt: S.of(Get.context!).oathInputCodePrompt,
       showSaveOption: true,
       onSubmit: (code, saveCode) async {
-        // When using NFC, we need to poll NFC again
-        SmartCard.nfcState = NfcState.processWithInput;
-        if (!await SmartCard.pollNfcOrWebUsb()) {
-          Prompts.stopPromptAndroidPolling();
-          Prompts.showPrompt(
-              S.of(Get.context!).noCard, ContentThemeColor.warning,
-              level: 'W');
-          return;
-        }
-        Prompts.stopPromptAndroidPolling();
-        Uint8List? key;
         try {
-          // The poll above bound a new lease; rediscover before validating.
-          await _client.prepare();
-          key = await _verifyCode(code, salt);
-        } on ProtocolException catch (e) {
-          await SmartCard.stopPollingNfc(withInput: true);
-          log.e('_verifyCode failed', error: e);
-          Prompts.showPrompt(
-              S.of(Get.context!).operationFailed, ContentThemeColor.danger);
-        } on StateError catch (e) {
-          await SmartCard.stopPollingNfc(withInput: true);
-          log.e('_verifyCode failed', error: e);
-          Prompts.showPrompt(
-              S.of(Get.context!).operationFailed, ContentThemeColor.danger);
-        } on PlatformException catch (e) {
-          await SmartCard.stopPollingNfc(withInput: true);
-          log.e('_verifyCode failed', error: e);
-          if (e.code == '500') {
-            Prompts.showPrompt(
-                S.of(Get.context!).interrupted, ContentThemeColor.danger);
+          final authenticated =
+              await SmartCard.withInputCard<(bool, Uint8List?)>(sn, () async {
+                await _client.prepare();
+                final fresh = await _client.select();
+                version = fresh.version;
+                if (fresh.version == OathVersion.legacy ||
+                    !fresh.requiresCode) {
+                  return (true, null);
+                }
+                final key = await _verifyCode(code, fresh.salt!);
+                if (key == null) return null;
+                try {
+                  _localCodeCache[sn] = code;
+                  if (saveCode) await LocalStorage.setPinCache(sn, _tag, code);
+                  return (true, key);
+                } catch (_) {
+                  key.fillRange(0, key.length, 0);
+                  rethrow;
+                }
+              });
+          if (authenticated != null && !completer.isCompleted) {
+            completer.complete(authenticated);
+            Navigator.pop(Get.context!);
           }
-        }
-        if (key != null) {
-          log.t('PIN verified');
-          _localCodeCache[sn] = code;
-          if (saveCode) {
-            await LocalStorage.setPinCache(sn, _tag, code);
-          }
-          if (!completer.isCompleted) {
-            completer.complete((true, key));
-          }
-          // Since PIN has been cached, if error happens, we don't need to re-prompt
-          SmartCard.nfcState = NfcState.processWithoutInput;
-          // Close the dialog
+        } catch (error, stack) {
+          if (!completer.isCompleted) completer.completeError(error, stack);
           Navigator.pop(Get.context!);
         }
       },
@@ -474,7 +524,10 @@ class OathController extends PollingController {
     final rawCode = entry.rawCode;
     if (rawCode != null) {
       item.code = formatOathCode(
-          rawCode: rawCode, digits: entry.digits, format: item.format);
+        rawCode: rawCode,
+        digits: entry.digits,
+        format: item.format,
+      );
     }
     return item;
   }
@@ -516,8 +569,10 @@ class OathController extends PollingController {
   void _startTimer() {
     int running = DateTime.now().millisecondsSinceEpoch ~/ 1000 % 30;
     timerController.reset();
-    timerController.value =
-        new TimerValue(remaining: 30 - running, unit: TimerUnit.second);
+    timerController.value = new TimerValue(
+      remaining: 30 - running,
+      unit: TimerUnit.second,
+    );
     timerController.start();
   }
 

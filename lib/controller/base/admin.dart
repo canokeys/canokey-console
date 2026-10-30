@@ -1,18 +1,16 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'dart:convert';
 import 'package:canokey_console/helper/utils/card_session.dart';
 
 import 'package:canokey_console/generated/l10n.dart';
 import 'package:canokey_console/helper/storage/local_storage.dart';
-import 'package:canokey_console/helper/theme/admin_theme.dart';
 import 'package:canokey_console/helper/utils/admin_card.dart';
-import 'package:canokey_console/helper/utils/audio.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/smartcard.dart';
 import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 final log = Logging.logger('AdminApplet');
@@ -110,46 +108,18 @@ mixin AdminApplet on GetxController {
       prompt: S.of(Get.context!).settingsInputPinPrompt,
       showSaveOption: true,
       onSubmit: (pin, savePin) async {
-        // When using NFC, we need to poll NFC again
-        SmartCard.nfcState = NfcState.processWithInput;
-        if (!await SmartCard.pollNfcOrWebUsb()) {
-          Prompts.stopPromptAndroidPolling();
-          Prompts.showPrompt(
-            S.of(Get.context!).noCard,
-            ContentThemeColor.warning,
-            level: 'W',
-          );
-          Audio.error();
-          return; // timeout, do not close the dialog
-        }
-        Prompts.stopPromptAndroidPolling();
-        bool verified = false;
         try {
-          verified = await _selectAndVerifyPin(pin, sn);
-        } on PlatformException catch (e) {
-          await SmartCard.stopPollingNfc(withInput: true);
-          log.e('_selectAndVerifyPin failed', error: e);
-          if (e.code == '500') {
-            Prompts.showPrompt(
-              S.of(Get.context!).interrupted,
-              ContentThemeColor.danger,
-            );
-            Audio.error();
+          final verified = await SmartCard.withInputCard<bool>(sn, () async {
+            if (!await _selectAndVerifyPin(pin, sn)) return null;
+            await updatePinCache(sn, pin, savePin);
+            return true;
+          });
+          if (verified == true && !completer.isCompleted) {
+            completer.complete(true);
+            Navigator.pop(Get.context!);
           }
         } catch (error, stack) {
-          // Terminal protocol/lifecycle failures must settle the owning use case.
-          if (completer.isCompleted) return;
-          completer.completeError(error, stack);
-          Navigator.pop(Get.context!);
-          return;
-        }
-        if (verified && !completer.isCompleted) {
-          log.t('PIN verified');
-          await updatePinCache(sn, pin, savePin);
-          completer.complete(true);
-          // Since PIN has been cached, if error happens, we don't need to re-prompt
-          SmartCard.nfcState = NfcState.processWithoutInput;
-          // Close the dialog
+          if (!completer.isCompleted) completer.completeError(error, stack);
           Navigator.pop(Get.context!);
         }
       },

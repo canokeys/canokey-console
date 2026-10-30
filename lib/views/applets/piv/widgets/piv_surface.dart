@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:canokey_console/helper/widgets/app_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -210,7 +212,7 @@ class PivButton extends StatelessWidget {
     this.width = 120,
   });
   final String label;
-  final VoidCallback? onPressed;
+  final FutureOr<void> Function()? onPressed;
   final IconData? icon;
   final bool primary, danger, compact;
   final double? width;
@@ -220,7 +222,9 @@ class PivButton extends StatelessWidget {
     return SizedBox(
       width: width,
       child: TextButton(
-        onPressed: onPressed,
+        onPressed: onPressed == null || AppDialogSurface.isBusy(context)
+            ? null
+            : () => AppDialogSurface.run(context, onPressed!),
         style: TextButton.styleFrom(
           foregroundColor: foreground,
           disabledForegroundColor: PivStyle.muted(

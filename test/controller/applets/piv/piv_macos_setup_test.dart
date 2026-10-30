@@ -1,4 +1,6 @@
 import 'dart:typed_data';
+import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/utils/card_session.dart';
 import 'package:canokey_console/controller/applets/piv/piv_controller.dart';
 import 'package:canokey_console/models/piv.dart';
 import 'package:canokey_console/models/piv_macos_setup.dart';
@@ -33,10 +35,17 @@ class SetupController extends PivController {
     : state = PivMacOsSetupPlan(serial: 'card', slots: slots);
   PivMacOsSetupPlan state;
   String? failSlot;
+  final leases = <CardLease>[];
   final writes = <String>[];
   final reused = <bool>[];
   @override
-  Future<PivMacOsSetupPlan?> inspectMacOsSetup() async => state;
+  Future<PivMacOsSetupPlan?> inspectMacOsSetup() async {
+    await SmartCard.process((_) async {
+      leases.add(SmartCard.currentLease);
+    });
+    return state;
+  }
+
   @override
   Future<Uint8List?> generateSelfSignedCertificate(
     String slot,
@@ -57,16 +66,17 @@ class SetupController extends PivController {
     PivMacOsSetupSlot? expectedState,
     String? expectedSerial,
   }) async {
+    leases.add(SmartCard.currentLease);
     writes.add(slot);
     reused.add(reuseExistingKey);
-    expect(expectedSerial, state.serial);
-    expect(
+    expectSync(expectedSerial, state.serial);
+    expectSync(
       expectedState!.sameContents(
         state.slots.firstWhere((s) => s.slotNumber == slot),
       ),
       isTrue,
     );
-    expect(keyUsage, slot == '9A' ? 1 : 16);
+    expectSync(keyUsage, slot == '9A' ? 1 : 16);
     if (slot == failSlot) return null;
     state = PivMacOsSetupPlan(
       serial: state.serial,
@@ -95,6 +105,9 @@ Future<bool> run(
 );
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() => SmartCard.connectionType = ConnectionType.ccid);
+  tearDown(() => SmartCard.connectionType = ConnectionType.none);
   test('preserves configured 9A and creates only missing 9D', () async {
     final c = SetupController([
       entry('9A', key: true, cert: true, compatible: true),
@@ -108,6 +121,9 @@ void main() {
     final c = SetupController([entry('9A', key: true), entry('9D', key: true)]);
     expect(await run(c), isTrue);
     expect(c.reused, [true, true]);
+    expect(c.leases, hasLength(4));
+    expect(c.leases.every((lease) => identical(lease, c.leases.first)), isTrue);
+    expect(c.leases.first.check, throwsStateError);
   });
   test('replacement requires consent before any writes', () async {
     final c = SetupController([

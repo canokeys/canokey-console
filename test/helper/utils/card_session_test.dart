@@ -8,6 +8,42 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test(
+    'explicit sequences serialize, expire callbacks and stop on failure',
+    () async {
+      SmartCard.connectionType = ConnectionType.ccid;
+      addTearDown(() => SmartCard.connectionType = ConnectionType.none);
+      final ready = Completer<void>();
+      final proceed = Completer<void>();
+      final events = <String>[];
+      late Future<void> Function() escaped;
+      final first = SmartCard.processSequence(() async {
+        await SmartCard.process((_) async => events.add('first'));
+        escaped = Zone.current.bindCallback(
+          () => SmartCard.process((_) async => events.add('expired')),
+        );
+        ready.complete();
+        await proceed.future;
+        await SmartCard.process((_) async => events.add('second'));
+        throw StateError('stop sequence');
+      });
+      final rejected = expectLater(first, throwsStateError);
+      await ready.future;
+      final next = SmartCard.process((_) async => events.add('next'));
+      await Future<void>.delayed(Duration.zero);
+      expect(events, ['first']);
+      proceed.complete();
+      await rejected;
+      await next;
+      expect(events, ['first', 'second', 'next']);
+      await expectLater(escaped(), throwsStateError);
+      expect(events, ['first', 'second', 'next']);
+      await SmartCard.process((_) async {
+        await expectLater(SmartCard.process((_) async {}), throwsStateError);
+      });
+    },
+  );
+
+  test(
     'lease resources release on rebind and despite a failing destructor',
     () async {
       final sessions = CardSessions();

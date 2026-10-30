@@ -6288,6 +6288,126 @@ class S {
       args: [],
     );
   }
+
+  /// `The change was saved, but its status could not be refreshed. Read the CanoKey again.`
+  String get operationSavedRefreshFailed {
+    return Intl.message(
+      'The change was saved, but its status could not be refreshed. Read the CanoKey again.',
+      name: 'operationSavedRefreshFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reading CanoKey`
+  String get nfcReadingTitle {
+    return Intl.message(
+      'Reading CanoKey',
+      name: 'nfcReadingTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Hold CanoKey near the NFC area on the back of your phone.`
+  String get nfcWaitingMessage {
+    return Intl.message(
+      'Hold CanoKey near the NFC area on the back of your phone.',
+      name: 'nfcWaitingMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The new management key is active, but updating its PIN-protected copy did not complete. Keep the new key, hold the same card steady, and choose Continue to finish the remaining steps. The key will not be changed again.`
+  String get pivManagementKeyChangedProtectionIncomplete {
+    return Intl.message(
+      'The new management key is active, but updating its PIN-protected copy did not complete. Keep the new key, hold the same card steady, and choose Continue to finish the remaining steps. The key will not be changed again.',
+      name: 'pivManagementKeyChangedProtectionIncomplete',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The connection was interrupted before the key change could be confirmed. Keep both keys and choose Continue with the same card. We will check which key is active before making any further changes.`
+  String get pivManagementKeyChangeOutcomeUnknown {
+    return Intl.message(
+      'The connection was interrupted before the key change could be confirmed. Keep both keys and choose Continue with the same card. We will check which key is active before making any further changes.',
+      name: 'pivManagementKeyChangeOutcomeUnknown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Continue`
+  String get pivContinueManagementKeyChange {
+    return Intl.message(
+      'Continue',
+      name: 'pivContinueManagementKeyChange',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The previous key is still valid; the requested change was not confirmed. Your inputs have been kept. Review them and save again to explicitly retry the change.`
+  String get pivManagementKeyPreviousStillActive {
+    return Intl.message(
+      'The previous key is still valid; the requested change was not confirmed. Your inputs have been kept. Review them and save again to explicitly retry the change.',
+      name: 'pivManagementKeyPreviousStillActive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The card or its management data does not match this pending change. Nothing was written. Return to the original card and keep both keys.`
+  String get pivManagementKeyCardStateChanged {
+    return Intl.message(
+      'The card or its management data does not match this pending change. Nothing was written. Return to the original card and keep both keys.',
+      name: 'pivManagementKeyCardStateChanged',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The pending change could not be confirmed with the expected management key. Nothing was written. Keep both keys and check that this is the original card.`
+  String get pivManagementKeyContinuationAuthenticationFailed {
+    return Intl.message(
+      'The pending change could not be confirmed with the expected management key. Nothing was written. Keep both keys and check that this is the original card.',
+      name: 'pivManagementKeyContinuationAuthenticationFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Keep the card in place until completion. If interrupted, keep the old and new keys and continue this change. Pending details stay in memory on this PIV page only; save the keys before leaving the page or closing the app.`
+  String get pivManagementKeyChangeSafetyHint {
+    return Intl.message(
+      'Keep the card in place until completion. If interrupted, keep the old and new keys and continue this change. Pending details stay in memory on this PIV page only; save the keys before leaving the page or closing the app.',
+      name: 'pivManagementKeyChangeSafetyHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The management key was not changed. Check the PIN, current management key and connection, then try again.`
+  String get pivManagementKeyChangeFailed {
+    return Intl.message(
+      'The management key was not changed. Check the PIN, current management key and connection, then try again.',
+      name: 'pivManagementKeyChangeFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Status could not be fully refreshed. Showing the last card data; read the card again to update it.`
+  String get pivDataRefreshIncomplete {
+    return Intl.message(
+      'Status could not be fully refreshed. Showing the last card data; read the card again to update it.',
+      name: 'pivDataRefreshIncomplete',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/utils/prompts.dart';
 import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,7 +30,6 @@ void main() {
       SmartCard.refreshHandler = null;
       Get.reset();
     });
-    Get.put(RxBool(false), tag: 'dialog_polling');
     const audioChannel = MethodChannel('org.canokeys.console/audio');
     messenger.setMockMethodCallHandler(audioChannel, (_) async => null);
     addTearDown(() => messenger.setMockMethodCallHandler(audioChannel, null));
@@ -103,7 +103,7 @@ void main() {
     polls[1].complete(_tag());
     await tester.pump();
     expect(scanCompleted, isFalse);
-    expect(Get.find<RxBool>(tag: 'dialog_polling').value, isTrue);
+    expect(Prompts.cardReadPhase.value, CardReadPhase.waiting);
     polls[4].complete(_tag());
     await tester.pump();
     expect(await nextScan, isTrue);
@@ -120,7 +120,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     await cleanup;
     await tester.pump(const Duration(milliseconds: 100));
-    expect(Get.find<RxBool>(tag: 'dialog_polling').value, isFalse);
+    expect(Prompts.cardReadPhase.value, isNull);
 
     SmartCard.nfcState = NfcState.mute;
     int unavailableLogs() => Logging.store.entries
@@ -229,7 +229,7 @@ void main() {
     );
     controllerCleanup.complete();
     await tester.pump();
-    expect(Get.find<RxBool>(tag: 'dialog_polling').value, isFalse);
+    expect(Prompts.cardReadPhase.value, isNull);
     expect(polls, hasLength(beforeFailure + 1));
     polls.last.complete(_tag());
     await tester.pump();
@@ -263,7 +263,7 @@ void main() {
     SmartCard.refreshHandler = () => throw StateError('Refresh setup failed');
     polls.last.complete(_tag());
     await tester.pump();
-    expect(Get.find<RxBool>(tag: 'dialog_polling').value, isFalse);
+    expect(Prompts.cardReadPhase.value, isNull);
     expect(SmartCard.nfcState, NfcState.idle);
     await tester.pump(const Duration(milliseconds: 100));
 
