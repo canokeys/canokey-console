@@ -1,0 +1,3 @@
+1. Fixed multiple NFC read, write, authentication, and post-operation refresh issues.
+2. Improved PIV management key changes with support for continuing interrupted operations.
+3. Unified card scanning prompts and fixed WebAuthn PIN caching and duplicate OATH code refreshes.
