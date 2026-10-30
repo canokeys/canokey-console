@@ -1,0 +1,13 @@
+{
+  "synchroType": 1,
+  "appInfo": {
+    "appName": "CanoKey Console",
+    "packageName": "org.canokeys.console",
+    "privacyUrl": "https://canokeys.com/privacy/"
+  },
+  "releaseNotes": "../dist/xiaomi/release-notes.txt",
+  "files": {
+    "apk": "../dist/android/play-signed/universal.apk",
+    "icon": "../web/icons/Icon-512.png"
+  }
+}

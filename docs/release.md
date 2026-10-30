@@ -1,5 +1,8 @@
 # Mobile prerelease checklist
 
+For Google Play-signed APK downloads and Xiaomi submission, see
+[Xiaomi release automation](xiaomi-release.md).
+
 The current candidate is version `1.3.4` with build/version code `28`.
 
 Before building, confirm in both App Store Connect and Google Play Console that

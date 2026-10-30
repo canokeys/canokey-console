@@ -10,3 +10,9 @@ android/fastlane/report.xml
 ios/fastlane/report.xml
 
 __pycache__/
+.venv-xiaomi/
+
+# Local store credentials (public examples use *.example.json).
+google-play.json
+xiaomi.json
+xiaomi-public.pem
