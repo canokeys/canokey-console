@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:convert/convert.dart';
 import 'package:canokey_console/src/rust/frb_generated.dart';
+import 'package:canokey_console/controller/applets/piv/piv_controller.dart';
+import 'package:canokey_console/helper/utils/applet_switches.dart';
+import 'package:canokey_console/helper/utils/smartcard.dart';
 
 import 'package:canokey_console/helper/utils/admin_card.dart';
 import 'package:canokey_console/helper/utils/apdu_transport.dart';
@@ -837,7 +840,51 @@ class ConsoleSmoke {
         'configuration_readable': configuration != null,
       });
       stdout.writeln('ok: piv.client.reopen.$mapping.${algorithm.name}');
+      await _reopenPivPage(algorithm, mapping);
     }
+  }
+
+  Future<void> _reopenPivPage(AlgorithmType algorithm, String mapping) async {
+    final client = PivCardClient(transport: _clientTransport('piv.page'));
+    final controller = PivController(
+      client: client,
+      readAppletStatus: () async => AppletSwitchStatus.fromConfig(
+        firmwareVersion: FirmwareVersion.parse(expectedVersion),
+        functionSetVersion: _functionSet,
+        config: [0, 0, 0, 0, 0, 0xff],
+      ),
+    );
+    final previousConnection = SmartCard.connectionType;
+    try {
+      SmartCard.connectionType = ConnectionType.ccid;
+      await client.withSession(controller.refreshData);
+      _expect(
+        controller.hasLoadedData && !controller.dataRefreshFailed,
+        'PIV page did not load after generating a key',
+      );
+      _expect(
+        controller.slots[0x9d]?.algorithm == algorithm,
+        'PIV page did not resolve the algorithm with the default management key',
+      );
+      checks.add({
+        'name': 'piv.page.reopen_default_management_key',
+        'algorithm': algorithm.name,
+        'mapping': mapping,
+      });
+      stdout.writeln('ok: piv.page.reopen.$mapping.${algorithm.name}');
+    } finally {
+      controller.onClose();
+      SmartCard.connectionType = previousConnection;
+    }
+    // The page's probe SELECTed PIV; discard the outer client's old evidence.
+    await _pivClient.prepare();
+    _expect(
+      await _pivClient.authenticateManagementKey(
+        _defaultPivManagementKey,
+        (await _pivClient.readMetadata(0x9b))!.algorithm,
+      ),
+      'Could not resume the PIV fixture after loading the page',
+    );
   }
 
   Future<void> _oathApplet() async {

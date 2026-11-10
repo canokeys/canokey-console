@@ -279,12 +279,24 @@ class PivController extends PollingController {
     disabledMessage = null;
 
     await _client.prepare();
-    await _refreshCapabilities();
+    final configurationAvailable = await _refreshCapabilities();
     slots.clear();
     certificateSlots.clear();
     certificateBytes.clear();
     certificates.clear();
     await _refreshCredentialsInSession();
+    // 3.0.x gates INS EE behind management authentication. Only use the
+    // default key when freshly read metadata explicitly confirms it is active.
+    // 3.1+ (including PIN-protected management keys) reads INS EE publicly.
+    if (!configurationAvailable &&
+        firmwareVersion.compareTo(const FirmwareVersion(3, 0, 0)) >= 0 &&
+        firmwareVersion.compareTo(const FirmwareVersion(3, 1, 0)) < 0 &&
+        managementKeyInfo?.defaultValue == true &&
+        await _authenticateManagementKey(
+          '010203040506070801020304050607080102030405060708',
+        )) {
+      await _refreshCapabilities();
+    }
     final directory = await _readMetadataDirectory();
     if (directory == null) {
       await _refreshSlotsLegacy();
@@ -328,14 +340,14 @@ class PivController extends PollingController {
     }
   }
 
-  Future<void> _refreshCapabilities() async {
+  Future<bool> _refreshCapabilities() async {
     // The client maps an unavailable instruction and the 3.0.x management-key
     // gate (6982, card state untouched) to null; every other failure remains
     // visible.
     final config = await _client.readAlgorithmExtensions();
     if (config != null) {
       algorithmExtensionConfig = config;
-      return;
+      return true;
     }
     final isLegacyV2 =
         firmwareVersion.compareTo(const FirmwareVersion(2, 0, 0)) >= 0 &&
@@ -343,6 +355,7 @@ class PivController extends PollingController {
     algorithmExtensionConfig = isLegacyV2
         ? PivAlgorithmExtensionConfig.legacyV2
         : PivAlgorithmExtensionConfig.defaults;
+    return false;
   }
 
   Future<PivMetadataDirectory?> _readMetadataDirectory() async {
