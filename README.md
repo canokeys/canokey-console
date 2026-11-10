@@ -208,7 +208,11 @@ auto-connection grant can remove the manual connection step for store installs.
 The USB/IP workflow tests Console's CCID protocol against every released firmware in the
 [`canokey-usbip`](https://github.com/canokeys/canokey-usbip) release map. The matrix is generated
 from the harness catalog, so newly cataloged firmware releases are included without duplicating
-version lists in this repository. The development `head` entry is not a released firmware version.
+version lists in this repository. Console additionally includes firmware 3.0.3 for the
+PIV regression test while it is absent from the upstream catalog. The preparation script
+reuses the harness’s existing fabrication patch for this virtual firmware’s initialization.
+The development `head`
+entry is not a released firmware version.
 
 The tests require a Linux host with the `canokey-usbip` runner prerequisites and a Flutter SDK.
 To run one firmware locally:
@@ -216,15 +220,20 @@ To run one firmware locally:
 ```bash
 git clone https://github.com/canokeys/canokey-usbip.git /tmp/canokey-usbip
 flutter pub get
+python3 tool/prepare_usbip_catalog.py /tmp/canokey-usbip
 /tmp/canokey-usbip/compat/run \
-  --core-ref 3.1.0 \
+  --core-ref 3.0.3 \
   --require ccid \
   --require pcsc \
   --test-command 'bash test/usbip/run.sh'
 ```
 
-The smoke test performs read-only Admin, OpenPGP, PIV, OATH, NDEF, WebAuthn, and supported Pass
-queries through the same `ccid` package used by Console. Its JSON result is stored with the USB/IP
+The smoke test exercises Admin, OpenPGP, PIV, OATH, NDEF, WebAuthn, and supported Pass
+operations through the same `ccid` package used by Console on disposable virtual devices.
+On firmware 3.0.1 and newer it also generates secp256k1, Ed25519, X25519, and SM2 PIV keys
+with default and custom algorithm IDs, compares their public keys with slot metadata,
+and restores the original algorithm configuration. This covers the authenticated
+configuration read required by firmware 3.0.x. Its JSON result is stored with the USB/IP
 diagnostics as `console-smoke.json`.
 
 ## Contributing

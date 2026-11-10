@@ -6,6 +6,7 @@ import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:canokey_console/src/rust/api/protocol.dart';
 import 'package:canokey_console/src/rust/api/piv_crypto.dart';
 import 'package:canokey_console/models/piv.dart';
+import 'package:canokey_console/models/canokey.dart';
 import 'package:convert/convert.dart';
 
 class PivCardClient extends ProfileCardClient {
@@ -38,6 +39,7 @@ class PivCardClient extends ProfileCardClient {
     return _executePrepared((profile) => profile.pivMetadataDirectory());
   }
 
+  /// [algorithm] is a semantic AlgorithmType.value, independent of card IDs.
   Future<Uint8List> generateKey({
     required int slot,
     required int algorithm,
@@ -148,6 +150,7 @@ class PivCardClient extends ProfileCardClient {
         (profile) => profile.pivDecapsulate(slot: slot, ciphertext: ciphertext),
       );
 
+  /// [algorithm] is a semantic AlgorithmType.value, matching [key].
   Future<void> importPrivateKey({
     required int slot,
     required int algorithm,
@@ -295,7 +298,6 @@ class PivCardClient extends ProfileCardClient {
           key: bytes,
         ),
       );
-      return true;
     } on ProtocolException catch (error) {
       if (error.details.kind == 'AuthenticationFailed' ||
           error.details.kind == 'SecurityStatusNotSatisfied') {
@@ -305,6 +307,17 @@ class PivCardClient extends ProfileCardClient {
     } finally {
       bytes.fillRange(0, bytes.length, 0);
     }
+    final firmwareBytes = preparedBinding.profile.firmware();
+    final firmware = FirmwareVersion.parse(
+      firmwareBytes == null ? '' : String.fromCharCodes(firmwareBytes),
+    );
+    if (firmware.compareTo(const FirmwareVersion(3, 0, 0)) >= 0 &&
+        firmware.compareTo(const FirmwareVersion(3, 1, 0)) < 0) {
+      // INS EE is management-gated on 3.0.x. Keep authentication and selection,
+      // and hydrate the profile before any dependent key operation.
+      await _readAlgorithmExtensions(requireAvailable: true);
+    }
+    return true;
   }
 
   /// Explicit discovery only when the prepared binding is missing or stale.
@@ -335,6 +348,15 @@ class PivCardClient extends ProfileCardClient {
   Future<PivAlgorithmExtensionConfig?> readAlgorithmExtensions({
     String? managementKey,
     AlgorithmType managementKeyAlgorithm = AlgorithmType.tdes,
+  }) => _readAlgorithmExtensions(
+    managementKey: managementKey,
+    managementKeyAlgorithm: managementKeyAlgorithm,
+  );
+
+  Future<PivAlgorithmExtensionConfig?> _readAlgorithmExtensions({
+    String? managementKey,
+    AlgorithmType managementKeyAlgorithm = AlgorithmType.tdes,
+    bool requireAvailable = false,
   }) async {
     // The keyed operation SELECTs PIV and authenticates management within one
     // operation. A fresh prepared binding already implies PIV is the selected
@@ -344,12 +366,18 @@ class PivCardClient extends ProfileCardClient {
     final keyBytes = managementKey == null
         ? null
         : Uint8List.fromList(hex.decode(managementKey));
+    ProtocolProfile? pendingProfile;
     try {
-      final data = await executePrepared(
+      final binding = preparedBinding;
+      final (data, updatedProfile) = await executePreparedResult(
         (profile) => profile.pivReadAlgorithmConfig(
           managementKey: keyBytes,
           managementKeyAlgorithm: managementKeyAlgorithm.value,
         ),
+        result: (step) {
+          pendingProfile = step.profile!;
+          return (step.data!, step.profile!);
+        },
         verifyProfileIdentity: true,
         discardOnOtherError: true,
         discardOnProtocolError: (error) =>
@@ -360,17 +388,29 @@ class PivCardClient extends ProfileCardClient {
             error.details.kind != 'PinBlocked' &&
             error.details.kind != 'SecurityStatusNotSatisfied',
       );
+      // replacePreparedProfile takes ownership, including when adoption fails.
+      pendingProfile = null;
+      replacePreparedProfile(binding, updatedProfile);
       return PivAlgorithmExtensionConfig.decode(data);
     } on ProtocolException catch (error) {
       // An unavailable instruction (or the 3.0.x authentication gate on an
       // unauthenticated read) permits the existing firmware defaults. Other
       // security, malformed-data and unexpected card failures remain errors.
-      if (error.details.kind == 'UnsupportedFeature' ||
-          error.details.kind == 'SecurityStatusNotSatisfied') {
+      if (!requireAvailable &&
+          (error.details.kind == 'UnsupportedFeature' ||
+              error.details.kind == 'SecurityStatusNotSatisfied')) {
         return null;
       }
       rethrow;
     } finally {
+      final unadopted = pendingProfile;
+      if (unadopted != null) {
+        try {
+          unadopted.close();
+        } finally {
+          unadopted.dispose();
+        }
+      }
       keyBytes?.fillRange(0, keyBytes.length, 0);
     }
   }

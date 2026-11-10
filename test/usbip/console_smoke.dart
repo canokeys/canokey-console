@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:convert/convert.dart';
 import 'package:canokey_console/src/rust/frb_generated.dart';
 
 import 'package:canokey_console/helper/utils/admin_card.dart';
@@ -13,6 +14,8 @@ import 'package:canokey_console/helper/utils/protocol_operation.dart';
 import 'package:canokey_console/helper/utils/webauthn_card.dart';
 import 'package:canokey_console/models/canokey.dart';
 import 'package:canokey_console/models/oath.dart';
+import 'package:canokey_console/models/piv.dart';
+import 'package:canokey_console/src/rust/api/piv_crypto.dart';
 import 'package:canokey_console/models/openpgp.dart';
 import 'package:canokey_console/models/pass.dart';
 import 'package:ccid/ccid.dart';
@@ -668,8 +671,134 @@ class ConsoleSmoke {
       await _pivClient.readAlgorithmExtensions(
         managementKey: _defaultPivManagementKey,
       );
+      if (firmware.compareTo(const FirmwareVersion(3, 0, 1)) >= 0) {
+        await _pivExtensionKeys();
+      }
       stdout.writeln('ok: piv.client.read_change_and_restore');
     });
+  }
+
+  // Runs only on the runner's disposable virtual device. Re-probe before
+  // authentication reproduces 3.0.x's missing, management-gated configuration.
+  Future<void> _pivExtensionKeys() async {
+    await _pivClient.prepare();
+    _expect(
+      await _pivClient.authenticateManagementKey(
+        _defaultPivManagementKey,
+        (await _pivClient.readMetadata(0x9b))!.algorithm,
+      ),
+      'PIV management authentication failed',
+    );
+    final original = await _pivClient.readAlgorithmExtensions();
+    _expect(original != null && original.enabled, 'Extensions are disabled');
+    final modern =
+        FirmwareVersion.parse(
+          expectedVersion,
+        ).compareTo(const FirmwareVersion(3, 1, 0)) >=
+        0;
+    final raw = Uint8List.fromList([
+      1,
+      original!.ed25519,
+      original.rsa3072,
+      original.rsa4096,
+      original.x25519,
+      original.secp256k1,
+      if (modern) original.secp521r1,
+      original.sm2,
+      if (modern) ...[original.mldsa65, original.mlkem768],
+    ]);
+    try {
+      await _generatePivExtensionKeys('default');
+      final custom = Uint8List.fromList(raw);
+      custom[1] = 0x61; // Ed25519
+      custom[4] = 0x64; // X25519
+      custom[5] = 0x65; // secp256k1
+      custom[raw.length == 7 ? 6 : 7] = 0x66; // SM2
+      await _setPivTestAlgorithmConfig(custom, modern: modern);
+      await _generatePivExtensionKeys('custom');
+    } finally {
+      await _pivClient.prepare();
+      _expect(
+        await _pivClient.authenticateManagementKey(
+          _defaultPivManagementKey,
+          (await _pivClient.readMetadata(0x9b))!.algorithm,
+        ),
+        'PIV authentication failed while restoring configuration',
+      );
+      await _setPivTestAlgorithmConfig(raw, modern: modern);
+    }
+  }
+
+  Future<void> _setPivTestAlgorithmConfig(
+    Uint8List raw, {
+    required bool modern,
+  }) async {
+    if (modern) {
+      await _pivClient.setAlgorithmConfig(raw);
+      return;
+    }
+    // Fixture setup only: libcanokey 0.1.3 gates config writes to 3.1+, even
+    // though 3.0.x implements EE/02. Configure this disposable device directly;
+    // generation, authentication and configuration discovery use Console.
+    final binding = _pivClient.preparedBinding;
+    try {
+      final response = await _clientTransport('piv.fixture').transceive(
+        '00EE0200${raw.length.toRadixString(16).padLeft(2, '0')}'
+        '${hex.encode(raw)}00',
+      );
+      _expect(
+        ApduResponse.parse(response).statusWord == '9000',
+        'Could not configure the virtual PIV algorithm IDs',
+      );
+    } finally {
+      _pivClient.discardProfile(binding);
+    }
+  }
+
+  Future<void> _generatePivExtensionKeys(String mapping) async {
+    for (final algorithm in [
+      AlgorithmType.secp256k1,
+      AlgorithmType.ed25519,
+      AlgorithmType.x25519,
+      AlgorithmType.sm2,
+    ]) {
+      await _pivClient.prepare();
+      _expect(
+        await _pivClient.authenticateManagementKey(
+          _defaultPivManagementKey,
+          (await _pivClient.readMetadata(0x9b))!.algorithm,
+        ),
+        'PIV authentication failed before ${algorithm.name}',
+      );
+      // Use semantic IDs, as the controller does, even with custom card IDs.
+      final spki = await _pivClient.generateKey(
+        slot: 0x9d,
+        algorithm: algorithm.value,
+        pinPolicy: PinPolicy.never.value,
+        touchPolicy: TouchPolicy.never.value,
+      );
+      final key = parsePivPublicKeyInfo(
+        algorithm: algorithm.value,
+        subjectPublicKeyInfo: spki,
+      );
+      _expect(key.rawPublicKey.isNotEmpty, 'Invalid generated public key');
+      final metadata = await _pivClient.readMetadata(0x9d);
+      _expect(metadata?.algorithm == algorithm, 'Generated algorithm mismatch');
+      final stored = buildPivPublicKey(
+        algorithm: algorithm.value,
+        cardData: metadata!.public,
+      );
+      _expect(
+        _bytesEqual(stored.subjectPublicKeyInfo, spki),
+        'Generated public key does not match slot metadata',
+      );
+      checks.add({
+        'name': 'piv.client.generate_extension_key',
+        'algorithm': algorithm.name,
+        'mapping': mapping,
+      });
+      stdout.writeln('ok: piv.client.generate.$mapping.${algorithm.name}');
+    }
   }
 
   Future<void> _oathApplet() async {

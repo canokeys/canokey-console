@@ -178,6 +178,45 @@ abstract class ProfileCardClient extends CardClientBase {
     if (identical(_profile, binding)) _profile = null;
   }
 
+  /// Adopt observations read in the same selected lease, without SELECT/probing.
+  /// Ownership transfers here even if the old binding has expired.
+  void replacePreparedProfile(
+    ProfileBinding previous,
+    ProtocolProfile profile,
+  ) {
+    ProfileBinding? replacement;
+    try {
+      previous.check();
+      cancellation.check();
+      if (!identical(_profile, previous)) {
+        throw StateError('Card profile replaced');
+      }
+      replacement = ProfileBinding(
+        profile,
+        previous.lease,
+        bindSelection: _bindSelection,
+      );
+      final adopted = replacement;
+      previous.lease.onClose(() {
+        adopted.close();
+        if (identical(_profile, adopted)) _profile = null;
+      });
+      _profile = replacement;
+      previous.close();
+    } catch (_) {
+      if (replacement != null) {
+        replacement.close();
+      } else {
+        try {
+          profile.close();
+        } finally {
+          profile.dispose();
+        }
+      }
+      rethrow;
+    }
+  }
+
   /// Runs one prepared libcanokey operation and records [lastStatusWord].
   ///
   /// - [selectApplet]: the operation SELECTs its applet first, expiring other

@@ -87,7 +87,7 @@ impl ProtocolProfile {
                 }
             };
             piv::read_algorithm_config(profile, access, OperationOptions::default())
-                .map(Inner::Configuration)
+                .map(|operation| Inner::Configuration(operation, profile.clone()))
         })
     }
     /// Read metadata in the caller's already selected PIV session. No probing,
@@ -136,9 +136,7 @@ impl ProtocolProfile {
         self.operation(|profile| {
             let parameters = piv::KeyParameters {
                 slot: piv_slot(slot)?,
-                algorithm: profile
-                    .algorithm_from_wire_id(algorithm)
-                    .ok_or_else(|| Error::new(ErrorKind::UnsupportedAlgorithm))?,
+                algorithm: piv_display_algorithm(algorithm)?,
                 pin_policy: parse_pin_policy(pin_policy)?,
                 touch_policy: parse_touch_policy(touch_policy)?,
             };
@@ -377,12 +375,10 @@ impl ProtocolProfile {
         touch_policy: u8,
     ) -> ProtocolOperation {
         self.operation(|profile| {
-            if self.piv_algorithm_display_id(algorithm) != Some(key.algorithm()) {
+            if algorithm != key.algorithm() {
                 return Err(Error::new(ErrorKind::UnsupportedAlgorithm));
             }
-            let algorithm = profile
-                .algorithm_from_wire_id(algorithm)
-                .ok_or_else(|| Error::new(ErrorKind::UnsupportedAlgorithm))?;
+            let algorithm = piv_display_algorithm(algorithm)?;
             let parameters = piv::KeyParameters {
                 slot: piv_slot(slot)?,
                 algorithm,
@@ -522,4 +518,26 @@ pub(super) fn piv_slot(reference: u8) -> Result<piv::Slot, Error> {
         0x82..=0x95 => piv::RetiredSlot::new(reference - 0x81).map(piv::Slot::Retired),
         _ => Err(Error::new(ErrorKind::InvalidArgument)),
     }
+}
+
+// Generate/import take Console's semantic display IDs. Only libcanokey resolves
+// them to observed wire IDs and authorizes the operation against that profile.
+fn piv_display_algorithm(id: u8) -> Result<piv::Algorithm, Error> {
+    use piv::Algorithm::*;
+    Ok(match id {
+        0x06 => Rsa1024,
+        0x07 => Rsa2048,
+        0x05 => Rsa3072,
+        0x16 => Rsa4096,
+        0x11 => EccP256,
+        0x14 => EccP384,
+        0x15 => EccP521,
+        0x53 => Secp256k1,
+        0x54 => Sm2,
+        0xe0 => Ed25519,
+        0xe1 => X25519,
+        0xe2 => MlDsa65,
+        0xe3 => MlKem768,
+        _ => return Err(Error::new(ErrorKind::UnsupportedAlgorithm)),
+    })
 }

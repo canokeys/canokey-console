@@ -38,6 +38,7 @@ jobs:
         id: matrix
         shell: bash
         run: |
+          python3 tool/prepare_usbip_catalog.py canokey-usbip
           firmwares="$(./canokey-usbip/compat/list-firmwares --release-map --compact)"
           test "$(jq 'length' <<<"$firmwares")" -gt 0
           echo "firmwares=$firmwares" >> "$GITHUB_OUTPUT"
@@ -111,6 +112,9 @@ jobs:
           ref: ${{ needs.catalog.outputs.usbip_sha }}
           path: canokey-usbip
           submodules: false
+
+      - name: Include the PIV 3.0.3 regression firmware
+        run: python3 tool/prepare_usbip_catalog.py canokey-usbip
 
       - name: Install host dependencies
         shell: bash

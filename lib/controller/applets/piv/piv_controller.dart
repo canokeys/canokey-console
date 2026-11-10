@@ -1594,13 +1594,11 @@ class PivController extends PollingController {
     PinPolicy pinPolicy,
     TouchPolicy touchPolicy,
   ) async {
-    final algorithm = AlgorithmType.fromValue(key.algorithm);
     final slot = int.parse(slotNumber, radix: 16);
-    final wireId = algorithmExtensionConfig.idFor(algorithm);
     try {
       await _client.importPrivateKey(
         slot: slot,
-        algorithm: wireId,
+        algorithm: key.algorithm,
         key: key,
         pinPolicy: pinPolicy.value,
         touchPolicy: touchPolicy.value,

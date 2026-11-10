@@ -138,7 +138,11 @@ void main() {
         '7C12811000112233445566778899AABBCCDDEEFF9000',
       ),
     ]) {
-      final transport = _QueueApduTransport([vector.$3, '9000']);
+      final transport = _QueueApduTransport([
+        vector.$3,
+        '9000',
+        if (vector.$1 == AlgorithmType.tdes) '01E00516E153549000',
+      ]);
       await _withPreparedClient(transport, (client) async {
         expect(
           await client.authenticateManagementKey(vector.$2, vector.$1),
@@ -147,6 +151,79 @@ void main() {
       }, firmware: vector.$1 == AlgorithmType.tdes ? '3.0.3' : '3.1.0');
     }
   });
+
+  test(
+    '3.0.3 authentication hydrates custom IDs without reselecting',
+    () async {
+      final transport = _QueueApduTransport([
+        '7C0A8108FEDCBA98765432109000', '9000',
+        '016105166465669000', // custom Ed/X/k1/SM2 IDs
+        '9000', // import acknowledgment
+      ]);
+      await _withPreparedClient(transport, (client) async {
+        final previous = client.preparedBinding;
+        expect(
+          await client.authenticateManagementKey(
+            '0123456789abcdef23456789abcdef01456789abcdef0123',
+            AlgorithmType.tdes,
+          ),
+          isTrue,
+        );
+        expect(identical(previous, client.preparedBinding), isFalse);
+        expect(
+          client.preparedBinding.profile.pivAlgorithmDisplayId(wireId: 0x61),
+          AlgorithmType.ed25519.value,
+        );
+        final key = parsePivImportFile(
+          bytes: Uint8List.fromList(
+            hex.decode(
+              '302e020100300506032b657004220420${List.filled(32, '05').join()}',
+            ),
+          ),
+        ).privateKey!;
+        try {
+          await client.importPrivateKey(
+            slot: 0x9d,
+            algorithm: AlgorithmType.ed25519.value,
+            key: key,
+          );
+        } finally {
+          key.close();
+          key.dispose();
+        }
+        expect(transport.commands.map((command) => command.substring(2, 4)), [
+          '87',
+          '87',
+          'EE',
+          'FE',
+        ]);
+        expect(transport.commands.last.substring(4, 6), '61');
+      }, firmware: '3.0.3');
+    },
+  );
+
+  test(
+    'configuration failure after authentication stops dependent work',
+    () async {
+      for (final response in ['6982', '6d00', '019000']) {
+        final transport = _QueueApduTransport([
+          '7C0A8108FEDCBA98765432109000',
+          '9000',
+          response,
+        ]);
+        await _withPreparedClient(transport, (client) async {
+          await expectLater(
+            client.authenticateManagementKey(
+              '0123456789abcdef23456789abcdef01456789abcdef0123',
+              AlgorithmType.tdes,
+            ),
+            throwsA(isA<ProtocolException>()),
+          );
+          expect(transport.commands, hasLength(3));
+        }, firmware: '3.0.3');
+      }
+    },
+  );
 
   test(
     'reads the reported four-part certificate without PIV metadata',
@@ -346,24 +423,21 @@ void main() {
     }
   });
 
-  test(
-    'metadata algorithms resolve through this device profile',
-    () async {
-      final responses = [..._probeResponses.take(6)];
-      responses[1] = '322E302E309000';
-      final transport = _QueueApduTransport([
-        ...responses,
-        '010122020200000301019000',
-      ]);
-      final client = PivCardClient(transport: transport);
-      await client.withSession(() async {
-        await client.prepare();
-        final metadata = await client.readMetadata(0x9a);
-        expect(metadata, isNotNull);
-        expect(metadata!.algorithm, AlgorithmType.ed25519);
-      });
-    },
-  );
+  test('metadata algorithms resolve through this device profile', () async {
+    final responses = [..._probeResponses.take(6)];
+    responses[1] = '322E302E309000';
+    final transport = _QueueApduTransport([
+      ...responses,
+      '010122020200000301019000',
+    ]);
+    final client = PivCardClient(transport: transport);
+    await client.withSession(() async {
+      await client.prepare();
+      final metadata = await client.readMetadata(0x9a);
+      expect(metadata, isNotNull);
+      expect(metadata!.algorithm, AlgorithmType.ed25519);
+    });
+  });
 }
 
 const _probeResponses = [
@@ -384,6 +458,7 @@ Future<T> _withPreparedClient<T>(
   final probe = [..._probeResponses];
   final legacy = firmware.startsWith('1.') || firmware.startsWith('2.');
   if (legacy) probe.removeLast();
+  if (firmware.startsWith('3.0.')) probe[probe.length - 1] = '6982';
   probe[1] = '${hex.encode(firmware.codeUnits)}9000';
   transport.responses.insertAll(0, probe);
   final client = PivCardClient(transport: transport);

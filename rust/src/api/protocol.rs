@@ -165,7 +165,8 @@ impl From<Error> for ProtocolError {
     }
 }
 
-/// Exactly one field is present: exchange a command, consume a result, or fail.
+/// Exchange a command, consume a result, or fail. Configuration reads return
+/// both data and a replacement profile containing the validated observations.
 /// Command and result copies belong to Dart; getters never perform I/O.
 #[derive(Default)]
 pub struct ProtocolStep {
@@ -196,7 +197,10 @@ impl ProtocolStep {
 enum Inner {
     Bytes(Operation<SecretBytes>),
     PinStatus(Operation<piv::PinStatus>),
-    Configuration(Operation<canokey::compatibility::AlgorithmConfig>),
+    Configuration(
+        Operation<canokey::compatibility::AlgorithmConfig>,
+        canokey::DeviceProfile,
+    ),
     Certificate(Operation<piv::Certificate>),
     Probe(Operation<canokey::DeviceProfile>),
     Metadata(Operation<piv::Metadata>),
@@ -562,9 +566,41 @@ impl ProtocolOperation {
                 };
                 bytes(sw.to_be_bytes().to_vec())
             }),
-            Some(Inner::Configuration(op)) => {
-                drive(op, response, |data| bytes(data.raw().to_vec()))
-            }
+            Some(Inner::Configuration(op, previous)) => drive(op, response, |config| {
+                let info = previous.info();
+                let mut observations =
+                    canokey::compatibility::DeviceObservations::new(info.firmware_text().to_vec());
+                observations.model = info.model().map(str::to_owned);
+                observations.serial = info.serial().map(<[u8]>::to_vec);
+                observations.piv_version = info.piv_version();
+                use canokey::compatibility::CompatibilityWarning::{
+                    OptionalCommandNeedsAuthentication, OptionalCommandUnsupported,
+                };
+                observations.warnings = previous
+                    .warnings()
+                    .iter()
+                    .filter(|warning| {
+                        !matches!(
+                            warning,
+                            OptionalCommandNeedsAuthentication("algorithm_config")
+                                | OptionalCommandUnsupported("algorithm_config")
+                        )
+                    })
+                    .cloned()
+                    .collect();
+                let raw = config.raw().to_vec();
+                observations.algorithm_config = Some(config);
+                match canokey::DeviceProfile::from_observations(observations) {
+                    Ok(profile) => ProtocolStep {
+                        data: Some(raw),
+                        profile: Some(ProtocolProfile {
+                            inner: Some(profile),
+                        }),
+                        ..Default::default()
+                    },
+                    Err(error) => ProtocolStep::failure(error),
+                }
+            }),
             Some(Inner::Certificate(op)) => drive(op, response, |data| bytes(data.der().to_vec())),
             Some(Inner::Credential(op)) => drive(op, response, |_| bytes(Vec::new())),
             Some(Inner::Management(op)) => drive(op, response, |_| bytes(Vec::new())),

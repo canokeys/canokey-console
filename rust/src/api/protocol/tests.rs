@@ -1833,3 +1833,50 @@ fn private_key_import_owns_material_and_rejects_closed_or_mismatched_keys() {
     assert!(retry.advance(vec![0x69, 0x82]).error.is_some());
     assert!(retry.start().command.is_none());
 }
+
+#[test]
+fn authenticated_configuration_snapshot_authorizes_only_observed_algorithms() {
+    use canokey::compatibility::{CompatibilityWarning, DeviceObservations, PivApplicationVersion};
+    for enabled in [0, 1] {
+        let mut observations = DeviceObservations::new(b"3.0.3".to_vec());
+        observations.serial = Some(vec![1, 2, 3, 4]);
+        observations.piv_version = Some(PivApplicationVersion([5, 7, 0]));
+        observations
+            .warnings
+            .push(CompatibilityWarning::OptionalCommandNeedsAuthentication(
+                "algorithm_config",
+            ));
+        let profile = ProtocolProfile {
+            inner: Some(canokey::DeviceProfile::from_observations(observations).unwrap()),
+        };
+        assert!(profile
+            .piv_generate_key(0x9d, 0x53, 0, 0)
+            .start()
+            .error
+            .is_some());
+        let mut read = profile.piv_read_algorithm_config(None, 3);
+        assert_eq!(read.start().command.unwrap(), [0, 0xee, 1, 0, 0]);
+        let step = read.advance(vec![enabled, 0x61, 5, 0x16, 0x64, 0x65, 0x66, 0x90, 0]);
+        let updated = step.profile.unwrap();
+        assert_eq!(updated.serial(), profile.serial());
+        assert_eq!(updated.firmware(), profile.firmware());
+        assert!(updated.profile().unwrap().warnings().is_empty());
+        for (display, wire) in [(0x53, 0x65), (0x54, 0x66), (0xe0, 0x61), (0xe1, 0x64)] {
+            let step = updated.piv_generate_key(0x9d, display, 0, 0).start();
+            if enabled == 1 {
+                let command = step.command.unwrap();
+                assert_eq!(&command[..5], &[0, 0x47, 0, 0x9d, 5]);
+                assert_eq!(&command[5..10], &[0xac, 3, 0x80, 1, wire]);
+            } else {
+                assert!(step.command.is_none());
+                assert!(step.error.is_some());
+            }
+        }
+        // Reading never mutates the previous immutable snapshot.
+        assert!(profile
+            .piv_generate_key(0x9d, 0x53, 0, 0)
+            .start()
+            .error
+            .is_some());
+    }
+}
