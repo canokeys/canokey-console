@@ -437,10 +437,11 @@ class PivCardClient extends ProfileCardClient {
           return AlgorithmType.fromValue(wireId);
         }
         final displayId = binding.profile.pivAlgorithmDisplayId(wireId: wireId);
-        if (displayId == null) {
-          throw FormatException('Unknown PIV metadata algorithm $wireId');
-        }
-        return AlgorithmType.fromValue(displayId);
+        // Metadata is still evidence of an occupied slot even if the current
+        // profile could not read the management-gated extension mapping.
+        return displayId == null
+            ? AlgorithmType.unknown
+            : AlgorithmType.fromValue(displayId);
       },
     );
   }

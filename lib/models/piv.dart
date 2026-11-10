@@ -4,6 +4,7 @@ import 'package:canokey_console/src/rust/api/crypto.dart';
 import 'package:get/get.dart';
 
 enum AlgorithmType {
+  unknown(0x00),
   pin(0xFF),
   tdes(0x03),
   aes128(0x08),
@@ -250,6 +251,15 @@ enum Origin {
 class SlotInfo {
   final int number;
   final AlgorithmType algorithm;
+  // The card's byte can remain unresolved while INS EE needs authentication.
+  final int? wireAlgorithm;
+
+  String get algorithmLabel {
+    if (algorithm != AlgorithmType.unknown) return algorithm.label;
+    final id = wireAlgorithm?.toRadixString(16).padLeft(2, '0').toUpperCase();
+    return '${S.current.pivStatusUnknown} (0x${id ?? '??'})';
+  }
+
   final PinPolicy pinPolicy;
   final TouchPolicy touchPolicy;
   final Origin origin;
@@ -269,7 +279,8 @@ class SlotInfo {
       this.public,
       this.defaultValue,
       this.retriesCount,
-      this.remainingCount);
+      this.remainingCount,
+      {this.wireAlgorithm});
 
   static SlotInfo parse(
     int number,
@@ -323,7 +334,7 @@ class SlotInfo {
       remainingCount = requiredField(0x06, 2)[1];
     }
     return SlotInfo(number, algo, pinPolicy, touchPolicy, origin, public,
-        defaultValue, retriesCount, remainingCount);
+        defaultValue, retriesCount, remainingCount, wireAlgorithm: algoId);
   }
 
   @override

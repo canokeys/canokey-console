@@ -166,6 +166,7 @@ class PivController extends PollingController {
       case AlgorithmType.mlkem768:
         return supportsCurrentDevelopmentFeatures &&
             algorithmExtensionConfig.enabled;
+      case AlgorithmType.unknown:
       case AlgorithmType.pin:
       case AlgorithmType.tdes:
       case AlgorithmType.aes128:
@@ -466,6 +467,7 @@ class PivController extends PollingController {
   }
 
   PivPublicKey? publicKeyForSlot(SlotInfo slot) {
+    if (slot.algorithm == AlgorithmType.unknown) return null;
     try {
       return PivSignatureTest.publicKeyFromSlot(slot);
     } catch (error) {

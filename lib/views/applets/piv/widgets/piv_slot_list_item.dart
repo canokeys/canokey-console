@@ -68,7 +68,7 @@ class PivSlotListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = S.of(context);
     final occupied = slot != null || hasCertificate;
-    final algorithm = slot?.algorithm.label ?? certificateAlgorithm;
+    final algorithm = slot?.algorithmLabel ?? certificateAlgorithm;
     final status = slot != null
         ? (hasCertificate ? s.pivSlotKeyAndCertificate : s.pivSlotKeyOnly)
         : (hasCertificate
@@ -272,7 +272,7 @@ class PivSlotPolicies extends StatelessWidget {
         context,
         Icons.key_outlined,
         S.of(context).pivAlgorithm,
-        slot.algorithm.label,
+        slot.algorithmLabel,
       ),
       _policy(
         context,

@@ -56,6 +56,31 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('unresolved algorithm keeps the slot visibly occupied', (
+    tester,
+  ) async {
+    final slot = SlotInfo(
+      0x9e,
+      AlgorithmType.unknown,
+      PinPolicy.once,
+      TouchPolicy.never,
+      Origin.generated,
+      const [],
+      false,
+      0,
+      0,
+      wireAlgorithm: 0x53,
+    );
+    await tester.pumpWidget(
+      buildItem(width: 520, slot: slot, hasCertificate: false),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Unknown (0x53)'), findsOneWidget);
+    expect(find.text('Key only'), findsOneWidget);
+    expect(find.text('Empty'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('wraps populated slot details on narrow layouts', (tester) async {
     final slot = SlotInfo(
       0x9E,

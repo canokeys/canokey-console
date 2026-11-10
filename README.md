@@ -232,7 +232,8 @@ The smoke test exercises Admin, OpenPGP, PIV, OATH, NDEF, WebAuthn, and supporte
 operations through the same `ccid` package used by Console on disposable virtual devices.
 On firmware 3.0.1 and newer it also generates secp256k1, Ed25519, X25519, and SM2 PIV keys
 with default and custom algorithm IDs, compares their public keys with slot metadata,
-and restores the original algorithm configuration. This covers the authenticated
+then reopens each occupied slot without management authentication and checks that
+reauthentication resolves its algorithm. It restores the original algorithm configuration. This covers the authenticated
 configuration read required by firmware 3.0.x. Its JSON result is stored with the USB/IP
 diagnostics as `console-smoke.json`.
 

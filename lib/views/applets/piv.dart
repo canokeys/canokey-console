@@ -1896,9 +1896,13 @@ class _PivPageState extends State<PivPage>
     final canGenerateStandaloneKey =
         controller.supportsAlgorithm(AlgorithmType.mlkem768) ||
         canGenerateX25519Key;
-    final canGenerateCsr = !isX25519Slot && !isPostQuantumSlot;
+    final hasKnownAlgorithm = slot?.algorithm != AlgorithmType.unknown;
+    final canGenerateCsr =
+        hasKnownAlgorithm && !isX25519Slot && !isPostQuantumSlot;
     final canSelfSign =
-        !isX25519Slot && slot?.algorithm != AlgorithmType.mlkem768;
+        hasKnownAlgorithm &&
+        !isX25519Slot &&
+        slot?.algorithm != AlgorithmType.mlkem768;
     final provisioningActions = <Widget>[
       if (canGenerateCsr)
         _slotActionButton(
@@ -1963,6 +1967,7 @@ class _PivPageState extends State<PivPage>
     ];
     final diagnosticActions = <Widget>[
       if (slot != null &&
+          hasKnownAlgorithm &&
           slot.algorithm != AlgorithmType.x25519 &&
           slot.algorithm != AlgorithmType.mlkem768) ...[
         Builder(
@@ -2466,7 +2471,7 @@ class _PivPageState extends State<PivPage>
     }
     final certificate = controller.certificates[slotId];
     final algorithm =
-        controller.slots[slotId]?.algorithm.label ??
+        controller.slots[slotId]?.algorithmLabel ??
         (certificate == null
             ? S.of(context).pivStatusUnknown
             : _certificateKeySummary(certificate));

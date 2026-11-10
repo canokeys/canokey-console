@@ -203,6 +203,25 @@ void main() {
   );
 
   test(
+    '3.0.3 reopens occupied slots without management authentication',
+    () async {
+      for (final wireId in [0x53, 0x54, 0x61]) {
+        final transport = _QueueApduTransport([
+          '0101${wireId.toRadixString(16)}020201010301019000',
+        ]);
+        await _withPreparedClient(transport, (client) async {
+          final metadata = await client.readMetadata(0x9d);
+          expect(metadata, isNotNull);
+          expect(metadata!.number, 0x9d);
+          expect(metadata.algorithm, AlgorithmType.unknown);
+          expect(metadata.wireAlgorithm, wireId);
+          expect(metadata.origin, Origin.generated);
+        }, firmware: '3.0.3');
+      }
+    },
+  );
+
+  test(
     'configuration failure after authentication stops dependent work',
     () async {
       for (final response in ['6982', '6d00', '019000']) {

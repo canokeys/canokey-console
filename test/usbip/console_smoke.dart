@@ -798,6 +798,45 @@ class ConsoleSmoke {
         'mapping': mapping,
       });
       stdout.writeln('ok: piv.client.generate.$mapping.${algorithm.name}');
+      // Reopening the page probes before any management authentication.
+      // Do not let the just-authenticated profile mask unreadable extensions.
+      await _pivClient.prepare();
+      final configuration = await _pivClient.readAlgorithmExtensions();
+      final reopened = await _pivClient.readMetadata(0x9d);
+      _expect(reopened != null, 'Reopening lost the occupied PIV slot');
+      _expect(
+        reopened!.wireAlgorithm == metadata.wireAlgorithm,
+        'Reopening lost the on-card algorithm ID',
+      );
+      _expect(
+        _bytesEqual(reopened.public, metadata.public),
+        'Reopening lost the generated public key',
+      );
+      if (configuration != null) {
+        _expect(
+          reopened.algorithm == algorithm,
+          'Reopening with readable configuration changed the algorithm',
+        );
+      }
+      _expect(
+        await _pivClient.authenticateManagementKey(
+          _defaultPivManagementKey,
+          (await _pivClient.readMetadata(0x9b))!.algorithm,
+        ),
+        'PIV authentication failed after reopening',
+      );
+      final resolved = await _pivClient.readMetadata(0x9d);
+      _expect(
+        resolved?.algorithm == algorithm,
+        'Authentication did not resolve the reopened slot algorithm',
+      );
+      checks.add({
+        'name': 'piv.client.reopen_extension_key',
+        'algorithm': algorithm.name,
+        'mapping': mapping,
+        'configuration_readable': configuration != null,
+      });
+      stdout.writeln('ok: piv.client.reopen.$mapping.${algorithm.name}');
     }
   }
 

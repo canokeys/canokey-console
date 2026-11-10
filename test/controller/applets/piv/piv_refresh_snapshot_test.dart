@@ -43,10 +43,60 @@ class _Client extends PivCardClient {
       Uint8List.fromList([1, 1, 1, 2, 6, slot, 3, 0x11, 1, 2, 1]);
 }
 
+class _LegacyOccupiedClient extends _Client {
+  @override
+  Future<SlotInfo?> readMetadata(int reference) async {
+    if ([0x80, 0x81, 0x9b].contains(reference)) {
+      return super.readMetadata(reference);
+    }
+    if (reference != 0x9d) return null;
+    return SlotInfo(
+      reference,
+      AlgorithmType.unknown,
+      PinPolicy.once,
+      TouchPolicy.never,
+      Origin.generated,
+      [],
+      false,
+      0,
+      0,
+      wireAlgorithm: 0x53,
+    );
+  }
+
+  @override
+  Future<Uint8List?> readCertificate(int objectId) async => null;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() => SmartCard.connectionType = ConnectionType.ccid);
   tearDown(() => SmartCard.connectionType = ConnectionType.none);
+
+  test('3.0.3 page refresh keeps an unresolved key occupied', () async {
+    final controller = PivController(
+      client: _LegacyOccupiedClient(),
+      readAppletStatus: () async => AppletSwitchStatus.fromConfig(
+        firmwareVersion: const FirmwareVersion(3, 0, 3),
+        functionSetVersion: FunctionSetVersion.v4,
+        config: [0, 0, 0, 0, 0, 0xff],
+      ),
+    );
+    try {
+      await controller.refreshData();
+      expect(controller.hasLoadedData, isTrue);
+      expect(controller.polled, isTrue);
+      expect(controller.dataRefreshFailed, isFalse);
+      expect(controller.slots.keys, [0x9d]);
+      final slot = controller.slots[0x9d]!;
+      expect(slot.algorithm, AlgorithmType.unknown);
+      expect(slot.wireAlgorithm, 0x53);
+      expect(controller.publicKeyForSlot(slot), isNull);
+      expect(controller.supportsAlgorithm(AlgorithmType.unknown), isFalse);
+    } finally {
+      controller.onClose();
+    }
+  });
 
   test(
     'failed refresh retains a complete snapshot and next read replaces it',
