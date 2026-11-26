@@ -262,6 +262,12 @@ pub(super) fn ctap_info(info: ctap::AuthenticatorInfo) -> ProtocolStep {
             min_pin_length: info.min_pin_length(),
             always_uv: option("alwaysUv"),
             pin_uv_auth_protocols: info.pin_uv_auth_protocols().unwrap_or(&[]).to_vec(),
+            supports_ml_dsa44: info.algorithms().is_some_and(|algorithms| {
+                algorithms.iter().any(|entry| {
+                    entry.type_ == "public-key"
+                        && entry.algorithm() == ctap::cose::CoseAlgorithm::MlDsa44
+                })
+            }),
         }),
         ..Default::default()
     }

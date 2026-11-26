@@ -6,7 +6,9 @@ build
 .flutter-plugins*
 dist/
 app-store-screenshots/
-android/fastlane/report.xml
-ios/fastlane/report.xml
+/android/fastlane/README.md
+/android/fastlane/report.xml
+/ios/fastlane/README.md
+/ios/fastlane/report.xml
 
 __pycache__/

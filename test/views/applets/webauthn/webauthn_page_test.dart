@@ -26,13 +26,17 @@ class _Controller extends WebAuthnController {
   }
 }
 
-WebAuthnItem _item(int id, {bool long = false}) => WebAuthnItem(
-  rpId: long ? '${'long-subdomain-' * 8}.example.com' : 'site$id.example.com',
-  userName: long ? 'long-account-name' * 8 : 'account$id',
-  userDisplayName: long ? 'Long display name ' * 8 : 'Person $id',
-  userId: [65, 66, id],
-  credentialId: Uint8List.fromList([id]),
-);
+WebAuthnItem _item(int id, {bool long = false, String? algorithmLabel}) =>
+    WebAuthnItem(
+      rpId: long
+          ? '${'long-subdomain-' * 8}.example.com'
+          : 'site$id.example.com',
+      userName: long ? 'long-account-name' * 8 : 'account$id',
+      userDisplayName: long ? 'Long display name ' * 8 : 'Person $id',
+      userId: [65, 66, id],
+      credentialId: Uint8List.fromList([id]),
+      algorithmLabel: algorithmLabel,
+    );
 
 void main() {
   setUp(() async {
@@ -140,13 +144,14 @@ void main() {
       _app(
         Scaffold(
           body: WebAuthnCredentialGrid(
-            items: [_item(1)],
+            items: [_item(1, algorithmLabel: 'ML-DSA-44')],
             controller: controller,
           ),
         ),
       ),
     );
     await tester.pumpAndSettle();
+    expect(find.text('ML-DSA-44'), findsOneWidget);
     await tester.tap(
       find.byTooltip(
         MaterialLocalizations.of(
@@ -175,6 +180,8 @@ void main() {
     await tester.tap(find.text(S.current.cancel));
     await tester.pumpAndSettle();
     expect(controller.deletes, 0);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
 
@@ -225,4 +232,3 @@ Widget _app(
   initialRoute: route,
   getPages: route == null ? null : [GetPage(name: route, page: () => child)],
 );
-

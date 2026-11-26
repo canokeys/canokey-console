@@ -694,31 +694,41 @@ class ConsoleSmoke {
     );
     final original = await _pivClient.readAlgorithmExtensions();
     _expect(original != null && original.enabled, 'Extensions are disabled');
-    final modern =
-        FirmwareVersion.parse(
-          expectedVersion,
-        ).compareTo(const FirmwareVersion(3, 1, 0)) >=
-        0;
-    final raw = Uint8List.fromList([
-      1,
-      original!.ed25519,
-      original.rsa3072,
-      original.rsa4096,
-      original.x25519,
-      original.secp256k1,
-      if (modern) original.secp521r1,
-      original.sm2,
-      if (modern) ...[original.mldsa65, original.mlkem768],
-    ]);
+    final firmware = FirmwareVersion.parse(expectedVersion);
+    final modern = firmware.compareTo(const FirmwareVersion(3, 1, 0)) >= 0;
+    final hasNewAlgorithms =
+        firmware.major == 4 && firmware.minor == 0 && original!.mldsa44 != null;
+    final configureThroughClient =
+        modern && (firmware.major < 4 || hasNewAlgorithms);
+    final raw = Uint8List.fromList(
+      modern
+          ? original!.encode()
+          : [
+              1,
+              original!.ed25519,
+              original.rsa3072,
+              original.rsa4096,
+              original.x25519,
+              original.secp256k1,
+              original.sm2,
+            ],
+    );
     try {
-      await _generatePivExtensionKeys('default');
+      await _generatePivExtensionKeys('default', hasNewAlgorithms);
       final custom = Uint8List.fromList(raw);
       custom[1] = 0x61; // Ed25519
       custom[4] = 0x64; // X25519
       custom[5] = 0x65; // secp256k1
       custom[raw.length == 7 ? 6 : 7] = 0x66; // SM2
-      await _setPivTestAlgorithmConfig(custom, modern: modern);
-      await _generatePivExtensionKeys('custom');
+      if (hasNewAlgorithms) {
+        custom[10] = 0x67; // ML-DSA-44
+        custom[11] = 0x68; // ML-KEM-512
+      }
+      await _setPivTestAlgorithmConfig(
+        custom,
+        throughClient: configureThroughClient,
+      );
+      await _generatePivExtensionKeys('custom', hasNewAlgorithms);
     } finally {
       await _pivClient.prepare();
       _expect(
@@ -728,21 +738,23 @@ class ConsoleSmoke {
         ),
         'PIV authentication failed while restoring configuration',
       );
-      await _setPivTestAlgorithmConfig(raw, modern: modern);
+      await _setPivTestAlgorithmConfig(
+        raw,
+        throughClient: configureThroughClient,
+      );
     }
   }
 
   Future<void> _setPivTestAlgorithmConfig(
     Uint8List raw, {
-    required bool modern,
+    required bool throughClient,
   }) async {
-    if (modern) {
+    if (throughClient) {
       await _pivClient.setAlgorithmConfig(raw);
       return;
     }
-    // Fixture setup only: libcanokey 0.1.3 gates config writes to 3.1+, even
-    // though 3.0.x implements EE/02. Configure this disposable device directly;
-    // generation, authentication and configuration discovery use Console.
+    // 3.0.x and the early 4.0.0 snapshot accept shorter layouts than libcanokey
+    // permits for writes. Configure only the disposable fixture directly.
     final binding = _pivClient.preparedBinding;
     try {
       final response = await _clientTransport('piv.fixture').transceive(
@@ -758,12 +770,16 @@ class ConsoleSmoke {
     }
   }
 
-  Future<void> _generatePivExtensionKeys(String mapping) async {
+  Future<void> _generatePivExtensionKeys(
+    String mapping,
+    bool hasNewAlgorithms,
+  ) async {
     for (final algorithm in [
       AlgorithmType.secp256k1,
       AlgorithmType.ed25519,
       AlgorithmType.x25519,
       AlgorithmType.sm2,
+      if (hasNewAlgorithms) ...[AlgorithmType.mldsa44, AlgorithmType.mlkem512],
     ]) {
       await _pivClient.prepare();
       _expect(

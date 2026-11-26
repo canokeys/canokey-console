@@ -3909,6 +3909,46 @@ class S {
     );
   }
 
+  /// `Choose a raw seed file`
+  String get pivSelectSeedFile {
+    return Intl.message(
+      'Choose a raw seed file',
+      name: 'pivSelectSeedFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The seed file must contain {length} bytes.`
+  String pivInvalidSeedLength(Object length) {
+    return Intl.message(
+      'The seed file must contain $length bytes.',
+      name: 'pivInvalidSeedLength',
+      desc: '',
+      args: [length],
+    );
+  }
+
+  /// `Decapsulate Ciphertext File`
+  String get pivDecapsulateFile {
+    return Intl.message(
+      'Decapsulate Ciphertext File',
+      name: 'pivDecapsulateFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The ciphertext file must contain {length} bytes.`
+  String pivInvalidCiphertextLength(Object length) {
+    return Intl.message(
+      'The ciphertext file must contain $length bytes.',
+      name: 'pivInvalidCiphertextLength',
+      desc: '',
+      args: [length],
+    );
+  }
+
   /// `PIN and Touch Policy`
   String get pivPinAndTouchPolicy {
     return Intl.message(

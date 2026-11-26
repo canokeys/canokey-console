@@ -310,12 +310,18 @@ impl ProtocolProfile {
     }
 
     #[flutter_rust_bridge::frb(sync)]
-    pub fn piv_decapsulate(&self, slot: u8, ciphertext: Vec<u8>) -> ProtocolOperation {
+    pub fn piv_decapsulate(
+        &self,
+        slot: u8,
+        ciphertext: Vec<u8>,
+        algorithm: u8,
+    ) -> ProtocolOperation {
         let ciphertext = SecretBytes::new(ciphertext);
         self.operation(|profile| {
-            piv::decapsulate(
+            piv::decapsulate_with_algorithm(
                 profile,
                 piv_slot(slot)?,
+                piv_display_algorithm(algorithm)?,
                 ciphertext,
                 piv::Access::Existing,
                 OperationOptions::default(),
@@ -336,7 +342,8 @@ impl ProtocolProfile {
 
     /// Firmware streaming signature modes: 0 = ML-DSA-65 with the empty context,
     /// 1 = randomized Ed25519 (wire mode FF), 2 = SM2 full message with an
-    /// optional user ID. Classic digest/padded signing stays with `piv_sign`.
+    /// optional user ID, 3 = ML-DSA-44 with the empty context.
+    /// Classic digest/padded signing stays with `piv_sign`.
     #[flutter_rust_bridge::frb(sync)]
     pub fn piv_sign_streaming(
         &self,
@@ -351,6 +358,7 @@ impl ProtocolProfile {
                 0 => piv::StreamingSignInput::MlDsa65(message),
                 1 => piv::StreamingSignInput::Ed25519Randomized(message),
                 2 => piv::StreamingSignInput::Sm2 { message, user_id },
+                3 => piv::StreamingSignInput::MlDsa44(message),
                 _ => return Err(Error::new(ErrorKind::InvalidArgument)),
             };
             piv::sign_streaming(
@@ -397,8 +405,8 @@ impl ProtocolProfile {
     }
 
     /// Import a post-quantum seed (INS FE): kind 0 = ML-DSA-65 (32-byte seed),
-    /// 1 = ML-KEM-768 (64-byte d||z seed). Semantics match the EC/RSA/Ed25519
-    /// imports: Access::Existing inside the caller's reserved transaction.
+    /// 1 = ML-KEM-768 (64 bytes), 2 = ML-DSA-44 (32 bytes),
+    /// 3 = ML-KEM-512 (64 bytes). The caller supplies management access.
     #[flutter_rust_bridge::frb(sync)]
     pub fn piv_import_pq_seed(
         &self,
@@ -413,6 +421,8 @@ impl ProtocolProfile {
             let material = match kind {
                 0 => piv::PrivateKeyMaterial::mldsa65_seed(seed.as_bytes())?,
                 1 => piv::PrivateKeyMaterial::mlkem768_seed(seed.as_bytes())?,
+                2 => piv::PrivateKeyMaterial::mldsa44_seed(seed.as_bytes())?,
+                3 => piv::PrivateKeyMaterial::mlkem512_seed(seed.as_bytes())?,
                 _ => return Err(Error::new(ErrorKind::InvalidArgument)),
             };
             let parameters = piv::KeyParameters {
@@ -484,6 +494,8 @@ impl ProtocolProfile {
                 Algorithm::X25519 => 0xe1,
                 Algorithm::MlDsa65 => 0xe2,
                 Algorithm::MlKem768 => 0xe3,
+                Algorithm::MlDsa44 => 0xe4,
+                Algorithm::MlKem512 => 0xe5,
             },
         )
     }
@@ -538,6 +550,8 @@ fn piv_display_algorithm(id: u8) -> Result<piv::Algorithm, Error> {
         0xe1 => X25519,
         0xe2 => MlDsa65,
         0xe3 => MlKem768,
+        0xe4 => MlDsa44,
+        0xe5 => MlKem512,
         _ => return Err(Error::new(ErrorKind::UnsupportedAlgorithm)),
     })
 }

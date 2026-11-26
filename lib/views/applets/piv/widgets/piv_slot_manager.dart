@@ -44,7 +44,7 @@ class PivSlotManager extends StatelessWidget {
       onGenerate:
           onGenerateSlot == null ||
               slot?.algorithm == AlgorithmType.x25519 ||
-              slot?.algorithm == AlgorithmType.mlkem768
+              (slot?.algorithm.isMlKem ?? false)
           ? null
           : () => onGenerateSlot!(slotNumber),
     );

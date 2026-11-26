@@ -406,6 +406,7 @@ abstract class RustLibApi extends BaseApi {
     required ProtocolProfile that,
     required int slot,
     required List<int> ciphertext,
+    required int algorithm,
   });
 
   ProtocolOperation crateApiProtocolProtocolProfilePivDeleteKey({
@@ -2774,6 +2775,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     required ProtocolProfile that,
     required int slot,
     required List<int> ciphertext,
+    required int algorithm,
   }) {
     return handler.executeSync(
       SyncTask(
@@ -2785,6 +2787,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
           sse_encode_u_8(slot, serializer);
           sse_encode_list_prim_u_8_loose(ciphertext, serializer);
+          sse_encode_u_8(algorithm, serializer);
           return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 60)!;
         },
         codec: SseCodec(
@@ -2793,7 +2796,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: null,
         ),
         constMeta: kCrateApiProtocolProtocolProfilePivDecapsulateConstMeta,
-        argValues: [that, slot, ciphertext],
+        argValues: [that, slot, ciphertext, algorithm],
         apiImpl: this,
       ),
     );
@@ -2802,7 +2805,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiProtocolProtocolProfilePivDecapsulateConstMeta =>
       const TaskConstMeta(
         debugName: "ProtocolProfile_piv_decapsulate",
-        argNames: ["that", "slot", "ciphertext"],
+        argNames: ["that", "slot", "ciphertext", "algorithm"],
       );
 
   @override
@@ -4418,8 +4421,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   CtapInfo dco_decode_ctap_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 6)
-      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
     return CtapInfo(
       credMgmt: dco_decode_opt_box_autoadd_bool(arr[0]),
       clientPin: dco_decode_opt_box_autoadd_bool(arr[1]),
@@ -4427,6 +4430,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       minPinLength: dco_decode_opt_box_autoadd_u_64(arr[3]),
       alwaysUv: dco_decode_opt_box_autoadd_bool(arr[4]),
       pinUvAuthProtocols: dco_decode_list_prim_u_8_strict(arr[5]),
+      supportsMlDsa44: dco_decode_bool(arr[6]),
     );
   }
 
@@ -5458,6 +5462,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_minPinLength = sse_decode_opt_box_autoadd_u_64(deserializer);
     var var_alwaysUv = sse_decode_opt_box_autoadd_bool(deserializer);
     var var_pinUvAuthProtocols = sse_decode_list_prim_u_8_strict(deserializer);
+    var var_supportsMlDsa44 = sse_decode_bool(deserializer);
     return CtapInfo(
       credMgmt: var_credMgmt,
       clientPin: var_clientPin,
@@ -5465,6 +5470,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       minPinLength: var_minPinLength,
       alwaysUv: var_alwaysUv,
       pinUvAuthProtocols: var_pinUvAuthProtocols,
+      supportsMlDsa44: var_supportsMlDsa44,
     );
   }
 
@@ -6740,6 +6746,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_box_autoadd_u_64(self.minPinLength, serializer);
     sse_encode_opt_box_autoadd_bool(self.alwaysUv, serializer);
     sse_encode_list_prim_u_8_strict(self.pinUvAuthProtocols, serializer);
+    sse_encode_bool(self.supportsMlDsa44, serializer);
   }
 
   @protected
@@ -7974,10 +7981,12 @@ class ProtocolProfileImpl extends RustOpaque implements ProtocolProfile {
   ProtocolOperation pivDecapsulate({
     required int slot,
     required List<int> ciphertext,
+    required int algorithm,
   }) => RustLib.instance.api.crateApiProtocolProtocolProfilePivDecapsulate(
     that: this,
     slot: slot,
     ciphertext: ciphertext,
+    algorithm: algorithm,
   );
 
   ProtocolOperation pivDeleteKey({required int slot}) => RustLib.instance.api
@@ -8008,8 +8017,8 @@ class ProtocolProfileImpl extends RustOpaque implements ProtocolProfile {
   );
 
   /// Import a post-quantum seed (INS FE): kind 0 = ML-DSA-65 (32-byte seed),
-  /// 1 = ML-KEM-768 (64-byte d||z seed). Semantics match the EC/RSA/Ed25519
-  /// imports: Access::Existing inside the caller's reserved transaction.
+  /// 1 = ML-KEM-768 (64 bytes), 2 = ML-DSA-44 (32 bytes),
+  /// 3 = ML-KEM-512 (64 bytes). The caller supplies management access.
   ProtocolOperation pivImportPqSeed({
     required int slot,
     required int kind,
@@ -8130,7 +8139,8 @@ class ProtocolProfileImpl extends RustOpaque implements ProtocolProfile {
 
   /// Firmware streaming signature modes: 0 = ML-DSA-65 with the empty context,
   /// 1 = randomized Ed25519 (wire mode FF), 2 = SM2 full message with an
-  /// optional user ID. Classic digest/padded signing stays with `piv_sign`.
+  /// optional user ID, 3 = ML-DSA-44 with the empty context.
+  /// Classic digest/padded signing stays with `piv_sign`.
   ProtocolOperation pivSignStreaming({
     required int slot,
     required int mode,

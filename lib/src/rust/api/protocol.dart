@@ -373,6 +373,7 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
   ProtocolOperation pivDecapsulate({
     required int slot,
     required List<int> ciphertext,
+    required int algorithm,
   });
 
   ProtocolOperation pivDeleteKey({required int slot});
@@ -391,8 +392,8 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
   });
 
   /// Import a post-quantum seed (INS FE): kind 0 = ML-DSA-65 (32-byte seed),
-  /// 1 = ML-KEM-768 (64-byte d||z seed). Semantics match the EC/RSA/Ed25519
-  /// imports: Access::Existing inside the caller's reserved transaction.
+  /// 1 = ML-KEM-768 (64 bytes), 2 = ML-DSA-44 (32 bytes),
+  /// 3 = ML-KEM-512 (64 bytes). The caller supplies management access.
   ProtocolOperation pivImportPqSeed({
     required int slot,
     required int kind,
@@ -459,7 +460,8 @@ abstract class ProtocolProfile implements RustOpaqueInterface {
 
   /// Firmware streaming signature modes: 0 = ML-DSA-65 with the empty context,
   /// 1 = randomized Ed25519 (wire mode FF), 2 = SM2 full message with an
-  /// optional user ID. Classic digest/padded signing stays with `piv_sign`.
+  /// optional user ID, 3 = ML-DSA-44 with the empty context.
+  /// Classic digest/padded signing stays with `piv_sign`.
   ProtocolOperation pivSignStreaming({
     required int slot,
     required int mode,
@@ -727,6 +729,7 @@ class CtapInfo {
   final BigInt? minPinLength;
   final bool? alwaysUv;
   final Uint8List pinUvAuthProtocols;
+  final bool supportsMlDsa44;
 
   const CtapInfo({
     this.credMgmt,
@@ -735,6 +738,7 @@ class CtapInfo {
     this.minPinLength,
     this.alwaysUv,
     required this.pinUvAuthProtocols,
+    required this.supportsMlDsa44,
   });
 
   @override
@@ -744,7 +748,8 @@ class CtapInfo {
       forcePinChange.hashCode ^
       minPinLength.hashCode ^
       alwaysUv.hashCode ^
-      pinUvAuthProtocols.hashCode;
+      pinUvAuthProtocols.hashCode ^
+      supportsMlDsa44.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -756,7 +761,8 @@ class CtapInfo {
           forcePinChange == other.forcePinChange &&
           minPinLength == other.minPinLength &&
           alwaysUv == other.alwaysUv &&
-          pinUvAuthProtocols == other.pinUvAuthProtocols;
+          pinUvAuthProtocols == other.pinUvAuthProtocols &&
+          supportsMlDsa44 == other.supportsMlDsa44;
 }
 
 class CtapRp {
@@ -937,7 +943,8 @@ class ProtocolError {
           retriesRemaining == other.retriesRemaining;
 }
 
-/// Exactly one field is present: exchange a command, consume a result, or fail.
+/// Exchange a command, consume a result, or fail. Configuration reads return
+/// both data and a replacement profile containing the validated observations.
 /// Command and result copies belong to Dart; getters never perform I/O.
 class ProtocolStep {
   final Uint8List? command;

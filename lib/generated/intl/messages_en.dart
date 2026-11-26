@@ -66,42 +66,47 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m18(algorithm) => "Generating a ${algorithm} key";
 
-  static String m19(slot) => "Recommended settings applied to ${slot}";
+  static String m19(length) =>
+      "The ciphertext file must contain ${length} bytes.";
 
-  static String m20(sourceSlot) => "Move Key from ${sourceSlot}";
+  static String m20(length) => "The seed file must contain ${length} bytes.";
 
-  static String m21(count) => "${count} occupied";
+  static String m21(slot) => "Recommended settings applied to ${slot}";
 
-  static String m22(action, slot) =>
+  static String m22(sourceSlot) => "Move Key from ${sourceSlot}";
+
+  static String m23(count) => "${count} occupied";
+
+  static String m24(action, slot) =>
       "${action} will replace the private key in slot ${slot}. Existing authentication or signing that depends on this key may stop working.";
 
-  static String m23(policy) => "PIN: ${policy}";
+  static String m25(policy) => "PIN: ${policy}";
 
-  static String m24(index) => "Retired ${index}";
+  static String m26(index) => "Retired ${index}";
 
-  static String m25(remaining, total) => "Retries: ${remaining}/${total}";
+  static String m27(remaining, total) => "Retries: ${remaining}/${total}";
 
-  static String m26(policy) => "Touch: ${policy}";
+  static String m28(policy) => "Touch: ${policy}";
 
-  static String m27(layout) => "Current: ${layout}";
+  static String m29(layout) => "Current: ${layout}";
 
-  static String m28(applet) =>
+  static String m30(applet) =>
       "Resetting ${applet} will permanently delete all its data.";
 
-  static String m29(min) => "At least ${min} characters";
+  static String m31(min) => "At least ${min} characters";
 
-  static String m30(max) => "At most ${max} characters";
+  static String m32(max) => "At most ${max} characters";
 
-  static String m31(length) => "Enter exactly ${length} characters";
+  static String m33(length) => "Enter exactly ${length} characters";
 
-  static String m32(max) => "Enter a whole number of at most ${max}.";
+  static String m34(max) => "Enter a whole number of at most ${max}.";
 
-  static String m33(min) => "Enter a whole number of at least ${min}.";
+  static String m35(min) => "Enter a whole number of at least ${min}.";
 
-  static String m34(name) =>
+  static String m36(name) =>
       "Delete the sign-in credential for ${name}? This cannot be undone. Make sure you have another way to sign in.";
 
-  static String m35(min) =>
+  static String m37(min) =>
       "The minimum PIN length can only be increased, and must be at least ${min}.";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -790,6 +795,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivDataRefreshIncomplete": MessageLookupByLibrary.simpleMessage(
       "Status could not be fully refreshed. Showing the last card data; read the card again to update it.",
     ),
+    "pivDecapsulateFile": MessageLookupByLibrary.simpleMessage(
+      "Decapsulate Ciphertext File",
+    ),
     "pivDelete": MessageLookupByLibrary.simpleMessage("Delete"),
     "pivDeleteSlot": m17,
     "pivDestinationSlot": MessageLookupByLibrary.simpleMessage(
@@ -899,6 +907,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivImportingPrivateKey": MessageLookupByLibrary.simpleMessage(
       "Importing a private key",
     ),
+    "pivInvalidCiphertextLength": m19,
+    "pivInvalidSeedLength": m20,
     "pivKeyGenerated": MessageLookupByLibrary.simpleMessage("Key Generated"),
     "pivKeyManagement": MessageLookupByLibrary.simpleMessage("Key Management"),
     "pivKeyMoved": MessageLookupByLibrary.simpleMessage("Key moved"),
@@ -941,7 +951,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivMacOsOtherSlot": MessageLookupByLibrary.simpleMessage(
       "For Mac login, set up 9A and 9D.",
     ),
-    "pivMacOsSlotApplied": m19,
+    "pivMacOsSlotApplied": m21,
     "pivMacSetupConsent": MessageLookupByLibrary.simpleMessage(
       "I confirm the key or certificate replacements listed above. Replaced keys cannot be recovered.",
     ),
@@ -1036,7 +1046,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivMoveKeyFailed": MessageLookupByLibrary.simpleMessage(
       "Could not move the key. Choose a destination slot with no key.",
     ),
-    "pivMoveKeyFrom": m20,
+    "pivMoveKeyFrom": m22,
     "pivMoveKeyPrompt": MessageLookupByLibrary.simpleMessage(
       "Only the private key is moved. Certificates remain in their current slots.",
     ),
@@ -1056,7 +1066,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "No public key available",
     ),
     "pivNotSelected": MessageLookupByLibrary.simpleMessage("Not selected"),
-    "pivOccupiedSlots": m21,
+    "pivOccupiedSlots": m23,
     "pivOldManagementKey": MessageLookupByLibrary.simpleMessage(
       "Current Management Key",
     ),
@@ -1073,7 +1083,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivOriginImported": MessageLookupByLibrary.simpleMessage("Imported"),
     "pivOverwrite": MessageLookupByLibrary.simpleMessage("Overwrite"),
     "pivOverwriteKey": MessageLookupByLibrary.simpleMessage("Overwrite Key"),
-    "pivOverwriteKeyPrompt": m22,
+    "pivOverwriteKeyPrompt": m24,
     "pivPageDescription": MessageLookupByLibrary.simpleMessage(
       "Manage PIV keys, certificates and PINs on CanoKey.",
     ),
@@ -1087,7 +1097,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivPinManagement": MessageLookupByLibrary.simpleMessage("PIN Management"),
     "pivPinPolicy": MessageLookupByLibrary.simpleMessage("PIN Policy"),
     "pivPinPolicyAlways": MessageLookupByLibrary.simpleMessage("Always"),
-    "pivPinPolicyChip": m23,
+    "pivPinPolicyChip": m25,
     "pivPinPolicyDefault": MessageLookupByLibrary.simpleMessage("Default"),
     "pivPinPolicyNever": MessageLookupByLibrary.simpleMessage("Never"),
     "pivPinPolicyOnce": MessageLookupByLibrary.simpleMessage("Once"),
@@ -1121,11 +1131,11 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "pivRetired1": MessageLookupByLibrary.simpleMessage("Retired 1"),
     "pivRetired2": MessageLookupByLibrary.simpleMessage("Retired 2"),
-    "pivRetiredSlot": m24,
+    "pivRetiredSlot": m26,
     "pivRetiredSlots": MessageLookupByLibrary.simpleMessage(
       "Retired key slots",
     ),
-    "pivRetries": m25,
+    "pivRetries": m27,
     "pivRetriesRemaining": MessageLookupByLibrary.simpleMessage(
       "Attempts remaining",
     ),
@@ -1149,6 +1159,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "pivSelectFilePrompt": MessageLookupByLibrary.simpleMessage(
       "Choose a certificate or private key in PEM or DER format",
+    ),
+    "pivSelectSeedFile": MessageLookupByLibrary.simpleMessage(
+      "Choose a raw seed file",
     ),
     "pivSelfSign": MessageLookupByLibrary.simpleMessage("Self-sign"),
     "pivSelfSignCertificate": MessageLookupByLibrary.simpleMessage(
@@ -1244,7 +1257,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pivTouchPolicyCached": MessageLookupByLibrary.simpleMessage(
       "Cached for 15 seconds",
     ),
-    "pivTouchPolicyChip": m26,
+    "pivTouchPolicyChip": m28,
     "pivTouchPolicyDefault": MessageLookupByLibrary.simpleMessage("Default"),
     "pivTouchPolicyNever": MessageLookupByLibrary.simpleMessage("Never"),
     "pivTransfer": MessageLookupByLibrary.simpleMessage("Import / export"),
@@ -1398,7 +1411,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsKeyboardLayout": MessageLookupByLibrary.simpleMessage(
       "Keyboard Layout",
     ),
-    "settingsKeyboardLayoutCurrent": m27,
+    "settingsKeyboardLayoutCurrent": m29,
     "settingsKeyboardLayoutCustom": MessageLookupByLibrary.simpleMessage(
       "Custom layout",
     ),
@@ -1434,7 +1447,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "settingsResetAllPrompt": MessageLookupByLibrary.simpleMessage(
       "All data will be erased. Once confirmed, the CanoKey will blink multiple times. Please touch it each time you see a blink until the success prompt appears.",
     ),
-    "settingsResetApplet": m28,
+    "settingsResetApplet": m30,
     "settingsResetConditionNotSatisfying": MessageLookupByLibrary.simpleMessage(
       "Cannot reset while the PIN is not blocked.",
     ),
@@ -1487,17 +1500,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "successfullyChanged": MessageLookupByLibrary.simpleMessage(
       "Successfully changed",
     ),
-    "validationAtLeastCharacters": m29,
-    "validationAtMostCharacters": m30,
-    "validationExactLength": m31,
+    "validationAtLeastCharacters": m31,
+    "validationAtMostCharacters": m32,
+    "validationExactLength": m33,
     "validationHexString": MessageLookupByLibrary.simpleMessage(
       "Please input a valid hexadecimal string.",
     ),
     "validationNumber": MessageLookupByLibrary.simpleMessage(
       "Enter a whole number.",
     ),
-    "validationNumberMax": m32,
-    "validationNumberMin": m33,
+    "validationNumberMax": m34,
+    "validationNumberMin": m35,
     "viewUserId": MessageLookupByLibrary.simpleMessage("View User ID"),
     "warning": MessageLookupByLibrary.simpleMessage("Warning"),
     "webAuthnCredentials": MessageLookupByLibrary.simpleMessage(
@@ -1540,7 +1553,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Settings were saved, but their status could not be refreshed. Read the CanoKey again.",
     ),
     "webauthnDangerZone": MessageLookupByLibrary.simpleMessage("Danger Zone"),
-    "webauthnDelete": m34,
+    "webauthnDelete": m36,
     "webauthnForcePinChange": MessageLookupByLibrary.simpleMessage(
       "Force PIN change after applying",
     ),
@@ -1559,7 +1572,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "webauthnMinPinLength": MessageLookupByLibrary.simpleMessage(
       "Minimum PIN Length",
     ),
-    "webauthnMinPinLengthHint": m35,
+    "webauthnMinPinLengthHint": m37,
     "webauthnPinAuthBlocked": MessageLookupByLibrary.simpleMessage(
       "The WebAuthn PIN is temporarily blocked. Reconnect CanoKey and try again.",
     ),

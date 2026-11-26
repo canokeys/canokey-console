@@ -80,6 +80,7 @@ class WebAuthnItem {
   String userDisplayName;
   List<int> userId;
   Uint8List credentialId;
+  final String? algorithmLabel;
 
   WebAuthnItem({
     required this.rpId,
@@ -87,5 +88,6 @@ class WebAuthnItem {
     required this.userDisplayName,
     required this.userId,
     required this.credentialId,
+    this.algorithmLabel,
   });
 }

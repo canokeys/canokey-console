@@ -738,6 +738,59 @@ fn streaming_profile(firmware: &[u8]) -> ProtocolProfile {
 }
 
 #[test]
+fn small_pq_operations_use_the_observed_wire_ids_on_4_0() {
+    let mut observations = canokey::compatibility::DeviceObservations::new(b"4.0.0".to_vec());
+    observations.piv_version = Some(canokey::compatibility::PivApplicationVersion([6, 0, 0]));
+    observations.algorithm_config = Some(
+        canokey::compatibility::AlgorithmConfig::parse(&[
+            1, 0xe0, 5, 0x16, 0xe1, 0x53, 0x15, 0x54, 0xe2, 0xe3, 0x67, 0x68,
+        ])
+        .unwrap(),
+    );
+    let profile = ProtocolProfile {
+        inner: Some(canokey::DeviceProfile::from_observations(observations).unwrap()),
+    };
+    for (display, wire, kind, tag, size) in [(0xe4, 0x67, 2, 0x09, 32), (0xe5, 0x68, 3, 0x0a, 64)] {
+        assert_eq!(profile.piv_algorithm_display_id(wire), Some(display));
+        let mut generation = profile.piv_generate_key(0x9d, display, 0, 0);
+        let command = generation.start().command.unwrap();
+        assert_eq!(&command[..4], &[0, 0x47, 0, 0x9d]);
+        assert!(command.windows(3).any(|bytes| bytes == [0x80, 1, wire]));
+
+        let mut import = profile.piv_import_pq_seed(0x9d, kind, vec![8; size], 0, 0);
+        let command = import.start().command.unwrap();
+        assert_eq!(&command[..4], &[0, 0xfe, wire, 0x9d]);
+        assert_eq!(&command[5..7], &[tag, size as u8]);
+    }
+
+    let mut sign = profile.piv_sign_streaming(0x9c, 3, b"abc".to_vec(), None);
+    assert_eq!(&sign.start().command.unwrap()[..4], &[0, 0x87, 0x67, 0x9c]);
+
+    let mut decapsulation = profile.piv_decapsulate(0x9d, vec![0; 768], 0xe5);
+    let mut command = decapsulation.start().command.unwrap();
+    assert_eq!(&command[..4], &[0x10, 0x87, 0x68, 0x9d]);
+    while command[0] == 0x10 {
+        command = decapsulation.advance(vec![0x90, 0]).command.unwrap();
+    }
+    let secret = vec![5; 32];
+    assert_eq!(
+        decapsulation
+            .advance([&[0x7c, 34, 0x82, 32][..], &secret, &[0x90, 0]].concat())
+            .data
+            .unwrap(),
+        secret
+    );
+    let mut wrong_length = profile.piv_decapsulate(0x9d, vec![0; 1088], 0xe5);
+    assert_eq!(wrong_length.start().error.unwrap().kind, "InvalidArgument");
+
+    // Earlier builds identify as 4.0.0 as well but lack the two observed IDs.
+    let early_4 = streaming_profile(b"4.0.0");
+    assert!(early_4.piv_algorithm_display_id(0xe4).is_none());
+    let mut unsupported = early_4.piv_generate_key(0x9c, 0xe4, 0, 0);
+    assert!(unsupported.start().error.is_some());
+}
+
+#[test]
 fn attest_keeps_wire_bytes_and_maps_card_failures() {
     let mut op = metadata_profile().piv_attest(0x9a);
     assert_eq!(op.start().command.unwrap(), [0, 0xf9, 0x9a, 0, 0]);
@@ -840,7 +893,7 @@ fn streaming_sign_owns_wire_bytes_and_result_validation() {
 #[test]
 fn streaming_sign_validates_mode_and_capabilities_before_io() {
     // Unknown modes and invalid slots fail without a command.
-    let mut op = streaming_profile(b"3.1.0").piv_sign_streaming(0x9a, 3, vec![1], None);
+    let mut op = streaming_profile(b"3.1.0").piv_sign_streaming(0x9a, 4, vec![1], None);
     assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
     let mut op = streaming_profile(b"3.1.0").piv_sign_streaming(0x80, 0, vec![1], None);
     assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
@@ -1131,7 +1184,7 @@ fn pq_seed_import_owns_seed_tlv_and_capability_gate() {
     assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
     let mut op = streaming_profile(b"3.1.0").piv_import_pq_seed(0x9a, 1, vec![8; 32], 0, 0);
     assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
-    let mut op = streaming_profile(b"3.1.0").piv_import_pq_seed(0x9a, 2, vec![7; 32], 0, 0);
+    let mut op = streaming_profile(b"3.1.0").piv_import_pq_seed(0x9a, 4, vec![7; 32], 0, 0);
     assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
     let mut op = streaming_profile(b"3.1.0").piv_import_pq_seed(0x96, 0, vec![7; 32], 0, 0);
     assert_eq!(op.start().error.unwrap().kind, "InvalidArgument");
@@ -1418,11 +1471,12 @@ fn ctap_fixture_token_v1() -> CtapPinToken {
 /// protocols [1, 2].
 fn ctap_get_info_payload() -> Vec<u8> {
     ctap_hex(
-        "a6 \
+        "a7 \
              01 82 684649444f5f325f30 684649444f5f325f31 \
              03 50 244eb29ee0904e4981fe1f20f8d3b8f4 \
              04 a4 62726bf5 68616c776179735576f5 68637265644d676d74f5 69636c69656e7450696ef4 \
              06 82 01 02 \
+             0a 81 a2 63616c67 382f 6474797065 6a7075626c69632d6b6579 \
              0c f5 \
              0d 04",
     )
@@ -1463,6 +1517,7 @@ fn ctap_get_info_parses_fields_and_keeps_ctap_status() {
     assert_eq!(info.min_pin_length, Some(4));
     assert_eq!(info.always_uv, Some(true));
     assert_eq!(info.pin_uv_auth_protocols, [1, 2]);
+    assert!(info.supports_ml_dsa44);
     assert_eq!(op.start().error.unwrap().kind, "OperationStateError");
 
     // A tri-state stays absent when the option is unadvertised: minimal
@@ -1477,6 +1532,7 @@ fn ctap_get_info_parses_fields_and_keeps_ctap_status() {
     assert_eq!(info.min_pin_length, None);
     assert_eq!(info.always_uv, None);
     assert!(info.pin_uv_auth_protocols.is_empty());
+    assert!(!info.supports_ml_dsa44);
 
     // A CTAP-level failure keeps the raw CTAP status byte (upstream carries
     // it in application_status; the bridge maps it to status_word).
@@ -1679,6 +1735,14 @@ fn ctap_enumerate_credentials_metadata_only_and_standard_encoding() {
     assert_eq!(entry.cred_protect, None);
     assert_eq!(entry.cose_algorithm, Some(-49));
     assert_eq!(entry.public_key, None);
+
+    let mut op = token.enumerate_credentials(CTAP_RP_ID_HASH.to_vec(), true);
+    ctap_after_select(&mut op);
+    let mut payload = ctap_hex(CTAP_RESP_CRED_META);
+    *payload.last_mut().unwrap() = 0x2f; // COSE -48, ML-DSA-44.
+    let entries = op.advance(ctap_ok(&payload)).ctap_credentials.unwrap();
+    assert_eq!(entries[0].cose_algorithm, Some(-48));
+    assert_eq!(entries[0].public_key, None);
 
     let mut op = token.enumerate_credentials(CTAP_RP_ID_HASH.to_vec(), false);
     ctap_after_select(&mut op);

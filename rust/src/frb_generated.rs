@@ -2996,6 +2996,7 @@ fn wire__crate__api__protocol__ProtocolProfile_piv_decapsulate_impl(
             >>::sse_decode(&mut deserializer);
             let api_slot = <u8>::sse_decode(&mut deserializer);
             let api_ciphertext = <Vec<u8>>::sse_decode(&mut deserializer);
+            let api_algorithm = <u8>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse::<_, ()>((move || {
                 let mut api_that_guard = None;
@@ -3017,6 +3018,7 @@ fn wire__crate__api__protocol__ProtocolProfile_piv_decapsulate_impl(
                         &*api_that_guard,
                         api_slot,
                         api_ciphertext,
+                        api_algorithm,
                     ))?;
                 std::result::Result::Ok(output_ok)
             })())
@@ -4820,6 +4822,7 @@ impl SseDecode for crate::api::protocol::CtapInfo {
         let mut var_minPinLength = <Option<u64>>::sse_decode(deserializer);
         let mut var_alwaysUv = <Option<bool>>::sse_decode(deserializer);
         let mut var_pinUvAuthProtocols = <Vec<u8>>::sse_decode(deserializer);
+        let mut var_supportsMlDsa44 = <bool>::sse_decode(deserializer);
         return crate::api::protocol::CtapInfo {
             cred_mgmt: var_credMgmt,
             client_pin: var_clientPin,
@@ -4827,6 +4830,7 @@ impl SseDecode for crate::api::protocol::CtapInfo {
             min_pin_length: var_minPinLength,
             always_uv: var_alwaysUv,
             pin_uv_auth_protocols: var_pinUvAuthProtocols,
+            supports_ml_dsa44: var_supportsMlDsa44,
         };
     }
 }
@@ -6276,6 +6280,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::protocol::CtapInfo {
             self.min_pin_length.into_into_dart().into_dart(),
             self.always_uv.into_into_dart().into_dart(),
             self.pin_uv_auth_protocols.into_into_dart().into_dart(),
+            self.supports_ml_dsa44.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -6907,6 +6912,7 @@ impl SseEncode for crate::api::protocol::CtapInfo {
         <Option<u64>>::sse_encode(self.min_pin_length, serializer);
         <Option<bool>>::sse_encode(self.always_uv, serializer);
         <Vec<u8>>::sse_encode(self.pin_uv_auth_protocols, serializer);
+        <bool>::sse_encode(self.supports_ml_dsa44, serializer);
     }
 }
 

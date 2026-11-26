@@ -42,6 +42,33 @@ void main() {
     }
   });
 
+  test('requires enabled, observed 4.0 IDs for the new PIV algorithms', () {
+    final raw = [...PivAlgorithmExtensionConfig.defaults.encode(), 0x67, 0x68];
+    final controller = controllerFor('4.0.0');
+    for (final algorithm in [AlgorithmType.mldsa44, AlgorithmType.mlkem512]) {
+      expect(controller.supportsAlgorithm(algorithm), isFalse);
+    }
+
+    final config = PivAlgorithmExtensionConfig.decode(raw);
+    controller.algorithmExtensionConfig = config;
+    expect(config.encode(), raw);
+    expect(config.toAlgorithmMap()[0x67], AlgorithmType.mldsa44);
+    expect(config.toAlgorithmMap()[0x68], AlgorithmType.mlkem512);
+    expect(controller.supportsAlgorithm(AlgorithmType.mldsa44), isTrue);
+    expect(controller.supportsAlgorithm(AlgorithmType.mlkem512), isTrue);
+
+    controller.algorithmExtensionConfig = PivAlgorithmExtensionConfig.decode([
+      0,
+      ...raw.skip(1),
+    ]);
+    expect(controller.supportsAlgorithm(AlgorithmType.mldsa44), isFalse);
+    expect(controller.supportsAlgorithm(AlgorithmType.mlkem512), isFalse);
+
+    final legacy = controllerFor('3.1.2')..algorithmExtensionConfig = config;
+    expect(legacy.supportsAlgorithm(AlgorithmType.mldsa44), isFalse);
+    expect(legacy.supportsAlgorithm(AlgorithmType.mlkem512), isFalse);
+  });
+
   test('limits algorithms on firmware without metadata support', () {
     final controller = controllerFor('1.6.2');
 

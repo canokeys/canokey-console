@@ -40,6 +40,8 @@ const PIV_ED25519: u8 = 0xE0;
 const PIV_X25519: u8 = 0xE1;
 const PIV_MLDSA65: u8 = 0xE2;
 const PIV_MLKEM768: u8 = 0xE3;
+const PIV_MLDSA44: u8 = 0xE4;
+const PIV_MLKEM512: u8 = 0xE5;
 
 const OID_RSA_ENCRYPTION: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.113549.1.1.1");
 const OID_EC_PUBLIC_KEY: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.10045.2.1");
@@ -52,6 +54,8 @@ const OID_ED25519: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.3.101.112"
 const OID_X25519: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.3.101.110");
 const OID_MLDSA65: ObjectIdentifier = ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.3.18");
 const OID_MLKEM768: ObjectIdentifier = ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.4.2");
+const OID_MLDSA44: ObjectIdentifier = ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.3.17");
+const OID_MLKEM512: ObjectIdentifier = ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.4.1");
 
 #[derive(Clone)]
 pub struct PivPublicKeyData {
@@ -186,7 +190,7 @@ pub fn build_piv_public_key(algorithm: u8, card_data: Vec<u8>) -> Result<PivPubl
             })
         }
         PIV_ECC_P256 | PIV_ECC_P384 | PIV_ECC_P521 | PIV_SECP256K1 | PIV_SM2 | PIV_ED25519
-        | PIV_X25519 | PIV_MLDSA65 | PIV_MLKEM768 => {
+        | PIV_X25519 | PIV_MLDSA65 | PIV_MLKEM768 | PIV_MLDSA44 | PIV_MLKEM512 => {
             let raw = tlv_value(key_data, 0x86)?.to_vec();
             public_key_data(algorithm, raw)
         }
@@ -470,7 +474,7 @@ pub fn prepare_piv_signing_input(
             data,
             public_key.ok_or_else(|| "SM2 public key is required".to_string())?,
         ),
-        PIV_ED25519 | PIV_MLDSA65 => Ok(data),
+        PIV_ED25519 | PIV_MLDSA65 | PIV_MLDSA44 => Ok(data),
         _ => Err("unsupported PIV signing algorithm".into()),
     }
 }
@@ -684,6 +688,8 @@ fn public_key_data(algorithm: u8, raw: Vec<u8>) -> Result<PivPublicKeyData, Stri
         PIV_X25519 => (OID_X25519, None),
         PIV_MLDSA65 => (OID_MLDSA65, None),
         PIV_MLKEM768 => (OID_MLKEM768, None),
+        PIV_MLDSA44 => (OID_MLDSA44, None),
+        PIV_MLKEM512 => (OID_MLKEM512, None),
         _ => return Err("unsupported PIV public key algorithm".into()),
     };
     let spki = SubjectPublicKeyInfo {
@@ -718,7 +724,9 @@ fn validate_raw_public_key(algorithm: u8, raw: &[u8]) -> Result<(), String> {
         PIV_ED25519 | PIV_X25519 if raw.len() == 32 => Ok(()),
         PIV_MLDSA65 if raw.len() == 1952 => Ok(()),
         PIV_MLKEM768 if raw.len() == 1184 => Ok(()),
-        PIV_ED25519 | PIV_X25519 | PIV_MLDSA65 | PIV_MLKEM768 => {
+        PIV_MLDSA44 if raw.len() == 1312 => Ok(()),
+        PIV_MLKEM512 if raw.len() == 800 => Ok(()),
+        PIV_ED25519 | PIV_X25519 | PIV_MLDSA65 | PIV_MLKEM768 | PIV_MLDSA44 | PIV_MLKEM512 => {
             Err("invalid public key length".into())
         }
         _ => Err("unsupported PIV public key algorithm".into()),
@@ -791,6 +799,7 @@ fn signature_algorithm(algorithm: u8) -> Result<AlgorithmIdentifier, String> {
         PIV_SM2 => ObjectIdentifier::new_unwrap("1.2.156.10197.1.501"),
         PIV_ED25519 => OID_ED25519,
         PIV_MLDSA65 => OID_MLDSA65,
+        PIV_MLDSA44 => OID_MLDSA44,
         _ => return Err("unsupported certificate signature algorithm".into()),
     };
     Ok(AlgorithmIdentifier {
@@ -820,6 +829,8 @@ fn algorithm_from_spki(spki: &SubjectPublicKeyInfo) -> Result<u8, String> {
         OID_X25519 => Ok(PIV_X25519),
         OID_MLDSA65 => Ok(PIV_MLDSA65),
         OID_MLKEM768 => Ok(PIV_MLKEM768),
+        OID_MLDSA44 => Ok(PIV_MLDSA44),
+        OID_MLKEM512 => Ok(PIV_MLKEM512),
         OID_EC_PUBLIC_KEY => {
             let curve = spki
                 .algorithm
@@ -1405,6 +1416,29 @@ mod tests {
         let certificate = finish_self_signed_certificate(tbs, PIV_MLDSA65, vec![0; 3309]).unwrap();
         assert!((5000..=6131).contains(&certificate.len()));
         assert!(parse_x509_cert_from_der(certificate).is_ok());
+    }
+
+    #[test]
+    fn roundtrips_new_piv_public_keys_with_the_standard_oids() {
+        for (algorithm, oid, length) in [
+            (PIV_MLDSA44, OID_MLDSA44, 1312),
+            (PIV_MLKEM512, OID_MLKEM512, 800),
+        ] {
+            let raw = vec![0; length];
+            let public = public_key_data(algorithm, raw.clone()).unwrap();
+            let spki = SubjectPublicKeyInfo::from_der(&public.subject_public_key_info).unwrap();
+            assert_eq!(spki.algorithm.oid, oid);
+            assert!(spki.algorithm.parameters.is_none());
+            assert_eq!(
+                parse_piv_public_key_info(algorithm, public.subject_public_key_info)
+                    .unwrap()
+                    .raw_public_key,
+                raw
+            );
+            assert!(public_key_data(algorithm, vec![0; length - 1]).is_err());
+        }
+        assert_eq!(signature_algorithm(PIV_MLDSA44).unwrap().oid, OID_MLDSA44);
+        assert!(signature_algorithm(PIV_MLKEM512).is_err());
     }
 
     #[test]

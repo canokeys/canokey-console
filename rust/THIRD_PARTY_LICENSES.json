@@ -229,62 +229,62 @@
   },
   {
     "package_name": "canokey",
-    "package_version": "0.1.0",
-    "repository": "",
+    "package_version": "0.1.6",
+    "repository": "https://github.com/canokeys/libcanokey",
     "license": "Apache-2.0"
   },
   {
     "package_name": "canokey-admin",
-    "package_version": "0.1.0",
-    "repository": "",
+    "package_version": "0.1.6",
+    "repository": "https://github.com/canokeys/libcanokey",
     "license": "Apache-2.0"
   },
   {
     "package_name": "canokey-compat",
-    "package_version": "0.1.0",
-    "repository": "",
+    "package_version": "0.1.6",
+    "repository": "https://github.com/canokeys/libcanokey",
     "license": "Apache-2.0"
   },
   {
     "package_name": "canokey-ctap",
-    "package_version": "0.1.0",
-    "repository": "",
+    "package_version": "0.1.6",
+    "repository": "https://github.com/canokeys/libcanokey",
     "license": "Apache-2.0"
   },
   {
     "package_name": "canokey-key",
-    "package_version": "0.1.0",
-    "repository": "",
+    "package_version": "0.1.6",
+    "repository": "https://github.com/canokeys/libcanokey",
     "license": "Apache-2.0"
   },
   {
     "package_name": "canokey-ndef",
-    "package_version": "0.1.0",
-    "repository": "",
+    "package_version": "0.1.6",
+    "repository": "https://github.com/canokeys/libcanokey",
     "license": "Apache-2.0"
   },
   {
     "package_name": "canokey-oath",
-    "package_version": "0.1.0",
-    "repository": "",
+    "package_version": "0.1.6",
+    "repository": "https://github.com/canokeys/libcanokey",
     "license": "Apache-2.0"
   },
   {
     "package_name": "canokey-openpgp",
-    "package_version": "0.1.0",
-    "repository": "",
+    "package_version": "0.1.6",
+    "repository": "https://github.com/canokeys/libcanokey",
     "license": "Apache-2.0"
   },
   {
     "package_name": "canokey-piv",
-    "package_version": "0.1.0",
-    "repository": "",
+    "package_version": "0.1.6",
+    "repository": "https://github.com/canokeys/libcanokey",
     "license": "Apache-2.0"
   },
   {
     "package_name": "canokey-protocol",
-    "package_version": "0.1.0",
-    "repository": "",
+    "package_version": "0.1.6",
+    "repository": "https://github.com/canokeys/libcanokey",
     "license": "Apache-2.0"
   },
   {

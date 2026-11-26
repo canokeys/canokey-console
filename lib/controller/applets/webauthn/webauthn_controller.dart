@@ -96,6 +96,12 @@ class WebAuthnController extends PollingController {
                 userDisplayName: credential.userDisplayName ?? '<unknown>',
                 userId: credential.userId ?? const [],
                 credentialId: credential.credentialId,
+                algorithmLabel:
+                    credential.coseAlgorithm == -48 &&
+                        firmwareVersion.major == 4 &&
+                        (_info?.supportsMlDsa44 ?? false)
+                    ? 'ML-DSA-44'
+                    : null,
               ),
             );
           }

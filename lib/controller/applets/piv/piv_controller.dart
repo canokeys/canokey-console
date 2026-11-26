@@ -146,6 +146,13 @@ class PivController extends PollingController {
   bool get supportsMetadataDirectory =>
       functionSetVersion == FunctionSetVersion.v5;
 
+  bool get _isFirmware40 =>
+      firmwareVersion.major == 4 && firmwareVersion.minor == 0;
+
+  bool get canConfigureAlgorithmIds =>
+      extendedRetiredSlots &&
+      (!_isFirmware40 || algorithmExtensionConfig.mldsa44 != null);
+
   bool supportsAlgorithm(AlgorithmType algorithm) {
     switch (algorithm) {
       case AlgorithmType.eccp256:
@@ -166,6 +173,11 @@ class PivController extends PollingController {
       case AlgorithmType.mlkem768:
         return supportsCurrentDevelopmentFeatures &&
             algorithmExtensionConfig.enabled;
+      case AlgorithmType.mldsa44:
+      case AlgorithmType.mlkem512:
+        return _isFirmware40 &&
+            algorithmExtensionConfig.enabled &&
+            algorithmExtensionConfig.mldsa44 != null;
       case AlgorithmType.unknown:
       case AlgorithmType.pin:
       case AlgorithmType.tdes:
@@ -1352,13 +1364,15 @@ class PivController extends PollingController {
     return c.future;
   }
 
-  Future<Uint8List?> decapsulateMlKem768(
+  Future<Uint8List?> decapsulate(
     String slot,
     String pin,
     Uint8List ciphertext,
+    AlgorithmType algorithm,
   ) async {
-    log.t('Call PivController.decapsulateMlKem768');
-    if (!supportsAlgorithm(AlgorithmType.mlkem768)) {
+    log.t('Call PivController.decapsulate');
+    if (algorithm.ciphertextLength != ciphertext.length ||
+        !supportsAlgorithm(algorithm)) {
       return null;
     }
     final c = Completer<Uint8List?>();
@@ -1371,7 +1385,11 @@ class PivController extends PollingController {
         }
         try {
           c.complete(
-            await _client.decapsulate(int.parse(slot, radix: 16), ciphertext),
+            await _client.decapsulate(
+              int.parse(slot, radix: 16),
+              ciphertext,
+              algorithm: algorithm,
+            ),
           );
         } on ProtocolException {
           c.complete(null);
@@ -1453,43 +1471,6 @@ class PivController extends PollingController {
     }
   }
 
-  Future<bool> importPostQuantumSeed(
-    String slotNumber,
-    AlgorithmType algorithm,
-    Uint8List seed,
-    PinPolicy pinPolicy,
-    TouchPolicy touchPolicy,
-  ) async {
-    log.t('Call PivController.importPostQuantumSeed');
-    if (!supportsAlgorithm(algorithm) ||
-        !_isValidPostQuantumSeed(algorithm, seed)) {
-      return false;
-    }
-    final c = Completer<bool>();
-    try {
-      await SmartCard.process((String sn) async {
-        await _client.prepare();
-        c.complete(
-          await _importPostQuantumSeedInSession(
-            slotNumber,
-            algorithm,
-            seed,
-            pinPolicy,
-            touchPolicy,
-          ),
-        );
-      });
-    } catch (_) {
-      if (!c.isCompleted) {
-        c.complete(false);
-      }
-    }
-    if (!c.isCompleted) {
-      c.complete(false);
-    }
-    return c.future;
-  }
-
   Future<bool> changeAlgorithmExtensionConfigAuthenticated({
     required PivAlgorithmExtensionConfig config,
     required String pin,
@@ -1531,19 +1512,17 @@ class PivController extends PollingController {
     required String managementKey,
     required bool usePinOnly,
     PivPrivateKeyData? privateKey,
-    Uint8List? mlDsaSeed,
-    Uint8List? mlKemSeed,
+    (AlgorithmType, Uint8List)? pqSeed,
     Uint8List? cert,
     required PinPolicy pinPolicy,
     required TouchPolicy touchPolicy,
   }) async {
     log.t('Call PivController.importAuthenticated');
-    if ((mlDsaSeed != null && !supportsAlgorithm(AlgorithmType.mldsa65)) ||
-        (mlKemSeed != null && !supportsAlgorithm(AlgorithmType.mlkem768)) ||
-        (mlDsaSeed != null &&
-            !_isValidPostQuantumSeed(AlgorithmType.mldsa65, mlDsaSeed)) ||
-        (mlKemSeed != null &&
-            !_isValidPostQuantumSeed(AlgorithmType.mlkem768, mlKemSeed))) {
+    if (pqSeed != null &&
+        (privateKey != null ||
+            cert != null ||
+            !supportsAlgorithm(pqSeed.$1) ||
+            pqSeed.$1.seedLength != pqSeed.$2.length)) {
       return false;
     }
     final c = Completer<bool>();
@@ -1571,22 +1550,11 @@ class PivController extends PollingController {
         c.complete(false);
         return;
       }
-      if (mlDsaSeed != null &&
+      if (pqSeed != null &&
           !await _importPostQuantumSeedInSession(
             slot,
-            AlgorithmType.mldsa65,
-            mlDsaSeed,
-            pinPolicy,
-            touchPolicy,
-          )) {
-        c.complete(false);
-        return;
-      }
-      if (mlKemSeed != null &&
-          !await _importPostQuantumSeedInSession(
-            slot,
-            AlgorithmType.mlkem768,
-            mlKemSeed,
+            pqSeed.$1,
+            pqSeed.$2,
             pinPolicy,
             touchPolicy,
           )) {
@@ -1634,9 +1602,11 @@ class PivController extends PollingController {
     final kind = switch (algorithm) {
       AlgorithmType.mldsa65 => 0,
       AlgorithmType.mlkem768 => 1,
+      AlgorithmType.mldsa44 => 2,
+      AlgorithmType.mlkem512 => 3,
       _ => null,
     };
-    if (kind == null || !_isValidPostQuantumSeed(algorithm, seed)) {
+    if (kind == null) {
       return false;
     }
     final copy = Uint8List.fromList(seed);
@@ -1786,7 +1756,7 @@ class PivController extends PollingController {
     return BigInt.parse(hex.encode(bytes), radix: 16);
   }
 
-  /// Sign through libcanokey; host-side digest/padding stays here. ML-DSA-65
+  /// Sign through libcanokey; host-side digest/padding stays here. ML-DSA
   /// messages and Ed25519 messages outside the classic input budget use the
   /// firmware streaming modes; SM2 keeps the host-computed ZA digest.
   Future<Uint8List?> _signInSession(
@@ -1797,10 +1767,10 @@ class PivController extends PollingController {
   ) async {
     final slotId = int.parse(slot, radix: 16);
     try {
-      if (algorithm == AlgorithmType.mldsa65) {
+      if (algorithm.isMlDsa) {
         return await _client.signStreaming(
           slot: slotId,
-          mode: 0,
+          mode: algorithm == AlgorithmType.mldsa44 ? 3 : 0,
           message: data,
         );
       }
@@ -1836,10 +1806,6 @@ class PivController extends PollingController {
       return null;
     }
   }
-
-  bool _isValidPostQuantumSeed(AlgorithmType algorithm, Uint8List seed) =>
-      (algorithm == AlgorithmType.mldsa65 && seed.length == 32) ||
-      (algorithm == AlgorithmType.mlkem768 && seed.length == 64);
 
   Future<bool> _verifyPinInSession(String pin) async {
     final ok = await _client.verifyPin(pin);

@@ -98,6 +98,10 @@ class WebAuthnItemCard extends StatelessWidget {
                       _detail(context, LucideIcons.user, item.userName),
                       const SizedBox(height: 10),
                       _detail(context, LucideIcons.globe, item.rpId),
+                      if (item.algorithmLabel case final algorithm?) ...[
+                        const SizedBox(height: 10),
+                        _detail(context, LucideIcons.key, algorithm),
+                      ],
                     ],
                   ),
                 ),

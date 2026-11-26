@@ -28,6 +28,7 @@ import 'package:canokey_console/helper/widgets/customized_container.dart';
 import 'package:canokey_console/helper/widgets/customized_text.dart';
 import 'package:canokey_console/helper/widgets/field_validator.dart';
 import 'package:canokey_console/helper/widgets/form_validator.dart';
+import 'package:canokey_console/helper/widgets/input_pin_dialog.dart';
 import 'package:canokey_console/helper/widgets/keyboard_safe_dialog.dart';
 import 'package:canokey_console/helper/widgets/poll_canokey_screen.dart';
 import 'package:canokey_console/helper/widgets/responsive.dart';
@@ -64,12 +65,13 @@ class _PivPageState extends State<PivPage>
     required String extension,
     required List<int> bytes,
     MimeType mimeType = MimeType.other,
+    bool shareOnMobile = true,
   }) async {
     controller.log.t('Call _PivPageState._savePivFile');
     final l10n = S.of(context);
     try {
-      final fileBytes = Uint8List.fromList(bytes);
-      if (isMobile()) {
+      final fileBytes = bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
+      if (shareOnMobile && isMobile()) {
         final box = context.findRenderObject() as RenderBox?;
         final result = await SharePlus.instance.share(
           ShareParams(
@@ -149,7 +151,7 @@ class _PivPageState extends State<PivPage>
     if (algorithm == AlgorithmType.x25519) {
       return '$base ${S.of(context).pivX25519CertificateDisabled}';
     }
-    if (algorithm == AlgorithmType.mlkem768) {
+    if (algorithm.isMlKem) {
       return '$base ${S.of(context).pivPostQuantumCertificateGenerationDisabled}';
     }
     if (algorithm == AlgorithmType.ed25519 || algorithm == AlgorithmType.sm2) {
@@ -282,7 +284,8 @@ class _PivPageState extends State<PivPage>
           builder: (_) => Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (controller.hasLoadedData && controller.extendedRetiredSlots)
+              if (controller.hasLoadedData &&
+                  controller.canConfigureAlgorithmIds)
                 IconButton(
                   tooltip: S.of(context).pivAlgorithmIds,
                   onPressed: _showAlgorithmExtensionConfigDialog,
@@ -753,6 +756,8 @@ class _PivPageState extends State<PivPage>
     addIdField('sm2', config.sm2);
     addIdField('mldsa65', config.mldsa65);
     addIdField('mlkem768', config.mlkem768);
+    if (config.mldsa44 case final id?) addIdField('mldsa44', id);
+    if (config.mlkem512 case final id?) addIdField('mlkem512', id);
 
     int idValue(String name) =>
         int.parse(validator.getController(name)!.text.trim());
@@ -840,6 +845,18 @@ class _PivPageState extends State<PivPage>
                                 'mlkem768',
                                 'ML-KEM-768',
                               ),
+                              if (config.mldsa44 != null)
+                                _buildAlgorithmIdField(
+                                  validator,
+                                  'mldsa44',
+                                  AlgorithmType.mldsa44.label,
+                                ),
+                              if (config.mlkem512 != null)
+                                _buildAlgorithmIdField(
+                                  validator,
+                                  'mlkem512',
+                                  AlgorithmType.mlkem512.label,
+                                ),
                             ],
                           ),
                         ],
@@ -881,6 +898,12 @@ class _PivPageState extends State<PivPage>
                           sm2: idValue('sm2'),
                           mldsa65: idValue('mldsa65'),
                           mlkem768: idValue('mlkem768'),
+                          mldsa44: config.mldsa44 == null
+                              ? null
+                              : idValue('mldsa44'),
+                          mlkem512: config.mlkem512 == null
+                              ? null
+                              : idValue('mlkem512'),
                         );
                         AppLoaderOverlay.show();
                         try {
@@ -1886,23 +1909,21 @@ class _PivPageState extends State<PivPage>
     final certBytes = controller.certificateBytes[slotId];
     final certificate = controller.certificates[slotId];
     final isX25519Slot = slot?.algorithm == AlgorithmType.x25519;
-    final isPostQuantumSlot =
-        slot?.algorithm == AlgorithmType.mldsa65 ||
-        slot?.algorithm == AlgorithmType.mlkem768;
+    final isMlDsaSlot = slot?.algorithm.isMlDsa ?? false;
+    final isMlKemSlot = slot?.algorithm.isMlKem ?? false;
     final canGenerateX25519Key =
         controller.supportsAlgorithm(AlgorithmType.x25519) &&
         slotNumber == '9D' &&
         (slot == null || isX25519Slot);
     final canGenerateStandaloneKey =
         controller.supportsAlgorithm(AlgorithmType.mlkem768) ||
+        controller.supportsAlgorithm(AlgorithmType.mlkem512) ||
+        controller.supportsAlgorithm(AlgorithmType.mldsa44) ||
         canGenerateX25519Key;
     final hasKnownAlgorithm = slot?.algorithm != AlgorithmType.unknown;
     final canGenerateCsr =
-        hasKnownAlgorithm && !isX25519Slot && !isPostQuantumSlot;
-    final canSelfSign =
-        hasKnownAlgorithm &&
-        !isX25519Slot &&
-        slot?.algorithm != AlgorithmType.mlkem768;
+        hasKnownAlgorithm && !isX25519Slot && !isMlDsaSlot && !isMlKemSlot;
+    final canSelfSign = hasKnownAlgorithm && !isX25519Slot && !isMlKemSlot;
     final provisioningActions = <Widget>[
       if (canGenerateCsr)
         _slotActionButton(
@@ -1956,7 +1977,7 @@ class _PivPageState extends State<PivPage>
       if (slot != null &&
           slot.origin == Origin.generated &&
           controller.extendedRetiredSlots &&
-          slot.algorithm != AlgorithmType.mlkem768)
+          !isMlKemSlot)
         _slotActionButton(
           text: S.of(context).pivDownloadAttestation,
           onPressed: () {
@@ -1967,9 +1988,19 @@ class _PivPageState extends State<PivPage>
     ];
     final diagnosticActions = <Widget>[
       if (slot != null &&
+          isMlKemSlot &&
+          controller.supportsAlgorithm(slot.algorithm))
+        _slotActionButton(
+          text: S.of(context).pivDecapsulateFile,
+          onPressed: () {
+            Navigator.pop(Get.context!);
+            _decapsulateFile(slotNumber, slot!.algorithm);
+          },
+        ),
+      if (slot != null &&
           hasKnownAlgorithm &&
           slot.algorithm != AlgorithmType.x25519 &&
-          slot.algorithm != AlgorithmType.mlkem768) ...[
+          !isMlKemSlot) ...[
         Builder(
           builder: (dialogContext) => _slotActionButton(
             text: S.of(context).pivSignMessage,
@@ -1984,7 +2015,7 @@ class _PivPageState extends State<PivPage>
             _showFileSignDialog(slotNumber, slot!);
           },
         ),
-        if (slot.algorithm != AlgorithmType.mldsa65)
+        if (!isMlDsaSlot)
           _slotActionButton(
             text: S.of(context).pivVerifyFile,
             onPressed: () {
@@ -2688,6 +2719,59 @@ class _PivPageState extends State<PivPage>
     AppDialog.replace(currentDialogContext, dialog, useSafeArea: false);
   }
 
+  Future<void> _decapsulateFile(
+    String slotNumber,
+    AlgorithmType algorithm,
+  ) async {
+    final files = await FilePicker.pickFiles();
+    final file = files.firstOrNull;
+    if (file == null || !mounted) return;
+    final ciphertext = await file.xFile.readAsBytes();
+    if (!mounted) return;
+    final s = S.of(context);
+    final length = algorithm.ciphertextLength!;
+    if (ciphertext.length != length) {
+      Prompts.showPrompt(
+        s.pivInvalidCiphertextLength(length),
+        ContentThemeColor.danger,
+      );
+      return;
+    }
+    final navigator = Navigator.of(context);
+    InputPinDialog.show(
+      title: s.pivDecapsulateFile,
+      label: 'PIN',
+      prompt: s.pivOperationRequiresPin,
+      validators: [LengthValidator(min: 6, max: 8)],
+      onSubmit: (pin, _) async {
+        final secret = await controller.decapsulate(
+          slotNumber,
+          pin,
+          ciphertext,
+          algorithm,
+        );
+        if (secret == null) {
+          Prompts.showPrompt(s.operationFailed, ContentThemeColor.danger);
+          return;
+        }
+        try {
+          if (mounted &&
+              await _savePivFile(
+                name: 'shared-secret',
+                extension: 'bin',
+                bytes: secret,
+                shareOnMobile: false,
+              ) &&
+              navigator.mounted) {
+            navigator.pop();
+          }
+        } finally {
+          secret.fillRange(0, secret.length, 0);
+        }
+      },
+    );
+  }
+
   void _showFileSignDialog(String slotNumber, SlotInfo slot) {
     controller.log.t('Call _PivPageState._showFileSignDialog');
     FormValidator validator = FormValidator();
@@ -3001,11 +3085,22 @@ class _PivPageState extends State<PivPage>
       ],
     );
     PivPrivateKeyData? privateKey;
+    (AlgorithmType, Uint8List)? pqSeed;
+    final seedAlgorithms = AlgorithmType.values
+        .where(
+          (algorithm) =>
+              algorithm.seedLength != null &&
+              controller.supportsAlgorithm(algorithm),
+        )
+        .toList();
     X509CertData? cert;
     Uint8List? certBytes;
 
+    AlgorithmType? selectedAlgorithm() =>
+        pqSeed?.$1 ?? _selectedImportAlgorithm(privateKey);
+
     bool certificateMatchesSelectedKey() {
-      if (certBytes == null || !hasKey.value) {
+      if (certBytes == null || privateKey == null) {
         return true;
       }
       return _certificateMatchesPrivateKey(
@@ -3026,7 +3121,7 @@ class _PivPageState extends State<PivPage>
       importWarnings.clear();
       importErrors.clear();
 
-      final algorithm = _selectedImportAlgorithm(privateKey);
+      final algorithm = selectedAlgorithm();
 
       if (algorithm != null && !controller.supportsAlgorithm(algorithm)) {
         importErrors.add(
@@ -3107,6 +3202,10 @@ class _PivPageState extends State<PivPage>
       }
 
       AppLoaderOverlay.show();
+      final seed = pqSeed;
+      final seedCopy = seed == null
+          ? null
+          : (seed.$1, Uint8List.fromList(seed.$2));
       try {
         await SmartCard.processSequence(() async {
           final importSuccess = await controller.importAuthenticated(
@@ -3115,6 +3214,7 @@ class _PivPageState extends State<PivPage>
             managementKey: authValidator.getController('managementKey')!.text,
             usePinOnly: usePinOnly,
             privateKey: privateKey,
+            pqSeed: seedCopy,
             cert: certBytes,
             pinPolicy: pinPolicy,
             touchPolicy: touchPolicy,
@@ -3135,6 +3235,7 @@ class _PivPageState extends State<PivPage>
           Navigator.pop(Get.context!);
         });
       } finally {
+        seedCopy?.$2.fillRange(0, seedCopy.$2.length, 0);
         AppLoaderOverlay.hide();
       }
     }
@@ -3150,6 +3251,9 @@ class _PivPageState extends State<PivPage>
     var importDialogClosed = false;
 
     void releasePrivateKey() {
+      final seed = pqSeed;
+      pqSeed = null;
+      seed?.$2.fillRange(0, seed.$2.length, 0);
       final key = privateKey;
       privateKey = null;
       if (key != null) {
@@ -3193,11 +3297,34 @@ class _PivPageState extends State<PivPage>
     }
 
     String keySummary() {
-      final algorithm = _selectedImportAlgorithm(privateKey);
+      final algorithm = selectedAlgorithm();
       if (algorithm == null) {
         return S.of(context).pivEmpty;
       }
       return _algorithmLabel(algorithm);
+    }
+
+    Future<void> pickSeed(AlgorithmType algorithm) async {
+      final files = await FilePicker.pickFiles();
+      final file = files.firstOrNull;
+      if (file == null || importDialogClosed || !mounted) return;
+      final bytes = await file.xFile.readAsBytes();
+      if (importDialogClosed || !mounted) {
+        bytes.fillRange(0, bytes.length, 0);
+        return;
+      }
+      resetImportState();
+      selected.value = true;
+      if (bytes.length != algorithm.seedLength) {
+        bytes.fillRange(0, bytes.length, 0);
+        parseMessage.value = S
+            .of(context)
+            .pivInvalidSeedLength(algorithm.seedLength!);
+        return;
+      }
+      pqSeed = (algorithm, bytes);
+      hasKey.value = true;
+      analyzeSelectedImport();
     }
 
     AppDialog.show(
@@ -3334,6 +3461,27 @@ class _PivPageState extends State<PivPage>
                                     textAlign: TextAlign.center,
                                   ),
                               ],
+                              if (hasKey.value && pqSeed != null)
+                                Text(keySummary()),
+                              if (seedAlgorithms.isNotEmpty)
+                                PopupMenuButton<AlgorithmType>(
+                                  onSelected: pickSeed,
+                                  itemBuilder: (context) => [
+                                    for (final algorithm in seedAlgorithms)
+                                      PopupMenuItem(
+                                        value: algorithm,
+                                        child: Text(
+                                          '${algorithm.label} (${_formatBytes(algorithm.seedLength!)})',
+                                        ),
+                                      ),
+                                  ],
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8),
+                                    child: Text(
+                                      S.of(context).pivSelectSeedFile,
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
                         ),
@@ -3348,8 +3496,7 @@ class _PivPageState extends State<PivPage>
                       CustomizedText.bodySmall(
                         _slotUsageHint(
                           slotNumber,
-                          _selectedImportAlgorithm(privateKey) ??
-                              AlgorithmType.eccp256,
+                          selectedAlgorithm() ?? AlgorithmType.eccp256,
                         ),
                       ),
                       Spacing.height(12),
@@ -3759,8 +3906,10 @@ class _PivPageState extends State<PivPage>
                                             AlgorithmType.secp256k1,
                                             AlgorithmType.sm2,
                                             AlgorithmType.ed25519,
-                                            if (selfSigned)
+                                            if (selfSigned) ...[
                                               AlgorithmType.mldsa65,
+                                              AlgorithmType.mldsa44,
+                                            ],
                                             AlgorithmType.rsa2048,
                                             AlgorithmType.rsa3072,
                                             AlgorithmType.rsa4096,
@@ -4088,6 +4237,8 @@ class _PivPageState extends State<PivPage>
     final algorithms = <AlgorithmType>[
       if (slotNumber == '9D') AlgorithmType.x25519,
       AlgorithmType.mlkem768,
+      AlgorithmType.mlkem512,
+      AlgorithmType.mldsa44,
     ].where(controller.supportsAlgorithm).toList();
     AlgorithmType algorithm = algorithms.first;
     PinPolicy pinPolicy = recommendedPivPinPolicy(slotNumber);

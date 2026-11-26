@@ -299,6 +299,7 @@ pub struct CtapInfo {
     pub min_pin_length: Option<u64>,
     pub always_uv: Option<bool>,
     pub pin_uv_auth_protocols: Vec<u8>,
+    pub supports_ml_dsa44: bool,
 }
 
 pub struct CtapRp {

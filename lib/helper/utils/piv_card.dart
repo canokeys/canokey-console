@@ -118,7 +118,8 @@ class PivCardClient extends ProfileCardClient {
   }
 
   /// Firmware streaming modes: 0 = ML-DSA-65 (empty context), 1 = randomized
-  /// Ed25519, 2 = SM2 full message. Classic digest/padded signing uses [sign].
+  /// Ed25519, 2 = SM2 full message, 3 = ML-DSA-44 (empty context).
+  /// Classic digest/padded signing uses [sign].
   Future<Uint8List> signStreaming({
     required int slot,
     required int mode,
@@ -145,10 +146,17 @@ class PivCardClient extends ProfileCardClient {
             profile.pivDerive(slot: slot, algorithm: algorithm, peer: peer),
       );
 
-  Future<Uint8List> decapsulate(int slot, Uint8List ciphertext) async =>
-      _executePrepared(
-        (profile) => profile.pivDecapsulate(slot: slot, ciphertext: ciphertext),
-      );
+  Future<Uint8List> decapsulate(
+    int slot,
+    Uint8List ciphertext, {
+    required AlgorithmType algorithm,
+  }) async => _executePrepared(
+    (profile) => profile.pivDecapsulate(
+      slot: slot,
+      ciphertext: ciphertext,
+      algorithm: algorithm.value,
+    ),
+  );
 
   /// [algorithm] is a semantic AlgorithmType.value, matching [key].
   Future<void> importPrivateKey({
@@ -170,7 +178,8 @@ class PivCardClient extends ProfileCardClient {
   }
 
   /// Import a post-quantum seed (INS FE): kind 0 = ML-DSA-65 (32-byte seed),
-  /// 1 = ML-KEM-768 (64-byte d||z seed).
+  /// 1 = ML-KEM-768 (64 bytes), 2 = ML-DSA-44 (32 bytes),
+  /// 3 = ML-KEM-512 (64 bytes).
   Future<void> importPqSeed({
     required int slot,
     required int kind,

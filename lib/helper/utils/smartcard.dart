@@ -722,13 +722,17 @@ class SmartCard {
     final ccidBootstrapSerial = ccid ? _ccidBootstrapSerial : null;
     session.bind((command) async {
       try {
-        log.d('C-APDU: $command');
+        final header = command.length >= 8 ? command.substring(0, 8) : '-';
+        log.d('C-APDU: $header (${command.length ~/ 2} bytes)');
         final response = ccid
             ? await (card ?? (throw StateError('Card is not connected')))
                   .transceive(command)
             : await FlutterNfcKit.transceive(command);
         if (response == null) throw StateError('Transceive failed');
-        log.d('R-APDU: $response');
+        final status = response.length >= 4
+            ? response.substring(response.length - 4)
+            : '-';
+        log.d('R-APDU: SW=$status (${response.length ~/ 2} bytes)');
         return response;
       } catch (_) {
         // Isolate a failed/timed-out backend before the use-case lock is freed.

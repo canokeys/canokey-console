@@ -1034,6 +1034,45 @@ void main() {
     expect(find.text('Download Attestation'), findsNothing);
   });
 
+  testWidgets('offers ML-KEM-512 decapsulation and 4.0 key generation', (
+    tester,
+  ) async {
+    final controller = _TestPivController()
+      ..polled = true
+      ..functionSetVersion = FunctionSetVersion.v5
+      ..firmwareVersion = const FirmwareVersion(4, 0, 0)
+      ..algorithmExtensionConfig = PivAlgorithmExtensionConfig.decode([
+        ...PivAlgorithmExtensionConfig.defaults.encode(),
+        0x67,
+        0x68,
+      ])
+      ..slots[0x9D] = _slot(0x9D, AlgorithmType.mlkem512);
+    Get.put<PivController>(controller);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    tester.widget<PivSlotListItem>(_slotItem('9D')).onTap();
+    await tester.pumpAndSettle();
+
+    expect(find.text(S.current.pivDecapsulateFile), findsOneWidget);
+    expect(find.text(S.current.pivSignMessage), findsNothing);
+    await tester.ensureVisible(find.text(S.current.pivGenerateKey));
+    await tester.tap(find.text(S.current.pivGenerateKey));
+    await tester.pumpAndSettle();
+
+    final dropdown = tester.widget<DropdownButton<AlgorithmType>>(
+      find.byWidgetPredicate(
+        (widget) => widget is DropdownButton<AlgorithmType>,
+      ),
+    );
+    expect(
+      dropdown.items!.map((item) => item.value),
+      containsAll([AlgorithmType.mldsa44, AlgorithmType.mlkem512]),
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
   testWidgets(
     'offers ML-DSA self-signing and attestation but not standalone generation',
     (tester) async {

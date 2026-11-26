@@ -2,6 +2,7 @@
 library;
 
 import 'package:canokey_console/helper/utils/smartcard.dart';
+import 'package:canokey_console/helper/utils/logging.dart';
 import 'package:canokey_console/src/rust/frb_generated.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -39,6 +40,7 @@ void main() {
             return null;
           case 'transceive':
             final command = (call.arguments as Map)['capdu'] as String;
+            if (command == '00FE679D04A1A2A3A4') return 'B1B2B3B49000';
             return command.startsWith('00A4') ? '9000' : '001145149000';
           case 'disconnect':
             disconnects++;
@@ -58,6 +60,11 @@ void main() {
       });
 
       await _waitUntil(() => SmartCard.connectionType == ConnectionType.ccid);
+      expect(await SmartCard.transceive('00FE679D04A1A2A3A4'), 'B1B2B3B49000');
+      expect(Logging.store.text, contains('C-APDU: 00FE679D (9 bytes)'));
+      expect(Logging.store.text, contains('R-APDU: SW=9000 (6 bytes)'));
+      expect(Logging.store.text, isNot(contains('A1A2A3A4')));
+      expect(Logging.store.text, isNot(contains('B1B2B3B4')));
       readers = [];
       await _waitUntil(() => SmartCard.connectionType == ConnectionType.none);
       readers = ['CanoKey Pigeon'];

@@ -14,6 +14,7 @@ class WebAuthnInfo {
     required this.minPinLength,
     required this.alwaysUv,
     required this.pinUvAuthProtocols,
+    this.supportsMlDsa44 = false,
   });
 
   final bool? credMgmt;
@@ -22,6 +23,7 @@ class WebAuthnInfo {
   final int? minPinLength;
   final bool? alwaysUv;
   final List<int> pinUvAuthProtocols;
+  final bool supportsMlDsa44;
 
   /// The ClientPIN protocol to speak: prefer V2 when advertised, like the
   /// former fido2 package; fall back to V1 (the CTAP2 default).
@@ -34,6 +36,7 @@ class WebAuthnInfo {
     minPinLength: info.minPinLength?.toInt(),
     alwaysUv: info.alwaysUv,
     pinUvAuthProtocols: List.unmodifiable(info.pinUvAuthProtocols),
+    supportsMlDsa44: info.supportsMlDsa44,
   );
 }
 

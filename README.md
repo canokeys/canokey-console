@@ -1,260 +1,47 @@
 # CanoKey Console
 
-![Build Apps](https://github.com/canokeys/canokey-console/actions/workflows/build.yml/badge.svg)
-![Deploy Web App](https://github.com/canokeys/canokey-console/actions/workflows/deploy.yml/badge.svg)
+CanoKey Console manages your CanoKey over USB or NFC. Use it to manage OATH one-time codes, FIDO passkeys, PIV and OpenPGP keys, and device settings.
 
-CanoKey Console is a cross-platform application that allows you to manage your CanoKey via NFC or USB connections. Built with Flutter, it provides a modern and intuitive interface for interacting with your CanoKey device.
+## Install
 
-## Features
+| Platform | Where to get Console |
+| --- | --- |
+| Web | [CanoKey Console Web](https://console.canokeys.org) in Chrome or another browser with WebUSB |
+| Android | [Google Play](https://play.google.com/store/apps/details?id=org.canokeys.console) |
+| iPhone and iPad | [App Store](https://apps.apple.com/app/canokey-console/id6476454147) |
+| Windows | [GitHub Releases](https://github.com/canokeys/canokey-console/releases/latest) |
+| macOS | [Homebrew](https://github.com/canokeys/homebrew-tap) |
+| Linux | [Snap Store](https://snapcraft.io/canokey-console) |
 
-- 🔌 Connect to CanoKey via USB or NFC
-- 🛠️ OATH-TOTP token management
-- 🌐 Cross-platform support (Web, Android, iOS, Windows, macOS, Linux)
-- 🌍 Internationalization support
-- 🎨 Modern Material Design interface
+On **Windows**, extract the entire ZIP and run `canokey-console.exe`. Keep the DLLs and `data` folder alongside it.
 
-## Installation
+On **macOS**, install with Homebrew. Console supports macOS 12 and later on Intel and Apple Silicon.
 
-### Web Version
+```sh
+brew install --cask canokeys/tap/canokey-console
+```
 
-Visit our web application at [CanoKey Console Web](https://console.canokeys.org)
+On **Linux**, connect the Snap’s PC/SC interface to use CanoKey over USB. The Snap is available for AMD64 and ARM64.
 
-### Mobile Apps
-
-- Android: Download from [Google Play Store](https://play.google.com/store/apps/details?id=org.canokeys.console)
-- iOS: Download from [App Store](https://apps.apple.com/app/canokey-console/id6476454147)
-
-### Linux (Snap)
-
-Install from the [Snap Store](https://snapcraft.io/canokey-console), then connect
-the smart-card interface and launch the app:
-
-```bash
+```sh
 sudo snap install canokey-console
 sudo snap connect canokey-console:pcscd
 snap run canokey-console
 ```
 
-Packages are available for AMD64 and ARM64. The `pcscd` connection is required
-to access CanoKey over USB.
+## Use your CanoKey
 
-### macOS (Homebrew)
+- To read a CanoKey over NFC, open the applet you want to use. Start a scan when prompted and hold the key near your phone until reading finishes.
+- On supported 4.0 firmware, **PIV** offers ML-DSA-44 signing and ML-KEM-512 decapsulation. To import a raw seed for either algorithm, open a slot and choose **Import > Choose a raw seed file**. To decapsulate, open an ML-KEM slot and choose **Decapsulate Ciphertext File**.
+- **WebAuthn** labels ML-DSA-44 passkeys when the connected authenticator reports support for the algorithm.
+- To use CanoKey to sign in to a Mac and unlock its login keychain, follow the [macOS login guide](docs/piv-macos-login.md).
 
-```bash
-brew install --cask canokeys/tap/canokey-console
-```
+## Troubleshooting
 
-To update an existing installation:
+Open **Settings > View Logs** to inspect or copy recent diagnostic messages. The app keeps up to 500 entries in memory for the current session. You can pause recording from the same screen. Review copied logs before sharing them.
 
-```bash
-brew update
-brew upgrade --cask canokeys/tap/canokey-console
-```
-
-Requires macOS 12 (Monterey) or later. The app supports both Intel and Apple
-Silicon Macs and is signed and notarized by Apple.
-
-### Windows
-
-Download [CanoKey Console 1.3.5 for Windows (x64)](https://github.com/canokeys/canokey-console/releases/download/v1.3.5/canokey-console-1.3.5-windows-x64.zip),
-extract the entire ZIP, and run `canokey-console.exe` from the extracted folder.
-Keep the bundled DLLs and `data` folder alongside the executable.
-
-See [GitHub Releases](https://github.com/canokeys/canokey-console/releases) for
-available versions and downloads.
-
-## Development
-
-### Prerequisites
-
-- Flutter SDK 3.47.1
-- Dart SDK 3.13.1 or higher
-- Rust 1.98.1 with the `rust-src` component installed for native builds
-- Rust nightly-2026-09-04 with `rust-src` for web builds
-
-### Setup
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/canokeys/canokey-console.git
-   cd canokey-console
-   ```
-
-2. Install dependencies:
-   ```bash
-   cargo install flutter_rust_bridge_codegen --version 2.13.0 --locked
-   cargo install cargo-bundle-licenses
-   flutter pub get
-   ```
-
-3. Run the application:
-   ```bash
-   flutter_rust_bridge_codegen build-web --release --wasm-pack-rustup-toolchain nightly-2026-09-04 # for web only
-   flutter run
-   ```
-
-For Chrome development, run `flutter run -d chrome --cross-origin-isolation`
-to enable the headers required for shared WASM memory.
-
-The `wasm-bindgen` crate family is pinned in `rust/Cargo.toml` and the
-`wasm-bindgen-cli` used by `wasm-pack` must match it (currently 0.2.128).
-If `wasm-pack` cannot reuse an installed helper and fails while compiling
-`wasm-bindgen-cli` with WASM linker flags on the host, install the matching
-helper separately, e.g. `cargo +stable install wasm-bindgen-cli --version 0.2.128 --locked`,
-and ensure its `bin` directory is on `PATH` before rebuilding.
-
-After changing Rust code or regenerating Flutter Rust Bridge bindings, rebuild
-the web bundle with the `build-web` command above, then stop and relaunch the
-Flutter app. Hot restart does not recompile Rust. A content-hash mismatch means
-the loaded WASM bundle and generated Dart bindings are out of sync.
-
-If hot restart reports `Identifier 'wasm_bindgen' has already been declared`,
-fully reload the browser page or stop and relaunch the app. The bridge's web
-loader inserts its script again on hot restart, while the previous script's
-global declaration remains in the page.
-
-## Diagnostic Logs
-
-Open **Settings > View Logs** to inspect this session's local logs without a
-connected key. Recording is enabled by default and can be paused with the switch.
-All levels from TRACE up are captured, keeping the latest 500 events in memory.
-The read-only text box displays full messages, errors, and stack traces, with
-text selection and a button to copy all displayed logs. Logs are cleared on
-restart or browser reload; pausing recording retains the existing text.
-
-Application logging uses `Logging.logger(tag)` with ordinary messages. Logs are
-not redacted, truncated, or deduplicated: protocol payloads, account identifiers,
-QR contents, and exception details remain visible and are included when copied.
-
-The recording switch does not affect Debug console output or its existing level
-filter. Page navigation and applet operation calls are logged alongside protocol
-traffic. Logs and unhandled errors remain local and are not uploaded.
-
-## Building
-
-If you change any Rust dependencies (`Cargo.lock`), please run:
-
-```bash
-cd rust && cargo bundle-licenses -f json | jq '.third_party_libraries | del(.[].licenses)' > THIRD_PARTY_LICENSES.json
-```
-
-PIV selection, version and algorithm-configuration reads now use a pinned
-libcanokey Rust dependency through Flutter Rust Bridge. See the
-[migration boundary and next steps](docs/libcanokey-migration.md) for the
-implemented scope, session requirements and validation commands.
-
-Before running backend or USB/IP tests locally, build the native backend:
-
-```bash
-cargo build --manifest-path rust/Cargo.toml --release --locked
-flutter test --tags native
-```
-
-### Web
-
-```bash
-flutter_rust_bridge_codegen build-web --release --wasm-pack-rustup-toolchain nightly-2026-09-04
-flutter build web
-```
-
-### Android
-
-```bash
-flutter build apk
-```
-
-### iOS
-
-```bash
-flutter build ios
-```
-
-### Desktop
-
-```bash
-flutter build windows
-flutter build macos
-```
-
-### Linux Snap
-
-Install the Linux build dependencies and Snapcraft, then build the release
-bundle and package it:
-
-```bash
-sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev \
-  liblzma-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
-  libcurl4-openssl-dev openjdk-17-jdk
-sudo snap install snapcraft --classic
-flutter build linux --release
-sudo sh -c 'umask 022; exec /snap/bin/snapcraft pack --destructive-mode'
-```
-
-The CI builds Snap packages natively for both AMD64 and ARM64.
-
-Install and run the locally built package:
-
-```bash
-sudo snap install --dangerous ./canokey-console_*.snap
-sudo snap connect canokey-console:pcscd
-snap run canokey-console
-```
-
-The `pcscd` interface does not auto-connect by default. A Snap Store
-auto-connection grant can remove the manual connection step for store installs.
-
-## USB/IP Compatibility Tests
-
-The USB/IP workflow tests Console's CCID protocol against every released firmware in the
-[`canokey-usbip`](https://github.com/canokeys/canokey-usbip) release map. The matrix is generated
-from the harness catalog, so newly cataloged firmware releases are included without duplicating
-version lists in this repository. Console additionally includes firmware 3.0.3 for the
-PIV regression test while it is absent from the upstream catalog. The preparation script
-reuses the harness’s existing fabrication patch for this virtual firmware’s initialization.
-The development `head`
-entry is not a released firmware version.
-
-The tests require a Linux host with the `canokey-usbip` runner prerequisites and a Flutter SDK.
-To run one firmware locally:
-
-```bash
-git clone https://github.com/canokeys/canokey-usbip.git /tmp/canokey-usbip
-flutter pub get
-python3 tool/prepare_usbip_catalog.py /tmp/canokey-usbip
-/tmp/canokey-usbip/compat/run \
-  --core-ref 3.0.3 \
-  --require ccid \
-  --require pcsc \
-  --test-command 'bash test/usbip/run.sh'
-```
-
-The smoke test exercises Admin, OpenPGP, PIV, OATH, NDEF, WebAuthn, and supported Pass
-operations through the same `ccid` package used by Console on disposable virtual devices.
-On firmware 3.0.1 and newer it also generates secp256k1, Ed25519, X25519, and SM2 PIV keys
-with default and custom algorithm IDs, compares their public keys with slot metadata,
-then reopens each occupied slot without management authentication and checks that
-reauthentication resolves its algorithm. It also loads the PIV page after each generated
-key to verify automatic default management key authentication on firmware 3.0.x and
-public configuration reads on newer firmware. It restores the original algorithm
-configuration. Its JSON result is stored with the USB/IP
-diagnostics as `console-smoke.json`.
-
-## Contributing
-
-We welcome contributions! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+For more help, see the [CanoKey documentation](https://docs.canokeys.org) or open an issue on [GitHub](https://github.com/canokeys/canokey-console/issues).
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-If you encounter any issues or have questions, please:
-- Open an issue on our [GitHub Issues](https://github.com/canokeys/canokey-console/issues) page
-- Visit our [Documentation](https://docs.canokeys.org)
+CanoKey Console is distributed under the [MIT License](LICENSE).

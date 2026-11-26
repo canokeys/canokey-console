@@ -20,52 +20,97 @@ import 'package:canokey_console/helper/utils/app_platform.dart';
 import 'package:timer_controller/timer_controller.dart';
 
 class OathController extends PollingController {
-  OathController({OathCardClient? client})
-    : _client = client ?? OathCardClient();
+  OathController({OathCardClient? client, DateTime Function()? now})
+    : _client = client ?? OathCardClient(),
+      _now = now ?? DateTime.now;
+
+  static const _totpPeriodSeconds = 30;
+  static const _totpPeriodMs = _totpPeriodSeconds * 1000;
+
   final OathCardClient _client;
-  final TimerController timerController = TimerController.seconds(30);
+  final DateTime Function() _now;
+  final TimerController timerController = TimerController.seconds(
+    _totpPeriodSeconds,
+  );
   final Rxn<QrScanResult> qrScanResult = Rxn<QrScanResult>();
   final _localCodeCache = CredentialCache('OATH');
   final Map<String, OathItem> oathMap = {};
   OathVersion version = OathVersion.v1;
+  AppLifecycleListener? _lifecycleListener;
+  int? _totpChallenge;
+
+  int get _currentChallenge => _now().millisecondsSinceEpoch ~/ _totpPeriodMs;
 
   @override
   Logger get log => Logging.logger('OATH:Controller');
 
   @override
   void onReady() {
-    super.onReady();
     // The timer is started inside a card session and inherits its zone.
     // Run expiry handling in the page's zone so a refresh opens a new session.
-    timerController.addListener(
-      Zone.current.bindCallback(() {
-        if (timerController.value.remaining == 0) {
-          // set codes to empty for TOTP with touch required
-          for (var name in oathMap.keys) {
-            if (oathMap[name]!.requireTouch ||
-                isMobile() && oathMap[name]!.type == OathType.totp) {
-              oathMap[name]!.code = '';
-            }
-          }
-          update();
-          if (SmartCard.connectionType != ConnectionType.nfc) {
-            unawaited(
-              refreshData().catchError((Object error, StackTrace stack) {
-                log.w(
-                  'OATH timer refresh failed',
-                  error: error,
-                  stackTrace: stack,
-                );
-              }),
-            );
-          }
+    final onExpiry = Zone.current.bindCallback(_expireTotpCodes);
+    timerController.addListener(() {
+      if (timerController.value.status != TimerStatus.finished) return;
+      if (isMobile()) {
+        final state = WidgetsBinding.instance.lifecycleState;
+        if (state == AppLifecycleState.hidden ||
+            state == AppLifecycleState.paused ||
+            state == AppLifecycleState.detached) {
+          // Leave the challenge available for the foreground time check.
+          return;
         }
+      }
+      onExpiry();
+    });
+    if (isMobile()) {
+      _lifecycleListener = AppLifecycleListener(
+        onResume: Zone.current.bindCallback(_resumeTotpCountdown),
+      );
+    }
+    super.onReady();
+  }
+
+  void _resumeTotpCountdown() {
+    final challenge = _totpChallenge;
+    if (challenge == null) return;
+
+    final nowMs = _now().millisecondsSinceEpoch;
+    if (challenge == nowMs ~/ _totpPeriodMs) {
+      _restartCountdown(challenge, nowMs);
+    } else {
+      timerController.reset();
+      _expireTotpCodes();
+    }
+  }
+
+  void _clearExpiredTotpCodes() {
+    for (final item in oathMap.values) {
+      if (item.type == OathType.totp && (item.requireTouch || isMobile())) {
+        item.code = '';
+      }
+    }
+  }
+
+  void _expireTotpCodes() {
+    _totpChallenge = null;
+    _clearExpiredTotpCodes();
+    update();
+
+    final connection = SmartCard.connectionType;
+    if (connection != ConnectionType.ccid &&
+        connection != ConnectionType.webusb) {
+      return;
+    }
+    unawaited(
+      refreshData().catchError((Object error, StackTrace stack) {
+        log.w('OATH timer refresh failed', error: error, stackTrace: stack);
       }),
     );
   }
 
   @override
   void onClose() {
+    _lifecycleListener?.dispose();
     _client.cancelPendingOperations();
     timerController.dispose();
     super.onClose();
@@ -234,25 +279,21 @@ class OathController extends PollingController {
           return;
         }
 
-        String? challengeHex;
-        if (type == OathType.totp) {
-          int challenge = DateTime.now().millisecondsSinceEpoch ~/ 30000;
-          challengeHex = challenge.toRadixString(16).padLeft(16, '0');
-        }
+        final challenge = type == OathType.totp ? _currentChallenge : null;
         final (digits, rawCode) = await _client.calculate(
           name: name,
           type: type,
-          challengeHex: challengeHex,
+          challengeHex: challenge?.toRadixString(16).padLeft(16, '0'),
           key: key,
         );
-        code = formatOathCode(
-          rawCode: rawCode,
-          digits: digits,
-          format: oathMap[name]!.format,
-        );
+        if (challenge == null || _trackTotpChallenge(challenge)) {
+          code = formatOathCode(
+            rawCode: rawCode,
+            digits: digits,
+            format: oathMap[name]!.format,
+          );
+        }
         oathMap[name]!.code = code;
-
-        _startTimer();
         update();
       } finally {
         key?.fillRange(0, key.length, 0);
@@ -533,14 +574,18 @@ class OathController extends PollingController {
   }
 
   Future<void> _refresh(Uint8List? key) async {
-    int challenge = DateTime.now().millisecondsSinceEpoch ~/ 30000;
+    final challenge = _currentChallenge;
     String challengeStr = challenge.toRadixString(16).padLeft(16, '0');
     final entries = await _client.calculateAll(challengeStr, key: key);
+    final isCurrentChallenge = _trackTotpChallenge(challenge);
     polled = true;
 
     var items = entries.map(_itemOf).toList();
     // update oathMap with items
     for (var item in items) {
+      if (!isCurrentChallenge && item.type == OathType.totp) {
+        item.code = '';
+      }
       if (oathMap.containsKey(item.name)) {
         // only update code
         if (item.code.isNotEmpty) {
@@ -562,15 +607,26 @@ class OathController extends PollingController {
       oathMap.remove(name);
     }
 
-    _startTimer();
     update();
   }
 
-  void _startTimer() {
-    int running = DateTime.now().millisecondsSinceEpoch ~/ 1000 % 30;
+  bool _trackTotpChallenge(int challenge) {
+    final nowMs = _now().millisecondsSinceEpoch;
+    final isCurrent = challenge == nowMs ~/ _totpPeriodMs;
+    if (challenge != _totpChallenge || !isCurrent) {
+      _clearExpiredTotpCodes();
+    }
+    _totpChallenge = challenge;
+    _restartCountdown(challenge, nowMs);
+    return isCurrent;
+  }
+
+  void _restartCountdown(int challenge, int nowMs) {
+    final remainingMs = (challenge + 1) * _totpPeriodMs - nowMs;
     timerController.reset();
-    timerController.value = new TimerValue(
-      remaining: 30 - running,
+    timerController.value = TimerValue(
+      // A read that crossed the boundary expires after the card session ends.
+      remaining: ((remainingMs + 999) ~/ 1000).clamp(1, _totpPeriodSeconds),
       unit: TimerUnit.second,
     );
     timerController.start();
