@@ -32,8 +32,6 @@ snap run canokey-console
 ## Use your CanoKey
 
 - To read a CanoKey over NFC, open the applet you want to use. Start a scan when prompted and hold the key near your phone until reading finishes.
-- On supported 4.0 firmware, **PIV** offers ML-DSA-44 signing and ML-KEM-512 decapsulation. To import a raw seed for either algorithm, open a slot and choose **Import > Choose a raw seed file**. To decapsulate, open an ML-KEM slot and choose **Decapsulate Ciphertext File**.
-- **WebAuthn** labels ML-DSA-44 passkeys when the connected authenticator reports support for the algorithm.
 - To use CanoKey to sign in to a Mac and unlock its login keychain, follow the [macOS login guide](docs/piv-macos-login.md).
 
 ## Troubleshooting
